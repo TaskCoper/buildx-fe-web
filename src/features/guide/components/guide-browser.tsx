@@ -10,8 +10,6 @@ import { Input } from '@/shared/components/ui/input'
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/components/ui/tooltip'
 import { useDebouncedValue } from '@/shared/hooks'
-import { useAuthStore } from '@/shared/auth'
-import { useCmsCollection } from '@/shared/cms'
 import { JOURNEY_POPUP_TEST_MODE } from '@/shared/constants'
 import { cn } from '@/shared/lib/utils'
 import { GUIDE_PAGE_SIZE } from '../constants/guide.constants'
@@ -46,8 +44,6 @@ interface GuideBrowserProps {
 
 export function GuideBrowser({ onCreateProject }: GuideBrowserProps) {
   const t = useTranslations('guide')
-  const user = useAuthStore((state) => state.user)
-  const transactions = useCmsCollection('transactions')
   const [term, setTerm] = useState('')
   const [page, setPage] = useState(0)
   const [pageDirection, setPageDirection] = useState(1)
@@ -79,18 +75,6 @@ export function GuideBrowser({ onCreateProject }: GuideBrowserProps) {
   const { data: videos, isPending: videosPending } = useGuideVideos()
   const { data: articles, isPending: articlesPending } = useGuideArticles()
   const [carouselWidth, setCarouselWidth] = useState(0)
-  // S5 = đã thanh toán gói giám sát. Không dựa vào chủ dự án giám sát: bản mock gán
-  // chủ cho bất kỳ ai mở bảng điều khiển giám sát, làm mất popup sau khi xem video.
-  const isS5 = Boolean(
-    user?.email &&
-    transactions.some(
-      (transaction) =>
-        transaction.customerEmail.toLowerCase() === user.email.toLowerCase() &&
-        transaction.status === 'paid' &&
-        (transaction.tier === 'check' || transaction.tier === 'control')
-    )
-  )
-
   useEffect(() => {
     const viewport = carouselViewportRef.current
     if (!viewport) return
@@ -256,7 +240,6 @@ export function GuideBrowser({ onCreateProject }: GuideBrowserProps) {
   }
 
   function showEndCard(video: GuideVideo) {
-    if (isS5) return
     const sessionKey = `savico.page-popup.guide.${video.id}`
     if (!JOURNEY_POPUP_TEST_MODE && window.sessionStorage.getItem(sessionKey) === '1') return
     if (!JOURNEY_POPUP_TEST_MODE) window.sessionStorage.setItem(sessionKey, '1')
@@ -277,31 +260,20 @@ export function GuideBrowser({ onCreateProject }: GuideBrowserProps) {
       pulseNextSuggestion(playing)
     }
     const qualifiedOnClose = pendingQualifiedRef.current?.id === playing?.id ? pendingQualifiedRef.current : null
-    const unavailableVideoFallback = playing && !playing.videoUrl ? playing : null
     if (qualifiedOnClose && playing && !getProgress(playing.id)?.completed) pulseNextSuggestion(playing)
     const trigger = playOrigin?.element
     setPlaying(null)
     setPlayOrigin(null)
     if (qualifiedOnClose) showEndCard(qualifiedOnClose)
-    else if (unavailableVideoFallback) showEndCard(unavailableVideoFallback)
     requestAnimationFrame(() => trigger?.focus())
   }
 
-  function handleQualified(video: GuideVideo, reason: 'threshold' | 'ended') {
-    if (isS5) return
+  function handleQualified(video: GuideVideo, _reason: 'threshold' | 'ended') {
     const sessionKey = `savico.page-popup.guide.${video.id}`
     if (!JOURNEY_POPUP_TEST_MODE && window.sessionStorage.getItem(sessionKey) === '1') return
 
     pendingQualifiedRef.current = video
     setQualifiedVideo(video)
-
-    if (reason === 'ended') {
-      pulseNextSuggestion(video)
-      window.dispatchEvent(new Event('savico:guide-video-stop'))
-      setPlaying(null)
-      setPlayOrigin(null)
-      showEndCard(video)
-    }
   }
 
   function browseMoreGuides() {
@@ -496,7 +468,7 @@ export function GuideBrowser({ onCreateProject }: GuideBrowserProps) {
         </AnimatePresence>
       </motion.div>
 
-      {qualifiedVideo && !isS5 ? (
+      {qualifiedVideo ? (
         <GuideCompletionExperience
           video={qualifiedVideo}
           popupOpen={endCardOpen}
@@ -507,7 +479,7 @@ export function GuideBrowser({ onCreateProject }: GuideBrowserProps) {
       ) : null}
 
       {videosPending ? (
-        <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
+        <div className='mx-auto grid w-full max-w-3xl gap-4 sm:grid-cols-2 lg:grid-cols-3'>
           {[0, 1, 2, 3, 4, 5].map((i) => (
             <Skeleton key={i} className='h-64 w-full rounded-xl' />
           ))}
@@ -560,7 +532,7 @@ export function GuideBrowser({ onCreateProject }: GuideBrowserProps) {
                 }
               }}
             >
-              <div className={cn('relative mx-auto w-full', !singlePage && 'px-12 sm:px-14 lg:px-16')}>
+              <div className='relative mx-auto w-full max-w-4xl px-0 lg:px-16'>
                 {/* Mũi tên nằm NGOÀI lưới, canh giữa theo chiều dọc — mờ nghỉ,
                     rõ khi rê vào cả khối carousel, tắt hẳn nếu chỉ có 1 trang. */}
                 {!singlePage ? (

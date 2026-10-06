@@ -178,8 +178,8 @@ export function ConsultantProfile({
 
   return (
     <AnimatePresence>
-      <motion.div key={consultant.id} className='space-y-6'>
-        <header className='flex flex-col gap-4 sm:flex-row'>
+      <motion.div key={consultant.id} className='w-full min-w-0 max-w-full space-y-6 break-words'>
+        <header className='flex min-w-0 max-w-full flex-col gap-4 sm:flex-row'>
           <motion.div {...entrance(0)} className='aspect-square w-28 shrink-0 sm:w-32'>
             <button
               type='button'
@@ -205,7 +205,7 @@ export function ConsultantProfile({
             </button>
           </motion.div>
 
-          <div className='min-w-0 space-y-2'>
+          <div className='w-full min-w-0 max-w-full space-y-2'>
             <motion.div {...entrance(1)}>
               <h1 className='text-xl font-semibold tracking-tight sm:text-2xl'>{consultant.name}</h1>
               <p className='text-muted-foreground text-sm max-md:text-base'>{consultant.title}</p>
@@ -216,7 +216,7 @@ export function ConsultantProfile({
               )}
             </motion.div>
 
-            <ul className='text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-1 text-xs max-md:text-sm'>
+            <ul className='text-muted-foreground flex min-w-0 max-w-full flex-wrap items-center gap-x-4 gap-y-1 text-xs max-md:text-sm'>
               <motion.li {...entrance(2)} className='flex items-center gap-1'>
                 <SparkleStar />
                 <span className='text-foreground font-medium'>{consultant.rating.toFixed(1)}</span>
@@ -236,7 +236,7 @@ export function ConsultantProfile({
 
             <motion.div {...entrance(5)} className='space-y-0.5'>
               {consultant.bio.map((line) => (
-                <p key={line} className='text-sm max-md:text-base leading-relaxed'>
+                <p key={line} className='text-sm max-md:text-base leading-relaxed break-words'>
                   {line}
                 </p>
               ))}

@@ -16,7 +16,7 @@ import { useTranslations } from 'next-intl'
 import type { ReactNode } from 'react'
 
 import { Link } from '@/i18n/navigation'
-import { Logo, Photo } from '@/shared/components/common'
+import { Photo, PopupBrandLogo } from '@/shared/components/common'
 import { Button } from '@/shared/components/ui/button'
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from '@/shared/components/ui/dialog'
 import { ROUTES } from '@/shared/constants/routes'
@@ -82,9 +82,18 @@ function GuideCompletionSection({ video, onCreateProject, onBrowseGuides }: EndC
       initial={reduceMotion ? false : { opacity: 0, y: 18 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: reduceMotion ? 0 : 0.36, ease: [0.22, 1, 0.36, 1] }}
-      className='mb-8 overflow-hidden rounded-[20px] border bg-card shadow-[0_16px_44px_-34px_rgba(42,117,63,.28)]'
+      className='relative isolate mb-8 overflow-hidden rounded-[20px] border border-primary/15 bg-gradient-to-br from-card via-accent/20 to-primary/10 shadow-[0_16px_44px_-34px_rgba(42,117,63,.28)]'
     >
-      <div className='grid min-h-[250px] items-center gap-8 px-7 py-7 min-[900px]:grid-cols-[56px_minmax(0,1fr)_320px] lg:px-10 max-[899px]:px-5 max-[899px]:py-6'>
+      <div
+        aria-hidden
+        className='bg-primary/10 pointer-events-none absolute -top-28 -right-20 size-[340px] rounded-full blur-3xl'
+      />
+      <div
+        aria-hidden
+        className='bg-accent/35 pointer-events-none absolute -bottom-32 left-[42%] h-56 w-80 rounded-full blur-3xl'
+      />
+
+      <div className='relative z-10 grid min-h-[250px] items-center gap-8 px-7 py-7 min-[900px]:grid-cols-[56px_minmax(0,1fr)_320px] lg:px-10 max-[899px]:px-5 max-[899px]:py-6'>
         <motion.div
           initial={reduceMotion ? false : { scale: 0.72, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -217,18 +226,12 @@ function GuideEndCardDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
+        position='center'
         showCloseButton={false}
-        className='max-h-[calc(100dvh-20px)] w-[min(1080px,calc(100vw-24px))] max-w-[1080px] gap-0 overflow-x-hidden overflow-y-auto rounded-[24px] border-0 bg-background p-0 shadow-2xl sm:max-w-[1080px] max-[899px]:inset-x-0 max-[899px]:bottom-0 max-[899px]:top-auto max-[899px]:flex max-[899px]:h-[90dvh] max-[899px]:max-h-[90dvh] max-[899px]:w-full max-[899px]:max-w-full max-[899px]:translate-x-0 max-[899px]:translate-y-0 max-[899px]:flex-col max-[899px]:overflow-hidden max-[899px]:rounded-b-none max-[899px]:rounded-t-[24px]'
+        className='max-h-[calc(100dvh-24px)] w-[min(1080px,calc(100vw-24px))] max-w-[1080px] gap-0 overflow-x-hidden overflow-y-auto rounded-[24px] border-0 bg-background p-0 shadow-2xl sm:max-w-[1080px] max-[899px]:flex max-[899px]:w-[calc(100vw-24px)] max-[899px]:max-w-[calc(100vw-24px)] max-[899px]:flex-col max-[899px]:rounded-[24px]'
       >
         <div className='relative shrink-0 bg-background px-5 pt-5 sm:px-6 max-[899px]:pb-3'>
-          <motion.div
-            initial={reduceMotion ? false : { opacity: 0, y: -6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: reduceMotion ? 0 : 0.26, ease: [0.22, 1, 0.36, 1] }}
-            className='absolute top-5 left-6 hidden origin-top-left min-[900px]:block'
-          >
-            <Logo className='origin-top-left scale-[0.92]' />
-          </motion.div>
+          <PopupBrandLogo />
 
           <motion.div
             initial={reduceMotion ? false : { opacity: 0, y: -6, scale: 0.96 }}
@@ -261,7 +264,7 @@ function GuideEndCardDialog({
           </motion.div>
         </div>
 
-        <div className='grid gap-4 px-4 pt-5 sm:px-6 min-[900px]:grid-cols-3 max-[899px]:min-h-0 max-[899px]:flex-1 max-[899px]:overflow-y-auto max-[899px]:overscroll-contain max-[899px]:pt-2 max-[899px]:pb-4'>
+        <div className='grid gap-4 px-4 pt-5 sm:px-6 min-[900px]:grid-cols-3 max-[899px]:min-h-0 max-[899px]:pt-2 max-[899px]:pb-4'>
           <EndCardOption
             tone='orange'
             image={TOPIC_IMAGE.site}
@@ -329,15 +332,7 @@ function GuideEndCardDialog({
           />
         </div>
 
-        <div className='flex shrink-0 justify-end bg-background px-5 pt-4 pb-4 sm:px-6 max-[899px]:border-t max-[899px]:border-border/70 max-[899px]:pt-3'>
-          <button
-            type='button'
-            onClick={() => onOpenChange(false)}
-            className='text-muted-foreground hover:text-foreground text-sm underline decoration-current/60 underline-offset-4 transition-colors duration-150'
-          >
-            {t('later')}
-          </button>
-        </div>
+        <div aria-hidden className='h-4 shrink-0 bg-background max-[899px]:h-3' />
       </DialogContent>
     </Dialog>
   )

@@ -1,13 +1,12 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Bot, X } from 'lucide-react'
+import { Bot } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
 import { ChatPanel, useProactiveChat } from '@/features/chatbot'
 import { useChatContextStore } from '@/shared/chat-context'
 import { AssistantDrawer } from '@/shared/components/assistant-drawer'
-import { cn } from '@/shared/lib/utils'
 
 const ASSISTANT_OPENED_KEY = 'savico.assistant.opened'
 const TOPIC_SUGGESTION_PREFIX = 'savico.assistant.topic-suggestion.'
@@ -33,8 +32,8 @@ export function ChatDock() {
   const setOpen = useChatContextStore((s) => s.setPanelOpen)
   const suppressed = useChatContextStore((s) => s.dockSuppressed)
   const [ready, setReady] = useState(false)
-  const [mobileDialogOpen, setMobileDialogOpen] = useState(false)
   const [openedOnce, setOpenedOnce] = useState(false)
+  const [mobileDialogOpen, setMobileDialogOpen] = useState(false)
   const [suggestion, setSuggestion] = useState<TopicSuggestion | null>(null)
   const readyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const suggestionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -97,8 +96,6 @@ export function ChatDock() {
   useEffect(() => {
     if (!open) return
     const frame = window.requestAnimationFrame(() => {
-      localStorage.setItem(ASSISTANT_OPENED_KEY, '1')
-      setOpenedOnce(true)
       setSuggestion(null)
     })
     return () => window.cancelAnimationFrame(frame)
@@ -156,15 +153,6 @@ export function ChatDock() {
 
   const dockHidden = suppressed || mobileDialogOpen
 
-  function toggleAssistant() {
-    if (!open) {
-      localStorage.setItem(ASSISTANT_OPENED_KEY, '1')
-      setOpenedOnce(true)
-      setSuggestion(null)
-    }
-    setOpen(!open)
-  }
-
   function openFromSuggestion() {
     localStorage.setItem(ASSISTANT_OPENED_KEY, '1')
     setOpenedOnce(true)
@@ -179,58 +167,46 @@ export function ChatDock() {
           type='button'
           data-assistant-topic-suggestion
           onClick={openFromSuggestion}
-          className='bg-background/95 text-foreground fixed right-6 bottom-28 z-40 max-w-64 rounded-2xl border px-4 py-3 text-left text-sm shadow-lg backdrop-blur-md transition-[opacity,transform] duration-200 hover:-translate-y-0.5 hover:shadow-xl motion-reduce:transition-none'
+          className='bg-background/95 text-foreground fixed right-[52px] bottom-24 z-40 max-w-64 translate-x-1/2 rounded-2xl border px-4 py-3 text-left text-sm shadow-lg backdrop-blur-md transition-[opacity,transform] duration-200 hover:-translate-y-0.5 hover:shadow-xl motion-reduce:transition-none max-[899px]:right-[30px]'
         >
           {t('topicSuggestion', { topic: suggestion.title })}
         </button>
       ) : null}
 
-      <button
-        type='button'
-        data-assistant-fab
-        data-ready={ready}
-        data-opened-once={openedOnce}
-        aria-label={open ? t('close') : t('title')}
-        aria-expanded={open}
-        onClick={toggleAssistant}
-        className={cn(
-          'group fixed right-6 bottom-6 z-[60] flex cursor-pointer flex-col items-center drop-shadow-lg transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none max-[899px]:right-[2px]',
-          ready && !dockHidden ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
-        )}
-        style={{ transform: ready && !dockHidden ? undefined : 'translate3d(0, 40px, 0)' }}
-      >
-        {!openedOnce && ready && !open ? (
-          <span
-            data-assistant-idle-ring
-            aria-hidden
-            className='border-primary/35 pointer-events-none absolute top-0 z-0 size-14 rounded-full border-2'
-          />
-        ) : null}
-
-        <span
-          data-assistant-fab-core
-          className='brand-gradient text-primary-foreground relative z-10 flex size-14 items-center justify-center rounded-full'
+      {!open && ready && !dockHidden ? (
+        <button
+          type='button'
+          data-assistant-fab
+          data-ready='true'
+          data-opened-once={openedOnce}
+          aria-label={t('title')}
+          aria-expanded={false}
+          onClick={() => {
+            localStorage.setItem(ASSISTANT_OPENED_KEY, '1')
+            setOpenedOnce(true)
+            setSuggestion(null)
+            setOpen(true)
+          }}
+          className='group fixed right-6 bottom-6 z-[60] flex size-14 cursor-pointer items-center justify-center drop-shadow-lg transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none max-[899px]:right-2'
         >
-          <span data-assistant-fab-icon className='relative size-7' aria-hidden>
-            <Bot
-              data-assistant-bot-icon
-              className={cn(
-                'absolute inset-0 size-7 transition-[opacity,transform] duration-250 motion-reduce:transition-none',
-                open ? 'opacity-0' : 'opacity-100'
-              )}
-              style={{ transform: open ? 'rotate(90deg) scale(0.75)' : 'rotate(0deg) scale(1)' }}
+          {!openedOnce ? (
+            <span
+              data-assistant-idle-ring
+              aria-hidden
+              className='border-primary/35 pointer-events-none absolute inset-0 rounded-full border-2'
             />
-            <X
-              data-assistant-close-icon
-              className={cn(
-                'absolute inset-0 size-7 transition-[opacity,transform] duration-250 motion-reduce:transition-none',
-                open ? 'opacity-100' : 'opacity-0'
-              )}
-              style={{ transform: open ? 'rotate(0deg) scale(1)' : 'rotate(-90deg) scale(0.75)' }}
-            />
+          ) : null}
+
+          <span
+            data-assistant-fab-core
+            className='brand-gradient text-primary-foreground relative z-10 flex size-14 items-center justify-center rounded-full'
+          >
+            <span data-assistant-fab-icon className='relative flex size-7 items-center justify-center' aria-hidden>
+              <Bot className='size-7' />
+            </span>
           </span>
-        </span>
-      </button>
+        </button>
+      ) : null}
 
       <AssistantDrawer open={open} onClose={() => setOpen(false)}>
         <ChatPanel />

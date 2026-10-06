@@ -96,64 +96,66 @@ function SupervisionPricingContent({ projectId }: SupervisionPricingProps) {
       ref={rootRef}
       data-page-entrance={entranceState}
       style={entranceStyle}
-      className='mx-auto w-full max-w-[90rem] space-y-5 lg:space-y-12 px-4 py-5 lg:px-8'
+      className='mx-auto w-full max-w-[90rem] space-y-5 lg:space-y-12 px-4 pt-4 pb-5 lg:px-8'
     >
-      <header data-entrance-step='0' data-entrance-from='right' className='supervision-heading space-y-2 text-center'>
-        <h1 className='text-primary-strong flex items-center justify-center gap-3 text-3xl font-bold tracking-tight uppercase sm:text-4xl'>
-          <motion.span
-            className='text-pretty'
-            initial={{ opacity: 0, y: 10 }}
+      <div className='space-y-4'>
+        <header data-entrance-step='0' data-entrance-from='right' className='supervision-heading space-y-4 text-center'>
+          <h1 className='text-primary-strong flex items-center justify-center gap-3 text-3xl font-bold tracking-tight uppercase sm:text-4xl'>
+            <motion.span
+              className='text-pretty'
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.55, delay: 0.08, ease: pricingEase }}
+            >
+              {titleLead}
+              {/* Dấu cách phải nằm NGOÀI span inline-block — ở đầu span nó bị nuốt
+                  ("THI CÔNGBUILDX"). */}
+              {titleAccent ? ' ' : null}
+              {titleAccent ? (
+                <motion.span
+                  className='text-brand-orange inline-block'
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.45, delay: 0.36 }}
+                >
+                  {titleAccent}
+                </motion.span>
+              ) : null}
+            </motion.span>
+          </h1>
+          <motion.p
+            className='text-muted-foreground text-pretty'
+            initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, delay: 0.08, ease: pricingEase }}
+            transition={{ duration: 0.5, delay: 0.78, ease: pricingEase }}
           >
-            {titleLead}
-            {/* Dấu cách phải nằm NGOÀI span inline-block — ở đầu span nó bị nuốt
-                ("THI CÔNGBUILDX"). */}
-            {titleAccent ? ' ' : null}
-            {titleAccent ? (
-              <motion.span
-                className='text-brand-orange inline-block'
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.45, delay: 0.36 }}
-              >
-                {titleAccent}
-              </motion.span>
-            ) : null}
-          </motion.span>
-        </h1>
-        <motion.p
-          className='text-muted-foreground text-pretty'
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.78, ease: pricingEase }}
-        >
-          {t('subtitle')}
-        </motion.p>
-      </header>
+            {t('subtitle')}
+          </motion.p>
+        </header>
 
-      {/* pt đủ chỗ cho ruy-băng "Khuyến nghị" NẰM TRÊN viên nhãn nhóm gói: viên
-          nhãn cưỡi lên mép trên thẻ (-mt-8) nên hai thứ này từng chồng chữ lên
-          nhau ở thẻ được khuyến nghị. */}
-      <ul
-        ref={cardsRef}
-        data-entrance-step='4'
-        data-entrance-from='right'
-        data-hovering={hoveredTier ? 'true' : undefined}
-        className='supervision-card-track grid items-stretch gap-6 pt-5 md:grid-cols-3'
-      >
-        {packages.map((item, index) => (
-          <PackageCard
-            key={item.tier}
-            item={item}
-            index={index}
-            projectId={projectId}
-            active={hoveredTier === item.tier}
-            onHover={() => setHoveredTier(item.tier)}
-            onLeave={() => setHoveredTier(null)}
-          />
-        ))}
-      </ul>
+        {/* pt đủ chỗ cho ruy-băng "Khuyến nghị" NẰM TRÊN viên nhãn nhóm gói: viên
+            nhãn cưỡi lên mép trên thẻ (-mt-8) nên hai thứ này từng chồng chữ lên
+            nhau ở thẻ được khuyến nghị. */}
+        <ul
+          ref={cardsRef}
+          data-entrance-step='4'
+          data-entrance-from='right'
+          data-hovering={hoveredTier ? 'true' : undefined}
+          className='supervision-card-track grid items-stretch gap-6 md:grid-cols-3'
+        >
+          {packages.map((item, index) => (
+            <PackageCard
+              key={item.tier}
+              item={item}
+              index={index}
+              projectId={projectId}
+              active={hoveredTier === item.tier}
+              onHover={() => setHoveredTier(item.tier)}
+              onLeave={() => setHoveredTier(null)}
+            />
+          ))}
+        </ul>
+      </div>
 
       <ComparisonTable packages={packages} projectId={projectId} />
 

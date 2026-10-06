@@ -17,6 +17,7 @@ import { type MouseEvent, useEffect, useState } from 'react'
 import { Link } from '@/i18n/navigation'
 import { revealEase } from '@/shared/components/common'
 import { Button } from '@/shared/components/ui/button'
+import { ROUTES } from '@/shared/constants/routes'
 import { useSessionOnce } from '@/shared/hooks'
 import { cn } from '@/shared/lib'
 import { HERO_CARD_ROWS, HERO_SLIDE_INTERVAL_MS, HERO_SLIDES } from '../constants/landing.constants'
@@ -33,6 +34,9 @@ interface HomeHeroProps {
 
 /** Khoá `sessionStorage` — chuỗi mở màn chỉ chạy một lần mỗi phiên (mục II.2). */
 const INTRO_SESSION_KEY = 'savico.hero-intro-played'
+
+/** Đích của nút "Xem hồ sơ mẫu": tab Thư viện mẫu trong Cẩm nang. */
+const LIBRARY_HREF = `${ROUTES.HANDBOOK}?tab=library`
 
 /** Hệ số tăng tốc chuỗi mở màn hero (sheet góp ý BuildX). */
 const INTRO_SPEED = { delay: 0.45, duration: 0.65 } as const
@@ -233,7 +237,7 @@ export function HomeHero({ onCreateProject, onWatchIntro, resumeProject }: HomeH
           </motion.div>
         </div>
 
-        <HeroDossierCard skip={skip} skipStar={skipStar} seq={seq} onCreateProject={onCreateProject} />
+        <HeroDossierCard skip={skip} skipStar={skipStar} seq={seq} />
       </div>
     </section>
   )
@@ -243,8 +247,6 @@ interface HeroDossierCardProps {
   skip: boolean
   skipStar: boolean
   seq: (delay: number, duration?: number) => Transition
-  /** "Xem hồ sơ mẫu" mở hộp thoại Tạo dự án mới (sheet góp ý BuildX). */
-  onCreateProject?: () => void
 }
 
 /**
@@ -255,7 +257,7 @@ interface HeroDossierCardProps {
  * Rê chuột: nhấc + nghiêng nhẹ THEO CHUỘT (tilt 3D bám vị trí con trỏ trong
  * thẻ) — khác `whileHover` tĩnh, cần theo dõi `onMouseMove` để tính góc.
  */
-function HeroDossierCard({ skip, skipStar, seq, onCreateProject }: HeroDossierCardProps) {
+function HeroDossierCard({ skip, skipStar, seq }: HeroDossierCardProps) {
   const t = useTranslations('landing.hero.card')
 
   const rotateX = useMotionValue(0)
@@ -350,10 +352,9 @@ function HeroDossierCard({ skip, skipStar, seq, onCreateProject }: HeroDossierCa
         <span className='text-primary text-sm font-semibold'>{t('totalValue')}</span>
       </motion.div>
 
-      {/* "Xem hồ sơ mẫu": mở hộp thoại Tạo dự án mới (sheet góp ý BuildX) —
-          trước đây chỉ cuộn xuống khối "Hồ sơ mẫu" bên dưới. */}
-      <Button type='button' className='brand-green-button h-8.5 w-full rounded-full text-xs' onClick={onCreateProject}>
-        {t('cta')}
+      {/* "Xem hồ sơ mẫu" đi thẳng tới tab Thư viện mẫu của trang Cẩm nang. */}
+      <Button asChild className='brand-green-button h-8.5 w-full rounded-full text-xs'>
+        <Link href={LIBRARY_HREF}>{t('cta')}</Link>
       </Button>
     </motion.div>
   )

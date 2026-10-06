@@ -58,7 +58,7 @@ export function AssistantDrawer({ open, onClose, children }: AssistantDrawerProp
             <X className='size-4' />
           </Button>
         </header>
-        <div className='min-h-0 flex-1 px-3 pt-3 pb-20'>{children}</div>
+        <div className='min-h-0 flex-1 p-3'>{children}</div>
       </aside>
     </>
   )

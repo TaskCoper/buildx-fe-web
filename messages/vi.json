@@ -1174,7 +1174,6 @@
         "close": "Đóng",
         "title": "Đọc xong rồi – bắt đầu ngôi nhà của bạn?",
         "subtitle": "Từ kiến thức đến phương án thật chỉ vài phút. Chọn bước phù hợp với bạn lúc này.",
-        "later": "Để sau, đọc tiếp",
         "create": {
           "imageAlt": "Ngôi nhà hiện đại hoàn thiện",
           "badge": "Bắt đầu ngay",
@@ -1294,7 +1293,6 @@
         "close": "Đóng",
         "title": "Bạn vừa xem xong “{title}” — làm gì tiếp?",
         "subtitle": "Áp dụng ngay những gì vừa xem, học tiếp, hoặc hỏi kiến trúc sư.",
-        "later": "Để sau",
         "create": {
           "imageAlt": "Công trường và ảnh hiện trạng lô đất",
           "badge": "Làm thử ngay",
@@ -2474,7 +2472,8 @@
       "viewProfile": "Xem hồ sơ"
     },
     "rail": {
-      "searchPlaceholder": "Tìm kiến trúc sư..."
+      "searchPlaceholder": "Tìm kiến trúc sư...",
+      "backToList": "Danh sách kiến trúc sư"
     },
     "profile": {
       "reviews": "({count} đánh giá)",

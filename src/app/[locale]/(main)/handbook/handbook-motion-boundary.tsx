@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 
 const EXIT_DURATION_MS = 145
+const ENTER_DURATION_MS = 240
 const PROGRESS_DELAY_MS = 170
 const PROGRESS_FINISH_MS = 220
 
@@ -20,6 +21,7 @@ export function HandbookMotionBoundary({ children }: { children: ReactNode }) {
   const router = useRouter()
   const contentRef = useRef<HTMLDivElement>(null)
   const exitAnimationRef = useRef<Animation | null>(null)
+  const enterAnimationRef = useRef<Animation | null>(null)
   const progressDelayRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const progressFinishRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const asyncWaitCleanupRef = useRef<(() => void) | null>(null)
@@ -108,10 +110,26 @@ export function HandbookMotionBoundary({ children }: { children: ReactNode }) {
   useEffect(() => {
     exitAnimationRef.current?.cancel()
     exitAnimationRef.current = null
+    enterAnimationRef.current?.cancel()
+    enterAnimationRef.current = null
     const node = contentRef.current
     node?.style.removeProperty('opacity')
     node?.style.removeProperty('transform')
     node?.style.removeProperty('pointer-events')
+
+    if (node && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      const animation = node.animate([{ opacity: 0 }, { opacity: 1 }], {
+        duration: ENTER_DURATION_MS,
+        easing: 'cubic-bezier(0.22, 1, 0.36, 1)'
+      })
+      enterAnimationRef.current = animation
+      void animation.finished
+        .catch(() => undefined)
+        .then(() => {
+          if (enterAnimationRef.current === animation) enterAnimationRef.current = null
+        })
+    }
+
     const frame = requestAnimationFrame(waitForAsyncContent)
     return () => cancelAnimationFrame(frame)
   }, [pathname, waitForAsyncContent])
@@ -122,6 +140,7 @@ export function HandbookMotionBoundary({ children }: { children: ReactNode }) {
       asyncWaitCleanupRef.current?.()
       asyncWaitCleanupRef.current = null
       exitAnimationRef.current?.cancel()
+      enterAnimationRef.current?.cancel()
     },
     [clearProgressTimers]
   )
@@ -137,6 +156,8 @@ export function HandbookMotionBoundary({ children }: { children: ReactNode }) {
         return
       }
 
+      enterAnimationRef.current?.cancel()
+      enterAnimationRef.current = null
       exitAnimationRef.current?.cancel()
       node.style.pointerEvents = 'none'
       const animation = node.animate(

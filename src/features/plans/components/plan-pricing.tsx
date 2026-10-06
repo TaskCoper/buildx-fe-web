@@ -139,26 +139,28 @@ function PlanPricingContent() {
       ref={rootRef}
       data-page-entrance={entranceState}
       style={entranceStyle}
-      className='mx-auto w-full max-w-[90rem] space-y-5 lg:space-y-8 px-4 pt-5 pb-5 lg:px-8'
+      className='mx-auto w-full max-w-[90rem] space-y-5 lg:space-y-8 px-4 pt-4 pb-5 lg:px-8'
     >
-      {/* Hình S01: tiêu đề IN HOA cỡ lớn, chữ cuối (tên thương hiệu) tô cam,
-          hai bên có hai chiếc lá. Tách chữ cuối ngay tại đây để admin đổi tiêu
-          đề trong CMS thì phần tô màu vẫn tự bám chữ cuối. */}
-      <PlanHeading />
+      <div className='space-y-4'>
+        {/* Hình S01: tiêu đề IN HOA cỡ lớn, chữ cuối (tên thương hiệu) tô cam,
+            hai bên có hai chiếc lá. Tách chữ cuối ngay tại đây để admin đổi tiêu
+            đề trong CMS thì phần tô màu vẫn tự bám chữ cuối. */}
+        <PlanHeading />
 
-      {showCycleToggle ? (
-        <PlanCycleToggle value={activeCycle} onChange={setCycle} saving={maxYearlySaving(plans ?? [])} />
-      ) : null}
+        {showCycleToggle ? (
+          <PlanCycleToggle value={activeCycle} onChange={setCycle} saving={maxYearlySaving(plans ?? [])} />
+        ) : null}
 
-      {isPending ? (
-        <div className='grid gap-5 md:grid-cols-3'>
-          {[0, 1, 2].map((i) => (
-            <Skeleton key={i} className='h-[32rem] rounded-2xl' />
-          ))}
-        </div>
-      ) : (
-        <PlanCards plans={cyclePlans} />
-      )}
+        {isPending ? (
+          <div className='grid gap-5 md:grid-cols-3'>
+            {[0, 1, 2].map((i) => (
+              <Skeleton key={i} className='h-[32rem] rounded-2xl' />
+            ))}
+          </div>
+        ) : (
+          <PlanCards plans={cyclePlans} />
+        )}
+      </div>
 
       {/* Dải CTA giữa trang — trong ảnh nó nằm SÁT ngay dưới cụm thẻ (khoảng
           cách chỉ bằng ~1/3 khoảng cách giữa các khối khác). */}
@@ -664,7 +666,7 @@ function PlanHeading() {
       ref={ref}
       data-entrance-step='0'
       data-entrance-from='soft-scale'
-      className='plan-heading space-y-2 text-center'
+      className='plan-heading space-y-4 text-center'
       data-paused={!visible || isScrolling || reduceMotion}
     >
       <h1 className='text-primary-strong flex items-center justify-center gap-3 text-3xl font-bold tracking-tight uppercase sm:text-4xl'>
@@ -1033,11 +1035,11 @@ function PlanCard({
               </div>
             ) : null}
 
-            <p className='plan-fit text-muted-foreground mt-4 text-center text-sm leading-snug text-pretty'>
+            <p className='plan-fit text-muted-foreground mt-4 flex min-h-[2.75rem] items-center justify-center text-center text-sm leading-snug text-pretty'>
               {plan.fitLine}
             </p>
 
-            <p className='mt-3 text-center'>
+            <p className='mt-3 flex min-h-[4rem] flex-col justify-start text-center'>
               {plan.cycleUnavailable ? (
                 <span className='text-muted-foreground inline-block text-[10cqw] font-bold'>—</span>
               ) : (

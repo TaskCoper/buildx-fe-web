@@ -278,7 +278,7 @@ export function HomeJourney({ onCreateProject, activeProject }: HomeJourneyProps
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3, ease: revealEase }}
-            className='bg-brand-orange-soft border-brand-orange/40 mt-4 grid grid-cols-1 gap-x-6 gap-y-3 overflow-hidden rounded-2xl border p-5 text-left max-sm:hidden sm:grid-cols-3'
+            className='bg-brand-orange-soft border-brand-orange/40 mt-4 grid min-h-[6rem] grid-cols-1 overflow-hidden rounded-2xl border text-left max-sm:hidden sm:grid-cols-3 sm:items-stretch'
           >
             {DETAIL_FIELDS.map((field, fieldIndex) => (
               <motion.div
@@ -287,11 +287,12 @@ export function HomeJourney({ onCreateProject, activeProject }: HomeJourneyProps
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5, delay: 0.1 + fieldIndex * 0.12, ease: 'easeOut' }}
+                className='flex min-w-0 flex-col justify-start px-5 py-4 sm:first:pl-5 sm:last:pr-5'
               >
-                <dt className='text-brand-orange text-xs font-semibold tracking-wide uppercase'>
+                <dt className='text-brand-orange min-h-4 text-xs leading-4 font-semibold tracking-wide uppercase'>
                   {t(`detailLabels.${field}`)}
                 </dt>
-                <dd className='text-foreground mt-1 text-sm leading-relaxed text-pretty'>
+                <dd className='text-foreground mt-1.5 text-sm leading-5 text-pretty'>
                   {t(`items.${expanded}.${field}`)}
                 </dd>
               </motion.div>
