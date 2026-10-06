@@ -175,7 +175,7 @@ function FooterAccordion({ sections }: { sections: { key: string; title: string;
   const [openKey, setOpenKey] = useState<string | null>(null)
 
   return (
-    <div className='border-footer-foreground/15 divide-footer-foreground/15 divide-y border-y sm:hidden'>
+    <div className='border-footer-foreground/15 divide-footer-foreground/15 order-2 divide-y border-y sm:order-none sm:hidden'>
       {sections.map((section) => {
         const open = openKey === section.key
         const panelId = `${baseId}-${section.key}`
@@ -322,7 +322,7 @@ export function SiteFooter() {
               <div className='footer-logo-tab'>
                 <Logo onDark className='h-12 max-w-full max-lg:h-14' />
               </div>
-              <p className='text-footer-foreground mt-4 w-full max-w-xs text-center text-sm leading-relaxed font-semibold tracking-[0.06em] uppercase'>
+              <p className='text-footer-foreground mt-4 w-full max-w-xs -translate-x-4 text-center text-sm leading-relaxed font-semibold tracking-[0.06em] uppercase'>
                 {cmsText(settings.tagline, tNav('brandTagline'))}
               </p>
             </div>

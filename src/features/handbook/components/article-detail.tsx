@@ -359,8 +359,8 @@ export function ArticleDetail({ slug, onCreateProject }: ArticleDetailProps) {
             </>
           ) : null}
           <BreadcrumbSeparator>{'>'}</BreadcrumbSeparator>
-          <BreadcrumbItem>
-            <BreadcrumbPage>{article.title}</BreadcrumbPage>
+          <BreadcrumbItem className='min-w-0 max-w-full'>
+            <BreadcrumbPage className='break-words'>{article.title}</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>

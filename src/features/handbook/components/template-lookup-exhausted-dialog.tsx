@@ -129,7 +129,7 @@ export function TemplateLookupExhaustedDialog({
               <Link
                 href={ROUTES.PLANS}
                 onClick={openPlans}
-                className='group/button inline-flex h-[58px] items-center justify-center gap-2.5 rounded-[14px] brand-green-button px-5 text-[15px] font-bold text-white shadow-[0_8px_20px_rgba(0,0,0,.14)] transition-[background-color,filter] duration-150 hover:brightness-[1.015] max-[899px]:h-[56px] max-[899px]:rounded-[12px] max-[899px]:text-[14px]'
+                className='group/button inline-flex h-12 items-center justify-center gap-2.5 rounded-full brand-green-button px-5 text-[15px] font-bold text-white shadow-[0_8px_20px_rgba(0,0,0,.14)] transition-[background-color,filter] duration-150 hover:brightness-[1.015] max-[899px]:text-[14px]'
               >
                 <Crown className='size-5 shrink-0 max-[899px]:size-4.5' />
                 <span>{t('more')}</span>
