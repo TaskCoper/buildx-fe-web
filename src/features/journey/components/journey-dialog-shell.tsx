@@ -47,18 +47,20 @@ export function JourneyDialogShell({
             <img src='/images/brand/buildx-logo-vertical.png' alt='BuildX' className='h-16 w-auto mix-blend-multiply' />
           </motion.div>
 
-          <DialogClose
-            aria-label={t('close')}
-            className='bg-muted/80 hover:bg-muted absolute top-4 right-5 flex size-10 items-center justify-center rounded-full transition-all duration-200 hover:scale-105 active:scale-95 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none max-[899px]:top-3 max-[899px]:right-3 max-[899px]:size-9'
-          >
-            <X className='size-5' strokeWidth={2.2} />
-          </DialogClose>
+          <div className='flex justify-end'>
+            <DialogClose
+              aria-label={t('close')}
+              className='bg-muted/80 hover:bg-muted flex size-9 items-center justify-center rounded-full transition-all duration-200 hover:scale-105 active:scale-95 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none sm:size-10'
+            >
+              <X className='size-5' strokeWidth={2.2} />
+            </DialogClose>
+          </div>
 
           <motion.div
             initial={reduceMotion ? false : { opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: reduceMotion ? 0 : 0.42, delay: reduceMotion ? 0 : 0.08, ease: [0.16, 1, 0.3, 1] }}
-            className='mx-auto max-w-[760px] pt-1 text-center min-[900px]:pt-2 max-[899px]:px-14'
+            className='mx-auto w-full pt-2.5 text-center'
           >
             <DialogTitle className='text-foreground text-[clamp(1.45rem,2.1vw,2rem)] leading-[1.15] font-extrabold tracking-[-0.025em] text-balance'>
               {title}

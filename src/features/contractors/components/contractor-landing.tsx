@@ -1030,7 +1030,7 @@ export function ContractorLanding() {
               <dd className='text-muted-foreground text-sm text-pretty'>
                 {t.rich(`faq.a${index}`, {
                   // "3 nhà thầu": font-weight 400, không highlight nền.
-                  mark: (chunks) => <span className='text-foreground font-medium'>{chunks}</span>
+                  mark: (chunks) => <span className='normal-case'>{chunks}</span>
                 })}
               </dd>
             </motion.div>

@@ -175,7 +175,7 @@ function FooterAccordion({ sections }: { sections: { key: string; title: string;
   const [openKey, setOpenKey] = useState<string | null>(null)
 
   return (
-    <div className='border-footer-foreground/15 divide-footer-foreground/15 divide-y border-y sm:hidden'>
+    <div className='border-footer-foreground/15 divide-footer-foreground/15 order-2 divide-y border-y sm:order-none sm:hidden'>
       {sections.map((section) => {
         const open = openKey === section.key
         const panelId = `${baseId}-${section.key}`
@@ -307,11 +307,11 @@ export function SiteFooter() {
             transition={{ duration: 0.58, ease: [0.22, 1, 0.36, 1] }}
           >
             {/* Dải trắng lấy bề ngang theo logo và dòng mô tả, kéo tới cuối chữ AI. */}
-            <div className='inline-flex max-w-full flex-col items-start'>
+            <div className='inline-flex max-w-full flex-col items-center'>
               <div className='footer-logo-tab'>
                 <Logo onDark className='h-12 max-w-full max-lg:h-14' />
               </div>
-              <p className='text-footer-foreground mt-4 max-w-xs text-sm leading-relaxed'>
+              <p className='text-footer-foreground mt-4 max-w-xs -translate-x-4 text-center text-sm leading-relaxed font-semibold uppercase'>
                 {cmsText(settings.tagline, tNav('brandTagline'))}
               </p>
             </div>

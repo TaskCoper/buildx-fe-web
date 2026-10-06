@@ -656,6 +656,14 @@
     background: var(--header-bg-scrolled);
     box-shadow: var(--header-shadow-scrolled);
   }
+
+  /* The mobile header stays 64px tall even after the desktop compact state is
+     entered. Keep sticky page controls below that unchanged height as well. */
+  @media (max-width: 767px) {
+    :root:has(.site-header-shell):not(:has(.site-header-shell[data-hidden='true'])) {
+      --public-header-offset: 64px !important;
+    }
+  }
   /* Quầng động — rộng hơn header rồi trôi ngang nên không lộ mép gradient. */
   .site-header-shell::before {
     content: '';

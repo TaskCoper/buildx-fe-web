@@ -507,7 +507,7 @@ export function GuideBrowser({ onCreateProject }: GuideBrowserProps) {
       ) : null}
 
       {videosPending ? (
-        <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
+        <div className='mx-auto grid w-full max-w-3xl gap-4 sm:grid-cols-2 lg:grid-cols-3'>
           {[0, 1, 2, 3, 4, 5].map((i) => (
             <Skeleton key={i} className='h-64 w-full rounded-xl' />
           ))}
@@ -560,7 +560,7 @@ export function GuideBrowser({ onCreateProject }: GuideBrowserProps) {
                 }
               }}
             >
-              <div className={cn('relative mx-auto w-full', !singlePage && 'px-12 sm:px-14 lg:px-16')}>
+              <div className='relative mx-auto w-full max-w-4xl px-0 lg:px-16'>
                 {/* Mũi tên nằm NGOÀI lưới, canh giữa theo chiều dọc — mờ nghỉ,
                     rõ khi rê vào cả khối carousel, tắt hẳn nếu chỉ có 1 trang. */}
                 {!singlePage ? (

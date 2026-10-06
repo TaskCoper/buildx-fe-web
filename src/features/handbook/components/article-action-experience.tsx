@@ -250,14 +250,14 @@ export function ArticleEndExperience({ article, articleRef, onCreateProject }: A
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent
           showCloseButton={false}
-          className='max-h-[calc(100dvh-20px)] w-[min(1080px,calc(100vw-24px))] max-w-[1080px] gap-0 overflow-x-hidden overflow-y-auto rounded-[24px] border-0 bg-background p-0 shadow-2xl sm:max-w-[1080px] max-[899px]:inset-x-0 max-[899px]:bottom-0 max-[899px]:top-auto max-[899px]:flex max-[899px]:h-[90dvh] max-[899px]:max-h-[90dvh] max-[899px]:w-full max-[899px]:max-w-full max-[899px]:translate-x-0 max-[899px]:translate-y-0 max-[899px]:flex-col max-[899px]:overflow-hidden max-[899px]:rounded-b-none max-[899px]:rounded-t-[24px]'
+          className='max-h-[calc(100dvh-24px)] w-[min(1080px,calc(100vw-24px))] max-w-[1080px] gap-0 overflow-x-hidden overflow-y-auto rounded-[24px] border-0 bg-background p-0 shadow-2xl sm:max-w-[1080px]'
         >
-          <div className='relative shrink-0 bg-background px-5 pt-5 sm:px-6 max-[899px]:px-4 max-[899px]:pt-12 max-[899px]:pb-3'>
+          <div className='relative shrink-0 bg-background px-5 pt-5 sm:px-6'>
             <motion.div
               initial={reduceMotion ? false : { opacity: 0, y: -6 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: reduceMotion ? 0 : 0.26, ease: [0.22, 1, 0.36, 1] }}
-              className='absolute top-5 left-6 hidden origin-top-left min-[900px]:block'
+              className='absolute top-5 left-6 hidden origin-top-left sm:block'
             >
               {/* Logo dọc, cùng popup "Bạn đang ở bước nào…" (`JourneyDialogShell`). `mix-blend-multiply`
                   để nền trắng của ảnh hòa vào nền popup. */}
@@ -271,7 +271,7 @@ export function ArticleEndExperience({ article, articleRef, onCreateProject }: A
 
             <DialogClose
               aria-label={t('popup.close')}
-              className='bg-muted/80 hover:bg-muted absolute top-4 right-5 flex size-10 items-center justify-center rounded-full transition-[transform,background-color] duration-150 hover:scale-105 active:scale-95 max-[899px]:top-3 max-[899px]:right-3 max-[899px]:size-9'
+              className='bg-muted/80 hover:bg-muted absolute top-4 right-5 flex size-10 items-center justify-center rounded-full transition-[transform,background-color] duration-150 hover:scale-105 active:scale-95 max-sm:top-3 max-sm:right-3 max-sm:size-9'
             >
               <X className='size-5' />
             </DialogClose>
@@ -280,9 +280,9 @@ export function ArticleEndExperience({ article, articleRef, onCreateProject }: A
               initial={reduceMotion ? false : { opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: reduceMotion ? 0 : 0.3, delay: reduceMotion ? 0 : 0.04 }}
-              className='mx-auto max-w-[820px] pt-1 text-center min-[900px]:pt-2 max-[899px]:w-full max-[899px]:max-w-none'
+              className='mx-auto max-w-[820px] pt-2 text-center max-sm:w-full max-sm:max-w-none'
             >
-              <DialogTitle className='text-foreground text-[clamp(1.5rem,2.25vw,2.1rem)] leading-[1.15] font-extrabold tracking-[-0.025em] max-[899px]:line-clamp-2 max-[899px]:text-[clamp(1.25rem,5.75vw,1.5rem)]'>
+              <DialogTitle className='text-foreground text-[clamp(1.25rem,5.75vw,2.1rem)] leading-[1.15] font-extrabold tracking-[-0.025em]'>
                 {t('popup.title')}
               </DialogTitle>
               <DialogDescription className='text-muted-foreground mt-2 text-[clamp(.9rem,1.2vw,1rem)] leading-relaxed'>
@@ -291,7 +291,7 @@ export function ArticleEndExperience({ article, articleRef, onCreateProject }: A
             </motion.div>
           </div>
 
-          <div className='grid gap-4 px-4 pt-5 sm:px-6 min-[900px]:grid-cols-3 max-[899px]:min-h-0 max-[899px]:flex-1 max-[899px]:overflow-y-auto max-[899px]:overscroll-contain max-[899px]:pt-2 max-[899px]:pb-4'>
+          <div className='grid gap-4 px-4 pt-5 pb-4 sm:px-6 min-[900px]:grid-cols-3'>
             <PopupCard
               tone='orange'
               image={BUILDING_IMAGE.townhouse}
@@ -354,16 +354,6 @@ export function ArticleEndExperience({ article, articleRef, onCreateProject }: A
                 </Button>
               }
             />
-          </div>
-
-          <div className='flex shrink-0 justify-end bg-background px-5 pt-4 pb-4 sm:px-6 max-[899px]:hidden'>
-            <button
-              type='button'
-              onClick={() => handleOpenChange(false)}
-              className='text-muted-foreground hover:text-foreground text-sm underline decoration-current/60 underline-offset-4 transition-colors duration-150'
-            >
-              {t('popup.later')}
-            </button>
           </div>
         </DialogContent>
       </Dialog>

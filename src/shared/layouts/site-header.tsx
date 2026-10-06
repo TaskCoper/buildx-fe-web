@@ -136,7 +136,10 @@ export function SiteHeader({ UserMenu, onCreateProject }: SiteHeaderProps = {}) 
       <div
         className={cn(
           'relative mx-auto flex w-full max-w-[90rem] items-center gap-6 px-4 transition-[height] motion-reduce:transition-none lg:px-8',
-          isCompact ? 'h-14 duration-[180ms]' : 'h-16 duration-[180ms]'
+          // Mobile keeps the full header height while scrolling. The compact
+          // state is a desktop-only density change; shrinking it on phones
+          // made the header visibly lose part of its height mid-scroll.
+          isCompact ? 'h-16 md:h-14 duration-[180ms]' : 'h-16 duration-[180ms]'
         )}
       >
         <Link href={ROUTES.HOME} aria-label={t('home')} className='shrink-0'>
