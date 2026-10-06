@@ -2,7 +2,7 @@ import { AUTH_ENDPOINTS } from '@/shared/auth/auth.constants'
 import { hasSessionMarker } from '@/shared/auth/session-marker'
 import { API_CONFIG } from '@/shared/config/api.config'
 import axios, { type AxiosInstance, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios'
-import { normalizeApiError } from './api-error'
+import { normalizeApiError, withReadableErrorBody } from './api-error'
 import { onUnauthorized, refreshSession } from './auth-bridge'
 
 /**
@@ -107,6 +107,6 @@ httpClient.interceptors.response.use(
     if (status === 401 && originalRequest?._retry && !isRefreshExempt(originalRequest.url) && hasSessionMarker()) {
       onUnauthorized()
     }
-    return Promise.reject(normalizeApiError(error))
+    return Promise.reject(normalizeApiError(await withReadableErrorBody(error)))
   }
 )

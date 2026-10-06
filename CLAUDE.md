@@ -66,7 +66,7 @@ Quality gate to run before considering work done (CI mirrors this):
 pnpm typecheck && pnpm lint && pnpm format:check
 ```
 
-`pnpm test:auth` runs pure routing policy tests with Node's built-in runner and is included in CI. There is no general React test framework; `services/` (pure domain logic) remains the intended target for broader unit coverage.
+`pnpm test:auth` runs pure routing policy tests with Node's built-in runner and is included in CI. `pnpm test:api-error` does the same for the BE error-message mapping (not in CI yet). There is no general React test framework; `services/` (pure domain logic) remains the intended target for broader unit coverage.
 
 ## Running without the backend
 
@@ -121,6 +121,7 @@ Every i18n namespace is **owned by exactly one page** via `copyNamespaces` in `a
 
 ## Conventions
 
+- **API error messages are mapped centrally, not per screen.** `normalizeApiError`/`unwrap` turn a BE error into `ApiError.message` through `apiErrors` in `messages/*.json` (`codes.<messageCode>` from the TDD "Error Codes" sections, `status.<kind>` for HTTP status, network and timeout). Vietnamese keeps the BE's own Vietnamese sentence when it has one (it names the exact field); English always uses the table because the BE has no translation. So call sites show `error.message` (or `useApiErrorText()` for errors that are not `ApiError`, e.g. `MediaUploadError` or `new Error('ExportNotReady')`); only add a per-screen sentence for a code that needs different copy in context, and never fall back to a generic "something went wrong" when an `ApiError` is in hand. A new BE code means one new key in **both** locales under `apiErrors.codes`; `pnpm test:api-error` checks the two stay in step.
 - **Never hardcode UI text.** All strings live in `messages/vi.json` + `messages/en.json` — add to **both**. i18n is next-intl, locales `vi` (default) / `en`, routes are locale-prefixed (`/vi`, `/en`) via `src/proxy.ts`. Use the locale-aware `Link`/`useRouter` from `@/i18n/navigation`; server pages call `setRequestLocale(locale)`.
 - **Forms**: React Hook Form + `zodResolver` + shadcn `Form`. Schemas are built by factories that take resolved localized messages (see `createLoginSchema`) so validation copy is never hardcoded.
 - **Styling**: Tailwind v4 with semantic design tokens only (`bg-primary`, `text-muted-foreground`) — never raw hex. Tokens are OKLCH CSS variables in `src/app/globals.css` exposed via `@theme inline`. Every reusable variant uses CVA.

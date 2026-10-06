@@ -75,7 +75,7 @@ export function useDeleteBrief() {
         code === 'ConstructionSiteInUse' ||
         code === 'ConstructionSiteHasSupervision' ||
         (isApiError(error) && error.status === 409)
-      toast.error(inUse ? t('deleteInUse') : t('deleteFailed'))
+      toast.error(inUse ? t('deleteInUse') : isApiError(error) ? error.message : t('deleteFailed'))
     }
   })
 }

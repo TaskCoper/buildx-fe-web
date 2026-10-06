@@ -14,6 +14,7 @@ import { Input } from '@/shared/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select'
 import { Textarea } from '@/shared/components/ui/textarea'
 import { ROUTES } from '@/shared/constants/routes'
+import { useApiErrorText } from '@/shared/hooks'
 import { cn } from '@/shared/lib/utils'
 import { acceptAttribute, checkFile, uploadImage } from '@/shared/media'
 import { designKeys } from '../api/design.keys'
@@ -137,6 +138,7 @@ function SaveIndicator({
  */
 export function StepInputApiForm({ projectId, onSubmit }: StepInputApiFormProps) {
   const t = useTranslations('design.inputApi')
+  const apiErrorText = useApiErrorText()
   const tInput = useTranslations('design.input')
   const input = useEstimateInput(projectId)
   const start = useStartGeneration(projectId)
@@ -225,8 +227,9 @@ export function StepInputApiForm({ projectId, onSubmit }: StepInputApiFormProps)
       // Ảnh cũ giữ nguyên cho tới khi ảnh mới tải xong (BR-PROJ-002 khoản 8): chỉ ghi vào form sau khi thành công.
       const uploaded = await uploadImage(file)
       input.patch({ inputImageUrl: uploaded.url })
-    } catch {
-      toast.error(t('image.errorUpload'))
+    } catch (error) {
+      // Nêu đúng lý do khi BE/kho từ chối (định dạng, dung lượng, kho chưa sẵn sàng…) thay vì một câu chung.
+      toast.error(apiErrorText(error, t('image.errorUpload')))
     } finally {
       setUploading(false)
       if (fileRef.current) fileRef.current.value = ''

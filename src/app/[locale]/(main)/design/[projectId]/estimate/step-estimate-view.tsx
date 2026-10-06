@@ -138,6 +138,7 @@ export function StepEstimateView({ projectId }: { projectId: string }) {
   if (projectQuery.isError || (estimateError && !flowError))
     return (
       <DesignLoadError
+        error={projectQuery.error ?? estimateError}
         onRetry={() => {
           void projectQuery.refetch()
           void refetch()

@@ -156,6 +156,7 @@ export function StepDossierView({ projectId }: { projectId: string }) {
   if (projectQuery.isError || dossierQuery.isError || estimateQuery.isError)
     return (
       <DesignLoadError
+        error={projectQuery.error ?? dossierQuery.error ?? estimateQuery.error}
         onRetry={() => {
           void projectQuery.refetch()
           void dossierQuery.refetch()

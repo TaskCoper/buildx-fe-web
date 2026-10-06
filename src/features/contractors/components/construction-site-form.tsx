@@ -233,11 +233,14 @@ export function ConstructionSiteForm({ projectId }: { projectId: string }) {
         ? problem.message
         : undefined
     const known = ERROR_CODES.find((item) => item === code)
+    // Mã chưa có câu riêng ở form: dùng câu BE đã dịch theo mã/status thay vì câu chung "Đã có lỗi".
     return known
       ? t(`errors.${known}`)
       : isApiError(problem) && problem.status === 403
         ? t('errors.AccessForbidden')
-        : t('errors.generic')
+        : isApiError(problem)
+          ? problem.message
+          : t('errors.generic')
   }
 
   useEffect(() => {
