@@ -33,7 +33,7 @@ import {
   Textarea
 } from '@/shared/components/ui'
 import { contractorReviewRoute, ROUTES } from '@/shared/constants/routes'
-import { isApiError } from '@/shared/lib/api'
+import { errorCodeOf, isApiError } from '@/shared/lib/api'
 import { LocationMap, SearchableSelect } from '@/shared/components/common'
 import { findByName, geocodeApi, parseRegion } from '@/shared/geocode'
 import { cn } from '@/shared/lib/utils'
@@ -227,11 +227,7 @@ export function ConstructionSiteForm({ projectId }: { projectId: string }) {
   const addressText = [values.addressDetail.trim(), addressNames.ward, addressNames.province].filter(Boolean).join(', ')
 
   const explainError = (problem: unknown): string => {
-    const code = isApiError(problem)
-      ? (problem.code ?? problem.messageCode)
-      : problem instanceof Error
-        ? problem.message
-        : undefined
+    const code = isApiError(problem) ? errorCodeOf(problem) : problem instanceof Error ? problem.message : undefined
     const known = ERROR_CODES.find((item) => item === code)
     // Mã chưa có câu riêng ở form: dùng câu BE đã dịch theo mã/status thay vì câu chung "Đã có lỗi".
     return known
@@ -603,27 +599,25 @@ export function ConstructionSiteForm({ projectId }: { projectId: string }) {
           briefDrafts.put({ ...draft, siteDraft: { ...draft.siteDraft, pendingCreation: undefined } })
       }
       if (isApiError(problem)) {
-        if (problem.code === 'ConstructionSiteNameTaken') form.setError('name', { message })
-        if (
-          problem.code === 'ConstructionSiteCatalogChanged' ||
-          problem.code === 'ConstructionSiteConditionUnavailable'
-        ) {
+        const code = errorCodeOf(problem)
+        if (code === 'ConstructionSiteNameTaken') form.setError('name', { message })
+        if (code === 'ConstructionSiteCatalogChanged' || code === 'ConstructionSiteConditionUnavailable') {
           await pinnedOptions.refetch()
           await currentOptions.refetch()
         }
-        if (problem.code === 'LocationDatasetChanged') {
+        if (code === 'LocationDatasetChanged') {
           await locations.provinces.refetch()
           form.setValue('provinceCode', '')
           form.setValue('wardCode', '')
           form.setValue('locationDatasetVersion', '')
           setLocation(undefined)
         }
-        if (problem.code === 'ConstructionSiteSourceUnavailable') {
+        if (code === 'ConstructionSiteSourceUnavailable') {
           await sources.refetch()
           await sourceQuery.refetch()
         }
-        if (problem.code === 'ConstructionSiteVersionConflict') setVersionConflict(true)
-        if (problem.code === 'ConstructionSiteHasSupervision') await briefQuery.refetch()
+        if (code === 'ConstructionSiteVersionConflict') setVersionConflict(true)
+        if (code === 'ConstructionSiteHasSupervision') await briefQuery.refetch()
         for (const [field, messages] of Object.entries(problem.errors ?? {})) {
           const name = field.replace(/^profile\./i, '').replace(/^./, (char) => char.toLowerCase())
           if (name in EMPTY) form.setError(name as FieldPath<SiteFormValues>, { message: messages.join(' ') })

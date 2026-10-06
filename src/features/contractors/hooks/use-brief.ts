@@ -6,7 +6,7 @@ import { toast } from 'sonner'
 
 import { useRouter } from '@/i18n/navigation'
 import { CONTRACTOR_PREVIEW_ID, contractorBriefRoute } from '@/shared/constants/routes'
-import { isApiError } from '@/shared/lib/api'
+import { errorCodeOf, isApiError } from '@/shared/lib/api'
 import { useAuthStore } from '@/shared/auth'
 import { projectSelectionApi } from '../api/project-selection.api'
 import { selectedProjectSiteId } from '../services/project-selection.service'
@@ -70,7 +70,7 @@ export function useDeleteBrief() {
       toast.success(t('deleteSuccess'))
     },
     onError: (error) => {
-      const code = isApiError(error) ? (error.code ?? error.messageCode) : undefined
+      const code = errorCodeOf(error)
       const inUse =
         code === 'ConstructionSiteInUse' ||
         code === 'ConstructionSiteHasSupervision' ||

@@ -11,7 +11,7 @@ const source = await readFile(resolve(root, 'src/shared/lib/api/api-error-messag
 const js = ts.transpileModule(source, {
   compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 }
 }).outputText
-const { hasVietnamese, localizeApiError, statusKeyOf } = await import(
+const { errorCodeOf, hasVietnamese, localizeApiError, statusKeyOf } = await import(
   `data:text/javascript;base64,${Buffer.from(js).toString('base64')}`
 )
 
@@ -110,4 +110,25 @@ test('bảng mã lỗi vi và en khớp khoá, không rỗng, không có ký t�
   for (const [code, value] of Object.entries(messages.en.codes)) {
     assert.equal(hasVietnamese(value), false, `en.codes.${code} còn tiếng Việt`)
   }
+})
+
+// Thân lỗi THẬT BE trả khi tạo công trình trùng tên (TDD-SITE-001): `code` chung, mã cụ thể nằm ở `messageCode`.
+const duplicateName = {
+  status: 409,
+  code: 'Conflict',
+  messageCode: 'ConstructionSiteNameTaken',
+  serverMessage: 'Bạn đã có một công trình khác cùng tên.'
+}
+
+test('lỗi trùng tên công trình: so khớp theo messageCode, không bị code chung "Conflict" che', () => {
+  assert.equal(errorCodeOf(duplicateName), 'ConstructionSiteNameTaken')
+  assert.equal(errorCodeOf({ status: 409, code: 'ConstructionSiteNameTaken' }), 'ConstructionSiteNameTaken')
+  assert.equal(errorCodeOf({ status: 500, code: 'Conflict' }), 'Conflict')
+  assert.equal(errorCodeOf(new Error('x')), undefined)
+  assert.equal(errorCodeOf(null), undefined)
+})
+
+test('lỗi trùng tên công trình: tiếng Việt giữ câu BE, tiếng Anh có câu riêng', () => {
+  assert.equal(localizeApiError(duplicateName, translatorOf('vi')), 'Bạn đã có một công trình khác cùng tên.')
+  assert.equal(localizeApiError(duplicateName, translatorOf('en')), messages.en.codes.ConstructionSiteNameTaken)
 })

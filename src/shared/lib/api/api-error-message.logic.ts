@@ -23,6 +23,18 @@ export interface ApiErrorFacts {
   serverMessage?: string
 }
 
+/**
+ * Mã nghiệp vụ để so khớp trong code (vd. `ConstructionSiteNameTaken`). BE trả ProblemDetails với `code` CHUNG (`Conflict`,
+ * `NotFound`…) và mã cụ thể ở `messageCode`, còn envelope `Result<T>` (và mock) để mã cụ thể ở `code`. Luôn so khớp qua
+ * hàm này, đừng so `error.code` trần: `code` chung che mất `messageCode`.
+ */
+export function errorCodeOf(error: unknown): string | undefined {
+  if (typeof error !== 'object' || error === null) return undefined
+  const { messageCode, code } = error as { messageCode?: unknown; code?: unknown }
+  if (typeof messageCode === 'string' && messageCode) return messageCode
+  return typeof code === 'string' && code ? code : undefined
+}
+
 const VIETNAMESE = /[àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]/i
 const TIMEOUT_CODES = new Set(['ECONNABORTED', 'ETIMEDOUT'])
 

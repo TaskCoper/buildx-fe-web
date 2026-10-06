@@ -1,4 +1,5 @@
-export { apiErrorFromResponse, isApiError, normalizeApiError } from './api-error'
+export { isApiError, normalizeApiError, apiErrorFromResponse } from './api-error'
+export { errorCodeOf } from './api-error-message.logic'
 export { setApiErrorTranslator } from './api-error-translator'
 export { httpClient } from './http-client'
 export { http } from './request'
