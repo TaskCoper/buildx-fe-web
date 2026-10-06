@@ -524,32 +524,39 @@ export function QrPayment({ orderId }: QrPaymentProps) {
             </p>
           </section>
 
-          <div data-payment-actions data-entrance-step='4' className='flex flex-wrap gap-2'>
+          <div data-payment-actions data-entrance-step='4' className='flex flex-wrap gap-2 max-md:pb-20'>
             {verifying ? (
-              <Button className='flex-1' disabled>
+              <Button className='h-auto min-h-9 basis-full whitespace-normal sm:basis-0 sm:flex-1' disabled>
                 <LoaderCircle className='size-4 animate-spin' />
                 {t('verifying')}
               </Button>
             ) : isApiOrder && expired ? (
               // Đơn API hết hạn không tạo lại QR được (BE không có endpoint đó, "Tạo lại mã" chỉ
               // đọc lại cùng đơn): muốn trả tiếp phải tạo đơn MỚI, BE tự đóng đơn cũ.
-              <Button className='flex-1' onClick={startNewOrder}>
+              <Button
+                className='h-auto min-h-9 basis-full whitespace-normal sm:basis-0 sm:flex-1'
+                onClick={startNewOrder}
+              >
                 {t('newOrder')}
               </Button>
             ) : expired ? (
-              <Button className='flex-1' onClick={() => regenerate.mutate()} disabled={regenerate.isPending}>
+              <Button
+                className='h-auto min-h-9 basis-full whitespace-normal sm:basis-0 sm:flex-1'
+                onClick={() => regenerate.mutate()}
+                disabled={regenerate.isPending}
+              >
                 {regenerate.isPending ? <LoaderCircle className='size-4 animate-spin' /> : null}
                 {regenerate.isPending ? t('regenerating') : t('regenerate')}
               </Button>
             ) : isApiOrder ? (
               // Luồng API: chờ ngân hàng tự xác nhận (QR poll), không bấm gì.
-              <Button className='flex-1' disabled>
+              <Button className='h-auto min-h-9 basis-full whitespace-normal sm:basis-0 sm:flex-1' disabled>
                 <LoaderCircle className='size-4 animate-spin' />
                 {t('autoWaiting')}
               </Button>
             ) : (
               <Button
-                className='flex-1'
+                className='h-auto min-h-9 basis-full whitespace-normal sm:basis-0 sm:flex-1'
                 onClick={() => {
                   if (transferSubmitLockRef.current || markTransferred.isPending) return
                   transferSubmitLockRef.current = true
@@ -569,13 +576,18 @@ export function QrPayment({ orderId }: QrPaymentProps) {
                 {markTransferred.isPending ? t('recording') : t('transferred')}
               </Button>
             )}
-            <Button variant='outline' onClick={openSupport}>
+            <Button variant='outline' className='flex-1 sm:flex-none' onClick={openSupport}>
               <Headset className='size-4' />
               {t('support')}
             </Button>
             {/* Hủy đơn — chỉ luồng API (mock hết hạn thì tự sang S07). */}
             {isApiOrder && !expired && !partial ? (
-              <Button variant='ghost' onClick={() => cancelOrder.mutate()} disabled={cancelOrder.isPending}>
+              <Button
+                variant='outline'
+                className='flex-1 sm:flex-none'
+                onClick={() => cancelOrder.mutate()}
+                disabled={cancelOrder.isPending}
+              >
                 {cancelOrder.isPending ? <LoaderCircle className='size-4 animate-spin' /> : null}
                 {cancelOrder.isPending ? t('cancelling') : t('cancel')}
               </Button>
