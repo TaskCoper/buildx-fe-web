@@ -17,6 +17,7 @@ import {
   recallOperation,
   sleep as sleepMs,
   waitForExport as pollExport,
+  type EstimateResultRaw,
   type ResultFile,
   type ShareLink
 } from './estimate-generation.api'
@@ -69,8 +70,26 @@ interface BmtEstimateDetail {
   missingFields?: string[]
 }
 
-function toProject(item: BmtEstimateListItem): Project {
-  const currentStep = stepOfState(item.state)
+/** Tệp PDF hồ sơ đã xuất xong (`exportAvailability`) — dấu hiệu duy nhất BE có cho "hồ sơ sẵn sàng". */
+const readyPdfOf = (result: EstimateResultRaw) =>
+  result.exportAvailability?.find((item) => item.format === 'Pdf' && item.state === 'Ready' && item.exportId)
+
+/**
+ * Bước đang dừng của một bản dự toán. Đã có kết quả mà chưa xuất hồ sơ PDF thì khách mới ở Bước 2 (xem dự toán); xuất
+ * xong mới là Bước 3 hoàn tất. Không đọc được tệp xuất thì coi là chưa xuất, vì sai theo hướng này chỉ làm thẻ hiện
+ * "Bước 2" thay vì báo hoàn tất oan.
+ */
+async function resolveStep(estimateId: string, state: string): Promise<1 | 2 | 3> {
+  const step = stepOfState(state)
+  if (estimateStateKind(state) !== 'succeeded') return step
+  try {
+    return readyPdfOf(await estimateGenerationApi.getResult(estimateId)) ? 3 : 2
+  } catch {
+    return 2
+  }
+}
+
+function toProject(item: BmtEstimateListItem, currentStep: 1 | 2 | 3): Project {
   return {
     id: item.estimateId,
     name: item.name,
@@ -110,7 +129,11 @@ export const bmtDesignApi = {
       const page = await http.get<PagedResult<BmtEstimateListItem>>('/estimates', {
         params: { pageIndex, pageSize: 100 }
       })
-      items.push(...page.items.map(toProject))
+      items.push(
+        ...(await Promise.all(
+          page.items.map(async (item) => toProject(item, await resolveStep(item.estimateId, item.state)))
+        ))
+      )
       if (!page.hasNextPage) return [...new Map(items.map((item) => [item.id, item])).values()]
       pageIndex++
     }
@@ -159,7 +182,7 @@ export const bmtDesignApi = {
   /** `GET /estimates/{id}`. DTO không có mốc thời gian → tạm dùng hiện tại (thẻ danh sách lấy mốc thật từ `/estimates`). */
   getProject: async (projectId: string): Promise<Project> => {
     const e = await estimateInputApi.getEstimate(projectId)
-    const step = stepOfState(e.state)
+    const step = await resolveStep(projectId, e.state)
     return {
       id: e.estimateId,
       name: e.name,
@@ -180,7 +203,7 @@ export const bmtDesignApi = {
       name,
       nameVersion: e.nameVersion
     })
-    const step = stepOfState(e.state)
+    const step = await resolveStep(projectId, e.state)
     return {
       id: projectId,
       name: res.name,
@@ -215,9 +238,7 @@ export const bmtDesignApi = {
     const detail = await estimateInputApi.getEstimate(projectId)
     if (estimateStateKind(detail.state) !== 'succeeded') return idleDossier(projectId)
     const [result, share] = await Promise.all([estimateGenerationApi.getResult(projectId), activeShare(projectId)])
-    const pdf = result.exportAvailability?.find(
-      (item) => item.format === 'Pdf' && item.state === 'Ready' && item.exportId
-    )
+    const pdf = readyPdfOf(result)
     return {
       ...idleDossier(projectId),
       status: pdf ? 'ready' : 'idle',

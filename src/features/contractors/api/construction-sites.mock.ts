@@ -144,6 +144,10 @@ export const mockConstructionSitesApi: typeof bmtConstructionSitesApi = {
     return site
   },
   detail: async (id) => find(id),
+  remove: async (id) => {
+    find(id)
+    write(read().filter((site) => site.constructionSiteId !== id))
+  },
   list: async (pageIndex) => ({
     items: read().slice((pageIndex - 1) * 100, pageIndex * 100),
     pageIndex,

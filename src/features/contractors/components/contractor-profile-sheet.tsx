@@ -17,6 +17,7 @@ export function ContractorProfileSheet({
 }) {
   const t = useTranslations('contractors.invitations')
   const tFirm = useTranslations('contractors.firm')
+  const tCommon = useTranslations('contractors.common')
 
   return (
     <Sheet open={Boolean(contractor)} onOpenChange={onOpenChange}>
@@ -45,11 +46,13 @@ export function ContractorProfileSheet({
               <dl className='grid grid-cols-2 gap-2 text-sm'>
                 <div className='bg-muted/40 rounded-xl p-3'>
                   <dt className='text-muted-foreground text-xs'>{t('profileRating')}</dt>
-                  <dd className='mt-1 font-semibold'>{contractor.rating}/5</dd>
+                  <dd className='mt-1 font-semibold'>
+                    {contractor.ratingKnown === false ? tCommon('ratingUnknown') : `${contractor.rating}/5`}
+                  </dd>
                 </div>
                 <div className='bg-muted/40 rounded-xl p-3'>
-                  <dt className='text-muted-foreground text-xs'>{t('profileSimilar')}</dt>
-                  <dd className='mt-1 font-semibold'>{contractor.similarProjects}</dd>
+                  <dt className='text-muted-foreground text-xs'>{t('profileCompleted')}</dt>
+                  <dd className='mt-1 font-semibold'>{contractor.completedProjects}</dd>
                 </div>
               </dl>
 

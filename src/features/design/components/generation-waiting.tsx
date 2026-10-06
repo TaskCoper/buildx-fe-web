@@ -1,6 +1,6 @@
 'use client'
 
-import { Check, Loader2 } from 'lucide-react'
+import { Check } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useTranslations } from 'next-intl'
 
@@ -13,9 +13,11 @@ import { RenderProgressBars } from './render-progress-bars'
 interface GenerationWaitingProps {
   /** `estimate` = màn chờ Bước 2, `dossier` = màn chờ render Bước 3. */
   flow: 'estimate' | 'dossier'
-  indeterminate?: boolean
   complete: boolean
-  /** Roughly how long the generation takes, so the ring paces itself. */
+  /**
+   * Roughly how long the generation takes, so the ring paces itself. AI thật không báo tiến độ nên đây chỉ là ước
+   * lượng để vòng % tăng dần; kết quả thật tới lúc nào thì vòng nhảy 100% lúc đó.
+   */
   expectedMs?: number
   /**
    * Tỉnh/TP của công trình — điền vào dòng checklist "Tính chi phí theo đơn giá
@@ -46,7 +48,6 @@ const CHECKLIST_LENGTH = 3
 export function GenerationWaiting({
   flow,
   complete,
-  indeterminate = false,
   expectedMs,
   province,
   chatStream,
@@ -54,7 +55,7 @@ export function GenerationWaiting({
   onRetry
 }: GenerationWaitingProps) {
   const t = useTranslations(`design.progress.${flow}`)
-  const progress = useGenerationProgress({ flow, complete, expectedMs, paused: error || indeterminate })
+  const progress = useGenerationProgress({ flow, complete, expectedMs, paused: error })
 
   // Mốc đang chạy suy từ %, để checklist và vòng tròn luôn kể cùng một câu chuyện.
   const activeIndex = Math.min(CHECKLIST_LENGTH - 1, Math.floor((progress.percent / 100) * CHECKLIST_LENGTH))
@@ -66,20 +67,11 @@ export function GenerationWaiting({
       data-error={error}
       className='flex flex-col items-center py-4 text-center'
     >
-      {indeterminate && !complete ? (
-        <div role='status' className='flex size-40 flex-col items-center justify-center gap-3'>
-          <Loader2 aria-hidden className='text-primary size-14 animate-spin' />
-          <span className='text-muted-foreground text-sm'>{t('processing')}</span>
-        </div>
-      ) : (
-        <ProgressRing percent={progress.percent} stalled={progress.percent >= 94.5} error={error} />
-      )}
+      <ProgressRing percent={progress.percent} stalled={progress.percent >= 94.5} error={error} />
 
       <h2 className='mt-6 text-xl font-semibold tracking-tight text-balance'>{t('title')}</h2>
 
-      {indeterminate ? (
-        <p className='text-muted-foreground mt-4 text-sm'>{t('waitHint')}</p>
-      ) : flow === 'dossier' ? (
+      {flow === 'dossier' ? (
         <div className='mt-6 w-full'>
           <RenderProgressBars percent={progress.percent} />
         </div>

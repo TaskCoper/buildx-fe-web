@@ -15,18 +15,18 @@ quanh bởi trang chủ, Cẩm nang, Hướng dẫn và Cửa sổ cá nhân.
 
 ## Tech stack
 
-| Concern         | Choice                                                   |
-| --------------- | -------------------------------------------------------- |
-| Framework       | Next.js 16 (App Router) · React 19 · TypeScript (strict) |
-| Styling         | Tailwind CSS v4 · shadcn/ui · Radix UI · CVA · tw-animate-css |
-| Icons           | lucide-react                                             |
-| Server state    | TanStack Query                                           |
-| Client state    | Zustand (feature-scoped)                                 |
-| Forms           | React Hook Form + Zod                                    |
-| Networking      | Axios (single shared instance + interceptors)            |
-| i18n            | next-intl (`vi` default, `en` fallback)                  |
-| Notifications   | Sonner                                                   |
-| Theme           | next-themes (light / dark / system)                      |
+| Concern       | Choice                                                        |
+| ------------- | ------------------------------------------------------------- |
+| Framework     | Next.js 16 (App Router) · React 19 · TypeScript (strict)      |
+| Styling       | Tailwind CSS v4 · shadcn/ui · Radix UI · CVA · tw-animate-css |
+| Icons         | lucide-react                                                  |
+| Server state  | TanStack Query                                                |
+| Client state  | Zustand (feature-scoped)                                      |
+| Forms         | React Hook Form + Zod                                         |
+| Networking    | Axios (single shared instance + interceptors)                 |
+| i18n          | next-intl (`vi` default, `en` fallback)                       |
+| Notifications | Sonner                                                        |
+| Theme         | next-themes (light / dark / system)                           |
 
 ## Getting started
 
@@ -37,6 +37,12 @@ pnpm dev
 ```
 
 Scripts: `dev`, `build`, `start`, `lint`, `typecheck`, `format`.
+
+### Deploy bằng Docker và GitHub Actions
+
+Quy trình build/push image lên GHCR và deploy bằng self-hosted runner nằm trong
+[`.github/workflows`](./.github/workflows). Xem [hướng dẫn deploy](./docs/DEPLOY.md)
+để cấu hình biến môi trường, runner và Docker network.
 
 ### Working without the backend
 

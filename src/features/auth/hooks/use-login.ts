@@ -53,9 +53,11 @@ export function useLogin(redirectTo?: string) {
         toast.error(isApiError(error) ? error.message : t('invalid'))
         return
       }
-      // The API answers an unknown email with a 500 "User does not exist", so
-      // every non-network failure except a lock reads as bad credentials.
-      toast.error(error.messageCode === 'AccountLocked' ? t('locked') : t('invalid'))
+      // The API answers an unknown email with a 500 "User does not exist", so a 4xx/5xx without a clearer
+      // cause reads as bad credentials. Rate limits and outages must not: telling a throttled or
+      // locked-out customer their password is wrong sends them into a reset they do not need.
+      const unavailable = [429, 502, 503, 504].includes(error.status)
+      toast.error(error.messageCode === 'AccountLocked' ? t('locked') : unavailable ? error.message : t('invalid'))
     }
   })
 }

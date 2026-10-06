@@ -30,6 +30,18 @@ export const constructionBriefsApi = {
     if (siteId) return briefDrafts.put(siteToBrief(await constructionSitesApi.detail(siteId), draft, projectId, userId))
     return draft ?? briefDrafts.empty(projectId)
   },
+  /**
+   * Xoá hồ sơ dự án. Đã tạo công trình trên server thì gọi `DELETE /me/construction-sites/{id}` TRƯỚC (BE từ chối thì
+   * giữ nguyên bản nháp), rồi mới dọn bản nháp trên thiết bị. Hồ sơ chỉ có bản nháp thì chỉ xoá trên thiết bị.
+   */
+  deleteBrief: async (projectId: string) => {
+    const userId = requireBriefUserId()
+    const draft = briefDrafts.serverCandidate(projectId, userId) ?? briefDrafts.get(projectId, userId)
+    const siteId = draft?.constructionSiteId ?? (guid.test(projectId) ? projectId : undefined)
+    if (siteId) await constructionSitesApi.remove(siteId)
+    requireBriefUserId(userId)
+    briefDrafts.remove(projectId, siteId, userId)
+  },
   saveBrief: async (projectId: string, payload: SaveBriefPayload) => {
     const current = briefDrafts.get(projectId) ?? briefDrafts.empty(projectId)
     return briefDrafts.put({ ...current, ...payload, id: projectId, updatedAt: new Date().toISOString() })

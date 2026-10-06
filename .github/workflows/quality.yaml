@@ -1,0 +1,58 @@
+name: Quality Check
+
+on:
+  pull_request:
+    branches: [develop, main]
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  quality:
+    name: Check And Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    env:
+      HUSKY: 0
+      NEXT_TELEMETRY_DISABLED: 1
+      BMT_API_ORIGIN: https://bmt-api.vnzdna.com
+      NEXT_PUBLIC_API_BASE_URL: /api/v1
+      NEXT_PUBLIC_API_TIMEOUT: 30000
+      NEXT_PUBLIC_APP_NAME: BuildX AI
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      NEXT_PUBLIC_USE_MOCK_AUTH: 'false'
+      NEXT_PUBLIC_USE_MOCK_API: 'false'
+      NEXT_PUBLIC_VIETMAP_API_KEY: ''
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check types
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Check formatting
+        run: pnpm format:check
+
+      - name: Test auth routing policy
+        run: pnpm test:auth
+
+      - name: Build application
+        run: pnpm build

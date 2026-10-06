@@ -20,7 +20,7 @@ interface GuideProgressStore {
 /**
  * Tiến độ xem video hướng dẫn — "đang xem dở" / "đã xem xong" (mục 3 trang
  * Hướng dẫn, mục "Đang xem dở" trong popup). Chỉ có ở client, không có
- * backend nên lưu `localStorage` — cùng cách với `shared/favorite`. Nằm
+ * backend nên lưu `localStorage`. Nằm
  * trong `features/guide` (không phải `shared/`) vì chỉ chính feature này đọc.
  */
 export const useGuideProgressStore = create<GuideProgressStore>()(

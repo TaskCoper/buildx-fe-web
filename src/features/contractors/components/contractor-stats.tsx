@@ -30,19 +30,25 @@ export function ContractorStats({ contractor, dense = false, className }: Contra
   const locale = useLocale() as Locale
 
   const rating = formatNumber(contractor.rating, locale, { minimumFractionDigits: 1 })
-  const distance = formatNumber(contractor.distanceKm, locale, { minimumFractionDigits: 1 })
+  // Khoảng cách BE trả chưa làm tròn (hoặc tính Haversine ở FE): hiện một chữ số thập phân cho dễ đọc.
+  const distance = formatNumber(contractor.distanceKm, locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })
 
   return (
     <ul className={cn('text-muted-foreground flex flex-wrap items-center gap-x-5 gap-y-2 text-xs', className)}>
       <li className='flex items-center gap-1.5'>
         <Star className='text-warning size-3.5 shrink-0' />
-        <span className='text-foreground font-semibold'>{rating}/5</span>
-        <span>{t('reviewCount', { count: contractor.reviewCount })}</span>
+        <span className='text-foreground font-semibold'>
+          {contractor.ratingKnown === false ? t('ratingUnknown') : `${rating}/5`}
+        </span>
+        {contractor.reviewCountKnown === false ? null : (
+          <span>{t('reviewCount', { count: contractor.reviewCount })}</span>
+        )}
       </li>
 
       <li className='flex items-center gap-1.5'>
         <BadgeCheck className='text-primary size-3.5 shrink-0' />
-        <span>{t('similarProjects', { count: contractor.similarProjects })}</span>
+        {/* Nhãn là "dự án đã thực hiện" nên đọc số dự án đã hoàn thành, không phải số dự án tương tự. */}
+        <span>{t('similarProjects', { count: contractor.completedProjects })}</span>
       </li>
 
       <li className='flex items-center gap-1.5'>
@@ -61,7 +67,11 @@ export function ContractorStats({ contractor, dense = false, className }: Contra
 
       <li className='flex items-center gap-1.5'>
         <Clock className='text-primary size-3.5 shrink-0' />
-        <span>{t('surveyWithin', { hours: contractor.surveyWithinHours })}</span>
+        <span>
+          {contractor.surveyTimeKnown === false
+            ? t('informationUnknown')
+            : t('surveyWithin', { hours: contractor.surveyWithinHours })}
+        </span>
       </li>
     </ul>
   )

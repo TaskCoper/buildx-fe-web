@@ -6,7 +6,6 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link, useRouter } from '@/i18n/navigation'
 import { Badge } from '@/shared/components/ui/badge'
 import { handbookTemplateRoute } from '@/shared/constants/routes'
-import { FavoriteButton } from '@/shared/favorite'
 import { cn } from '@/shared/lib/utils'
 import { useHandbookReadStore } from '../store/handbook-read.store'
 import type { HandbookFloor, HandbookTemplate, HandbookTemplateStyles } from '../types/handbook.types'
@@ -264,17 +263,6 @@ export function TemplateCard({
           />
         )}
       </div>
-
-      <FavoriteButton
-        item={{
-          templateId: template.id,
-          kind: template.kind,
-          name: template.name,
-          imageUrl: template.imageUrl ?? template.floors[0]?.imageUrl ?? '',
-          tagLabel: template.styleLabel
-        }}
-        className='bg-card/95 text-primary hover:bg-card absolute top-3 right-3 z-20 shadow-sm'
-      />
 
       <div className='space-y-2 p-3'>
         <h3 data-template-card-title className='line-clamp-2 text-sm font-semibold transition-colors duration-200'>

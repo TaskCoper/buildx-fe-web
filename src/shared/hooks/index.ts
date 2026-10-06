@@ -1,3 +1,4 @@
+export { useApiErrorText } from './use-api-error-text'
 export { useCountUp } from './use-count-up'
 export { useDebouncedValue } from './use-debounced-value'
 export { useDwellNudge } from './use-dwell-nudge'

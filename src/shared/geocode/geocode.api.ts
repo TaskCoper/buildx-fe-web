@@ -5,9 +5,9 @@ import type { AddressSuggestion, GeocodedAddress, ReverseAddress } from './geoco
  * không phải API BMT — nên dùng `fetch` trần thay vì `http` của `shared/lib/api`
  * (cái đó gắn sẵn `baseURL` `/api/v1`, cookie và bộ chặn 401 của backend BMT).
  */
-async function getJson<T>(path: string, params: Record<string, string>): Promise<T> {
+async function getJson<T>(path: string, params: Record<string, string>, signal?: AbortSignal): Promise<T> {
   const query = new URLSearchParams(params)
-  const response = await fetch(`${path}?${query.toString()}`)
+  const response = await fetch(`${path}?${query.toString()}`, { signal })
   if (!response.ok) throw new Error(`Geocode lỗi ${response.status}`)
   return (await response.json()) as T
 }
@@ -21,6 +21,6 @@ export const geocodeApi = {
   place: (refId: string) => getJson<GeocodedAddress>('/api/geocode/place', { refId }),
 
   /** Địa chỉ gần một toạ độ; `null` khi quanh đó không có địa chỉ nào. */
-  reverse: (latitude: number, longitude: number) =>
-    getJson<ReverseAddress | null>('/api/geocode/reverse', { lat: String(latitude), lng: String(longitude) })
+  reverse: (latitude: number, longitude: number, signal?: AbortSignal) =>
+    getJson<ReverseAddress | null>('/api/geocode/reverse', { lat: String(latitude), lng: String(longitude) }, signal)
 }

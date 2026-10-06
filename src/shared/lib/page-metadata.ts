@@ -29,7 +29,6 @@ export type PageMetaKey =
   | 'consultDetail'
   | 'account'
   | 'accountProjects'
-  | 'accountFavorites'
   | 'accountDossiers'
   | 'accountPurchases'
   | 'accountConsultations'
