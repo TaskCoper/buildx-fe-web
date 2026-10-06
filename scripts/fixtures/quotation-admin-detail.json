@@ -1,0 +1,59 @@
+{
+  "request": {
+    "request": {
+      "id": "3205832b-f9c2-40bb-9f05-d46a764e36c3",
+      "constructionSiteId": "547edf44-000e-41c0-8a9f-b9cac53886b6",
+      "siteName": "Hồ sơ thử RFQ",
+      "contractorId": "18cccee1-a81a-49f3-80ec-983ee558b59c",
+      "contractorName": "Nhà thầu thử RFQ",
+      "status": "Completed",
+      "desiredAtUtc": "2026-10-06T01:00:00+00:00",
+      "appointmentAtUtc": "2026-10-06T01:00:00+00:00",
+      "createdAtUtc": "2026-10-05T20:33:43.750924+00:00"
+    },
+    "contactPhone": "0900000002",
+    "surveyNote": "Ghi chú khảo sát thử",
+    "snapshot": {
+      "siteName": "Hồ sơ thử RFQ",
+      "siteVersion": 1,
+      "schemaVersion": 1,
+      "profile": {
+        "areaM2": "123.00",
+        "budgetVnd": "2000000000",
+        "plannedStart": "ASAP",
+        "address": {
+          "provinceName": "Thành phố Hồ Chí Minh",
+          "wardName": "Phường thử",
+          "addressDetail": "Địa chỉ thử",
+          "formattedAddress": "Địa chỉ thử, Thành phố Hồ Chí Minh",
+          "latitude": 10.7769,
+          "longitude": 106.7009
+        },
+        "condition": {
+          "id": "b5710000-0000-4000-8000-000000000001",
+          "name": "Đất trống"
+        },
+        "buildingType": {
+          "id": "63477902-5d1a-4320-8c9b-ddd60f923ef0",
+          "name": "Nhà phố"
+        },
+        "floorCount": 3,
+        "hasTum": true,
+        "architectureStyle": null,
+        "interiorStyle": null,
+        "sourceEstimateId": null,
+        "sourceGenerationOperationId": null,
+        "siteCreatedAtUtc": "2026-10-05T20:00:00+00:00",
+        "siteUpdatedAtUtc": "2026-10-05T20:00:00+00:00",
+        "catalogRevisionId": "6a3c031a-1c84-40b0-acbc-1c3ff2b55286"
+      },
+      "attachments": []
+    }
+  },
+  "customerId": "51f1796e-d572-4d82-90b6-d0a88e914cba",
+  "customerEmail": "rfq-test@example.test",
+  "internalNote": "Ghi chú nội bộ thử",
+  "version": 2,
+  "updatedAtUtc": "2026-10-06T01:30:00+00:00",
+  "updatedBy": "00000000-0000-0000-0000-0000000000f1"
+}

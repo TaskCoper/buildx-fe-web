@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 360" width="480" height="360" role="presentation">
+  <!-- Ảnh minh hoạ TẠM đặt trên nền xanh đậm: nền trong suốt + nét sáng mảnh,
+       để nó đọc ra là "chỗ chờ ảnh" chứ không thành một khung ảnh xám nằm đè
+       lên dải màu. -->
+  <g fill="none" stroke="#ffffff" stroke-opacity="0.4" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <rect x="8" y="8" width="464" height="344" rx="24" stroke-dasharray="14 12"/>
+    <g transform="translate(150 116)">
+      <rect x="0" y="0" width="180" height="130" rx="14"/>
+      <circle cx="48" cy="44" r="15"/>
+      <path d="M12 114 L70 62 L112 102 L138 80 L168 114"/>
+    </g>
+  </g>
+</svg>
