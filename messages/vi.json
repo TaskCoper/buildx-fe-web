@@ -1499,8 +1499,7 @@
           "drawings": "Đang xử lý bản vẽ ({done}/{total})",
           "renders": "Đang render phối cảnh ({done}/{total})",
           "package": "Đóng gói PDF"
-        },
-        "processing": "Đang chuẩn bị tệp hồ sơ…"
+        }
       }
     },
     "estimate": {

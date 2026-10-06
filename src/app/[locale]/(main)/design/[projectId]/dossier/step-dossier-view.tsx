@@ -21,6 +21,7 @@ import {
   useEstimate,
   useEstimateProjectInfo,
   useFloorCountLabel,
+  useMatchCriteria,
   useProject,
   useRenderDossier,
   useSendDossierEmail,
@@ -53,6 +54,8 @@ export function StepDossierView({ projectId }: { projectId: string }) {
   const draft = useDesignStore((s) => s.drafts[projectId])
   // Dự toán THẬT: thông tin dự án nằm trên server (đầu vào Bước 1), không có trong bản nháp cục bộ `draft`.
   const apiInfo = useEstimateProjectInfo(projectId)
+  // Dự toán thật: panel Cẩm nang gọi API ghép mẫu (POST /design-templates/matches) theo đầu vào đã gửi AI, như Bước 2.
+  const matchCriteria = useMatchCriteria(projectId)
   const projectQuery = useProject(projectId)
   const project = projectQuery.data
   const estimateQuery = useEstimate(projectId, { readOnly: true })
@@ -246,6 +249,7 @@ export function StepDossierView({ projectId }: { projectId: string }) {
                     kind='3d'
                     topic='interior'
                     filterLabel={filterLabel}
+                    matchCriteria={matchCriteria}
                     longWait={flow.longWait}
                   />
                 }

@@ -1499,8 +1499,7 @@
           "drawings": "Processing drawings ({done}/{total})",
           "renders": "Rendering views ({done}/{total})",
           "package": "Packaging PDF"
-        },
-        "processing": "Preparing the dossier file…"
+        }
       }
     },
     "estimate": {
