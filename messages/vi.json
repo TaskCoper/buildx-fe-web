@@ -488,15 +488,6 @@
     "emailLabel": "Email",
     "addressLabel": "Địa chỉ"
   },
-  "favorite": {
-    "add": "Lưu mẫu",
-    "saved": "Đã lưu",
-    "remove": "Bỏ lưu mẫu",
-    "savedToast": "Đã lưu mẫu",
-    "removedToast": "Đã bỏ lưu",
-    "viewSaved": "Xem mẫu đã lưu",
-    "undo": "Hoàn tác"
-  },
   "landing": {
     "hero": {
       "eyebrow": "BUILDX — NỀN TẢNG HỖ TRỢ LẬP KẾ HOẠCH & TRIỂN KHAI CÔNG TRÌNH",
@@ -1077,18 +1068,6 @@
         "valueFree": "gói thiết kế từ 399.000đ",
         "action": "Thiết kế ngay"
       },
-      "save": {
-        "imageAlt": "Mẫu thiết kế để lưu vào tài khoản",
-        "title": "Lưu mẫu",
-        "subtitle": "Lưu vào tài khoản để quay lại sau.",
-        "p1": "Nằm trong “Mẫu đã lưu” của bạn",
-        "p2": "So sánh các mẫu đã lưu",
-        "p3": "Bắt đầu thiết kế mới hoặc hỏi KTS từ danh sách",
-        "value": "Miễn phí · không tốn lượt tra",
-        "action": "Lưu mẫu",
-        "savedAction": "Đã lưu",
-        "alreadySaved": "Mẫu này đã nằm trong Mẫu đã lưu"
-      },
       "consult": {
         "imageAlt": "Kiến trúc sư BuildX đang tư vấn bản vẽ",
         "title": "Hỏi KTS 1:1",
@@ -1495,8 +1474,7 @@
           "0": "Đã đọc dữ liệu ảnh / mô tả",
           "1": "Đang phân tích khối lượng...",
           "2": "Tính chi phí theo đơn giá khu vực {province}"
-        },
-        "processing": "Đang xử lý"
+        }
       },
       "dossier": {
         "title": "Đang render bộ hồ sơ thi công...",
@@ -1534,7 +1512,6 @@
         "interior": "Phần nội thất"
       },
       "sectionTotal": "Tổng {section}:",
-      "viewDetail": "Xem chi tiết",
       "downloadXlsx": "Tải bảng dự toán Excel (.xlsx)",
       "breakdownTitle": "Tỷ trọng chi phí",
       "advisoryTitle": "Tư vấn từ BuildX",
@@ -2053,21 +2030,6 @@
       "stepShort": "Bước {step}",
       "floorArea": "{area} m²"
     },
-    "favorites": {
-      "title": "Dự án yêu thích",
-      "remove": "Bỏ yêu thích",
-      "kind": {
-        "2d": "Bản vẽ 2D",
-        "3d": "Nội thất 3D"
-      },
-      "empty": {
-        "title": "Bạn chưa lưu mẫu nào",
-        "description": "Bấm ♡ trên các mẫu để lưu vào đây."
-      },
-      "savedAt": "Lưu ngày {date}",
-      "description": "Các mẫu bạn đã lưu.",
-      "count": "{count} mẫu"
-    },
     "dossiers": {
       "title": "Hồ sơ dự án",
       "description": "Các hồ sơ bạn đã gửi tới nhà thầu và trạng thái từng lời mời báo giá.",
@@ -2103,7 +2065,16 @@
         "create": "Tạo hồ sơ dự án — miễn phí",
         "viewDesignPlans": "Xem gói thiết kế"
       },
-      "note": "Trạng thái do đội hỗ trợ BuildX cập nhật. Bấm “Xem chi tiết” để mở trang theo dõi lời mời, lịch khảo sát và tiến độ xử lý."
+      "note": "Trạng thái do đội hỗ trợ BuildX cập nhật. Bấm “Xem chi tiết” để mở trang theo dõi lời mời, lịch khảo sát và tiến độ xử lý.",
+      "delete": "Xóa",
+      "deleteBlocked": "Hồ sơ đã mời nhà thầu nên không xóa được.",
+      "deleteConfirmTitle": "Xóa hồ sơ dự án này?",
+      "deleteConfirmDescription": "Hồ sơ \"{name}\" sẽ bị xóa khỏi tài khoản và không thể khôi phục.",
+      "deleteConfirmAction": "Xóa hồ sơ",
+      "deleteCancel": "Giữ lại",
+      "deleteSuccess": "Đã xóa hồ sơ dự án.",
+      "deleteInUse": "Hồ sơ đang có gói giám sát nên không xóa được.",
+      "deleteFailed": "Chưa xóa được hồ sơ. Vui lòng thử lại."
     },
     "purchaseHistory": {
       "title": "Lịch sử mua gói",
@@ -5414,7 +5385,13 @@
         "unsupported": "Chưa hỗ trợ lọc theo tiêu chí này.",
         "loadError": "Không tải được danh mục. Vui lòng thử lại.",
         "distanceNeedsRadius": "Chọn công trình và bán kính để sắp xếp nhà thầu gần nhất.",
-        "configureRadius": "Chọn bán kính"
+        "configureRadius": "Chọn bán kính",
+        "surveyOptions": {
+          "h24": "Trong 24h",
+          "h48": "Trong 48h",
+          "h72": "Trong 72h",
+          "over72": "Hơn 72h"
+        }
       },
       "ranking": {
         "stickyNudge": "Tạo hồ sơ dự án - miễn phí",
@@ -5943,6 +5920,11 @@
         "buildingType": "Loại công trình",
         "scope": "Phạm vi thi công"
       },
+      "photoKinds": {
+        "Cover": "Hình ảnh doanh nghiệp",
+        "Office": "Văn phòng làm việc",
+        "Team": "Đội ngũ nhân sự"
+      },
       "loadFailed": "Không tải được hồ sơ nhà thầu. Nhà thầu có thể đã bị ẩn hoặc quyền truy cập đã thay đổi.",
       "retry": "Thử lại"
     },
@@ -6091,7 +6073,7 @@
       "updateToast": "Lời mời tới {name} đã chuyển sang trạng thái {status}",
       "profilePanelDescription": "Hồ sơ năng lực nhà thầu · Chế độ xem nhanh",
       "profileRating": "Đánh giá",
-      "profileSimilar": "Dự án tương tự",
+      "profileCompleted": "Dự án đã làm",
       "dossierPanelDescription": "Phiên bản hồ sơ đã gửi · Chỉ đọc",
       "noPriceBadge": "Không chứa giá",
       "rejectedLine": "Lời mời đã bị từ chối. Lý do: {reason}",
@@ -6246,8 +6228,8 @@
       "searchLength": "Nhập nội dung tra vị trí từ 1 đến 500 ký tự. Có thể rút gọn câu tìm rồi chọn kết quả phù hợp.",
       "mapHint": "Gõ địa chỉ để xem danh sách gợi ý. Chọn một kết quả, sau đó kéo ghim hoặc bấm trên bản đồ để chỉnh vị trí công trình.",
       "mapReadOnly": "Vị trí công trình trên bản đồ. Hồ sơ này không cho phép thay đổi vị trí.",
-      "mapAdjustHint": "Kéo ghim hoặc bấm trên bản đồ để chỉnh vị trí.",
-      "addressSearchHint": "Nhập số nhà, đường rồi chọn địa chỉ trong danh sách gợi ý."
+      "mapAdjustHint": "Kéo ghim hoặc bấm trên bản đồ để chỉnh vị trí — địa chỉ sẽ tự cập nhật theo ghim.",
+      "addressSearchHint": "Nhập số nhà, đường rồi chọn địa chỉ trong danh sách gợi ý, bản đồ sẽ hiện vị trí để bạn kiểm tra và kéo ghim cho đúng."
     },
     "rfq": {
       "title": "Lời mời báo giá",
@@ -6933,7 +6915,6 @@
     "consultDetail": "Hồ sơ kiến trúc sư",
     "account": "Tài khoản của tôi",
     "accountProjects": "Dự án của tôi",
-    "accountFavorites": "Mẫu đã lưu",
     "accountDossiers": "Hồ sơ của tôi",
     "accountPurchases": "Lịch sử mua hàng",
     "accountConsultations": "Lịch sử tư vấn 1:1",

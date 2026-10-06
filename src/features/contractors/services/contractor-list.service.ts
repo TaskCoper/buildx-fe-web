@@ -1,3 +1,4 @@
+import { haversineKm, type GeoPoint } from '@/shared/utils'
 import { MAX_INVITATIONS } from '../constants/contractors.constants'
 import type {
   Contractor,
@@ -8,7 +9,7 @@ import type {
   RatingLevel,
   SearchRadiusKm,
   ServiceRegion,
-  StartWindow
+  SurveyWindow
 } from '../types/contractor.types'
 
 /**
@@ -47,7 +48,7 @@ export interface ContractorCriteria {
   scale?: ProjectScale
   experience?: ExperienceLevel
   rating?: RatingLevel
-  startWindow?: StartWindow
+  surveyWindow?: SurveyWindow
 }
 
 /** Số lầu (không tính trệt) của một quy mô: `ground` → 0, `ground+3` → 3. */
@@ -56,6 +57,23 @@ function upperFloorsOf(scale: ProjectScale): number {
 }
 
 const MIN_RATING: Record<RatingLevel, number> = { any: 0, good: 4, great: 4.5 }
+
+/**
+ * Nhà thầu khai báo khảo sát được trong `hours` giờ. "Trong 24/48/72h" tính cộng dồn (nhà thầu 24h cũng khảo sát
+ * được trong 48h); "Hơn 72h" là những nhà thầu cần quá 72h.
+ */
+function matchesSurveyWindow(hours: number, window: SurveyWindow): boolean {
+  switch (window) {
+    case 'h24':
+      return hours <= 24
+    case 'h48':
+      return hours <= 48
+    case 'h72':
+      return hours <= 72
+    case 'over72':
+      return hours > 72
+  }
+}
 
 /** Số dự án tương tự nằm trong khoảng nào thì thuộc mức kinh nghiệm đó. */
 const EXPERIENCE_RANGE: Record<ExperienceLevel, readonly [min: number, max: number]> = {
@@ -69,12 +87,12 @@ const EXPERIENCE_RANGE: Record<ExperienceLevel, readonly [min: number, max: numb
  * Nhà thầu có khớp bộ tiêu chí không.
  *
  * Loại công trình và quy mô đọc từ trường nhà thầu khai báo; nhà thầu chưa khai
- * báo thì KHÔNG bị loại (không có dữ liệu để kết luận là không phù hợp). Mốc
- * khởi công: "sớm nhất" cần đang nhận dự án và khảo sát được trong 24h, "1–3
- * tháng" chỉ cần đang nhận dự án; mốc xa hơn thì nhà thầu nào cũng xếp được lịch.
+ * báo thì KHÔNG bị loại (không có dữ liệu để kết luận là không phù hợp). Riêng
+ * thời gian khảo sát thì phải biết con số: nhà thầu đang nhận dự án và có khai
+ * báo giờ khảo sát mới khớp một mốc (chưa khai báo thì không thể nói "trong 24h").
  */
 export function matchesCriteria(contractor: Contractor, criteria: ContractorCriteria): boolean {
-  const { buildingTypeId, scale, experience, rating, startWindow } = criteria
+  const { buildingTypeId, scale, experience, rating, surveyWindow } = criteria
 
   if (buildingTypeId && contractor.buildingTypeIds && !contractor.buildingTypeIds.includes(buildingTypeId)) return false
 
@@ -87,12 +105,11 @@ export function matchesCriteria(contractor: Contractor, criteria: ContractorCrit
 
   if (rating && contractor.rating < MIN_RATING[rating]) return false
 
-  if (
-    startWindow === 'asap' &&
-    !(contractor.acceptingProjects && contractor.surveyTimeKnown !== false && contractor.surveyWithinHours <= 24)
-  )
-    return false
-  if (startWindow === 'in-1-3-months' && !contractor.acceptingProjects) return false
+  if (surveyWindow) {
+    const known = contractor.surveyTimeKnown !== false && contractor.surveyWithinHours > 0
+    if (!contractor.acceptingProjects || !known || !matchesSurveyWindow(contractor.surveyWithinHours, surveyWindow))
+      return false
+  }
 
   return true
 }
@@ -110,6 +127,21 @@ export function filterContractors(
     .filter((c) => !filters.region || c.region === filters.region)
     .filter((c) => matchesCriteria(c, criteria))
   return filters.sort === null ? filtered : filtered.sort(COMPARATORS[filters.sort])
+}
+
+/**
+ * Gắn khoảng cách từ công trình tới trụ sở nhà thầu cho nhà thầu CHƯA có `distanceKm` (API chi tiết không trả số này,
+ * chỉ API danh sách có kèm công trình mới trả). Cần toạ độ cả hai phía; thiếu một bên thì giữ "chưa tính" thay vì
+ * đoán. Nhà thầu đã có khoảng cách từ BE thì giữ nguyên số của BE.
+ */
+export function withDistanceFrom(contractor: Contractor, site: GeoPoint | undefined): Contractor {
+  if (contractor.distanceKnown !== false || !site) return contractor
+  if (contractor.latitude == null || contractor.longitude == null) return contractor
+  return {
+    ...contractor,
+    distanceKm: haversineKm(site, { latitude: contractor.latitude, longitude: contractor.longitude }),
+    distanceKnown: true
+  }
 }
 
 /**

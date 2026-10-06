@@ -28,6 +28,12 @@ import { designDossierRoute, designInputRoute, ROUTES } from '@/shared/constants
 import { useProjectChatContext } from '../use-project-chat-context'
 
 /**
+ * Thời gian ước lượng một lần AI thật lập dự toán, chỉ để vòng % tăng dần ở màn chờ. Không phải số liệu của BE (BE chỉ
+ * có hạn chót 15 phút): quá ước lượng thì vòng giữ ~95% với hiệu ứng sáng cho tới khi có kết quả.
+ */
+const REAL_GENERATION_EXPECTED_MS = 30_000
+
+/**
  * Bước 2 (mục IV.4 + IV.5).
  *
  * Màn chờ theo Hình 07: cẩm nang cá nhân hóa chiếm cột trái rộng, cột tiến độ
@@ -192,8 +198,9 @@ export function StepEstimateView({ projectId }: { projectId: string }) {
           <GenerationWaiting
             flow='estimate'
             complete={Boolean(result)}
-            // AI thật không có tiến độ phần trăm để hỏi, thời gian chờ không biết trước: vòng quay chậm hơn bản mock.
-            indeterminate={!env.NEXT_PUBLIC_USE_MOCK_API}
+            // AI thật không có tiến độ phần trăm để hỏi: vòng % vẫn tăng dần theo thời gian ước lượng (chạm ~95% rồi giữ
+            // nhịp sáng chờ kết quả thật), chỉ để hiển thị, không quyết định dữ liệu. Chờ AI thật lâu hơn bản mock.
+            expectedMs={env.NEXT_PUBLIC_USE_MOCK_API ? undefined : REAL_GENERATION_EXPECTED_MS}
             province={draft?.addressDetail.provinceName}
             chatStream={<ProactiveChatStream />}
           />

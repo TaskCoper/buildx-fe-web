@@ -19,6 +19,7 @@ import {
   useDesignStore,
   useDossier,
   useEstimate,
+  useEstimateProjectInfo,
   useFloorCountLabel,
   useProject,
   useRenderDossier,
@@ -50,6 +51,8 @@ export function StepDossierView({ projectId }: { projectId: string }) {
   const enteredFromEstimate = searchParams.get('entry') === 'estimate'
 
   const draft = useDesignStore((s) => s.drafts[projectId])
+  // Dự toán THẬT: thông tin dự án nằm trên server (đầu vào Bước 1), không có trong bản nháp cục bộ `draft`.
+  const apiInfo = useEstimateProjectInfo(projectId)
   const projectQuery = useProject(projectId)
   const project = projectQuery.data
   const estimateQuery = useEstimate(projectId, { readOnly: true })
@@ -108,21 +111,24 @@ export function StepDossierView({ projectId }: { projectId: string }) {
     projectName: project?.name ?? '',
     projectId,
     phone: user?.phone ?? '',
-    address: draft?.address ?? '',
+    address: apiInfo?.address || (draft?.address ?? ''),
     createdAt: project?.createdAt ?? new Date().toISOString(),
-    buildingTypeLabel: draft?.buildingType ? tInput(`buildingType.options.${draft.buildingType}`) : '',
+    buildingTypeLabel:
+      apiInfo?.buildingTypeLabel || (draft?.buildingType ? tInput(`buildingType.options.${draft.buildingType}`) : ''),
     // Tum chỉ ghi khi loại công trình có áp dụng (hồ sơ lưu `null` khi không áp dụng).
-    scaleLabel: draft?.floorCount
-      ? [
-          floorLabel(draft.floorCount),
-          draft.hasAttic === null ? '' : tInput(draft.hasAttic ? 'attic.options.yes' : 'attic.options.no')
-        ]
-          .filter(Boolean)
-          .join(' · ')
-      : '',
+    scaleLabel:
+      apiInfo?.scaleLabel ||
+      (draft?.floorCount
+        ? [
+            floorLabel(draft.floorCount),
+            draft.hasAttic === null ? '' : tInput(draft.hasAttic ? 'attic.options.yes' : 'attic.options.no')
+          ]
+            .filter(Boolean)
+            .join(' · ')
+        : ''),
     floorArea: estimate?.estimatedFloorArea ?? 0,
-    packageLabel: draft ? tInput(`packageTier.options.${draft.packageTier}`) : '',
-    styleLabel: draft?.style ? tInput(`style.options.${draft.style}`) : ''
+    packageLabel: apiInfo?.packageLabel || (draft ? tInput(`packageTier.options.${draft.packageTier}`) : ''),
+    styleLabel: apiInfo?.styleLabel || (draft?.style ? tInput(`style.options.${draft.style}`) : '')
   }
 
   const finishing = render.isSuccess && flow.phase !== 'ready'

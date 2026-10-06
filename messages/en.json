@@ -488,15 +488,6 @@
     "emailLabel": "Email",
     "addressLabel": "Address"
   },
-  "favorite": {
-    "add": "Save template",
-    "saved": "Saved",
-    "remove": "Remove from saved",
-    "savedToast": "Template saved",
-    "removedToast": "Removed from saved",
-    "viewSaved": "View saved templates",
-    "undo": "Undo"
-  },
   "landing": {
     "hero": {
       "eyebrow": "BUILDX — THE PLATFORM FOR PLANNING & DELIVERING YOUR BUILD",
@@ -1077,18 +1068,6 @@
         "valueFree": "Design plans from 399,000 VND",
         "action": "Design now"
       },
-      "save": {
-        "imageAlt": "Design template saved to your account",
-        "title": "Save template",
-        "subtitle": "Save it to your account and come back later.",
-        "p1": "Appears in your Saved templates",
-        "p2": "Compare templates you have saved",
-        "p3": "Start a new design or ask an architect later",
-        "value": "Free · does not use a lookup credit",
-        "action": "Save template",
-        "savedAction": "Saved",
-        "alreadySaved": "This template is already in Saved templates"
-      },
       "consult": {
         "imageAlt": "BuildX architect reviewing drawings",
         "title": "Ask an architect 1:1",
@@ -1495,8 +1474,7 @@
           "0": "Read your photo / description",
           "1": "Analysing quantities…",
           "2": "Pricing against {province} unit rates"
-        },
-        "processing": "Processing"
+        }
       },
       "dossier": {
         "title": "Rendering your construction dossier…",
@@ -1534,7 +1512,6 @@
         "interior": "Interior"
       },
       "sectionTotal": "{section} total:",
-      "viewDetail": "VIEW DETAILS",
       "downloadXlsx": "Download the estimate (.xlsx)",
       "breakdownTitle": "Cost breakdown",
       "advisoryTitle": "Advice from BuildX",
@@ -2053,21 +2030,6 @@
       "stepShort": "Step {step}",
       "floorArea": "{area} m²"
     },
-    "favorites": {
-      "title": "Saved favorites",
-      "remove": "Remove from favorites",
-      "kind": {
-        "2d": "2D plan",
-        "3d": "3D interior"
-      },
-      "empty": {
-        "title": "You haven't saved any templates",
-        "description": "Tap ♡ on a template to save it here."
-      },
-      "savedAt": "Saved {date}",
-      "description": "Templates you saved.",
-      "count": "{count} samples"
-    },
     "dossiers": {
       "title": "Project dossiers",
       "description": "Dossiers you have sent to contractors and the current status of each invitation.",
@@ -2103,7 +2065,16 @@
         "create": "Create project dossier — free",
         "viewDesignPlans": "View design plans"
       },
-      "note": "Statuses are updated by the BuildX support team. Select “View details” to track invitations, surveys and processing progress."
+      "note": "Statuses are updated by the BuildX support team. Select “View details” to track invitations, surveys and processing progress.",
+      "delete": "Delete",
+      "deleteBlocked": "This dossier has invited contractors, so it cannot be deleted.",
+      "deleteConfirmTitle": "Delete this project dossier?",
+      "deleteConfirmDescription": "The dossier \"{name}\" will be removed from your account and cannot be restored.",
+      "deleteConfirmAction": "Delete dossier",
+      "deleteCancel": "Keep it",
+      "deleteSuccess": "Project dossier deleted.",
+      "deleteInUse": "This dossier has a supervision package, so it cannot be deleted.",
+      "deleteFailed": "Could not delete the dossier. Please try again."
     },
     "purchaseHistory": {
       "title": "Purchase history",
@@ -5414,7 +5385,13 @@
         "unsupported": "Filtering by this criterion is not yet supported.",
         "loadError": "Could not load filter options. Please try again.",
         "distanceNeedsRadius": "Choose a project and a radius to sort by nearest contractors.",
-        "configureRadius": "Choose a radius"
+        "configureRadius": "Choose a radius",
+        "surveyOptions": {
+          "h24": "Within 24h",
+          "h48": "Within 48h",
+          "h72": "Within 72h",
+          "over72": "Over 72h"
+        }
       },
       "ranking": {
         "stickyNudge": "Create a project brief - free",
@@ -5943,6 +5920,11 @@
         "buildingType": "Building type",
         "scope": "Scope of work"
       },
+      "photoKinds": {
+        "Cover": "Company photo",
+        "Office": "Workplace",
+        "Team": "Our team"
+      },
       "loadFailed": "Unable to load the contractor profile. It may be hidden or access may have changed.",
       "retry": "Retry"
     },
@@ -6091,7 +6073,7 @@
       "updateToast": "The invitation to {name} is now {status}",
       "profilePanelDescription": "Contractor profile · Quick view",
       "profileRating": "Rating",
-      "profileSimilar": "Similar projects",
+      "profileCompleted": "Completed projects",
       "dossierPanelDescription": "Sent dossier version · Read only",
       "noPriceBadge": "No pricing included",
       "rejectedLine": "This invitation was rejected. Reason: {reason}",
@@ -6246,8 +6228,8 @@
       "searchLength": "Enter 1 to 500 characters for location search. You may shorten the query and choose the matching place.",
       "mapHint": "Type an address to see suggestions. Select a result, then drag the pin or click the map to adjust the construction site location.",
       "mapReadOnly": "Construction site location on the map. Location editing is disabled for this profile.",
-      "mapAdjustHint": "Drag the pin or click the map to adjust the location.",
-      "addressSearchHint": "Enter the street address, then select a suggested address."
+      "mapAdjustHint": "Drag the pin or click the map to adjust the location. The address updates to match the pin.",
+      "addressSearchHint": "Enter the street address, then select a suggested address. The map will show its location for you to check and adjust."
     },
     "rfq": {
       "title": "Quotation invitations",
@@ -6933,7 +6915,6 @@
     "consultDetail": "Architect profile",
     "account": "My account",
     "accountProjects": "My projects",
-    "accountFavorites": "Saved templates",
     "accountDossiers": "My dossiers",
     "accountPurchases": "Purchase history",
     "accountConsultations": "Consultation history",

@@ -9,6 +9,7 @@ import { cn } from '@/shared/lib/utils'
 import { QUOTATION_STATUSES, type QuotationItem } from '@/shared/quotations'
 import { useContractor } from '../hooks/use-contractors'
 import { useQuotationDetail } from '../hooks/use-quotations'
+import { withDistanceFrom } from '../services/contractor-list.service'
 import type { Contractor } from '../types/contractor.types'
 import { ContractorLogo } from './contractor-logo'
 import { ContractorStats } from './contractor-stats'
@@ -32,8 +33,12 @@ export function QuotationInvitationCard({
   const common = useTranslations('contractors.common')
   const rating = useTranslations('contractors.rating')
   const locale = useLocale() as Locale
-  const { data: contractor } = useContractor(item.contractorId)
+  const { data: loadedContractor } = useContractor(item.contractorId)
   const detail = useQuotationDetail(item.id)
+  // API chi tiết nhà thầu không trả khoảng cách: tính từ toạ độ công trình trong bản chụp của yêu cầu tới trụ sở nhà thầu.
+  const contractor = loadedContractor
+    ? withDistanceFrom(loadedContractor, detail.data?.snapshot.profile.address)
+    : undefined
   const stamp = (value: string) => formatDisplayDateTime(value, locale)
   const day = formatDisplayDate(item.appointmentAtUtc, locale, { weekday: true })
   const clock = formatDisplayTime(item.appointmentAtUtc, locale)

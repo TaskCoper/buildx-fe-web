@@ -50,6 +50,37 @@ export function useBriefs(enabled = true) {
 }
 
 /**
+ * Xoá hồ sơ dự án ở Tài khoản (BR-SITE-002). Hồ sơ ĐÃ MỜI nhà thầu bị chặn ngay ở giao diện (BE không chặn điều này,
+ * chỉ trả 409 khi công trình đang có gói giám sát giữ chỗ). Xong thì tải lại danh sách và lựa chọn dự án đang chọn.
+ */
+export function useDeleteBrief() {
+  const userId = useAuthStore((state) => state.user?.id)
+  const queryClient = useQueryClient()
+  const t = useTranslations('account.dossiers')
+
+  return useMutation({
+    mutationFn: (projectId: string) => contractorsApi.deleteBrief(projectId),
+    onSuccess: async (_result, projectId) => {
+      queryClient.removeQueries({ queryKey: contractorKeys.brief(projectId, userId) })
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: contractorKeys.briefSummaries(userId) }),
+        queryClient.invalidateQueries({ queryKey: contractorKeys.briefList(userId) }),
+        queryClient.invalidateQueries({ queryKey: contractorKeys.selection(userId) })
+      ])
+      toast.success(t('deleteSuccess'))
+    },
+    onError: (error) => {
+      const code = isApiError(error) ? (error.code ?? error.messageCode) : undefined
+      const inUse =
+        code === 'ConstructionSiteInUse' ||
+        code === 'ConstructionSiteHasSupervision' ||
+        (isApiError(error) && error.status === 409)
+      toast.error(inUse ? t('deleteInUse') : t('deleteFailed'))
+    }
+  })
+}
+
+/**
  * "Tạo hồ sơ" ở landing (S09) — sinh mã dự án rồi mở thẳng Bước 1.
  *
  * Chỉ tạo mã bản nhập liệu trên thiết bị. POST tạo SITE chạy ở S10 khi hồ sơ
