@@ -108,18 +108,17 @@ export function SiteHeader({ UserMenu, onCreateProject }: SiteHeaderProps = {}) 
   }, [onHome, pathname])
 
   const isHidden = hidden
-  const isCompact = pastTitle
 
   useEffect(() => {
     const style = document.documentElement.style
-    style.setProperty('--public-header-offset', isHidden ? '0px' : isCompact ? '56px' : '64px')
+    style.setProperty('--public-header-offset', isHidden ? '0px' : '64px')
     style.setProperty('--public-header-duration', reduceMotion ? '0ms' : isHidden ? '280ms' : '180ms')
 
     return () => {
       style.removeProperty('--public-header-offset')
       style.removeProperty('--public-header-duration')
     }
-  }, [isCompact, isHidden, reduceMotion])
+  }, [isHidden, reduceMotion])
 
   const createLabel = t('createProject')
 
@@ -133,12 +132,7 @@ export function SiteHeader({ UserMenu, onCreateProject }: SiteHeaderProps = {}) 
         isHidden ? '-translate-y-full duration-[280ms]' : 'translate-y-0 duration-[180ms]'
       )}
     >
-      <div
-        className={cn(
-          'relative mx-auto flex w-full max-w-[90rem] items-center gap-6 px-4 transition-[height] motion-reduce:transition-none lg:px-8',
-          isCompact ? 'h-14 duration-[180ms]' : 'h-16 duration-[180ms]'
-        )}
-      >
+      <div className='relative mx-auto flex h-16 w-full max-w-[90rem] items-center gap-6 px-4 lg:px-8'>
         <Link href={ROUTES.HOME} aria-label={t('home')} className='shrink-0'>
           <Logo tagline={t('brandTagline')} />
         </Link>

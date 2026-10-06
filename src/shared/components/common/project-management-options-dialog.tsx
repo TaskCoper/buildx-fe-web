@@ -14,8 +14,8 @@ import { checkoutConfirmRoute } from '@/shared/constants/routes'
 import { SUPERVISION_IMAGE, TOPIC_IMAGE, cn, completeManagementPopup, dismissManagementPopup } from '@/shared/lib'
 import { rememberCheckoutReturn } from '@/shared/lib/checkout-return'
 import { formatCurrency } from '@/shared/utils'
-import { Logo } from './logo'
 import { Photo } from './photo'
+import { PopupBrandLogo } from './popup-brand-logo'
 
 interface ProjectManagementOptionsDialogProps {
   open: boolean
@@ -187,14 +187,7 @@ function ManagementDialogHeader({
 
   return (
     <div className='relative shrink-0 bg-background px-5 pt-5 sm:px-6 max-[899px]:pb-3'>
-      <motion.div
-        initial={reduceMotion ? false : { opacity: 0, y: -6 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: reduceMotion ? 0 : 0.26, ease: [0.22, 1, 0.36, 1] }}
-        className='absolute top-5 left-6 hidden origin-top-left min-[900px]:block'
-      >
-        <Logo className='origin-top-left scale-[0.92]' />
-      </motion.div>
+      <PopupBrandLogo />
 
       <DialogClose
         aria-label={closeLabel}

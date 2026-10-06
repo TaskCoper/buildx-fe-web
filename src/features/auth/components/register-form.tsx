@@ -93,7 +93,7 @@ export function RegisterForm({ embedded = false, onSwitchToLogin }: RegisterForm
             name='name'
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('nameLabel')}</FormLabel>
+                <FormLabel className='text-foreground data-[error=true]:text-foreground'>{t('nameLabel')}</FormLabel>
                 <FormControl>
                   <Input autoComplete='name' placeholder={t('namePlaceholder')} {...field} />
                 </FormControl>
@@ -107,7 +107,7 @@ export function RegisterForm({ embedded = false, onSwitchToLogin }: RegisterForm
             name='email'
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('emailLabel')}</FormLabel>
+                <FormLabel className='text-foreground data-[error=true]:text-foreground'>{t('emailLabel')}</FormLabel>
                 <FormControl>
                   <Input type='email' autoComplete='email' placeholder={t('emailPlaceholder')} {...field} />
                 </FormControl>
@@ -121,7 +121,9 @@ export function RegisterForm({ embedded = false, onSwitchToLogin }: RegisterForm
             name='password'
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('passwordLabel')}</FormLabel>
+                <FormLabel className='text-foreground data-[error=true]:text-foreground'>
+                  {t('passwordLabel')}
+                </FormLabel>
                 <FormControl>
                   <PasswordInput autoComplete='new-password' placeholder={t('passwordPlaceholder')} {...field} />
                 </FormControl>
@@ -135,7 +137,9 @@ export function RegisterForm({ embedded = false, onSwitchToLogin }: RegisterForm
             name='confirmPassword'
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('confirmPasswordLabel')}</FormLabel>
+                <FormLabel className='text-foreground data-[error=true]:text-foreground'>
+                  {t('confirmPasswordLabel')}
+                </FormLabel>
                 <FormControl>
                   <PasswordInput autoComplete='new-password' placeholder={t('confirmPasswordPlaceholder')} {...field} />
                 </FormControl>

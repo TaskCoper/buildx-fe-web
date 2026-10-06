@@ -289,7 +289,45 @@ export function HandbookBrowser() {
               // Underline là indicator dùng chung bên dưới để nó có thể travel.
               className='text-muted-foreground hover:text-foreground data-[state=active]:text-primary-foreground dark:data-[state=active]:text-primary-foreground relative z-10 h-auto flex-none rounded-full border-0 bg-transparent px-7 py-2.5 text-base font-semibold transition-colors data-[state=active]:bg-transparent data-[state=active]:shadow-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-transparent'
             >
-              {t(`tabs.${value}`)}
+              <span className='inline-flex items-center gap-2'>
+                {t(`tabs.${value}`)}
+                {value === 'library' ? (
+                  <span className='relative inline-flex size-5 shrink-0 items-center justify-center'>
+                    {visualTab !== 'library' ? (
+                      <span
+                        aria-hidden='true'
+                        className='pointer-events-none absolute inset-[-6px] rounded-full bg-[radial-gradient(circle,color-mix(in_srgb,var(--brand-orange-gradient-to)_38%,transparent)_0%,color-mix(in_srgb,var(--brand-orange-gradient-from)_18%,transparent)_46%,transparent_72%)] motion-safe:animate-[handbook-library-star-halo_2.8s_ease-out_infinite]'
+                      />
+                    ) : null}
+                    <svg
+                      aria-hidden='true'
+                      viewBox='0 0 24 24'
+                      className={cn(
+                        'relative z-10 size-5 transition-colors duration-200',
+                        visualTab === 'library'
+                          ? 'fill-white text-white'
+                          : 'motion-safe:animate-[handbook-library-star-nudge_2.8s_ease-in-out_infinite]'
+                      )}
+                    >
+                      {visualTab !== 'library' ? (
+                        <defs>
+                          <linearGradient id='handbook-library-star-gradient' x1='0%' y1='100%' x2='0%' y2='0%'>
+                            <stop offset='0%' stopColor='var(--brand-orange-gradient-from)' />
+                            <stop offset='100%' stopColor='var(--brand-orange-gradient-to)' />
+                          </linearGradient>
+                        </defs>
+                      ) : null}
+                      <path
+                        d='M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.164.75a.53.53 0 0 1 .294.904l-3.736 3.64a2.123 2.123 0 0 0-.609 1.878l.882 5.143a.53.53 0 0 1-.769.559l-4.618-2.428a2.122 2.122 0 0 0-1.976 0l-4.618 2.428a.53.53 0 0 1-.77-.559l.883-5.143a2.123 2.123 0 0 0-.61-1.878l-3.735-3.64a.53.53 0 0 1 .294-.904l5.164-.75a2.123 2.123 0 0 0 1.595-1.16z'
+                        fill={visualTab === 'library' ? 'currentColor' : 'url(#handbook-library-star-gradient)'}
+                        stroke={visualTab === 'library' ? 'currentColor' : 'var(--brand-orange-gradient-from)'}
+                        strokeWidth='1.4'
+                        strokeLinejoin='round'
+                      />
+                    </svg>
+                  </span>
+                ) : null}
+              </span>
             </TabsTrigger>
           ))}
           <span

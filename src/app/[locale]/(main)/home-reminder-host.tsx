@@ -45,8 +45,6 @@ interface ReminderPolicy {
 
 const DAY_MS = 24 * 60 * 60 * 1000
 const AUTO_COLLAPSE_MS = 12_000
-const ASSISTANT_FALLBACK_INSET = 178
-const ASSISTANT_GAP = 14
 const MARKETING_WINDOW_MS = 7 * DAY_MS
 const MARKETING_MAX_PER_WEEK = 2
 const MOCK_BRIEF_IDS = new Set(['SVC-2026-0001', 'SVC-2026-0002', 'SVC-2026-0003', 'SVC-2026-0004'])
@@ -184,7 +182,6 @@ export function HomeReminderHost() {
   const [collapseCycle, setCollapseCycle] = useState(0)
   const [turnkeyOpen, setTurnkeyOpen] = useState(false)
   const [wakeVersion, setWakeVersion] = useState(0)
-  const [assistantInset, setAssistantInset] = useState(ASSISTANT_FALLBACK_INSET)
   const snapshotTakenRef = useRef(false)
   const snapshotIdentityRef = useRef<string | null>(null)
   const eligibleAtRef = useRef(0)
@@ -392,40 +389,6 @@ export function HomeReminderHost() {
     return () => setDockSuppressed(false)
   }, [collapsed, setDockSuppressed, visible])
 
-  useEffect(() => {
-    if (!visible || !collapsed) return
-
-    const updateInset = () => {
-      const assistant = document.querySelector<HTMLElement>('[data-assistant-fab]')
-      if (!assistant) {
-        setAssistantInset(ASSISTANT_FALLBACK_INSET)
-        return
-      }
-
-      const mobile = window.matchMedia('(max-width: 899px)').matches
-      const measuredTarget = mobile
-        ? (document.querySelector<HTMLElement>('[data-assistant-fab-core]') ?? assistant)
-        : assistant
-      const rect = measuredTarget.getBoundingClientRect()
-      const rightInset = Math.max(24, window.innerWidth - rect.right)
-      setAssistantInset(Math.ceil(rightInset + rect.width + ASSISTANT_GAP))
-    }
-
-    const frame = window.requestAnimationFrame(updateInset)
-    const observer = new ResizeObserver(updateInset)
-    const assistant = document.querySelector<HTMLElement>('[data-assistant-fab]')
-    const assistantCore = document.querySelector<HTMLElement>('[data-assistant-fab-core]')
-    if (assistant) observer.observe(assistant)
-    if (assistantCore) observer.observe(assistantCore)
-    window.addEventListener('resize', updateInset)
-
-    return () => {
-      window.cancelAnimationFrame(frame)
-      observer.disconnect()
-      window.removeEventListener('resize', updateInset)
-    }
-  }, [collapsed, visible])
-
   const closeReminder = () => {
     if (snapshot && user?.email) writeDismissed(user.email, snapshot.state)
     dismissedRef.current = true
@@ -530,8 +493,7 @@ export function HomeReminderHost() {
                 setCollapsed(false)
                 setCollapseCycle((value) => value + 1)
               }}
-              style={{ '--home-reminder-right': `${assistantInset}px` } as React.CSSProperties}
-              className='fixed right-[var(--home-reminder-right)] bottom-6 z-[55] inline-flex h-[48px] items-center gap-2.5 rounded-full brand-green-button px-4 pr-5 text-[14px] font-bold text-white shadow-[0_14px_32px_-14px_rgba(42,117,63,.55)] transition-[right,background-color,box-shadow] duration-200 ease-out hover:shadow-[0_16px_36px_-14px_rgba(42,117,63,.62)] max-[899px]:!right-0 max-[899px]:left-0 max-[899px]:mx-auto max-[899px]:w-fit'
+              className='fixed right-6 bottom-6 z-[55] inline-flex h-[48px] items-center gap-2.5 rounded-full brand-green-button px-4 pr-5 text-[14px] font-bold text-white shadow-[0_14px_32px_-14px_rgba(42,117,63,.55)] transition-[background-color,box-shadow] duration-200 ease-out hover:shadow-[0_16px_36px_-14px_rgba(42,117,63,.62)] max-[899px]:right-0 max-[899px]:left-0 max-[899px]:mx-auto max-[899px]:w-fit'
             >
               <span className='flex size-6 items-center justify-center rounded-full bg-[#f36a16] text-xs font-extrabold text-white'>
                 1

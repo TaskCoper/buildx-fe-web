@@ -5,6 +5,7 @@ import { motion, useReducedMotion } from 'motion/react'
 import { useTranslations } from 'next-intl'
 import type { ReactNode } from 'react'
 
+import { PopupBrandLogo } from '@/shared/components/common'
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from '@/shared/components/ui/dialog'
 
 interface JourneyDialogShellProps {
@@ -35,17 +36,7 @@ export function JourneyDialogShell({
         className='max-h-[calc(100dvh-2rem)] w-[min(1080px,calc(100vw-2rem))] max-w-[calc(100vw-2rem)] gap-0 overflow-x-hidden overflow-y-auto rounded-[24px] border-0 bg-background p-0 shadow-2xl sm:max-w-[1080px]'
       >
         <div className='relative shrink-0 bg-background px-5 pt-5 sm:px-6 sm:pt-5 max-[899px]:pb-3'>
-          <motion.div
-            initial={reduceMotion ? false : { opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: reduceMotion ? 0 : 0.32, ease: [0.16, 1, 0.3, 1] }}
-            className='absolute top-5 left-6 hidden origin-top-left min-[900px]:block'
-          >
-            {/* Góp ý BuildX: logo dọc (nhà + chữ BuildX + "Kiến tạo giá trị") thay logo ngang. `mix-blend-multiply`
-                để nền trắng của ảnh hòa vào nền popup. */}
-            {/* eslint-disable-next-line @next/next/no-img-element -- logo tĩnh trong public, không cần loader */}
-            <img src='/images/brand/buildx-logo-vertical.png' alt='BuildX' className='h-16 w-auto mix-blend-multiply' />
-          </motion.div>
+          <PopupBrandLogo />
 
           <DialogClose
             aria-label={t('close')}

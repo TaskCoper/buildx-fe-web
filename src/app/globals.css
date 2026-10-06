@@ -20,6 +20,115 @@
   }
 }
 
+[data-assistant-fab][data-ready='true'] {
+  animation: assistant-fab-rise 520ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+[data-assistant-fab][data-ready='true']:hover {
+  transform: scale(1.05);
+}
+
+[data-assistant-idle-ring] {
+  animation: assistant-idle-ring 4.8s ease-out infinite;
+}
+
+[data-assistant-fab]:hover [data-assistant-fab-icon] {
+  animation: assistant-icon-blink 340ms ease-out 1;
+}
+
+@keyframes assistant-fab-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(2.5rem) scale(0);
+  }
+  72% {
+    opacity: 1;
+    transform: translateY(-0.25rem) scale(1.025);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes assistant-idle-ring {
+  0%,
+  58%,
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+  64% {
+    opacity: 0.42;
+    transform: scale(1);
+  }
+  80% {
+    opacity: 0;
+    transform: scale(1.75);
+  }
+}
+
+@keyframes assistant-icon-blink {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  48% {
+    opacity: 0.35;
+    transform: scale(0.86);
+  }
+}
+
+@keyframes handbook-library-star-halo {
+  0%,
+  58%,
+  100% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  66% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  82% {
+    opacity: 0;
+    transform: scale(1.85);
+  }
+}
+
+@keyframes handbook-library-star-nudge {
+  0%,
+  58%,
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+  64% {
+    transform: rotate(-10deg) scale(1.08);
+  }
+  70% {
+    transform: rotate(8deg) scale(1.12);
+  }
+  76% {
+    transform: rotate(-4deg) scale(1.05);
+  }
+  82% {
+    transform: rotate(0deg) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-assistant-fab][data-ready='true'],
+  [data-assistant-idle-ring],
+  [data-assistant-fab]:hover [data-assistant-fab-icon] {
+    animation: none !important;
+  }
+
+  [data-assistant-fab] {
+    transition-duration: 0ms !important;
+  }
+}
+
 /* =============================================================================
  * SEMANTIC DESIGN TOKENS  (source of truth)
  *
@@ -1711,19 +1820,6 @@
     width: 3px;
   }
 
-  [data-assistant-fab][data-ready='true'] {
-    animation: assistant-fab-rise 520ms cubic-bezier(0.22, 1, 0.36, 1);
-  }
-  [data-assistant-fab][data-ready='true']:hover {
-    transform: scale(1.05) !important;
-  }
-  [data-assistant-idle-ring] {
-    animation: assistant-idle-ring 4.8s ease-out infinite;
-  }
-  [data-assistant-fab]:hover [data-assistant-fab-icon] {
-    animation: assistant-icon-blink 340ms ease-out 1;
-  }
-
   @keyframes handbook-template-label-crossfade {
     from {
       opacity: 0;
@@ -1863,50 +1959,6 @@
     to {
       opacity: 1;
       transform: translateY(0);
-    }
-  }
-
-  @keyframes assistant-fab-rise {
-    0% {
-      opacity: 0;
-      transform: translateY(2.5rem) scale(0);
-    }
-    72% {
-      opacity: 1;
-      transform: translateY(-0.25rem) scale(1.025);
-    }
-    100% {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
-  }
-
-  @keyframes assistant-idle-ring {
-    0%,
-    58%,
-    100% {
-      opacity: 0;
-      transform: scale(1);
-    }
-    64% {
-      opacity: 0.42;
-      transform: scale(1);
-    }
-    80% {
-      opacity: 0;
-      transform: scale(1.75);
-    }
-  }
-
-  @keyframes assistant-icon-blink {
-    0%,
-    100% {
-      opacity: 1;
-      transform: scale(1);
-    }
-    48% {
-      opacity: 0.35;
-      transform: scale(0.86);
     }
   }
 
@@ -2813,10 +2865,6 @@ body main {
   [data-panel-selection-outline] {
     transition: none;
   }
-}
-body:has([data-generation-waiting]) [data-assistant-idle-ring] {
-  animation-play-state: paused;
-  opacity: 0;
 }
 [data-progress-row][data-state='done'] svg,
 [data-render-check] {
@@ -4016,11 +4064,6 @@ body:has([data-generation-waiting]) [data-assistant-idle-ring] {
     border-color: var(--primary) !important;
     box-shadow: 0 0 0 0.2rem color-mix(in oklch, var(--primary) 22%, transparent) !important;
   }
-  [data-assistant-fab][data-ready='true'],
-  [data-assistant-idle-ring],
-  [data-assistant-fab]:hover [data-assistant-fab-icon] {
-    animation: none !important;
-  }
   [data-latest-card]:hover,
   [data-latest-card]:focus-visible,
   [data-latest-card]:hover .latest-news-image-motion,
@@ -4114,9 +4157,7 @@ body:has([data-generation-waiting]) [data-assistant-idle-ring] {
   [data-latest-card],
   .latest-news-image-motion,
   [data-assistant-drawer],
-  [data-assistant-fab],
-  [data-assistant-label],
-  [data-assistant-fab-icon] {
+  [data-assistant-label] {
     transition-duration: 0ms !important;
   }
   .site-header-shell::before,

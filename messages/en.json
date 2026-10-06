@@ -1174,7 +1174,6 @@
         "close": "Close",
         "title": "Finished reading — ready to start your home?",
         "subtitle": "Turn knowledge into a real project in minutes. Choose the next step that fits you.",
-        "later": "Maybe later, keep reading",
         "create": {
           "imageAlt": "Completed modern home",
           "badge": "Start now",
@@ -1294,7 +1293,6 @@
         "close": "Close",
         "title": "You just finished “{title}” — what’s next?",
         "subtitle": "Apply what you watched, keep learning, or ask an architect.",
-        "later": "Maybe later",
         "create": {
           "imageAlt": "Construction site and lot photo",
           "badge": "Try it now",

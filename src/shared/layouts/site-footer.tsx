@@ -238,6 +238,8 @@ export function SiteFooter() {
 
   const hotline = cmsText(settings.hotline, contact.hotline)
   const email = cmsText(settings.email, contact.email)
+  const address = cmsText(settings.address, t('address'))
+  const wardStart = address.toLocaleLowerCase('vi').indexOf('phường ')
 
   const socialLinks = [
     {
@@ -288,7 +290,16 @@ export function SiteFooter() {
         </a>
       </li>
       <li>
-        {t('addressLabel')}: {cmsText(settings.address, t('address'))}
+        {t('addressLabel')}:{' '}
+        {wardStart >= 0 ? (
+          <>
+            {address.slice(0, wardStart).trimEnd()}
+            <br />
+            {address.slice(wardStart).trimStart()}
+          </>
+        ) : (
+          address
+        )}
       </li>
     </ul>
   )
@@ -307,11 +318,11 @@ export function SiteFooter() {
             transition={{ duration: 0.58, ease: [0.22, 1, 0.36, 1] }}
           >
             {/* Dải trắng lấy bề ngang theo logo và dòng mô tả, kéo tới cuối chữ AI. */}
-            <div className='inline-flex max-w-full flex-col items-start'>
+            <div className='inline-flex max-w-full flex-col items-center'>
               <div className='footer-logo-tab'>
                 <Logo onDark className='h-12 max-w-full max-lg:h-14' />
               </div>
-              <p className='text-footer-foreground mt-4 max-w-xs text-sm leading-relaxed'>
+              <p className='text-footer-foreground mt-4 w-full max-w-xs text-center text-sm leading-relaxed font-semibold tracking-[0.06em] uppercase'>
                 {cmsText(settings.tagline, tNav('brandTagline'))}
               </p>
             </div>
@@ -407,7 +418,16 @@ export function SiteFooter() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.42, delay: 0.88, ease: [0.22, 1, 0.36, 1] }}
               >
-                {t('addressLabel')}: {cmsText(settings.address, t('address'))}
+                {t('addressLabel')}:{' '}
+                {wardStart >= 0 ? (
+                  <>
+                    {address.slice(0, wardStart).trimEnd()}
+                    <br />
+                    {address.slice(wardStart).trimStart()}
+                  </>
+                ) : (
+                  address
+                )}
               </motion.li>
             </ul>
           </motion.div>
