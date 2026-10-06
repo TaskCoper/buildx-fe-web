@@ -57,8 +57,11 @@ function toContractor(item: PublicContractorItem): Contractor {
     strengths: [],
     photos: [],
     buildingTypeIds: (item.buildingTypes ?? []).map((b) => b.id),
-    // API dùng phạm vi GUID động, FE dùng 4 mã cứng → không map, để trống.
+    buildingTypeNames: (item.buildingTypes ?? []).map((b) => b.name),
+    ...(item.latitude != null && item.longitude != null ? { latitude: item.latitude, longitude: item.longitude } : {}),
+    // API dùng phạm vi GUID động, FE dùng 4 mã cứng → `scopes` để trống, tên phạm vi nằm ở `scopeNames`.
     scopes: [],
+    scopeNames: (item.scopes ?? []).map((s) => s.name),
     ...(item.shortDescription ? { shortDescription: item.shortDescription } : {}),
     officeAddress: item.address ?? '',
     foundedYear: 0,

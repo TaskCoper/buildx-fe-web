@@ -35,7 +35,6 @@ export const ROUTES = {
   // Account (screen 11 + S24) — mỗi khu lớn có URL riêng để bookmark/reload/back-forward đúng màn.
   ACCOUNT: '/account',
   ACCOUNT_PROJECTS: '/account/projects',
-  ACCOUNT_FAVORITES: '/account/favorites',
   ACCOUNT_DOSSIERS: '/account/dossiers',
   ACCOUNT_PURCHASES: '/account/purchases',
   ACCOUNT_CONSULTATIONS: '/account/consultations',

@@ -6,7 +6,7 @@ import { toast } from 'sonner'
 
 import { useRouter } from '@/i18n/navigation'
 import { CONTRACTOR_PREVIEW_ID, contractorBriefRoute } from '@/shared/constants/routes'
-import { isApiError } from '@/shared/lib/api'
+import { errorCodeOf, isApiError } from '@/shared/lib/api'
 import { useAuthStore } from '@/shared/auth'
 import { projectSelectionApi } from '../api/project-selection.api'
 import { selectedProjectSiteId } from '../services/project-selection.service'
@@ -46,6 +46,37 @@ export function useBriefs(enabled = true) {
     queryFn: () => contractorsApi.listBriefs(),
     staleTime: 0,
     enabled: enabled && Boolean(userId)
+  })
+}
+
+/**
+ * Xoá hồ sơ dự án ở Tài khoản (BR-SITE-002). Hồ sơ ĐÃ MỜI nhà thầu bị chặn ngay ở giao diện (BE không chặn điều này,
+ * chỉ trả 409 khi công trình đang có gói giám sát giữ chỗ). Xong thì tải lại danh sách và lựa chọn dự án đang chọn.
+ */
+export function useDeleteBrief() {
+  const userId = useAuthStore((state) => state.user?.id)
+  const queryClient = useQueryClient()
+  const t = useTranslations('account.dossiers')
+
+  return useMutation({
+    mutationFn: (projectId: string) => contractorsApi.deleteBrief(projectId),
+    onSuccess: async (_result, projectId) => {
+      queryClient.removeQueries({ queryKey: contractorKeys.brief(projectId, userId) })
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: contractorKeys.briefSummaries(userId) }),
+        queryClient.invalidateQueries({ queryKey: contractorKeys.briefList(userId) }),
+        queryClient.invalidateQueries({ queryKey: contractorKeys.selection(userId) })
+      ])
+      toast.success(t('deleteSuccess'))
+    },
+    onError: (error) => {
+      const code = errorCodeOf(error)
+      const inUse =
+        code === 'ConstructionSiteInUse' ||
+        code === 'ConstructionSiteHasSupervision' ||
+        (isApiError(error) && error.status === 409)
+      toast.error(inUse ? t('deleteInUse') : isApiError(error) ? error.message : t('deleteFailed'))
+    }
   })
 }
 

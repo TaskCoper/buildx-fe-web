@@ -87,7 +87,7 @@ function ProjectPagination({
  */
 export function ProjectBoard() {
   const t = useTranslations('design.projects')
-  const { data: projects, isPending, isError, refetch } = useProjects()
+  const { data: projects, isPending, isError, error, refetch } = useProjects()
 
   const [query, setQuery] = useState('')
   const [status, setStatus] = useState<ProjectStatus | null>(null)
@@ -130,12 +130,19 @@ export function ProjectBoard() {
     )
   }
 
-  if (isError) return <DesignLoadError onRetry={() => void refetch()} />
+  if (isError) return <DesignLoadError error={error} onRetry={() => void refetch()} />
 
   // Chưa có dự án nào: bỏ hẳn thẻ đếm và bộ lọc. Không kèm nút — nút "Tạo dự án
   // mới" duy nhất của trang nằm giữa đầu trang (góp ý BuildX).
   if (list.length === 0) {
-    return <EmptyState icon={FolderPlus} title={t('empty.title')} description={t('empty.description')} />
+    return (
+      <EmptyState
+        icon={FolderPlus}
+        title={t('empty.title')}
+        description={t('empty.description')}
+        className='[&>h3]:text-3xl [&>p]:text-base'
+      />
+    )
   }
 
   return (

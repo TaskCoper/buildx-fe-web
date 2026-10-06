@@ -50,7 +50,7 @@ interface MyProjectsProps {
  */
 export function MyProjects({ renderSupervision }: MyProjectsProps = {}) {
   const t = useTranslations('account.projects')
-  const { data: projects, isPending, isError, refetch } = useProjects()
+  const { data: projects, isPending, isError, error, refetch } = useProjects()
 
   const [renaming, setRenaming] = useState<Project | null>(null)
   const [deleting, setDeleting] = useState<Project | null>(null)
@@ -72,7 +72,7 @@ export function MyProjects({ renderSupervision }: MyProjectsProps = {}) {
     )
   }
 
-  if (isError) return <DesignLoadError onRetry={() => void refetch()} />
+  if (isError) return <DesignLoadError error={error} onRetry={() => void refetch()} />
 
   if (!projects?.length) {
     return <EmptyState title={t('empty.title')} description={t('empty.description')} />

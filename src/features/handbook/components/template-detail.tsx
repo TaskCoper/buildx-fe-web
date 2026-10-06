@@ -31,7 +31,6 @@ import {
 import { Dialog, DialogContent, DialogTitle } from '@/shared/components/ui/dialog'
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import { ROUTES } from '@/shared/constants/routes'
-import { FavoriteButton } from '@/shared/favorite'
 import { usePageEntrance } from '@/shared/hooks'
 import { cn } from '@/shared/lib/utils'
 import {
@@ -562,14 +561,6 @@ export function TemplateDetail({ templateId }: { templateId: string }) {
   const floorControlsActiveId = floorControlsActiveFloor?.id ?? ''
   const libraryHref = `${ROUTES.HANDBOOK}?tab=library`
 
-  const favoriteItem = {
-    templateId: template.id,
-    kind: template.kind,
-    name: template.name,
-    imageUrl: template.imageUrl ?? template.floors[0]?.imageUrl ?? '',
-    tagLabel: template.styleLabel
-  }
-
   return (
     <div
       ref={rootRef}
@@ -709,14 +700,6 @@ export function TemplateDetail({ templateId }: { templateId: string }) {
                 </Badge>
               </span>
             ) : null}
-            <span
-              data-entrance-step='3'
-              data-entrance-order='8'
-              className='ml-auto'
-              style={inPlaceTransitionActive ? { viewTransitionName: 'handbook-detail-favorite' } : undefined}
-            >
-              <FavoriteButton variant='full' item={favoriteItem} />
-            </span>
           </div>
         </div>
       </div>
@@ -869,16 +852,6 @@ export function TemplateDetail({ templateId }: { templateId: string }) {
                       />
                     </span>
                   </button>
-                  <FavoriteButton
-                    item={{
-                      templateId: item.id,
-                      kind: item.kind,
-                      name: item.name,
-                      imageUrl: item.imageUrl ?? item.floors[0]?.imageUrl ?? '',
-                      tagLabel: item.styleLabel
-                    }}
-                    className={cn('absolute right-1.5', item.kind === '2d' ? 'top-1.5' : 'bottom-2')}
-                  />
                 </div>
               </li>
             ))}

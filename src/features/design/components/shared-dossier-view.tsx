@@ -58,7 +58,7 @@ function SharedFiles({
   files: { fileId: string; roleKey: string }[]
 }) {
   const t = useTranslations('design.share')
-  const { download, pending, failed } = useSharedDownload(shareId, token)
+  const { download, pending, failed, failureMessage } = useSharedDownload(shareId, token)
   const roles = [
     ['perspective', t('images.perspective')],
     ['cover-image', t('images.cover')],
@@ -103,7 +103,7 @@ function SharedFiles({
             </Button>
           ))}
         </div>
-        {failed ? <p className='text-destructive text-sm'>{t('downloadFailed')}</p> : null}
+        {failed ? <p className='text-destructive text-sm'>{failureMessage ?? t('downloadFailed')}</p> : null}
       </section>
     </>
   )

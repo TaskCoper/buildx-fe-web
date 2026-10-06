@@ -3,6 +3,7 @@
 import { Toaster } from '@/shared/components/ui/sonner'
 import { TooltipProvider } from '@/shared/components/ui/tooltip'
 import type { ReactNode } from 'react'
+import { ApiErrorTranslatorBridge } from './api-error-translator-bridge'
 import { QueryProvider } from './query-provider'
 import { ThemeProvider } from './theme-provider'
 
@@ -19,6 +20,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
     <ThemeProvider>
       <QueryProvider>
         <TooltipProvider delayDuration={200}>
+          <ApiErrorTranslatorBridge />
           {children}
           <Toaster />
         </TooltipProvider>

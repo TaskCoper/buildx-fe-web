@@ -50,6 +50,7 @@ export { useAdvisory } from './hooks/use-advisory'
 export { useSaveInput } from './hooks/use-save-input'
 export { useGenerationProgress } from './hooks/use-generation-progress'
 export { useFloorCountLabel } from './hooks/use-floor-count-label'
+export { useEstimateProjectInfo } from './hooks/use-estimate-project-info'
 
 // Store
 export { useDesignStore } from './store/design.store'

@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl'
 
 /**
  * Trạng thái "chưa có / đang phát triển" cho các mục Tài khoản mà backend chưa
- * có API (Lịch tư vấn, Hồ sơ thi công). Hiện thay cho dữ liệu mock để không gây
+ * có API (Lịch sử tư vấn). Hiện thay cho dữ liệu mock để không gây
  * hiểu nhầm là đã chạy thật.
  */
 export function AccountPending() {

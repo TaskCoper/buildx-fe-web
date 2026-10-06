@@ -122,12 +122,13 @@ export function ArticleList() {
   const initialCategory = restoreState?.category ?? ALL
   const initialTerm = restoreState?.term ?? ''
   const sectionRef = useRef<HTMLElement>(null)
-  const toolbarRef = useRef<HTMLDivElement>(null)
   const chipRowRef = useRef<HTMLDivElement>(null)
   const filterPillRef = useRef<HTMLSpanElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
   const rowsRef = useRef<HTMLUListElement>(null)
   const filterAnimationsRef = useRef<Animation[]>([])
+  const entranceAnimationsRef = useRef<Animation[]>([])
+  const entrancePlayedRef = useRef(false)
   const previousRectsRef = useRef(new Map<string, DOMRect>())
   const previousContentHeightRef = useRef<number | null>(null)
   const loadMoreTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -139,7 +140,6 @@ export function ArticleList() {
   const [visibleCount, setVisibleCount] = useState(restoreState?.visibleCount ?? ARTICLE_PAGE_SIZE)
   const [openId, setOpenId] = useState<string | null>(restoreState?.openId ?? null)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
-  const [isToolbarStuck, setIsToolbarStuck] = useState(false)
 
   const appliedCategoryRef = useRef<ArticleFilter>(initialCategory)
   const appliedQueryRef = useRef(initialTerm.trim())
@@ -300,41 +300,32 @@ export function ArticleList() {
       }
     }
 
-    let enteringIndex = 0
-    rowsRef.current?.querySelectorAll<HTMLElement>('[data-article-row-item]').forEach((row) => {
+    rowsRef.current?.querySelectorAll<HTMLElement>('[data-article-row-item]').forEach((row, index) => {
       const id = row.dataset.articleRowItem
       if (!id) return
       const current = row.getBoundingClientRect()
       const before = previous.get(id)
+      const dx = before ? before.left - current.left : 0
+      const dy = before ? before.top - current.top : 0
+      const delay = Math.min(index * 45, 225)
 
-      if (before) {
-        const dx = before.left - current.left
-        const dy = before.top - current.top
-        if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) {
-          animations.push(
-            row.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'translate(0, 0)' }], {
-              duration: 240,
-              easing: 'cubic-bezier(0.22, 1, 0.36, 1)'
-            })
-          )
-        }
-      } else {
-        const delay = Math.min(enteringIndex * 18, 72)
-        enteringIndex += 1
-        animations.push(
-          row.animate(
-            [
-              { opacity: 0, transform: 'translateY(8px)' },
-              { opacity: 1, transform: 'translateY(0)' }
-            ],
+      animations.push(
+        row.animate(
+          [
             {
-              duration: 220,
-              delay,
-              easing: 'cubic-bezier(0.22, 1, 0.36, 1)'
-            }
-          )
+              opacity: 0,
+              transform: `translate3d(${dx}px, ${dy + 14}px, 0) scale(0.985)`
+            },
+            { opacity: 1, transform: 'translate3d(0, 0, 0) scale(1)' }
+          ],
+          {
+            duration: 360,
+            delay,
+            easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+            fill: 'backwards'
+          }
         )
-      }
+      )
     })
 
     previousRectsRef.current = new Map()
@@ -377,46 +368,96 @@ export function ArticleList() {
     }
   }, [visualCategory])
 
-  useEffect(() => {
-    let frame = 0
-    let last = false
+  useLayoutEffect(() => {
+    if (isPending || entrancePlayedRef.current) return
 
-    const updateStickyState = () => {
-      cancelAnimationFrame(frame)
-      frame = requestAnimationFrame(() => {
-        const section = sectionRef.current
-        const toolbar = toolbarRef.current
-        if (!section || !toolbar) return
+    const section = sectionRef.current
+    if (!section) return
 
-        const rootStyle = getComputedStyle(document.documentElement)
-        const headerOffset = Number.parseFloat(rootStyle.getPropertyValue('--public-header-offset')) || 64
-        const sectionRect = section.getBoundingClientRect()
-        const toolbarRect = toolbar.getBoundingClientRect()
-        const releaseBoundary = Math.max(headerOffset + toolbar.offsetHeight + 8, window.innerHeight * 0.72)
-        const next =
-          sectionRect.top < headerOffset && sectionRect.bottom > releaseBoundary && toolbarRect.top <= headerOffset + 1
+    if (prefersReducedMotion()) {
+      entrancePlayedRef.current = true
+      return
+    }
 
-        if (next !== last) {
-          last = next
-          setIsToolbarStuck(next)
+    const header = section.querySelector<HTMLElement>('[data-article-section-header]')
+    const toolbar = section.querySelector<HTMLElement>('[data-article-toolbar]')
+    const rows = Array.from(rowsRef.current?.querySelectorAll<HTMLElement>('[data-article-row-item]') ?? [])
+    const fallbackContent = rows.length === 0 ? contentRef.current : null
+    const loadMore = section.querySelector<HTMLElement>('[data-article-load-more-wrap]')
+    const targets = [header, toolbar, ...rows, fallbackContent, loadMore].filter((target): target is HTMLElement =>
+      Boolean(target)
+    )
+
+    targets.forEach((target) => {
+      target.style.opacity = '0'
+      target.style.transform = 'translate3d(0, 12px, 0)'
+    })
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((entry) => entry.isIntersecting) || entrancePlayedRef.current) return
+        entrancePlayedRef.current = true
+        observer.disconnect()
+
+        const animations: Animation[] = []
+        const play = (target: HTMLElement | null, delay: number, distance = 18, scale = 0.99) => {
+          if (!target) return
+          target.style.removeProperty('opacity')
+          target.style.removeProperty('transform')
+          animations.push(
+            target.animate(
+              [
+                { opacity: 0, transform: `translate3d(0, ${distance}px, 0) scale(${scale})` },
+                { opacity: 1, transform: 'translate3d(0, 0, 0) scale(1)' }
+              ],
+              {
+                duration: 500,
+                delay,
+                easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+                fill: 'backwards'
+              }
+            )
+          )
         }
+
+        play(header, 0, 14, 0.995)
+        play(toolbar, 100, 14, 0.995)
+
+        if (rows.length > 0) {
+          rows.forEach((row, index) => play(row, 190 + Math.min(index * 85, 510), 24, 0.98))
+        } else {
+          play(fallbackContent, 190, 24, 0.98)
+        }
+
+        play(loadMore, 300 + Math.min(rows.length * 50, 320), 14, 0.995)
+        entranceAnimationsRef.current = animations
+
+        void Promise.allSettled(animations.map((animation) => animation.finished)).then(() => {
+          if (entranceAnimationsRef.current === animations) entranceAnimationsRef.current = []
+        })
+      },
+      { threshold: 0.12, rootMargin: '0px 0px -6% 0px' }
+    )
+
+    observer.observe(section)
+
+    return () => {
+      observer.disconnect()
+      entranceAnimationsRef.current.forEach((animation) => animation.cancel())
+      entranceAnimationsRef.current = []
+      targets.forEach((target) => {
+        target.style.removeProperty('opacity')
+        target.style.removeProperty('transform')
       })
     }
-
-    updateStickyState()
-    window.addEventListener('scroll', updateStickyState, { passive: true })
-    window.addEventListener('resize', updateStickyState)
-    return () => {
-      cancelAnimationFrame(frame)
-      window.removeEventListener('scroll', updateStickyState)
-      window.removeEventListener('resize', updateStickyState)
-    }
-  }, [])
+  }, [isPending])
 
   useEffect(() => {
     return () => {
       cancelLoadMore()
       cancelFilterAnimations()
+      entranceAnimationsRef.current.forEach((animation) => animation.cancel())
+      entranceAnimationsRef.current = []
     }
   }, [cancelFilterAnimations, cancelLoadMore])
 
@@ -486,23 +527,14 @@ export function ArticleList() {
       data-article-list
       className='bg-card scroll-mt-[calc(var(--public-header-offset,64px)+0.75rem)] space-y-5 rounded-2xl border p-5 sm:p-6'
     >
-      <header className='space-y-1.5'>
+      <header data-article-section-header className='space-y-1.5'>
         <h2 className='text-foreground text-3xl font-bold tracking-tight text-balance'>{t('title')}</h2>
         <p className='text-muted-foreground text-sm'>{t('subtitle')}</p>
       </header>
 
       <div
-        ref={toolbarRef}
         data-article-toolbar
-        data-stuck={isToolbarStuck ? 'true' : 'false'}
-        className={cn(
-          'z-30 -mx-5 flex flex-wrap items-center gap-3 border-y border-transparent px-5 py-3 transition-[top,background-color,border-color,box-shadow] motion-reduce:transition-none',
-          isToolbarStuck ? 'sticky border-border/70 bg-card/90 shadow-md backdrop-blur-xl' : 'relative'
-        )}
-        style={{
-          top: isToolbarStuck ? 'var(--public-header-offset, 64px)' : 'auto',
-          transitionDuration: 'var(--public-header-duration, 180ms)'
-        }}
+        className={cn('z-30 -mx-5 flex flex-wrap items-center gap-3 border-y border-transparent px-5 py-3')}
       >
         <div ref={chipRowRef} data-filter-chip-row className='relative flex flex-wrap gap-2'>
           <span
@@ -520,7 +552,22 @@ export function ArticleList() {
                 data-filter-chip={option}
                 data-active={active ? 'true' : 'false'}
                 type='button'
-                onClick={() => selectCategory(option)}
+                onClick={(event) => {
+                  if (!prefersReducedMotion()) {
+                    void event.currentTarget
+                      .animate(
+                        [
+                          { transform: 'scale(1)' },
+                          { transform: 'scale(0.94)' },
+                          { transform: 'scale(1.04)' },
+                          { transform: 'scale(1)' }
+                        ],
+                        { duration: 260, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' }
+                      )
+                      .finished.catch(() => undefined)
+                  }
+                  selectCategory(option)
+                }}
                 aria-pressed={active}
                 className={cn(
                   'relative z-10 overflow-hidden rounded-full border px-4 py-1.5 text-sm font-medium transition-[color,border-color] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/35',
@@ -633,7 +680,7 @@ export function ArticleList() {
         )}
 
         {hasMore ? (
-          <div className='flex justify-center pt-1'>
+          <div data-article-load-more-wrap className='flex justify-center pt-1'>
             <Button
               data-article-load-more
               type='button'

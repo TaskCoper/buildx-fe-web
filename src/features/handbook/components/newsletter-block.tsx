@@ -34,6 +34,8 @@ export function NewsletterBlock() {
   const previewTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [previewArticleId, setPreviewArticleId] = useState<string | null>(null)
   const [swapVersion, setSwapVersion] = useState(0)
+  // Ngày trên đầu bản tin là NGÀY HÔM NAY (formatDisplayDate đã quy về giờ Việt Nam), không phải ngày đăng của bài nổi bật.
+  const [today] = useState(() => new Date())
 
   const { data: articles, isPending } = useHandbookArticles(undefined, undefined, { source: 'mock' })
   const featured = useMemo(() => featuredArticles(articles ?? []), [articles])
@@ -353,11 +355,9 @@ export function NewsletterBlock() {
         <h2 data-newsletter-title className='text-foreground text-3xl font-bold tracking-tight text-balance'>
           {t('title')}
         </h2>
-        {lead ? (
-          <p data-newsletter-date className='text-foreground/80 text-sm font-semibold'>
-            {formatDisplayDate(lead.publishedAt, locale, { weekday: true })}
-          </p>
-        ) : null}
+        <p data-newsletter-date className='text-foreground/80 text-sm font-semibold'>
+          {formatDisplayDate(today, locale, { weekday: true })}
+        </p>
         <span
           data-newsletter-rule
           aria-hidden

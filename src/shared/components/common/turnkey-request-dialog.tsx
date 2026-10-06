@@ -145,6 +145,7 @@ export function TurnkeyRequestDialog({ open, onOpenChange }: TurnkeyRequestDialo
               label={t('turnkeyForm.province')}
               placeholder={t('turnkeyForm.provincePlaceholder')}
               options={provinces.map((province) => ({ value: province.name, label: province.name }))}
+              className='[&>[data-slot=field-label]]:text-foreground [&_[data-slot=field-error]]:!text-sm'
               disabled={isLoadingProvinces}
               modal
               isRequired

@@ -12,7 +12,7 @@ import { Button } from '@/shared/components/ui/button'
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from '@/shared/components/ui/dialog'
 import { ROUTES } from '@/shared/constants'
 import { BUILDING_IMAGE, TOPIC_IMAGE, cn, completeReadyProjectPopup, dismissReadyProjectPopup } from '@/shared/lib'
-import { Logo } from './logo'
+import { PopupBrandLogo } from './popup-brand-logo'
 import { TurnkeyRequestDialog } from './turnkey-request-dialog'
 
 interface ProjectReadyOptionsDialogProps {
@@ -203,14 +203,7 @@ function ReadyDialogHeader({ title, subtitle, closeLabel }: { title: string; sub
 
   return (
     <div className='relative shrink-0 bg-background px-5 pt-5 sm:px-6 max-[899px]:pb-3'>
-      <motion.div
-        initial={reduceMotion ? false : { opacity: 0, y: -6 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: reduceMotion ? 0 : 0.26, ease: [0.22, 1, 0.36, 1] }}
-        className='absolute top-5 left-6 hidden origin-top-left min-[900px]:block'
-      >
-        <Logo className='origin-top-left scale-[0.92]' />
-      </motion.div>
+      <PopupBrandLogo />
 
       <DialogClose
         aria-label={closeLabel}

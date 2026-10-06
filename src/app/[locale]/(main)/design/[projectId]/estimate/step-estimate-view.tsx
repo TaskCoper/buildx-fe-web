@@ -24,8 +24,14 @@ import { PersonalizedPanel, useHandbookPanelStore, type HandbookFilter } from '@
 import { useRouter } from '@/i18n/navigation'
 import { useAuth } from '@/shared/auth'
 import { env } from '@/shared/config/env'
-import { designDossierRoute, designInputRoute, ROUTES } from '@/shared/constants/routes'
+import { designDossierRoute, designInputRoute } from '@/shared/constants/routes'
 import { useProjectChatContext } from '../use-project-chat-context'
+
+/**
+ * Thời gian ước lượng một lần AI thật lập dự toán, chỉ để vòng % tăng dần ở màn chờ. Không phải số liệu của BE (BE chỉ
+ * có hạn chót 15 phút): quá ước lượng thì vòng giữ ~95% với hiệu ứng sáng cho tới khi có kết quả.
+ */
+const REAL_GENERATION_EXPECTED_MS = 30_000
 
 /**
  * Bước 2 (mục IV.4 + IV.5).
@@ -42,7 +48,6 @@ export function StepEstimateView({ projectId }: { projectId: string }) {
   const tInput = useTranslations('design.input')
   const floorLabel = useFloorCountLabel()
   const tPanel = useTranslations('handbook.panel')
-  const tEntry = useTranslations('design.entry')
   const router = useRouter()
   const { user } = useAuth()
   const draft = useDesignStore((s) => s.drafts[projectId])
@@ -132,6 +137,7 @@ export function StepEstimateView({ projectId }: { projectId: string }) {
   if (projectQuery.isError || (estimateError && !flowError))
     return (
       <DesignLoadError
+        error={projectQuery.error ?? estimateError}
         onRetry={() => {
           void projectQuery.refetch()
           void refetch()
@@ -155,7 +161,6 @@ export function StepEstimateView({ projectId }: { projectId: string }) {
               : tWaiting('pageTitle')
         }
         subtitle={result && resultVisible ? resultSubtitle || undefined : undefined}
-        back={result && resultVisible ? { href: ROUTES.DESIGN, label: tEntry('backToList') } : undefined}
         previousStep={{ href: designInputRoute(projectId), label: tCommon('back') }}
         entranceKey={`design.${projectId}.step2`}
       />
@@ -192,8 +197,9 @@ export function StepEstimateView({ projectId }: { projectId: string }) {
           <GenerationWaiting
             flow='estimate'
             complete={Boolean(result)}
-            // AI thật không có tiến độ phần trăm để hỏi, thời gian chờ không biết trước: vòng quay chậm hơn bản mock.
-            indeterminate={!env.NEXT_PUBLIC_USE_MOCK_API}
+            // AI thật không có tiến độ phần trăm để hỏi: vòng % vẫn tăng dần theo thời gian ước lượng (chạm ~95% rồi giữ
+            // nhịp sáng chờ kết quả thật), chỉ để hiển thị, không quyết định dữ liệu. Chờ AI thật lâu hơn bản mock.
+            expectedMs={env.NEXT_PUBLIC_USE_MOCK_API ? undefined : REAL_GENERATION_EXPECTED_MS}
             province={draft?.addressDetail.provinceName}
             chatStream={<ProactiveChatStream />}
           />

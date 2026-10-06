@@ -48,7 +48,7 @@ import {
   MATCHES_PINNED_CONTRACTOR_KEY,
   PROJECT_SCALES,
   RATING_LEVELS,
-  START_WINDOWS
+  SURVEY_WINDOWS
 } from '../constants/contractors.constants'
 import { useBriefs, useCreateBrief } from '../hooks/use-brief'
 import { useContractorDirectory, useContractorFilterOptions } from '../hooks/use-contractors'
@@ -85,6 +85,8 @@ const PAGE_CONTAINER = 'mx-auto w-full max-w-[90rem] px-4 lg:px-8'
  * đổi tiêu chí lọc.
  */
 const RANKED_LIST_ID = 'contractor-ranked-list'
+/** Danh sách xếp hạng chỉ hiện tối đa chừng này nhà thầu khớp bộ lọc. */
+const RANKED_LIMIT = 3
 const DWELL_SECTION_IDS = [RANKED_LIST_ID] as const
 
 /** Ba thẻ của khối "An toàn & minh bạch" (Hình S09), theo đúng thứ tự trong ảnh. */
@@ -261,7 +263,6 @@ export function ContractorLanding() {
   const tRankTabs = useTranslations('contractors.landing.ranking.tabs')
   const tCommon = useTranslations('contractors.common')
   const tScale = useTranslations('contractors.scale')
-  const tStartWindow = useTranslations('contractors.startWindow')
   const tGlobal = useTranslations('common')
   const tPicker = useTranslations('contractors.picker')
 
@@ -333,6 +334,10 @@ export function ContractorLanding() {
     ...(siteId && radiusApplied ? { constructionSiteId: siteId, radiusKm: radiusChoice } : {})
   })
   const directory = mock ? mockDirectory : liveDirectory.isError ? [] : (liveDirectory.data ?? [])
+  // Dải logo bên dưới là dải thương hiệu của MỌI nhà thầu, không đổi theo bộ lọc (bộ lọc chỉ tác động lên danh sách).
+  // Không lọc thì cùng khoá với `liveDirectory` nên không tốn thêm lượt gọi.
+  const allDirectory = useContractorDirectory()
+  const brandContractors = mock ? mockDirectory : (allDirectory.data ?? [])
   const directoryPending = !mock && liveDirectory.isPending
   const directoryError = !mock && liveDirectory.isError
 
@@ -350,7 +355,8 @@ export function ContractorLanding() {
     scale: PROJECT_SCALES.map((key) => ({ value: key, label: tScale(key) })),
     experience: EXPERIENCE_LEVELS.map((key) => ({ value: key, label: t(`criteria.experienceOptions.${key}`) })),
     rating: RATING_LEVELS.map((key) => ({ value: key, label: t(`criteria.ratingOptions.${key}`) })),
-    schedule: START_WINDOWS.map((key) => ({ value: key, label: tStartWindow(key) }))
+    // Thời gian khảo sát của nhà thầu (24h / 48h / 72h / hơn 72h), không phải mốc khởi công của dự án.
+    schedule: SURVEY_WINDOWS.map((key) => ({ value: key, label: t(`criteria.surveyOptions.${key}`) }))
   }
 
   const criteria: ContractorCriteria = {
@@ -358,7 +364,7 @@ export function ContractorLanding() {
     scale: mock ? PROJECT_SCALES.find((key) => key === criterionSelections.scale) : undefined,
     experience: mock ? EXPERIENCE_LEVELS.find((key) => key === criterionSelections.experience) : undefined,
     rating: RATING_LEVELS.find((key) => key === criterionSelections.rating),
-    startWindow: START_WINDOWS.find((key) => key === criterionSelections.schedule)
+    surveyWindow: SURVEY_WINDOWS.find((key) => key === criterionSelections.schedule)
   }
 
   const filtered = filterContractors(
@@ -369,8 +375,7 @@ export function ContractorLanding() {
     },
     criteria
   )
-  const ranked = filtered.slice(0, 3)
-  const moreContractors = filtered.slice(3)
+  const ranked = filtered.slice(0, RANKED_LIMIT)
 
   /**
    * Đứng ở danh sách xếp hạng lâu không bấm gì → thanh "Tạo hồ sơ dự án - miễn
@@ -894,10 +899,10 @@ export function ContractorLanding() {
               ))}
             </ul>
 
-            {/* Dải logo các nhà thầu còn lại: chạy liên tục như dải thương hiệu
-                ở trang chủ, rê chuột thì dừng. Dải có chiều cao cố định nên mở
-                rộng cột trái không làm đổi cột phải. */}
-            {moreContractors.length > 0 ? <ContractorLogoMarquee contractors={moreContractors} /> : null}
+            {/* Dải logo mọi nhà thầu: chạy liên tục như dải thương hiệu ở trang
+                chủ, rê chuột thì dừng, KHÔNG đổi theo bộ lọc. Dải có chiều cao
+                cố định nên mở rộng cột trái không làm đổi cột phải. */}
+            {brandContractors.length > 0 ? <ContractorLogoMarquee contractors={brandContractors} /> : null}
           </div>
         </div>
       </motion.section>
@@ -1030,7 +1035,7 @@ export function ContractorLanding() {
               <dd className='text-muted-foreground text-sm text-pretty'>
                 {t.rich(`faq.a${index}`, {
                   // "3 nhà thầu": font-weight 400, không highlight nền.
-                  mark: (chunks) => <span className='text-foreground font-medium'>{chunks}</span>
+                  mark: (chunks) => <span className='normal-case'>{chunks}</span>
                 })}
               </dd>
             </motion.div>

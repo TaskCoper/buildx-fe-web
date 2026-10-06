@@ -6,7 +6,7 @@ import dayjs, { type Dayjs } from 'dayjs'
 import { useFormatter, useTranslations } from 'next-intl'
 import { useState } from 'react'
 import { useAuthStore } from '@/shared/auth'
-import { isApiError } from '@/shared/lib/api'
+import { errorCodeOf, isApiError } from '@/shared/lib/api'
 import {
   quotationApi,
   QuotationDossier,
@@ -100,7 +100,7 @@ function QuotationAdminDetail({ id, ctx }: { id: string; ctx: ApiRowContext }) {
         client.invalidateQueries({ queryKey: ['contractors', 'invitations'] })
       ])
     } catch (cause) {
-      if (isApiError(cause) && cause.code === 'QuotationVersionConflict') {
+      if (errorCodeOf(cause) === 'QuotationVersionConflict') {
         setConflict(true)
         setError(t('versionConflict'))
       } else setError(isApiError(cause) ? cause.message : t('sendFailed'))

@@ -3,12 +3,10 @@
 import { CalendarCheck, CircleCheck, Clock, FileText, Loader2, MapPin, Map as MapIcon, Send, Star } from 'lucide-react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { useLocale, useTranslations } from 'next-intl'
-import { type ReactNode, useRef, useState } from 'react'
-import { createPortal } from 'react-dom'
+import { type ReactNode, useState } from 'react'
 
 import { Link } from '@/i18n/navigation'
 import type { Locale } from '@/i18n/routing'
-import { revealEase } from '@/shared/components/common'
 import { Button } from '@/shared/components/ui/button'
 import { Checkbox } from '@/shared/components/ui/checkbox'
 import { contractorFirmRoute, contractorInvitationsRoute, contractorInviteRoute } from '@/shared/constants/routes'
@@ -72,29 +70,8 @@ export function ContractorCard({
 
   const [navigatingProfile, setNavigatingProfile] = useState(false)
   const [navigatingInvite, setNavigatingInvite] = useState(false)
-  const compareSourceRef = useRef<HTMLLabelElement>(null)
-  const [compareFlight, setCompareFlight] = useState<{
-    fromX: number
-    fromY: number
-    toX: number
-    toY: number
-  } | null>(null)
-
   const handleCompare = () => {
     if (!compared && compareLocked) return
-
-    if (!compared && !reduceMotion) {
-      const source = compareSourceRef.current?.getBoundingClientRect()
-      const target = document.getElementById('matches-compare-list-target')?.getBoundingClientRect()
-      if (source && target) {
-        setCompareFlight({
-          fromX: source.left,
-          fromY: source.top,
-          toX: target.left + 10,
-          toY: target.top + 6
-        })
-      }
-    }
     onToggleCompare(contractor.id)
   }
 
@@ -157,7 +134,7 @@ export function ContractorCard({
       transition={{ duration: 0.2 }}
       className={cn(
         'bg-card relative flex flex-col gap-4 rounded-2xl border p-4 transition-colors sm:flex-row sm:items-start sm:p-5',
-        compared ? 'border-primary/60' : 'hover:border-primary/40'
+        'border-border hover:border-primary/40'
       )}
     >
       {/* Viền loé một lần khi đây là thẻ đầu vừa từ M04 sang (mục 6) — overlay
@@ -176,14 +153,13 @@ export function ContractorCard({
       <span
         aria-hidden
         className={cn(
-          'bg-primary pointer-events-none absolute inset-y-3 left-0 w-1 rounded-r-full opacity-0 transition-opacity',
+          'bg-primary pointer-events-none absolute inset-y-1 left-px w-1 rounded-l-full opacity-0 transition-opacity',
           compared && 'opacity-100'
         )}
       />
 
       <div className='flex items-center gap-4 sm:items-start'>
         <label
-          ref={compareSourceRef}
           title={!compared && compareLocked ? tMatches('maxCompare', { max: MAX_INVITATIONS }) : undefined}
           className={cn(
             'text-muted-foreground flex cursor-pointer flex-col items-center gap-1.5 max-md:text-xs text-[11px] transition-opacity',
@@ -323,39 +299,6 @@ export function ContractorCard({
           </Button>
         )}
       </div>
-
-      {compareFlight && typeof document !== 'undefined'
-        ? createPortal(
-            <motion.div
-              initial={{ x: compareFlight.fromX, y: compareFlight.fromY, opacity: 0, scale: 0.72 }}
-              animate={{
-                x: [
-                  compareFlight.fromX,
-                  compareFlight.fromX + (compareFlight.toX - compareFlight.fromX) * 0.38,
-                  compareFlight.fromX + (compareFlight.toX - compareFlight.fromX) * 0.76,
-                  compareFlight.toX,
-                  compareFlight.toX
-                ],
-                y: [
-                  compareFlight.fromY,
-                  Math.min(compareFlight.fromY, compareFlight.toY) - 72,
-                  compareFlight.toY - 34,
-                  compareFlight.toY,
-                  compareFlight.toY
-                ],
-                opacity: [0, 1, 1, 1, 0],
-                scale: [0.72, 0.9, 0.82, 0.66, 0.5]
-              }}
-              transition={{ duration: 0.9, ease: revealEase, times: [0, 0.14, 0.62, 0.9, 1] }}
-              onAnimationComplete={() => setCompareFlight(null)}
-              className='bg-card pointer-events-none fixed top-0 left-0 z-60 flex max-w-44 items-center gap-2 rounded-xl border px-2 py-1.5 shadow-lg'
-            >
-              <ContractorLogo contractor={contractor} className='size-7 rounded-md max-md:text-xs text-[9px]' />
-              <span className='truncate text-xs font-semibold'>{contractor.name}</span>
-            </motion.div>,
-            document.body
-          )
-        : null}
     </motion.article>
   )
 }
@@ -376,12 +319,10 @@ function Fact({
     // Cột chỉ số hẹp (4 ô trên một hàng) nên chữ phải nhỏ lại, và dòng nhãn
     // được XUỐNG DÒNG tối đa 2 dòng thay vì `truncate` — "TP. Buôn Ma Thuột,
     // Cư M'gar" mà cắt cụt thì mất luôn thông tin phục vụ ở đâu.
-    <div className='min-w-0 rounded-lg px-2.5 py-2 first:pl-0'>
-      <p className='flex items-center gap-1.5 text-[13px] leading-snug font-semibold'>
-        <Icon aria-hidden className={cn('size-3.5 shrink-0', iconClass ?? 'text-primary')} />
-        <span className='truncate'>{value}</span>
-      </p>
-      <p className='text-muted-foreground mt-0.5 line-clamp-2 pl-5 max-md:text-xs text-[11px] leading-snug text-pretty'>
+    <div className='grid min-w-0 grid-cols-[1rem_minmax(0,1fr)] gap-x-1.5 rounded-lg px-2.5 py-2'>
+      <Icon aria-hidden className={cn('mt-0.5 size-3.5 shrink-0', iconClass ?? 'text-primary')} />
+      <p className='min-w-0 truncate text-[13px] leading-snug font-semibold'>{value}</p>
+      <p className='text-muted-foreground col-start-2 mt-0.5 line-clamp-2 max-md:text-xs text-[11px] leading-snug text-pretty'>
         {hint}
       </p>
     </div>

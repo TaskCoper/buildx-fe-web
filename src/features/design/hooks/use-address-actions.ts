@@ -3,11 +3,10 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useRef } from 'react'
 
-import { geocodeApi } from '@/shared/geocode'
+import { findByName, geocodeApi, parseRegion } from '@/shared/geocode'
 import { designKeys } from '../api/design.keys'
 import { estimateInputApi } from '../api/estimate-input.api'
 import { mapsApi } from '../api/maps.api'
-import { findByName, parseRegion } from '../services/region.logic'
 import type { useEstimateInput } from './use-estimate-input'
 
 const WARDS_STALE = 30 * 60 * 1000
