@@ -1,0 +1,90 @@
+name: Deploy Application
+
+on:
+  workflow_call:
+    inputs:
+      profile:
+        required: true
+        type: string
+      actor:
+        required: true
+        type: string
+      repository:
+        required: true
+        type: string
+      tag:
+        required: true
+        type: string
+      run-on:
+        required: false
+        type: string
+        default: linhdanhthue
+
+jobs:
+  deploy-application:
+    name: Deploy Application
+    runs-on: ${{ inputs['run-on'] }}
+    timeout-minutes: 15
+    environment: ${{ inputs.profile }}
+    concurrency:
+      group: deploy-buildx-fe-web-${{ inputs.profile }}
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      packages: read
+    env:
+      SOURCE_REPOSITORY: ${{ inputs.repository }}
+      PROFILE: ${{ inputs.profile }}
+      TAG: ${{ inputs.tag }}
+      NETWORK: ${{ vars.DOCKER_NETWORK || 'bmt-network-dev' }}
+      BMT_API_ORIGIN: ${{ secrets.BMT_API_ORIGIN || 'https://bmt-api.vnzdna.com' }}
+      NEXT_PUBLIC_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_API_BASE_URL || '/api/v1' }}
+      NEXT_PUBLIC_API_TIMEOUT: ${{ secrets.NEXT_PUBLIC_API_TIMEOUT || '30000' }}
+      NEXT_PUBLIC_APP_NAME: ${{ secrets.NEXT_PUBLIC_APP_NAME || 'BuildX AI' }}
+      NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
+      NEXT_PUBLIC_USE_MOCK_AUTH: ${{ secrets.NEXT_PUBLIC_USE_MOCK_AUTH || 'false' }}
+      NEXT_PUBLIC_USE_MOCK_API: ${{ secrets.NEXT_PUBLIC_USE_MOCK_API || 'false' }}
+      NEXT_PUBLIC_VIETMAP_API_KEY: ${{ secrets.NEXT_PUBLIC_VIETMAP_API_KEY }}
+      VIETMAP_API_KEY: ${{ secrets.VIETMAP_API_KEY }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ inputs.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Normalize registry name
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "$PROFILE" in dev) ;; *) exit 1 ;; esac
+          echo "REGISTRY=ghcr.io/${SOURCE_REPOSITORY,,}" >> "$GITHUB_ENV"
+
+      - name: Verify external network
+        shell: bash
+        run: |
+          : "${NETWORK:?Set the DOCKER_NETWORK variable in this GitHub Environment}"
+          docker network inspect "$NETWORK" >/dev/null
+
+      - name: Pull new image
+        shell: bash
+        run: >-
+          docker compose -f .docker/compose.yaml
+          -p "buildx-fe-web-$PROFILE"
+          --profile "$PROFILE" pull
+
+      - name: Deploy new image
+        shell: bash
+        run: >-
+          docker compose -f .docker/compose.yaml
+          -p "buildx-fe-web-$PROFILE"
+          --profile "$PROFILE" up -d --no-build
+          --wait --wait-timeout 120
+
+      - name: Report deployment
+        shell: bash
+        run: echo "Deployment completed successfully."

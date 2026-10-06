@@ -1,0 +1,45 @@
+x-buildx-fe-base: &buildx-fe-base
+  image: ${REGISTRY:?REGISTRY is required}/buildx-fe-web:${TAG:-latest}
+  restart: unless-stopped
+  build:
+    context: ..
+    dockerfile: Dockerfile
+    args:
+      BMT_API_ORIGIN: ${BMT_API_ORIGIN:-https://bmt-api.vnzdna.com}
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-/api/v1}
+      NEXT_PUBLIC_API_TIMEOUT: ${NEXT_PUBLIC_API_TIMEOUT:-30000}
+      NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-BuildX AI}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:?NEXT_PUBLIC_APP_URL is required}
+      NEXT_PUBLIC_USE_MOCK_AUTH: ${NEXT_PUBLIC_USE_MOCK_AUTH:-false}
+      NEXT_PUBLIC_USE_MOCK_API: ${NEXT_PUBLIC_USE_MOCK_API:-false}
+      NEXT_PUBLIC_VIETMAP_API_KEY: ${NEXT_PUBLIC_VIETMAP_API_KEY:-}
+  environment:
+    TZ: Asia/Ho_Chi_Minh
+    HOSTNAME: 0.0.0.0
+    PORT: 3000
+    VIETMAP_API_KEY: ${VIETMAP_API_KEY:-}
+  expose: [3000]
+  networks: [buildx-network]
+  healthcheck:
+    test:
+      [
+        'CMD',
+        'node',
+        '-e',
+        "fetch('http://127.0.0.1:3000/vi').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"
+      ]
+    interval: 15s
+    timeout: 5s
+    retries: 5
+    start_period: 30s
+
+services:
+  buildx-fe-web-dev:
+    <<: *buildx-fe-base
+    container_name: buildx-fe-web-dev
+    profiles: [dev]
+
+networks:
+  buildx-network:
+    name: ${NETWORK:-bmt-network-dev}
+    external: true
