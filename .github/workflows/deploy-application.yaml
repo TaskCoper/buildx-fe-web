@@ -36,8 +36,8 @@ jobs:
       SOURCE_REPOSITORY: ${{ inputs.repository }}
       PROFILE: ${{ inputs.profile }}
       TAG: ${{ inputs.tag }}
-      NETWORK: ${{ vars.DOCKER_NETWORK || 'bmt-network-dev' }}
-      BMT_API_ORIGIN: ${{ secrets.BMT_API_ORIGIN || 'https://bmt-api.vnzdna.com' }}
+      NETWORK: ${{ vars.DOCKER_NETWORK }}
+      BMT_API_ORIGIN: ${{ secrets.BMT_API_ORIGIN || (inputs.profile == 'prod' && 'http://bmt-api-prod:8080' || 'https://bmt-api.vnzdna.com') }}
       NEXT_PUBLIC_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_API_BASE_URL || '/api/v1' }}
       NEXT_PUBLIC_API_TIMEOUT: ${{ secrets.NEXT_PUBLIC_API_TIMEOUT || '30000' }}
       NEXT_PUBLIC_APP_NAME: ${{ secrets.NEXT_PUBLIC_APP_NAME || 'BuildX AI' }}
@@ -61,26 +61,38 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          case "$PROFILE" in dev) ;; *) exit 1 ;; esac
+          case "$PROFILE" in dev|prod) ;; *) exit 1 ;; esac
           echo "REGISTRY=ghcr.io/${SOURCE_REPOSITORY,,}" >> "$GITHUB_ENV"
 
       - name: Verify external network
         shell: bash
         run: |
+          set -euo pipefail
           : "${NETWORK:?Set the DOCKER_NETWORK variable in this GitHub Environment}"
           docker network inspect "$NETWORK" >/dev/null
+          if [ "$PROFILE" = prod ]; then
+            [ "$NETWORK" = bmt-network-prod ] || {
+              echo 'Production requires bmt-network-prod.' >&2
+              exit 1
+            }
+            ipam="$(docker network inspect "$NETWORK" --format '{{range .IPAM.Config}}{{.Subnet}}|{{.IPRange}}|{{.Gateway}}{{println}}{{end}}')"
+            printf '%s\n' "$ipam" | grep -Fxq '10.47.20.0/24|10.47.20.128/25|10.47.20.1' || {
+              echo 'Production requires subnet 10.47.20.0/24, dynamic pool 10.47.20.128/25 and gateway 10.47.20.1; inspect the existing network before deploying.' >&2
+              exit 1
+            }
+          fi
 
       - name: Pull new image
         shell: bash
         run: >-
-          docker compose -f .docker/compose.yaml
+          docker compose --env-file /dev/null -f .docker/compose.yaml
           -p "buildx-fe-web-$PROFILE"
           --profile "$PROFILE" pull
 
       - name: Deploy new image
         shell: bash
         run: >-
-          docker compose -f .docker/compose.yaml
+          docker compose --env-file /dev/null -f .docker/compose.yaml
           -p "buildx-fe-web-$PROFILE"
           --profile "$PROFILE" up -d --no-build
           --wait --wait-timeout 120

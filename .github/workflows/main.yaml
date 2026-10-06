@@ -2,7 +2,7 @@ name: Deploy Application
 
 on:
   push:
-    branches: [develop]
+    branches: [develop, main]
   workflow_dispatch:
 
 concurrency:
@@ -45,3 +45,33 @@ jobs:
       profile: dev
       tag: ${{ needs.build-dev.outputs.image-tag }}
       run-on: linhdanhthue
+
+  build-prod:
+    name: Build / buildx-fe-web / Prod
+    needs: quality
+    if: ${{ github.ref == 'refs/heads/main' }}
+    uses: ./.github/workflows/build-image.yaml
+    permissions:
+      contents: read
+      packages: write
+    secrets: inherit
+    with:
+      actor: ${{ github.actor }}
+      repository: ${{ github.repository }}
+      environment: prod
+
+  deploy-prod:
+    name: Deploy / Prod / buildx-fe-web
+    needs: build-prod
+    if: ${{ github.ref == 'refs/heads/main' }}
+    uses: ./.github/workflows/deploy-application.yaml
+    permissions:
+      contents: read
+      packages: read
+    secrets: inherit
+    with:
+      actor: ${{ github.actor }}
+      repository: ${{ github.repository }}
+      profile: prod
+      tag: ${{ needs.build-prod.outputs.image-tag }}
+      run-on: bmtdecor

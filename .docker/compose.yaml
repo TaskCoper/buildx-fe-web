@@ -39,7 +39,19 @@ services:
     container_name: buildx-fe-web-dev
     profiles: [dev]
 
+  buildx-fe-web-prod:
+    <<: *buildx-fe-base
+    container_name: buildx-fe-web-prod
+    # Loopback endpoint for local verification on the production host.
+    ports: ['127.0.0.1:3000:3000']
+    # Next.js forwards /api/v1 to bmt-api-prod and must be a trusted proxy.
+    # Reserved outside the dynamic pool, inside TDD-AUTH-001's 10.47.20.8/29.
+    networks:
+      buildx-network:
+        ipv4_address: 10.47.20.12
+    profiles: [prod]
+
 networks:
   buildx-network:
-    name: ${NETWORK:-bmt-network-dev}
+    name: ${NETWORK:?NETWORK is required}
     external: true

@@ -20,8 +20,8 @@ REPO="${REPO:-$(gh repo view --json nameWithOwner --jq .nameWithOwner)}"
 # Check all requested files before making any remote changes.
 for ENVIRONMENT in $ENVIRONMENTS; do
   case "$ENVIRONMENT" in
-    dev) ;;
-    *) echo "Unsupported environment: $ENVIRONMENT (only dev is configured)." >&2; exit 1 ;;
+    dev|prod) ;;
+    *) echo "Unsupported environment: $ENVIRONMENT (use dev or prod)." >&2; exit 1 ;;
   esac
   FILE="${ENV_FILE:-$DIR/.env.$ENVIRONMENT}"
   [ -f "$FILE" ] || { echo "Missing environment file: $FILE" >&2; exit 1; }
@@ -29,7 +29,10 @@ done
 
 for ENVIRONMENT in $ENVIRONMENTS; do
   FILE="${ENV_FILE:-$DIR/.env.$ENVIRONMENT}"
-  BRANCH=develop
+  case "$ENVIRONMENT" in
+    dev) BRANCH=develop ;;
+    prod) BRANCH=main ;;
+  esac
 
   echo ">> Configuring '$ENVIRONMENT' in $REPO (branch $BRANCH)..."
   gh api -X PUT "repos/$REPO/environments/$ENVIRONMENT" --input - >/dev/null <<JSON

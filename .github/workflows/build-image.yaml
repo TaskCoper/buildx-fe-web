@@ -32,7 +32,7 @@ jobs:
     env:
       SOURCE_REPOSITORY: ${{ inputs.repository }}
       PROFILE: ${{ inputs.environment }}
-      BMT_API_ORIGIN: ${{ secrets.BMT_API_ORIGIN || 'https://bmt-api.vnzdna.com' }}
+      BMT_API_ORIGIN: ${{ secrets.BMT_API_ORIGIN || (inputs.environment == 'prod' && 'http://bmt-api-prod:8080' || 'https://bmt-api.vnzdna.com') }}
       NEXT_PUBLIC_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_API_BASE_URL || '/api/v1' }}
       NEXT_PUBLIC_API_TIMEOUT: ${{ secrets.NEXT_PUBLIC_API_TIMEOUT || '30000' }}
       NEXT_PUBLIC_APP_NAME: ${{ secrets.NEXT_PUBLIC_APP_NAME || 'BuildX AI' }}
@@ -61,7 +61,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          case "$PROFILE" in dev) ;; *) exit 1 ;; esac
+          case "$PROFILE" in dev|prod) ;; *) exit 1 ;; esac
           echo "REGISTRY=ghcr.io/${SOURCE_REPOSITORY,,}" >> "$GITHUB_ENV"
           echo "TAG=$PROFILE-$GITHUB_SHA" >> "$GITHUB_ENV"
           echo "tag=$PROFILE-$GITHUB_SHA" >> "$GITHUB_OUTPUT"
@@ -70,7 +70,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          docker compose -f .docker/compose.yaml --profile "$PROFILE" build
-          docker compose -f .docker/compose.yaml --profile "$PROFILE" push
+          docker compose --env-file /dev/null -f .docker/compose.yaml --profile "$PROFILE" build
+          docker compose --env-file /dev/null -f .docker/compose.yaml --profile "$PROFILE" push
           docker tag "$REGISTRY/buildx-fe-web:$TAG" "$REGISTRY/buildx-fe-web:$PROFILE-latest"
           docker push "$REGISTRY/buildx-fe-web:$PROFILE-latest"
