@@ -111,19 +111,21 @@ export function ConsultantCard({ consultant, className, query, onSelectSpecialty
 
           {/* Khung chuyên môn cao CỐ ĐỊNH (tối đa 2 hàng): dữ liệu API có nhiều/ít chip, tên dài ngắn khác nhau nhưng
               mọi thẻ vẫn cao bằng nhau. Mỗi chip một dòng, cắt "…", rê chuột xem đủ tên. */}
-          <div className='pointer-events-auto flex h-[3.25rem] flex-wrap content-start gap-1.5 overflow-hidden'>
-            {consultant.specialties.map((specialty) => (
-              <button
-                key={specialty.id}
-                type='button'
-                onClick={() => onSelectSpecialty?.(specialty.id)}
-                title={specialty.label}
-                className='bg-secondary text-secondary-foreground hover:bg-primary hover:text-primary-foreground relative z-10 max-w-full truncate rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap transition-colors'
-              >
-                <HighlightedText text={specialty.label} query={query} />
-              </button>
-            ))}
-          </div>
+          {consultant.specialties.length > 0 && (
+            <div className='pointer-events-auto flex max-h-[3.25rem] flex-wrap content-start gap-1.5 overflow-hidden'>
+              {consultant.specialties.map((specialty) => (
+                <button
+                  key={specialty.id}
+                  type='button'
+                  onClick={() => onSelectSpecialty?.(specialty.id)}
+                  title={specialty.label}
+                  className='bg-secondary text-secondary-foreground hover:bg-primary hover:text-primary-foreground relative z-10 max-w-full truncate rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap transition-colors'
+                >
+                  <HighlightedText text={specialty.label} query={query} />
+                </button>
+              ))}
+            </div>
+          )}
 
           <p className='text-primary text-xs'>
             {t('experience', { years: consultant.yearsExperience })}

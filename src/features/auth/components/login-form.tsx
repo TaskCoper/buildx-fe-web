@@ -66,7 +66,7 @@ export function LoginForm({ embedded = false }: LoginFormProps = {}) {
             name='email'
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('emailLabel')}</FormLabel>
+                <FormLabel className='text-foreground data-[error=true]:text-foreground'>{t('emailLabel')}</FormLabel>
                 <FormControl>
                   <Input type='email' autoComplete='email' placeholder={t('emailPlaceholder')} {...field} />
                 </FormControl>
@@ -81,7 +81,9 @@ export function LoginForm({ embedded = false }: LoginFormProps = {}) {
             render={({ field }) => (
               <FormItem>
                 <div className='flex items-center justify-between'>
-                  <FormLabel>{t('passwordLabel')}</FormLabel>
+                  <FormLabel className='text-foreground data-[error=true]:text-foreground'>
+                    {t('passwordLabel')}
+                  </FormLabel>
                   <Link href={ROUTES.FORGOT_PASSWORD} className='text-muted-foreground hover:text-foreground text-sm'>
                     {t('forgotPassword')}
                   </Link>

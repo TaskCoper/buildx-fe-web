@@ -24,7 +24,7 @@ import { PersonalizedPanel, useHandbookPanelStore, type HandbookFilter } from '@
 import { useRouter } from '@/i18n/navigation'
 import { useAuth } from '@/shared/auth'
 import { env } from '@/shared/config/env'
-import { designDossierRoute, designInputRoute, ROUTES } from '@/shared/constants/routes'
+import { designDossierRoute, designInputRoute } from '@/shared/constants/routes'
 import { useProjectChatContext } from '../use-project-chat-context'
 
 /**
@@ -48,7 +48,6 @@ export function StepEstimateView({ projectId }: { projectId: string }) {
   const tInput = useTranslations('design.input')
   const floorLabel = useFloorCountLabel()
   const tPanel = useTranslations('handbook.panel')
-  const tEntry = useTranslations('design.entry')
   const router = useRouter()
   const { user } = useAuth()
   const draft = useDesignStore((s) => s.drafts[projectId])
@@ -162,7 +161,6 @@ export function StepEstimateView({ projectId }: { projectId: string }) {
               : tWaiting('pageTitle')
         }
         subtitle={result && resultVisible ? resultSubtitle || undefined : undefined}
-        back={result && resultVisible ? { href: ROUTES.DESIGN, label: tEntry('backToList') } : undefined}
         previousStep={{ href: designInputRoute(projectId), label: tCommon('back') }}
         entranceKey={`design.${projectId}.step2`}
       />

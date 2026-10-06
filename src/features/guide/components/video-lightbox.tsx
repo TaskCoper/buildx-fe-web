@@ -4,15 +4,80 @@ import * as DialogPrimitive from '@radix-ui/react-dialog'
 import { Bell, Check, ChevronLeft, ChevronRight, Clapperboard, X } from 'lucide-react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { useTranslations } from 'next-intl'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { Photo, revealEase } from '@/shared/components/common'
 import { Button } from '@/shared/components/ui/button'
 import { useMediaQuery } from '@/shared/hooks'
 import { cn } from '@/shared/lib/utils'
+import { useGuideProgressStore } from '../store/guide-progress.store'
 import type { GuideVideo } from '../types/guide.types'
 import type { VideoCardOrigin } from './video-card'
 import { VideoPlayer } from './video-player'
+
+interface YouTubePlayerInstance {
+  getCurrentTime: () => number
+  getDuration: () => number
+  destroy: () => void
+}
+
+interface YouTubePlayerEvent {
+  data: number
+  target: YouTubePlayerInstance
+}
+
+interface YouTubeApi {
+  Player: new (
+    element: HTMLElement,
+    options?: {
+      events?: {
+        onReady?: (event: { target: YouTubePlayerInstance }) => void
+        onStateChange?: (event: YouTubePlayerEvent) => void
+      }
+    }
+  ) => YouTubePlayerInstance
+  PlayerState: {
+    PLAYING: number
+    ENDED: number
+  }
+}
+
+declare global {
+  interface Window {
+    YT?: YouTubeApi
+    onYouTubeIframeAPIReady?: () => void
+  }
+}
+
+let youtubeApiPromise: Promise<YouTubeApi> | null = null
+
+function loadYouTubeApi(): Promise<YouTubeApi> {
+  if (window.YT?.Player) return Promise.resolve(window.YT)
+  if (youtubeApiPromise) return youtubeApiPromise
+
+  youtubeApiPromise = new Promise<YouTubeApi>((resolve, reject) => {
+    const previousReady = window.onYouTubeIframeAPIReady
+    window.onYouTubeIframeAPIReady = () => {
+      previousReady?.()
+      if (window.YT?.Player) resolve(window.YT)
+      else reject(new Error('YouTube IFrame API unavailable'))
+    }
+
+    const existingScript = document.querySelector<HTMLScriptElement>('script[src="https://www.youtube.com/iframe_api"]')
+    if (existingScript) return
+
+    const script = document.createElement('script')
+    script.src = 'https://www.youtube.com/iframe_api'
+    script.async = true
+    script.onerror = () => {
+      youtubeApiPromise = null
+      reject(new Error('Failed to load YouTube IFrame API'))
+    }
+    document.head.appendChild(script)
+  })
+
+  return youtubeApiPromise
+}
 
 interface VideoLightboxProps {
   /** Video đang mở; `null` là đóng. */
@@ -190,7 +255,7 @@ export function VideoLightbox({
                             {editing ? (
                               <EditingCover video={video} articleHref={articleHref} />
                             ) : video.youtubeId ? (
-                              <YouTubeFrame key={video.id} videoId={video.youtubeId} title={video.title} />
+                              <YouTubeFrame key={video.id} video={video} onQualified={onQualified} />
                             ) : (
                               <VideoPlayer
                                 key={video.id}
@@ -247,13 +312,93 @@ export function VideoLightbox({
  * clapper mờ vào rồi "đóng nắp" một lần, không thanh điều khiển, không tự
  * phát. "Nhận thông báo" đổi thành ✓ nảy nhẹ một lần sau khi bấm.
  */
-/** Bước hướng dẫn dùng video YouTube (epic GuideStepManagement §7) — trình phát nhúng của YouTube. */
-function YouTubeFrame({ videoId, title }: { videoId: string; title: string }) {
+/** Bước hướng dẫn dùng video YouTube — theo dõi cùng ngưỡng 80% như video file. */
+function YouTubeFrame({
+  video,
+  onQualified
+}: {
+  video: GuideVideo
+  onQualified?: (video: GuideVideo, reason: 'threshold' | 'ended') => void
+}) {
+  const iframeRef = useRef<HTMLIFrameElement>(null)
+  const playerRef = useRef<YouTubePlayerInstance | null>(null)
+  const pollRef = useRef<number | null>(null)
+  const thresholdQualifiedRef = useRef(false)
+  const onQualifiedRef = useRef(onQualified)
+  const saveProgress = useGuideProgressStore((state) => state.saveProgress)
+  const markCompleted = useGuideProgressStore((state) => state.markCompleted)
+
+  useEffect(() => {
+    onQualifiedRef.current = onQualified
+  }, [onQualified])
+
+  useEffect(() => {
+    const iframe = iframeRef.current
+    if (!iframe) return
+
+    let cancelled = false
+
+    const stopPolling = () => {
+      if (pollRef.current !== null) window.clearInterval(pollRef.current)
+      pollRef.current = null
+    }
+
+    const sampleProgress = () => {
+      const player = playerRef.current
+      if (!player) return
+
+      const duration = player.getDuration() || video.durationSeconds
+      const currentTime = player.getCurrentTime()
+      if (!Number.isFinite(duration) || duration <= 0 || !Number.isFinite(currentTime) || currentTime < 0) return
+
+      saveProgress(video.id, currentTime, duration)
+      if (!thresholdQualifiedRef.current && currentTime / duration >= 0.8) {
+        thresholdQualifiedRef.current = true
+        onQualifiedRef.current?.(video, 'threshold')
+      }
+    }
+
+    void loadYouTubeApi()
+      .then((yt) => {
+        if (cancelled) return
+        playerRef.current = new yt.Player(iframe, {
+          events: {
+            onReady: () => {
+              sampleProgress()
+              if (pollRef.current === null) pollRef.current = window.setInterval(sampleProgress, 1000)
+            },
+            onStateChange: (event) => {
+              if (event.data === yt.PlayerState.PLAYING && pollRef.current === null) {
+                pollRef.current = window.setInterval(sampleProgress, 1000)
+              }
+              if (event.data === yt.PlayerState.ENDED) {
+                sampleProgress()
+                stopPolling()
+                markCompleted(video.id)
+                onQualifiedRef.current?.(video, 'ended')
+              }
+            }
+          }
+        })
+      })
+      .catch(() => {
+        // The embedded player still works if the tracking API is blocked.
+      })
+
+    return () => {
+      cancelled = true
+      stopPolling()
+      playerRef.current?.destroy()
+      playerRef.current = null
+    }
+  }, [markCompleted, saveProgress, video])
+
   return (
     <div className='bg-muted relative aspect-video w-full overflow-hidden rounded-xl'>
       <iframe
-        src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`}
-        title={title}
+        ref={iframeRef}
+        src={`https://www.youtube-nocookie.com/embed/${video.youtubeId}?autoplay=1&rel=0&enablejsapi=1&playsinline=1`}
+        title={video.title}
         allow='accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture'
         allowFullScreen
         className='absolute inset-0 size-full border-0'

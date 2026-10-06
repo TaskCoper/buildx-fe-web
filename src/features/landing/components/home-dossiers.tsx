@@ -168,16 +168,29 @@ export function HomeDossiers({ items }: HomeDossiersProps) {
 
   return (
     <section id='home-dossiers' className='mx-auto w-full max-w-[90rem] px-4 py-5 lg:px-8'>
-      <header className='grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-6 gap-y-3 lg:gap-x-10'>
-        <div className='contents'>
-          {/* Góp ý BuildX: bỏ chữ "Hồ sơ mẫu", lấy "Danh sách thư viện mẫu" làm tiêu đề; bên dưới là nút chọn 2D/3D. */}
+      <header className='space-y-3'>
+        <div className='flex items-baseline justify-between gap-6'>
           <h2 className='text-2xl font-bold tracking-tight text-balance lg:text-[1.75rem]'>{t('title')}</h2>
-          {cards ? (
+
+          {/* CTA theo cùng pattern với các section Home khác: nằm góc phải cùng hàng tiêu đề. */}
+          <Link
+            href={LIBRARY_HREF}
+            className='text-primary hover:text-brand-orange inline-flex shrink-0 items-center gap-1.5 text-sm font-medium underline-offset-4 transition-colors hover:underline'
+          >
+            {/* Mobile: chỉ còn mũi tên, chữ giữ lại cho trình đọc màn hình. */}
+            <span className='max-lg:sr-only'>{t('viewAll')}</span>
+            <ChevronRight className='size-6 lg:hidden' />
+            <ArrowRight className='hidden size-4 lg:block' />
+          </Link>
+        </div>
+
+        {cards ? (
+          <div className='flex items-center justify-between gap-6'>
             <div
               ref={kindTrackRef}
               role='tablist'
               aria-label={t('title')}
-              className='bg-muted relative col-span-2 row-start-2 inline-flex w-fit rounded-full p-1.5'
+              className='bg-muted relative inline-flex w-fit rounded-full p-1.5'
             >
               <span
                 data-template-kind-pill
@@ -209,45 +222,32 @@ export function HomeDossiers({ items }: HomeDossiersProps) {
                 )
               })}
             </div>
-          ) : null}
-        </div>
 
-        {/* CTA và nút chuyển mẫu nằm cùng hàng với tiêu đề, phía trên bộ chọn 2D/3D. */}
-        <div className='col-start-2 row-start-1 flex items-center gap-4'>
-          <Link
-            href={LIBRARY_HREF}
-            className='max-lg:h-8 max-lg:shrink-0 text-primary hover:text-brand-orange inline-flex h-7.5 items-center gap-1.5 text-sm font-medium transition-colors hover:underline'
-          >
-            {/* Mobile: chỉ còn mũi tên, chữ giữ lại cho trình đọc màn hình. */}
-            <span className='max-lg:sr-only'>{t('viewAll')}</span>
-            <ChevronRight className='size-6 lg:hidden' />
-            <ArrowRight className='hidden size-4 lg:block' />
-          </Link>
-
-          {/* Mũi tên chuyển 4 thẻ — mobile vuốt tay nên không cần. */}
-          <div className='hidden items-center gap-2 sm:flex'>
-            <Button
-              type='button'
-              variant='outline'
-              size='icon-sm'
-              aria-label={tCommon('previous')}
-              disabled={edge.start}
-              onClick={() => page(-1)}
-            >
-              <ChevronLeft className='size-4' />
-            </Button>
-            <Button
-              type='button'
-              variant='outline'
-              size='icon-sm'
-              aria-label={tCommon('next')}
-              disabled={edge.end}
-              onClick={() => page(1)}
-            >
-              <ChevronRight className='size-4' />
-            </Button>
+            {/* Mũi tên chuyển mẫu cùng hàng với bộ chọn 2D/3D; mobile vuốt tay nên không cần. */}
+            <div className='hidden shrink-0 items-center gap-2 sm:flex'>
+              <Button
+                type='button'
+                variant='outline'
+                size='icon-sm'
+                aria-label={tCommon('previous')}
+                disabled={edge.start}
+                onClick={() => page(-1)}
+              >
+                <ChevronLeft className='size-4' />
+              </Button>
+              <Button
+                type='button'
+                variant='outline'
+                size='icon-sm'
+                aria-label={tCommon('next')}
+                disabled={edge.end}
+                onClick={() => page(1)}
+              >
+                <ChevronRight className='size-4' />
+              </Button>
+            </div>
           </div>
-        </div>
+        ) : null}
       </header>
 
       {/* `-my-2 py-2`: chừa chỗ cho thẻ nhấc + bóng khi rê, vì `overflow-y-hidden` (cần để hàng cuộn ngang
