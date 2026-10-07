@@ -34,7 +34,8 @@ import { ARTICLE_META_ICON, ARTICLE_META_TEXT } from '../constants/article-meta'
 import { useArticleLabels } from '../hooks/use-article-labels'
 import { useHandbookArticle, useHandbookArticles, useHandbookStages } from '../hooks/use-handbook'
 import { selectRelatedArticles } from '../services/handbook.service'
-import { ArticleCompactCta, ArticleEndExperience } from './article-action-experience'
+// [ARTICLE-CTA] Tạm ẩn hai khối mời "Áp dụng ngay cho dự án của bạn?" / "Sẵn sàng áp dụng…" — bỏ comment để bật lại.
+// import { ArticleCompactCta, ArticleEndExperience } from './article-action-experience'
 import { ConsultButton } from './consult-button'
 
 interface ArticleDetailProps {
@@ -49,7 +50,8 @@ interface ArticleDetailProps {
  * Đường dẫn phân cấp bốn cấp theo đúng cấu trúc Cẩm nang → giai đoạn → chủ đề →
  * bài. Cột phải liệt kê các bài cùng chủ đề để đọc tiếp mà không rời chủ đề.
  */
-export function ArticleDetail({ slug, onCreateProject }: ArticleDetailProps) {
+// [ARTICLE-CTA] `onCreateProject` chỉ dùng cho hai khối mời đang ẩn: bật lại thì thêm nó vào danh sách tham số.
+export function ArticleDetail({ slug }: ArticleDetailProps) {
   const t = useTranslations('handbook.article')
   const locale = useLocale() as Locale
   const { nameOf: labelName } = useArticleLabels()
@@ -432,7 +434,9 @@ export function ArticleDetail({ slug, onCreateProject }: ArticleDetailProps) {
                     className='space-y-4 text-sm leading-relaxed [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-4 [&_blockquote]:border-primary/40 [&_blockquote]:text-muted-foreground [&_blockquote]:border-l-2 [&_blockquote]:pl-4 [&_h2]:text-primary [&_h2]:mt-5 [&_h2]:text-lg [&_h2]:font-semibold [&_h3]:mt-4 [&_h3]:font-semibold [&_img]:my-3 [&_img]:rounded-lg [&_ol]:list-decimal [&_ol]:space-y-1 [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-5'
                     dangerouslySetInnerHTML={{ __html: article.contentHtml }}
                   />
+                  {/* [ARTICLE-CTA] Tạm ẩn — bỏ comment để bật lại.
                   <ArticleCompactCta article={article} onCreateProject={onCreateProject} />
+                  */}
                 </>
               ) : (
                 article.body.map((section, index) => (
@@ -476,16 +480,20 @@ export function ArticleDetail({ slug, onCreateProject }: ArticleDetailProps) {
                       </div>
                     </section>
 
+                    {/* [ARTICLE-CTA] Tạm ẩn — bỏ comment để bật lại.
                     {index === Math.max(0, Math.floor(article.body.length / 2) - 1) ? (
                       <ArticleCompactCta article={article} onCreateProject={onCreateProject} />
                     ) : null}
+                    */}
                   </div>
                 ))
               )}
             </div>
           </div>
 
+          {/* [ARTICLE-CTA] Tạm ẩn — bỏ comment để bật lại.
           <ArticleEndExperience article={article} articleRef={articleRef} onCreateProject={onCreateProject} />
+          */}
         </article>
 
         <aside
