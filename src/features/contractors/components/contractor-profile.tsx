@@ -61,7 +61,7 @@ import {
   contractorInviteRoute,
   contractorMatchesRoute
 } from '@/shared/constants/routes'
-import { useCountUp } from '@/shared/hooks'
+import { useCountUp, useDocumentTitle } from '@/shared/hooks'
 import { cn } from '@/shared/lib/utils'
 import { formatDate, formatDisplayDate, formatNumber } from '@/shared/utils'
 import { mergeProjectDetail } from '../api/contractors.logic'
@@ -260,6 +260,7 @@ export function ContractorProfile({ projectId, contractorId, tab }: ContractorPr
 
   const { data: brief } = useBrief(projectId)
   const { data: contractor, isPending, isError, refetch } = useContractor(contractorId)
+  useDocumentTitle(contractor?.name)
   const { data: invitations, remaining } = useInvitations(projectId)
 
   const compareIds = useContractorsStore((s) => s.compareIds)

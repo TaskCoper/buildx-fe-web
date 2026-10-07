@@ -2,10 +2,11 @@ import { AuthBootstrap } from '@/features/auth'
 import { CmsMessagesProvider } from '@/shared/cms'
 import { routing } from '@/i18n/routing'
 import { siteConfig } from '@/shared/config/site'
+import { TITLE_TEMPLATE } from '@/shared/lib/page-title'
 import { AppProviders } from '@/shared/providers'
 import type { Metadata } from 'next'
 import { NextIntlClientProvider, hasLocale } from 'next-intl'
-import { setRequestLocale } from 'next-intl/server'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { Be_Vietnam_Pro, Geist, Geist_Mono, Sriracha } from 'next/font/google'
 import { notFound } from 'next/navigation'
 
@@ -117,14 +118,23 @@ const handwriting = Sriracha({
   display: 'swap'
 })
 
-export const metadata: Metadata = {
-  // Mỗi trang tự đặt tiêu đề (`pageMetadata`), layout gắn đuôi "| BuildX" (góp ý BuildX, PC19).
-  title: {
-    default: 'BuildX',
-    template: '%s | BuildX'
-  },
-  description: 'Plan, estimate and manage construction projects on one premium platform.',
-  metadataBase: new URL(siteConfig.url)
+/**
+ * Tiêu đề và mô tả MẶC ĐỊNH của site, theo ngôn ngữ (bảng title SEO của khách). Mỗi trang tự đặt tiêu
+ * đề (`pageMetadata`) và layout gắn đuôi "| BuildX" (góp ý BuildX, PC19); trang nào không đặt thì rơi về
+ * `siteTitle`, và mô tả này áp cho mọi trang chưa tự khai mô tả.
+ */
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params
+  const t = await getTranslations({
+    locale: hasLocale(routing.locales, locale) ? locale : routing.defaultLocale,
+    namespace: 'meta'
+  })
+
+  return {
+    title: { default: t('siteTitle'), template: TITLE_TEMPLATE },
+    description: t('siteDescription'),
+    metadataBase: new URL(siteConfig.url)
+  }
 }
 
 /** Pre-render a static shell for every supported locale. */

@@ -8,6 +8,7 @@ import { useTranslations } from 'next-intl'
 import { Link } from '@/i18n/navigation'
 import { ErrorState, revealEase } from '@/shared/components/common'
 import { ROUTES } from '@/shared/constants/routes'
+import { useDocumentTitle } from '@/shared/hooks'
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import { useAvailability, useConsultant, useConsultants } from '../hooks/use-consultation'
 import { ConsultantProfile } from './consultant-profile'
@@ -32,6 +33,7 @@ export function ConsultantDetail({ consultantId }: ConsultantDetailProps) {
   const t = useTranslations('consult.directory')
   const tProfile = useTranslations('consult.profile')
   const tRail = useTranslations('consult.rail')
+  const tMeta = useTranslations('meta')
   const reduceMotion = useReducedMotion()
   const profilePanelRef = useRef<HTMLDivElement>(null)
   const { selectedDate, setSelectedDate, profileDirection } = useConsultTransitionState()
@@ -43,6 +45,7 @@ export function ConsultantDetail({ consultantId }: ConsultantDetailProps) {
   const { data: consultant, isPending, isError } = useConsultant(consultantId)
   const { data: days, isPending: daysPending } = useAvailability(consultantId)
   const visibleConsultant = consultant ?? consultants?.find((item) => item.id === consultantId)
+  useDocumentTitle(visibleConsultant ? tMeta('consultantName', { name: visibleConsultant.name }) : null)
 
   useEffect(() => {
     // On small screens the rail is stacked above the profile. Keep the selected

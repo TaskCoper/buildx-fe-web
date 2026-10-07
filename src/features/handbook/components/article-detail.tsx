@@ -27,7 +27,7 @@ import {
 } from '@/shared/components/ui/breadcrumb'
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import { ROUTES, handbookArticleRoute } from '@/shared/constants/routes'
-import { usePageEntrance } from '@/shared/hooks'
+import { useDocumentTitle, usePageEntrance } from '@/shared/hooks'
 import { cn } from '@/shared/lib/utils'
 import { formatDisplayDate } from '@/shared/utils'
 import { ARTICLE_META_ICON, ARTICLE_META_TEXT } from '../constants/article-meta'
@@ -56,6 +56,7 @@ export function ArticleDetail({ slug, onCreateProject }: ArticleDetailProps) {
   const router = useRouter()
 
   const { data: article, isPending, isError, refetch } = useHandbookArticle(slug)
+  useDocumentTitle(article?.title)
   const { data: articles } = useHandbookArticles()
   const { data: stages } = useHandbookStages()
   const { rootRef, entranceState, entranceStyle } = usePageEntrance(`handbook.article.${slug}`, {
