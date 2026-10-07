@@ -5,12 +5,14 @@ import {
   App,
   Button,
   Card,
+  Col,
   Descriptions,
   Form,
   Image,
   Input,
   Modal,
   Popconfirm,
+  Row,
   Segmented,
   Select,
   Space,
@@ -19,11 +21,12 @@ import {
   Typography
 } from 'antd'
 import { useTranslations } from 'next-intl'
-import { createElement, useState } from 'react'
+import { createElement, Suspense, useState, type ReactNode } from 'react'
 
 import type { HandbookStage, HandbookStageId, HandbookTopic } from '@/shared/cms'
 import { HANDBOOK_TOPIC_ICON_KEYS, handbookTopicIcon } from '@/shared/lib/handbook-icons'
 import { useAdminCollection, useSaveAdminItem } from '../../hooks/use-admin-data'
+import { useFormPage } from '../../hooks/use-form-page'
 import { newAdminId } from '../../services/admin.service'
 import { sameName } from '../../services/catalog.service'
 import { ImageUrlField } from '../common/field-kit'
@@ -142,20 +145,31 @@ export function HandbookStepManager() {
         ]}
         renderForm={(form) => (
           <>
-            <Form.Item label={t('handbookSteps.step')}>
-              <Text strong>{t('handbookSteps.stepN', { index: (form.getFieldValue('order') as number) ?? '' })}</Text>
-            </Form.Item>
+            <Row gutter={16}>
+              <Col xs={24} md={8}>
+                {/* `shouldUpdate`: giá trị `order` được nạp vào form SAU lần render đầu, không đăng ký thì số bước trống. */}
+                <Form.Item label={t('handbookSteps.step')} shouldUpdate>
+                  {() => (
+                    <Text strong>
+                      {t('handbookSteps.stepN', { index: (form.getFieldValue('order') as number) ?? '' })}
+                    </Text>
+                  )}
+                </Form.Item>
+              </Col>
+              <Col xs={24} md={16}>
+                <Form.Item
+                  name='title'
+                  label={t('handbookSteps.name')}
+                  rules={[
+                    { required: true, whitespace: true, message: t('fields.requiredMessage') },
+                    { max: 100, message: t('fields.maxLength', { max: 100 }) }
+                  ]}
+                >
+                  <Input maxLength={100} />
+                </Form.Item>
+              </Col>
+            </Row>
             <ImageUrlField name='imageUrl' label={t('handbookSteps.image')} required />
-            <Form.Item
-              name='title'
-              label={t('handbookSteps.name')}
-              rules={[
-                { required: true, whitespace: true, message: t('fields.requiredMessage') },
-                { max: 100, message: t('fields.maxLength', { max: 100 }) }
-              ]}
-            >
-              <Input maxLength={100} />
-            </Form.Item>
             <Form.Item
               name='description'
               label={t('handbookSteps.descriptionLabel')}
@@ -169,9 +183,20 @@ export function HandbookStepManager() {
           </>
         )}
       />
-      <HandbookGroups />
+      {/* Khối nhóm nằm NGOÀI trang Thêm / Sửa / Xem của các bước — mở form thì ẩn, tránh một bảng
+          rộng cả bề ngang nằm lệch dưới form đã căn giữa. */}
+      <Suspense fallback={null}>
+        <HideOnFormPage>
+          <HandbookGroups />
+        </HideOnFormPage>
+      </Suspense>
     </>
   )
+}
+
+function HideOnFormPage({ children }: { children: ReactNode }) {
+  const { mode } = useFormPage()
+  return mode ? null : children
 }
 
 interface GroupDraft {

@@ -23,12 +23,7 @@ export function EstimateAdviceEditor() {
     >
       {() => (
         <>
-          <Alert
-            type='info'
-            showIcon
-            title={t('estimateAdvice.autoNote')}
-            style={{ marginBottom: 20, maxWidth: 780 }}
-          />
+          <Alert type='info' showIcon title={t('estimateAdvice.autoNote')} style={{ marginBottom: 20 }} />
           {SECTIONS.map((section) => (
             <Form.Item
               key={section}
@@ -37,7 +32,7 @@ export function EstimateAdviceEditor() {
               extra={t('estimateAdvice.emptyHint')}
               rules={[{ max: 1000, message: t('fields.maxLength', { max: 1000 }) }]}
             >
-              <Input.TextArea rows={3} maxLength={1000} showCount style={{ maxWidth: 780 }} />
+              <Input.TextArea rows={3} maxLength={1000} showCount />
             </Form.Item>
           ))}
           <Form.Item
@@ -46,7 +41,7 @@ export function EstimateAdviceEditor() {
             extra={t('estimateAdvice.emptyHint')}
             rules={[{ max: 1000, message: t('fields.maxLength', { max: 1000 }) }]}
           >
-            <Input.TextArea rows={3} maxLength={1000} showCount style={{ maxWidth: 780 }} />
+            <Input.TextArea rows={3} maxLength={1000} showCount />
           </Form.Item>
         </>
       )}

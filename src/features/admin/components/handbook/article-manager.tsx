@@ -5,11 +5,13 @@ import { useQuery } from '@tanstack/react-query'
 import {
   App,
   Button,
+  Col,
   Descriptions,
   Form,
   Image,
   Input,
   InputNumber,
+  Row,
   Segmented,
   Space,
   Spin,
@@ -325,32 +327,49 @@ function ArticleFields({
           {tn('draftHint')}
         </Paragraph>
       )}
-      <ImageUrlField name='coverImageUrl' label={tn('cover')} required={published} />
-      <Form.Item
-        name='title'
-        label={tn('title')}
-        rules={[...required, { max: NEWS_LIMITS.title, message: t('fields.maxLength', { max: NEWS_LIMITS.title }) }]}
-      >
-        <Input maxLength={NEWS_LIMITS.title} showCount />
-      </Form.Item>
-      <Form.Item name='readingTimeMinutes' label={tn('readingTimeMinutes')}>
-        <InputNumber min={0} max={NEWS_LIMITS.readingTimeMinutesMax} precision={0} style={{ width: '100%' }} />
-      </Form.Item>
-      <Form.Item
-        name='categoryIds'
-        label={tn('categories')}
-        extra={tn('categoriesHint')}
-        rules={published ? [{ required: true, type: 'array', min: 1, message: tn('categoryRequired') }] : []}
-      >
-        <TreeSelect
-          multiple
-          allowClear
-          treeDefaultExpandAll
-          showSearch={{ treeNodeFilterProp: 'title' }}
-          treeData={buildCategoryTree(categories)}
-          placeholder={tn('pickCategories')}
-        />
-      </Form.Item>
+      {/* Hai hàng hai cột: tiêu đề + số phút đọc, rồi ảnh đại diện + danh mục — các ô cao gần bằng nhau
+          thay vì xếp một cột dài với ô số kéo hết bề ngang. */}
+      <Row gutter={16}>
+        <Col xs={24} md={16}>
+          <Form.Item
+            name='title'
+            label={tn('title')}
+            rules={[
+              ...required,
+              { max: NEWS_LIMITS.title, message: t('fields.maxLength', { max: NEWS_LIMITS.title }) }
+            ]}
+          >
+            <Input maxLength={NEWS_LIMITS.title} showCount />
+          </Form.Item>
+        </Col>
+        <Col xs={24} md={8}>
+          <Form.Item name='readingTimeMinutes' label={tn('readingTimeMinutes')}>
+            <InputNumber min={0} max={NEWS_LIMITS.readingTimeMinutesMax} precision={0} style={{ width: '100%' }} />
+          </Form.Item>
+        </Col>
+      </Row>
+      <Row gutter={16}>
+        <Col xs={24} md={8}>
+          <ImageUrlField name='coverImageUrl' label={tn('cover')} required={published} />
+        </Col>
+        <Col xs={24} md={16}>
+          <Form.Item
+            name='categoryIds'
+            label={tn('categories')}
+            extra={tn('categoriesHint')}
+            rules={published ? [{ required: true, type: 'array', min: 1, message: tn('categoryRequired') }] : []}
+          >
+            <TreeSelect
+              multiple
+              allowClear
+              treeDefaultExpandAll
+              showSearch={{ treeNodeFilterProp: 'title' }}
+              treeData={buildCategoryTree(categories)}
+              placeholder={tn('pickCategories')}
+            />
+          </Form.Item>
+        </Col>
+      </Row>
       <Form.Item
         name='contentHtml'
         label={tn('content')}
@@ -392,35 +411,47 @@ function ArticleView({
 
   return (
     <Space orientation='vertical' size={16} style={{ width: '100%' }}>
-      {data.coverImageUrl ? <Image src={data.coverImageUrl} alt='' style={{ borderRadius: 8 }} /> : null}
-      <Descriptions
-        size='small'
-        column={1}
-        bordered
-        items={[
-          { key: 'title', label: tn('title'), children: data.title || '-' },
-          {
-            key: 'readingTimeMinutes',
-            label: tn('readingTimeMinutes'),
-            children: data.readingTimeMinutes ?? '-'
-          },
-          {
-            key: 'categories',
-            label: tn('categories'),
-            children: data.categoryIds.length
-              ? data.categoryIds.map((categoryId) => <Tag key={categoryId}>{categoryPath(categories, categoryId)}</Tag>)
-              : '-'
-          },
-          {
-            key: 'state',
-            label: tn('state'),
-            children: <StatusTag tone={STATE_TONE[data.state]}>{tn(`states.${data.state}`)}</StatusTag>
-          },
-          { key: 'firstPublished', label: tn('firstPublishedAt'), children: date(data.firstPublishedAtUtc) },
-          { key: 'created', label: tn('createdAt'), children: date(data.createdAtUtc) },
-          { key: 'modified', label: tn('modifiedAt'), children: date(data.modifiedAtUtc) }
-        ]}
-      />
+      {/* Ảnh đại diện thu nhỏ bên trái, thông tin bên phải — ảnh full-width cao gần nửa màn hình đẩy thông tin xuống. */}
+      <div className={data.coverImageUrl ? 'grid items-start gap-4 md:grid-cols-[280px_1fr]' : undefined}>
+        {data.coverImageUrl ? (
+          <Image
+            src={data.coverImageUrl}
+            alt=''
+            width='100%'
+            style={{ borderRadius: 8, aspectRatio: '16 / 10', objectFit: 'cover' }}
+          />
+        ) : null}
+        <Descriptions
+          size='small'
+          column={1}
+          bordered
+          items={[
+            { key: 'title', label: tn('title'), children: data.title || '-' },
+            {
+              key: 'readingTimeMinutes',
+              label: tn('readingTimeMinutes'),
+              children: data.readingTimeMinutes ?? '-'
+            },
+            {
+              key: 'categories',
+              label: tn('categories'),
+              children: data.categoryIds.length
+                ? data.categoryIds.map((categoryId) => (
+                    <Tag key={categoryId}>{categoryPath(categories, categoryId)}</Tag>
+                  ))
+                : '-'
+            },
+            {
+              key: 'state',
+              label: tn('state'),
+              children: <StatusTag tone={STATE_TONE[data.state]}>{tn(`states.${data.state}`)}</StatusTag>
+            },
+            { key: 'firstPublished', label: tn('firstPublishedAt'), children: date(data.firstPublishedAtUtc) },
+            { key: 'created', label: tn('createdAt'), children: date(data.createdAtUtc) },
+            { key: 'modified', label: tn('modifiedAt'), children: date(data.modifiedAtUtc) }
+          ]}
+        />
+      </div>
       {data.contentHtml ? (
         <HtmlPreview html={data.contentHtml} title={tn('content')} height={520} />
       ) : (

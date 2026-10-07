@@ -661,15 +661,7 @@ function PlanFields({
         <InputNumber />
       </Form.Item>
       {/* Loại gói chọn MỘT LẦN lúc tạo, không đổi được sau đó (TDD-SUB-001): khi sửa chỉ giữ giá trị ngầm. */}
-      {isNew ? (
-        <Form.Item name='kind' label={t('kind')} extra={t('kindHint')}>
-          <Radio.Group
-            optionType='button'
-            buttonStyle='solid'
-            options={(['Design', 'Supervision'] as const).map((value) => ({ value, label: t(`kinds.${value}`) }))}
-          />
-        </Form.Item>
-      ) : (
+      {isNew ? null : (
         <Form.Item name='kind' hidden>
           <Input />
         </Form.Item>
@@ -683,12 +675,23 @@ function PlanFields({
         {t('basicSection')}
       </Text>
       <Row gutter={16}>
-        <Col xs={24} md={9}>
+        {isNew ? (
+          <Col xs={24} md={8}>
+            <Form.Item name='kind' label={t('kind')} tooltip={t('kindHint')}>
+              <Radio.Group
+                optionType='button'
+                buttonStyle='solid'
+                options={(['Design', 'Supervision'] as const).map((value) => ({ value, label: t(`kinds.${value}`) }))}
+              />
+            </Form.Item>
+          </Col>
+        ) : null}
+        <Col xs={24} md={isNew ? 6 : 8}>
           {isNew ? (
             <Form.Item
               name='code'
               label={t('code')}
-              extra={t('codeHint')}
+              tooltip={t('codeHint')}
               rules={[required, { max: CODE_MAX, message: tAdmin('fields.maxLength', { max: CODE_MAX }) }]}
             >
               <Input maxLength={CODE_MAX} />
@@ -699,7 +702,7 @@ function PlanFields({
             </Form.Item>
           )}
         </Col>
-        <Col xs={24} md={15}>
+        <Col xs={24} md={isNew ? 10 : 16}>
           <Form.Item
             name='name'
             label={t('name')}
@@ -857,17 +860,21 @@ function PlanFields({
         </>
       )}
 
-      <ImageUrlField name='coverImageUrl' label={t('coverImage')} />
-      <Text type='secondary' style={{ display: 'block', marginTop: -8, marginBottom: 16, fontSize: 12 }}>
-        {t('coverImageHint')}
-      </Text>
       <Row gutter={16}>
-        <Col xs={24} md={6}>
-          <Form.Item name='isHighlighted' label={t('isHighlighted')} valuePropName='checked'>
-            <Switch />
-          </Form.Item>
+        <Col xs={24} md={12}>
+          <ImageUrlField name='coverImageUrl' label={t('coverImage')} />
+          <Text type='secondary' style={{ display: 'block', marginTop: -8, marginBottom: 16, fontSize: 12 }}>
+            {t('coverImageHint')}
+          </Text>
         </Col>
-        <Col xs={24} md={18}>
+        <Col xs={24} md={12}>
+          {/* Nhãn + công tắc cùng một dòng: hai khối cạnh nhau cao gần bằng nhau, không để trống dưới ô ảnh bìa. */}
+          <div className='mb-4 flex items-center gap-3'>
+            <Text>{t('isHighlighted')}</Text>
+            <Form.Item name='isHighlighted' valuePropName='checked' noStyle>
+              <Switch aria-label={t('isHighlighted')} />
+            </Form.Item>
+          </div>
           <Form.Item
             name='highlightLabel'
             label={t('highlightLabel')}
