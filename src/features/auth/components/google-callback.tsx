@@ -125,7 +125,7 @@ export function GoogleCallback() {
             {t('retry')}
           </Button>
         ) : null}
-        <Button variant={retryable ? 'outline' : 'default'} asChild>
+        <Button data-back-navigation variant='outline' asChild>
           <Link href={ROUTES.HOME}>{t('backHome')}</Link>
         </Button>
       </CardContent>

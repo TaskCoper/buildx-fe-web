@@ -2332,6 +2332,7 @@
     },
     "purchaseHistory": {
       "title": "Purchase history",
+      "projectUnavailable": "Project information unavailable",
       "description": "Your active plans, remaining allowances and complete payment history.",
       "viewPlans": "View plans",
       "designPlan": "Design plan",
@@ -2362,6 +2363,7 @@
       },
       "table": {
         "code": "Order",
+        "project": "Project",
         "date": "Date",
         "plan": "Plan",
         "amount": "Amount",
@@ -2536,6 +2538,8 @@
     },
     "popular": "Most popular",
     "popularShort": "Popular",
+    "prevPlan": "Previous plan",
+    "nextPlan": "Next plan",
     "oneTime": "One-time payment",
     "featuresTitleByTier": {
       "basic": "Includes these features",

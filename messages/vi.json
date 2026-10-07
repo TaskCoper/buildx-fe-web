@@ -2332,6 +2332,7 @@
     },
     "purchaseHistory": {
       "title": "Lịch sử mua gói",
+      "projectUnavailable": "Chưa có thông tin công trình",
       "description": "Toàn bộ đơn hàng của bạn và trạng thái thanh toán.",
       "viewPlans": "Xem các gói",
       "designPlan": "Gói thiết kế",
@@ -2362,6 +2363,7 @@
       },
       "table": {
         "code": "Mã đơn",
+        "project": "Công trình",
         "date": "Ngày",
         "plan": "Gói",
         "amount": "Số tiền",
@@ -2536,6 +2538,8 @@
     },
     "popular": "Phổ biến nhất",
     "popularShort": "Phổ biến",
+    "prevPlan": "Xem gói trước",
+    "nextPlan": "Xem gói tiếp theo",
     "oneTime": "Thanh toán 1 lần",
     "featuresTitleByTier": {
       "basic": "Bao gồm các tính năng",
