@@ -14,6 +14,7 @@ import {
   Image,
   Input,
   InputNumber,
+  Radio,
   Row,
   Select,
   Space,
@@ -229,7 +230,7 @@ export function PlanManager() {
   const tAdmin = useTranslations('admin')
   const { message, modal } = App.useApp()
   const queryClient = useQueryClient()
-  // Chỉ còn gói thiết kế — không lọc theo loại nữa (đã gỡ gói giám sát khỏi khu tạo).
+  // Bảng liệt kê cả hai loại gói; loại gói chọn lúc tạo (ô "Loại gói" trong form) nên không lọc theo loại ở đây.
   const kind = 'all' as const
   const [saleState, setSaleState] = useState<PlanSaleState | 'all'>('all')
 
@@ -659,10 +660,20 @@ function PlanFields({
       <Form.Item name='expectedVersion' hidden>
         <InputNumber />
       </Form.Item>
-      {/* Chỉ tạo gói thiết kế; giữ giá trị kind để gửi kèm khi tạo (đã gỡ ô chọn loại). */}
-      <Form.Item name='kind' hidden>
-        <Input />
-      </Form.Item>
+      {/* Loại gói chọn MỘT LẦN lúc tạo, không đổi được sau đó (TDD-SUB-001): khi sửa chỉ giữ giá trị ngầm. */}
+      {isNew ? (
+        <Form.Item name='kind' label={t('kind')} extra={t('kindHint')}>
+          <Radio.Group
+            optionType='button'
+            buttonStyle='solid'
+            options={(['Design', 'Supervision'] as const).map((value) => ({ value, label: t(`kinds.${value}`) }))}
+          />
+        </Form.Item>
+      ) : (
+        <Form.Item name='kind' hidden>
+          <Input />
+        </Form.Item>
+      )}
       {plan?.saleState === 'Stopped' ? (
         <Alert type='warning' showIcon style={{ marginBottom: 12 }} title={t('stoppedNote')} />
       ) : null}
@@ -698,6 +709,14 @@ function PlanFields({
           </Form.Item>
         </Col>
       </Row>
+
+      {/* Gói giám sát không có quyền lợi / nội dung tư vấn: mô tả dịch vụ ở đây là chỗ duy nhất giải thích
+          gói, bắt buộc có nội dung mới Công bố được (lưu nháp thì để trống được — BR-SUB-008). */}
+      {kind === 'Supervision' ? (
+        <Form.Item name='description' label={t('serviceDescription')} extra={t('serviceDescriptionHint')}>
+          <Input.TextArea rows={4} />
+        </Form.Item>
+      ) : null}
 
       <Text strong style={sectionTitle}>
         {t('priceQuotaSection')}
