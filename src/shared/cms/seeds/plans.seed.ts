@@ -101,7 +101,8 @@ export const PLANS_SEED: SubscriptionPlan[] = [
         advisory: { level: 'priority' }
       }
     ),
-    highlights: ['designCredits', 'interiorEstimate', 'layout', 'exportDossier', 'advisory'],
+    // `libraryCredits` hiện số lượt tra cứu thư viện mẫu LẤY TỪ API (plans.merge: quota `catalog.detail`), như BASIC.
+    highlights: ['designCredits', 'libraryCredits', 'interiorEstimate', 'layout', 'exportDossier', 'advisory'],
     giftId: null
   },
   {
