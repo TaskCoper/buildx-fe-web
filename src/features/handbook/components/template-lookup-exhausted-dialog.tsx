@@ -119,7 +119,7 @@ export function TemplateLookupExhaustedDialog({
             >
               <Button
                 asChild
-                className='group/button h-[58px] gap-2.5 rounded-full px-5 text-[15px] font-bold has-[>svg]:px-5 max-[899px]:h-[56px] max-[899px]:text-[14px]'
+                className='group/button h-12 gap-2.5 rounded-full px-5 text-[15px] font-bold has-[>svg]:px-5 max-[899px]:text-[14px]'
               >
                 <Link href={ROUTES.PLANS} onClick={openPlans}>
                   <Crown className='size-5 shrink-0 max-[899px]:size-4.5' />

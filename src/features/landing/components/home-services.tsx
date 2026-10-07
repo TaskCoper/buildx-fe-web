@@ -72,12 +72,12 @@ export function HomeServices({ ownedDesignRemaining, ownsSupervision = false }: 
 
           {/* CTA nằm trên hàng tiêu đề; mô tả luôn ở hàng tiếp theo. */}
           <p className='text-primary-foreground/80 col-start-2 row-start-1 flex items-center gap-1.5 text-sm lg:hidden'>
-            {t('referenceLabel')}
             <Link
               href={ROUTES.PLANS}
-              className='text-primary-foreground hover:text-primary-foreground focus-visible:text-primary-foreground inline-flex items-center gap-1 font-medium underline underline-offset-4 transition-colors'
+              aria-label={t('referenceLink')}
+              className='text-primary-foreground hover:text-primary-foreground focus-visible:text-primary-foreground inline-flex items-center gap-1 font-medium transition-colors'
             >
-              {t('referenceLink')}
+              <span className='sr-only'>{t('referenceLink')}</span>
               <ChevronRight className='size-4' />
             </Link>
           </p>
@@ -93,8 +93,8 @@ export function HomeServices({ ownedDesignRemaining, ownsSupervision = false }: 
         </header>
 
         <div className='mt-5'>
-          {/* Dưới `sm`: 4 thẻ thành MỘT HÀNG NGANG cuộn được. Từ `sm` lưới 2 cột, `lg` đủ 4 thẻ một hàng. */}
-          <ul className='-mx-4 flex scroll-px-4 snap-x snap-mandatory gap-3 overflow-x-auto overflow-y-hidden px-4 pb-2 -mb-2 sm:mx-0 sm:mb-0 sm:grid sm:snap-none sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:scroll-px-0 sm:px-0 sm:pb-0 lg:grid-cols-4'>
+          {/* Các thẻ dàn đều theo lưới 2 cột, mở rộng thành 4 cột ở màn hình lớn. */}
+          <ul className='grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4'>
             {HOME_SERVICES.map((service, index) => {
               const Icon = SERVICE_ICON[service]
               const isHovered = hovered === service
@@ -111,7 +111,7 @@ export function HomeServices({ ownedDesignRemaining, ownsSupervision = false }: 
                   onMouseLeave={() => setHovered(null)}
                   id={`home-service-${service}`}
                   className={cn(
-                    'bg-card text-card-foreground flex h-full w-[68%] shrink-0 snap-start flex-col gap-2 rounded-2xl border p-4 transition-[transform,box-shadow,border-color] sm:w-auto sm:shrink sm:p-5 duration-500 ease-out motion-reduce:transform-none motion-reduce:transition-none',
+                    'bg-card text-card-foreground flex h-full flex-col gap-2 rounded-2xl border p-4 transition-[transform,box-shadow,border-color] sm:p-5 duration-500 ease-out motion-reduce:transform-none motion-reduce:transition-none',
                     isHovered && 'border-primary/50 ring-primary/15 -translate-y-1 shadow-md ring-4'
                   )}
                 >

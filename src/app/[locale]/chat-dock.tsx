@@ -167,7 +167,7 @@ export function ChatDock() {
           type='button'
           data-assistant-topic-suggestion
           onClick={openFromSuggestion}
-          className='bg-background/95 text-foreground fixed right-6 bottom-28 z-40 max-w-64 rounded-2xl border px-4 py-3 text-left text-sm shadow-lg backdrop-blur-md transition-[opacity,transform] duration-200 hover:-translate-y-0.5 hover:shadow-xl motion-reduce:transition-none'
+          className='bg-background/95 text-foreground fixed right-[52px] bottom-24 z-40 max-w-64 translate-x-1/2 rounded-2xl border px-4 py-3 text-left text-sm shadow-lg backdrop-blur-md transition-[opacity,transform] duration-200 hover:-translate-y-0.5 hover:shadow-xl motion-reduce:transition-none max-[899px]:right-[30px]'
         >
           {t('topicSuggestion', { topic: suggestion.title })}
         </button>

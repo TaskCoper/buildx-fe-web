@@ -2474,7 +2474,8 @@
       "viewProfile": "Xem hồ sơ"
     },
     "rail": {
-      "searchPlaceholder": "Tìm kiến trúc sư..."
+      "searchPlaceholder": "Tìm kiến trúc sư...",
+      "backToList": "Danh sách kiến trúc sư"
     },
     "profile": {
       "reviews": "({count} đánh giá)",

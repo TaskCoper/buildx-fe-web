@@ -24,7 +24,7 @@ export function CheckoutHeader() {
   const hotline = cmsText(settings.hotline, siteConfig.contact.hotline)
 
   return (
-    <header className='bg-background sticky top-0 z-40 border-b'>
+    <header className='site-header-shell sticky top-0 z-40'>
       <div className='mx-auto flex h-18 w-full max-w-[90rem] items-center justify-between gap-6 px-4 lg:px-8'>
         <Link href={ROUTES.HOME} aria-label={t('steps.plan')} className='shrink-0'>
           <Logo tagline={tNav('brandTagline')} />

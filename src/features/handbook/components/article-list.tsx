@@ -122,7 +122,6 @@ export function ArticleList() {
   const initialCategory = restoreState?.category ?? ALL
   const initialTerm = restoreState?.term ?? ''
   const sectionRef = useRef<HTMLElement>(null)
-  const toolbarRef = useRef<HTMLDivElement>(null)
   const chipRowRef = useRef<HTMLDivElement>(null)
   const filterPillRef = useRef<HTMLSpanElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
@@ -141,7 +140,6 @@ export function ArticleList() {
   const [visibleCount, setVisibleCount] = useState(restoreState?.visibleCount ?? ARTICLE_PAGE_SIZE)
   const [openId, setOpenId] = useState<string | null>(restoreState?.openId ?? null)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
-  const [isToolbarStuck, setIsToolbarStuck] = useState(false)
 
   const appliedCategoryRef = useRef<ArticleFilter>(initialCategory)
   const appliedQueryRef = useRef(initialTerm.trim())
@@ -370,42 +368,6 @@ export function ArticleList() {
     }
   }, [visualCategory])
 
-  useEffect(() => {
-    let frame = 0
-    let last = false
-
-    const updateStickyState = () => {
-      cancelAnimationFrame(frame)
-      frame = requestAnimationFrame(() => {
-        const section = sectionRef.current
-        const toolbar = toolbarRef.current
-        if (!section || !toolbar) return
-
-        const rootStyle = getComputedStyle(document.documentElement)
-        const headerOffset = Number.parseFloat(rootStyle.getPropertyValue('--public-header-offset')) || 64
-        const sectionRect = section.getBoundingClientRect()
-        const toolbarRect = toolbar.getBoundingClientRect()
-        const releaseBoundary = Math.max(headerOffset + toolbar.offsetHeight + 8, window.innerHeight * 0.72)
-        const next =
-          sectionRect.top < headerOffset && sectionRect.bottom > releaseBoundary && toolbarRect.top <= headerOffset + 1
-
-        if (next !== last) {
-          last = next
-          setIsToolbarStuck(next)
-        }
-      })
-    }
-
-    updateStickyState()
-    window.addEventListener('scroll', updateStickyState, { passive: true })
-    window.addEventListener('resize', updateStickyState)
-    return () => {
-      cancelAnimationFrame(frame)
-      window.removeEventListener('scroll', updateStickyState)
-      window.removeEventListener('resize', updateStickyState)
-    }
-  }, [])
-
   useLayoutEffect(() => {
     if (isPending || entrancePlayedRef.current) return
 
@@ -418,7 +380,7 @@ export function ArticleList() {
     }
 
     const header = section.querySelector<HTMLElement>('[data-article-section-header]')
-    const toolbar = toolbarRef.current
+    const toolbar = section.querySelector<HTMLElement>('[data-article-toolbar]')
     const rows = Array.from(rowsRef.current?.querySelectorAll<HTMLElement>('[data-article-row-item]') ?? [])
     const fallbackContent = rows.length === 0 ? contentRef.current : null
     const loadMore = section.querySelector<HTMLElement>('[data-article-load-more-wrap]')
@@ -571,17 +533,8 @@ export function ArticleList() {
       </header>
 
       <div
-        ref={toolbarRef}
         data-article-toolbar
-        data-stuck={isToolbarStuck ? 'true' : 'false'}
-        className={cn(
-          'z-30 -mx-5 flex flex-wrap items-center gap-3 border-y border-transparent px-5 py-3 transition-[top,background-color,border-color,box-shadow] motion-reduce:transition-none',
-          isToolbarStuck ? 'sticky border-border/70 bg-card/90 shadow-md backdrop-blur-xl' : 'relative'
-        )}
-        style={{
-          top: isToolbarStuck ? 'var(--public-header-offset, 64px)' : 'auto',
-          transitionDuration: 'var(--public-header-duration, 180ms)'
-        }}
+        className={cn('z-30 -mx-5 flex flex-wrap items-center gap-3 border-y border-transparent px-5 py-3')}
       >
         <div ref={chipRowRef} data-filter-chip-row className='relative flex flex-wrap gap-2'>
           <span

@@ -2474,7 +2474,8 @@
       "viewProfile": "View profile"
     },
     "rail": {
-      "searchPlaceholder": "Search architects..."
+      "searchPlaceholder": "Search architects...",
+      "backToList": "Architect list"
     },
     "profile": {
       "reviews": "({count} reviews)",

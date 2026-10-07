@@ -21,6 +21,8 @@ interface ConsultantRailProps {
   consultants: readonly Consultant[]
   activeId: string
   isPending?: boolean
+  /** KTS đang xem, dùng để nối vào cuối danh sách khi danh sách không chứa người này. */
+  activeConsultant?: Consultant
 }
 
 /**
@@ -33,7 +35,7 @@ interface ConsultantRailProps {
  * hàng không khớp co + mờ rồi biến mất, hàng còn lại tự trượt lấp chỗ trống
  * nhờ `layout`, chữ khớp tô nền xanh nhạt (mục 1).
  */
-export function ConsultantRail({ consultants, activeId, isPending }: ConsultantRailProps) {
+export function ConsultantRail({ consultants, activeId, isPending, activeConsultant }: ConsultantRailProps) {
   const t = useTranslations('consult.rail')
   const reduceMotion = useReducedMotion()
 
@@ -44,13 +46,14 @@ export function ConsultantRail({ consultants, activeId, isPending }: ConsultantR
 
   // Thứ tự gốc (nhóm theo chuyên môn) — dùng để tính chiều trượt của hồ sơ khi đổi người.
   const baseResults = useMemo(() => sortConsultants(filterConsultants(consultants, { query })), [consultants, query])
-  // KTS đang chọn được đưa LÊN ĐẦU danh sách: trên mobile danh sách dài, chọn người ở cuối mà
-  // vẫn phải cuộn xuống mới thấy mình đang chọn ai. Dùng `visualActiveId` (optimistic) nên hàng
-  // nhảy lên ngay lúc bấm; mỗi hàng có `layout` nên tự trượt chứ không nhảy cóc.
+  // Không xáo thứ tự khi chọn KTS. Chỉ khi KTS đang xem không có trong danh sách (vào thẳng từ
+  // trang chi tiết) và không bị bộ lọc tìm kiếm loại thì mới nối vào cuối.
   const results = useMemo(() => {
-    const active = baseResults.find((item) => item.id === visualActiveId)
-    return active ? [active, ...baseResults.filter((item) => item.id !== visualActiveId)] : baseResults
-  }, [baseResults, visualActiveId])
+    if (!activeConsultant || query.trim() || baseResults.some((item) => item.id === activeConsultant.id)) {
+      return baseResults
+    }
+    return [...baseResults, activeConsultant]
+  }, [baseResults, activeConsultant, query])
 
   const activeRef = useRef<HTMLLIElement>(null)
   useEffect(() => {
@@ -58,7 +61,7 @@ export function ConsultantRail({ consultants, activeId, isPending }: ConsultantR
   }, [reduceMotion, visualActiveId])
 
   return (
-    <aside className='bg-card space-y-3 rounded-xl border p-3'>
+    <aside className='bg-card min-w-0 space-y-3 rounded-xl border p-3'>
       <div className='relative'>
         <Search className='text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2' />
         <Input
@@ -103,7 +106,7 @@ export function ConsultantRail({ consultants, activeId, isPending }: ConsultantR
                       }}
                       aria-current={active ? 'page' : undefined}
                       className={cn(
-                        'group relative isolate flex items-center gap-3 rounded-lg border border-transparent p-2 transition-colors',
+                        'group relative isolate flex min-w-0 items-center gap-3 rounded-lg border border-transparent p-2 transition-colors',
                         !active && 'hover:bg-muted/60'
                       )}
                     >
