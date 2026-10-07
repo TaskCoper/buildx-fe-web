@@ -60,9 +60,11 @@ import {
 import { usePlanHighlights } from '../hooks/use-plan-highlights'
 import type { PlanView } from '../types/plan.types'
 import { usePlans } from '../hooks/use-plans'
-import { hasYearOffer, maxYearlySaving, planForCycle } from '../services/plan-cycle'
-import type { PlanCycle } from '../types/plan.types'
-import { PlanCycleToggle } from './plan-cycle-toggle'
+import { planForCycle } from '../services/plan-cycle'
+// [CYCLE-TOGGLE] Tạm ẩn công tắc Tháng / Năm — bỏ comment ba dòng dưới (và thay dòng import ở trên bằng
+// `import { hasYearOffer, maxYearlySaving, planForCycle } from '../services/plan-cycle'`) để bật lại.
+// import type { PlanCycle } from '../types/plan.types'
+// import { PlanCycleToggle } from './plan-cycle-toggle'
 
 const TIERS: readonly PlanTier[] = ['basic', 'advanced', 'pro'] as const
 
@@ -126,10 +128,13 @@ function PlanPricingContent() {
 
   // Chu kỳ đang xem. Công tắc chỉ hiện khi có gói bán theo năm; không thì luôn là tháng. Dựng
   // bản "nhìn theo chu kỳ" ngay từ đây để thẻ, bảng so sánh và nút mua dùng nguyên price / hạn mức.
-  const [cycle, setCycle] = useState<PlanCycle>('Month')
-  const showCycleToggle = hasYearOffer(plans ?? [])
-  const activeCycle: PlanCycle = showCycleToggle ? cycle : 'Month'
-  const cyclePlans = useMemo(() => (plans ?? []).map((plan) => planForCycle(plan, activeCycle)), [plans, activeCycle])
+  //
+  // [CYCLE-TOGGLE] TẠM ẨN công tắc Tháng / Năm (khách yêu cầu): trang chỉ bán theo tháng. Để bật lại,
+  // bỏ comment ba dòng dưới, xoá dòng `cyclePlans` tạm và đổi `'Month'` thành `activeCycle`.
+  // const [cycle, setCycle] = useState<PlanCycle>('Month')
+  // const showCycleToggle = hasYearOffer(plans ?? [])
+  // const activeCycle: PlanCycle = showCycleToggle ? cycle : 'Month'
+  const cyclePlans = useMemo(() => (plans ?? []).map((plan) => planForCycle(plan, 'Month')), [plans])
 
   const { reduceMotion } = usePricingMotion()
 
@@ -149,9 +154,11 @@ function PlanPricingContent() {
             đề trong CMS thì phần tô màu vẫn tự bám chữ cuối. */}
         <PlanHeading />
 
+        {/* [CYCLE-TOGGLE] Tạm ẩn công tắc Tháng / Năm — bỏ comment để bật lại.
         {showCycleToggle ? (
           <PlanCycleToggle value={activeCycle} onChange={setCycle} saving={maxYearlySaving(plans ?? [])} />
         ) : null}
+        */}
 
         {isPending ? (
           <div className='grid gap-5 md:grid-cols-3'>
