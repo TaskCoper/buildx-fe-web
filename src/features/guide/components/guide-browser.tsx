@@ -303,7 +303,12 @@ export function GuideBrowser({ onCreateProject }: GuideBrowserProps) {
           className='bg-muted text-muted-foreground mx-auto mb-6 flex max-w-3xl flex-wrap items-center justify-between gap-3 rounded-xl border px-4 py-3 text-sm'
         >
           <span>{t('deepLink.unavailable')}</span>
-          <button type='button' onClick={deepLink.release} className='text-primary font-medium hover:underline'>
+          <button
+            data-back-navigation
+            type='button'
+            onClick={deepLink.release}
+            className='text-foreground font-medium hover:underline'
+          >
             {t('deepLink.backToList')}
           </button>
         </div>

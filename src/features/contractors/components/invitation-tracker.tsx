@@ -212,7 +212,8 @@ function MockInvitationTracker({ projectId }: InvitationTrackerProps) {
         <button
           type='button'
           onClick={goBack}
-          className='text-primary-strong inline-flex items-center gap-1.5 text-sm font-medium'
+          data-back-navigation
+          className='text-foreground inline-flex items-center gap-1.5 text-sm font-medium'
         >
           {/* Bản mô tả S18 gọi đúng tên liên kết này là "Quay lại danh sách nhà
               thầu" — khác với nhãn của trạng thái rỗng ở dưới. */}

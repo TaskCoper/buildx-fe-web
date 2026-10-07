@@ -1,18 +1,7 @@
 'use client'
 
 import { animate, motion, useMotionValue, useReducedMotion, useTransform } from 'motion/react'
-import {
-  ArrowLeft,
-  CheckCircle2,
-  FileText,
-  Info,
-  LoaderCircle,
-  Palette,
-  QrCode,
-  RotateCcw,
-  ShieldCheck,
-  SquarePen
-} from 'lucide-react'
+import { ArrowLeft, CheckCircle2, FileText, Info, LoaderCircle, Palette, QrCode, SquarePen } from 'lucide-react'
 
 import { useLocale, useTranslations } from 'next-intl'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -33,7 +22,7 @@ import { usePageEntrance } from '@/shared/hooks'
 import { canReturnToCheckoutSource, clearCheckoutReturn } from '@/shared/lib/checkout-return'
 import { cn } from '@/shared/lib/utils'
 import { formatCurrency } from '@/shared/utils'
-import { isApiOrderId, REFUND_WINDOW_HOURS } from '../constants/checkout.constants'
+import { isApiOrderId } from '../constants/checkout.constants'
 import { useCreateOrder } from '../hooks/use-checkout'
 import type { OfferKey, OrderKind } from '../types/checkout.types'
 import { CheckoutSteps } from './checkout-steps'
@@ -260,8 +249,10 @@ export function OrderConfirm({ productId, kind, projectId, projectName, offerKey
         <EmptyState
           title={t('missingProduct')}
           action={
-            <Button asChild>
-              <Link href={ROUTES.PLANS}>{t('backToPlans')}</Link>
+            <Button asChild variant='outline'>
+              <Link data-back-navigation href={ROUTES.PLANS}>
+                {t('backToPlans')}
+              </Link>
             </Button>
           }
         />
@@ -343,7 +334,8 @@ export function OrderConfirm({ productId, kind, projectId, projectName, offerKey
       <button
         type='button'
         onClick={backToPlan}
-        className='text-muted-foreground hover:text-foreground hidden items-center gap-1.5 text-sm font-medium transition-colors sm:inline-flex'
+        data-back-navigation
+        className='text-foreground hover:text-foreground hidden items-center gap-1.5 text-sm font-medium transition-colors sm:inline-flex'
       >
         <ArrowLeft className='size-4' />
         {t('backToPlans')}
@@ -713,17 +705,6 @@ export function OrderConfirm({ productId, kind, projectId, projectName, offerKey
             >
               {agreed ? t('readyHint') : t('termsRequired')}
             </p>
-
-            <ul className='text-muted-foreground mt-4 space-y-2 text-xs'>
-              <li className='flex items-start gap-2'>
-                <ShieldCheck className='text-primary mt-0.5 size-3.5 shrink-0' />
-                <span>{t('noCardNote')}</span>
-              </li>
-              <li className='flex items-start gap-2'>
-                <RotateCcw className='text-primary mt-0.5 size-3.5 shrink-0' />
-                <span>{t('refund', { hours: REFUND_WINDOW_HOURS })}</span>
-              </li>
-            </ul>
           </section>
         </aside>
       </div>

@@ -64,7 +64,8 @@ export function CheckoutSteps({
         <button
           type='button'
           onClick={onPreviousStep}
-          className='text-muted-foreground hover:text-foreground mb-3 inline-flex items-center gap-1.5 text-sm font-medium transition-colors sm:hidden'
+          data-back-navigation
+          className='text-foreground hover:text-foreground mb-3 inline-flex items-center gap-1.5 text-sm font-medium transition-colors sm:hidden'
         >
           <ArrowLeft className='size-4' aria-hidden />
           {previousStepLabel ?? tCommon('back')}

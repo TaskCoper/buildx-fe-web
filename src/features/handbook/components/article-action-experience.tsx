@@ -252,7 +252,7 @@ export function ArticleEndExperience({ article, articleRef, onCreateProject }: A
           showCloseButton={false}
           className='max-h-[calc(100dvh-24px)] w-[min(1080px,calc(100vw-24px))] max-w-[1080px] gap-0 overflow-x-hidden overflow-y-auto rounded-[24px] border-0 bg-background p-0 shadow-2xl sm:max-w-[1080px]'
         >
-          <div className='relative shrink-0 bg-background px-5 pt-5 sm:px-6'>
+          <div className='relative shrink-0 bg-background px-5 pt-5 sm:max-[900px]:px-6 min-[900px]:px-44'>
             <PopupBrandLogo />
 
             <DialogClose
@@ -266,7 +266,7 @@ export function ArticleEndExperience({ article, articleRef, onCreateProject }: A
               initial={reduceMotion ? false : { opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: reduceMotion ? 0 : 0.3, delay: reduceMotion ? 0 : 0.04 }}
-              className='mx-auto max-w-[820px] pt-2 text-center max-sm:w-full max-sm:max-w-none'
+              className='mx-auto max-w-[820px] pt-2 text-center max-sm:w-full max-sm:max-w-none max-[899px]:px-10'
             >
               <DialogTitle className='text-foreground text-[clamp(1.25rem,5.75vw,2.1rem)] leading-[1.15] font-extrabold tracking-[-0.025em]'>
                 {t('popup.title')}

@@ -18,7 +18,7 @@ import { SITE_NAV } from './site-nav.config'
 
 interface SiteHeaderProps {
   /** App-layer account dropdown, shown once signed in. Falls back to GuestMenu. */
-  UserMenu?: ComponentType
+  UserMenu?: ComponentType<{ onOpenChange?: (open: boolean) => void }>
   /** Opens the "Tạo dự án" modal (mục III.1). Injected by the app layer. */
   onCreateProject?: () => void
 }
@@ -42,6 +42,7 @@ export function SiteHeader({ UserMenu, onCreateProject }: SiteHeaderProps = {}) 
   const authed = mounted && isAuthenticated
   const reduceMotion = useReducedMotion()
   const [hidden, setHidden] = useState(false)
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false)
   const [pastTitle, setPastTitle] = useState(false)
   const onHome = pathname === ROUTES.HOME
   const onContractors = pathname === ROUTES.CONTRACTORS || pathname.startsWith(`${ROUTES.CONTRACTORS}/`)
@@ -107,7 +108,8 @@ export function SiteHeader({ UserMenu, onCreateProject }: SiteHeaderProps = {}) 
     }
   }, [onHome, pathname])
 
-  const isHidden = hidden
+  // Dropdown không khóa cuộn body (tránh làm mất sticky); giữ header hiện khi thao tác menu.
+  const isHidden = hidden && !accountMenuOpen
 
   useEffect(() => {
     const style = document.documentElement.style
@@ -193,7 +195,11 @@ export function SiteHeader({ UserMenu, onCreateProject }: SiteHeaderProps = {}) 
           {/* Avatar luôn hiện — mục IV: bấm avatar mở Cửa sổ cá nhân. Khách chưa
               đăng nhập thấy cùng một biểu tượng, chỉ khác nội dung dropdown, để
               thanh công cụ không đổi bố cục khi đăng nhập / đăng xuất. */}
-          {authed && UserMenu ? <UserMenu /> : <GuestMenu />}
+          {authed && UserMenu ? (
+            <UserMenu onOpenChange={setAccountMenuOpen} />
+          ) : (
+            <GuestMenu onOpenChange={setAccountMenuOpen} />
+          )}
 
           <SiteNavMobile />
         </div>

@@ -948,6 +948,8 @@ export interface CmsTransaction {
    * cố định. Bản mock để trống → vẫn hiện theo `tier` như cũ.
    */
   planName?: string
+  /** Tên công trình gắn với đơn, nếu nguồn dữ liệu cung cấp; không suy từ tên gói. */
+  projectName?: string
   /** Số tiền, VND. */
   amount: number
   method: CmsTransactionMethod

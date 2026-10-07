@@ -505,7 +505,8 @@ export function SurveyScheduler({ projectId, contractorId }: SurveySchedulerProp
             <button
               type='button'
               onClick={leaveScheduler}
-              className='text-primary-strong inline-flex items-center gap-2 text-sm font-medium lg:absolute lg:top-1 lg:left-0'
+              data-back-navigation
+              className='text-foreground inline-flex items-center gap-2 text-sm font-medium lg:absolute lg:top-1 lg:left-0'
             >
               ← {tCommon('backToList')}
             </button>

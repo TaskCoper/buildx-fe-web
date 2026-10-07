@@ -16,7 +16,7 @@ import {
   ShieldCheck,
   Star
 } from 'lucide-react'
-import { animate, AnimatePresence, motion, useInView } from 'motion/react'
+import { animate, motion, useInView } from 'motion/react'
 import { useLocale, useTranslations } from 'next-intl'
 import { Fragment, useEffect, useRef, useState, type CSSProperties } from 'react'
 
@@ -494,29 +494,8 @@ function ComparisonTable({ packages, projectId }: { packages: SupervisionPackage
   const locale = useLocale() as Locale
   const [hoveredRow, setHoveredRow] = useState<string | null>(null)
   const [hoveredColumn, setHoveredColumn] = useState<SupervisionTier | null>(null)
-  const [headerStuck, setHeaderStuck] = useState(false)
-  const [headerBounds, setHeaderBounds] = useState({ left: 0, width: 0 })
-  const tableRef = useRef<HTMLDivElement>(null)
 
   const byTier = (tier: SupervisionTier) => packages.find((item) => item.tier === tier)
-
-  useEffect(() => {
-    const update = () => {
-      const rect = tableRef.current?.getBoundingClientRect()
-      setHeaderStuck(Boolean(rect && rect.top <= 66 && rect.bottom > 118))
-      if (rect)
-        setHeaderBounds((current) =>
-          current.left === rect.left && current.width === rect.width ? current : { left: rect.left, width: rect.width }
-        )
-    }
-    update()
-    window.addEventListener('scroll', update, { passive: true })
-    window.addEventListener('resize', update)
-    return () => {
-      window.removeEventListener('scroll', update)
-      window.removeEventListener('resize', update)
-    }
-  }, [])
 
   return (
     <section className='supervision-comparison'>
@@ -530,40 +509,7 @@ function ComparisonTable({ packages, projectId }: { packages: SupervisionPackage
         {t('title')}
       </motion.h2>
 
-      <AnimatePresence>
-        {headerStuck ? (
-          <motion.div
-            className='supervision-floating-head bg-card fixed top-16 z-40 hidden grid-cols-[28%_24%_24%_24%] overflow-hidden rounded-b-xl border shadow-md md:grid'
-            style={{ left: headerBounds.left, width: headerBounds.width }}
-            initial={{ opacity: 0, y: -6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -5 }}
-            transition={{ duration: 0.26, ease: pricingEase }}
-          >
-            <span className='px-3 py-2 text-center text-sm font-semibold tracking-wide uppercase'>
-              {t('criterion')}
-            </span>
-            {SUPERVISION_TIERS.map((tier) => (
-              <span
-                key={tier}
-                className={cn(
-                  'border-l px-3 py-2 text-center text-sm font-bold uppercase',
-                  tier === 'control' && 'supervision-control-column bg-brand-orange-soft text-brand-orange'
-                )}
-              >
-                {byTier(tier)?.name || tTiers(tier)}
-                <small className='text-muted-foreground mt-0.5 block max-md:text-xs text-sm font-medium normal-case'>
-                  {formatCurrency(byTier(tier)?.price ?? 0, locale)}
-                </small>
-              </span>
-            ))}
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
-
       <motion.div
-        ref={tableRef}
-        data-stuck={headerStuck || undefined}
         className='supervision-comparison-shell bg-card relative mt-5 rounded-2xl border shadow-[inset_-18px_0_20px_-24px_var(--foreground)]'
         initial={{ opacity: 0, y: 10 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -607,7 +553,7 @@ function ComparisonTable({ packages, projectId }: { packages: SupervisionPackage
                   >
                     {byTier(tier)?.name || tTiers(tier)}
                   </span>
-                  <span className='supervision-sticky-price text-muted-foreground mt-0.5 max-md:text-xs text-sm font-medium'>
+                  <span className='text-muted-foreground mt-0.5 block max-md:text-xs text-sm font-medium'>
                     {formatCurrency(byTier(tier)?.price ?? 0, locale)}
                   </span>
                 </th>
@@ -714,11 +660,7 @@ function ComparisonTable({ packages, projectId }: { packages: SupervisionPackage
                     transition={{ duration: 0.52, delay: index * 0.16, ease: pricingEase }}
                   >
                     {item && item.price > 0 ? (
-                      <Button
-                        asChild
-                        size='sm'
-                        className={cn('supervision-table-buy text-sm', item.recommended && ORANGE_BUTTON)}
-                      >
+                      <Button asChild size='sm' className={cn('text-sm', item.recommended && ORANGE_BUTTON)}>
                         <Link
                           href={checkoutConfirmRoute(item.id, projectId, item.offerKey)}
                           onClick={() => rememberCheckoutReturn(item.id, projectId)}
@@ -775,10 +717,10 @@ function AddonTable() {
             {/* `divide-x` trên hàng kẻ vạch DỌC giữa các ô — bảng phụ phí ở
                 Hình S19 có lưới đủ cả ngang lẫn dọc, khác bảng so sánh phía trên
                 chỉ kẻ ngang. */}
-            <tr className='text-muted-foreground divide-x max-md:text-xs text-sm tracking-wide uppercase'>
-              <th className='border-b p-2 text-left font-bold'>{t('item')}</th>
-              <th className='border-b p-2 text-center font-bold'>{t('price')}</th>
-              <th className='border-b p-2 text-center font-bold'>{t('note')}</th>
+            <tr className='text-foreground divide-x max-md:text-xs text-sm tracking-wide uppercase'>
+              <th className='border-b p-2 text-left font-extrabold'>{t('item')}</th>
+              <th className='border-b p-2 text-center font-extrabold'>{t('price')}</th>
+              <th className='border-b p-2 text-center font-extrabold'>{t('note')}</th>
             </tr>
           </thead>
           <tbody>
@@ -791,9 +733,9 @@ function AddonTable() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.42, delay: 0.26 + index * 0.09, ease: pricingEase }}
               >
-                <td className='p-2 text-sm font-medium'>{key === 'extend' ? t('extend', { months }) : t(key)}</td>
-                <td className='p-2 text-center text-sm font-medium'>{t(`${key}Price`)}</td>
-                <td className='text-muted-foreground p-2 text-center text-sm'>{t(`${key}Note`)}</td>
+                <td className='p-2 text-sm font-normal'>{key === 'extend' ? t('extend', { months }) : t(key)}</td>
+                <td className='p-2 text-center text-sm font-normal'>{t(`${key}Price`)}</td>
+                <td className='text-muted-foreground p-2 text-center text-sm font-semibold'>{t(`${key}Note`)}</td>
               </motion.tr>
             ))}
           </tbody>
