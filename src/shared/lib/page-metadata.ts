@@ -44,7 +44,8 @@ export type PageMetaKey =
 /**
  * `generateMetadata` cho một trang: tiêu đề riêng theo mẫu "Chủ đề trang | BuildX"
  * (góp ý BuildX, PC19). Phần "| BuildX" do `title.template` của layout gắn; trang
- * chủ dùng tiêu đề tuyệt đối vì câu của nó đã có sẵn thương hiệu.
+ * chủ dùng tiêu đề tuyệt đối `meta.siteTitle` (đã có sẵn "| BuildX") — cũng là tiêu đề
+ * mặc định của cả site, nên trang chủ và site luôn cùng một câu.
  *
  * Dùng: `export const generateMetadata = pageMetadata('guide')`.
  */
@@ -52,6 +53,6 @@ export function pageMetadata(key: PageMetaKey) {
   return async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
     const { locale } = await params
     const t = await getTranslations({ locale: locale as Locale, namespace: 'meta' })
-    return key === 'home' ? { title: { absolute: t('home') } } : { title: t(key) }
+    return key === 'home' ? { title: { absolute: t('siteTitle') } } : { title: t(key) }
   }
 }
