@@ -9,20 +9,28 @@ import {
   UnderlineOutlined,
   UnorderedListOutlined
 } from '@ant-design/icons'
-import Image from '@tiptap/extension-image'
 import { EditorContent, useEditor, type Editor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import { Button, Input, Popover, Segmented, Space, Tooltip, Typography } from 'antd'
 import { useTranslations } from 'next-intl'
 import { useEffect, useState, type ReactNode } from 'react'
 
+import { IMAGE_PLACEHOLDER, ImagePlaceholder, stripImagePlaceholders } from './image-placeholder'
+import { ResizableImage } from './resizable-image'
+
 const { Text } = Typography
 
 const PREVIEW_STYLE =
   'body{font:15px/1.6 system-ui,sans-serif;color:#1f1f1f;margin:16px}img{max-width:100%;height:auto;border-radius:6px}blockquote{border-left:3px solid #ccc;margin:0;padding-left:12px;color:#555}'
 
-/** TipTap coi tài liệu rỗng là `<p></p>` — quy về chuỗi rỗng để đếm ký tự / validate. */
-const normalize = (html: string) => (html === '<p></p>' ? '' : html)
+/**
+ * Giá trị của editor xuất cho form: bỏ khung ảnh đang chờ (chỉ có lúc soạn), và vì TipTap coi tài
+ * liệu rỗng là `<p></p>` nên quy về chuỗi rỗng để đếm ký tự / validate.
+ */
+const toValue = (html: string) => {
+  const clean = stripImagePlaceholders(html)
+  return clean === '<p></p>' ? '' : clean
+}
 
 /** Thêm https:// nếu người dùng dán link thiếu giao thức. */
 const withHttps = (raw: string) => (/^https?:\/\//i.test(raw) ? raw : `https://${raw}`)
@@ -101,8 +109,9 @@ const TOOLS: Tool[] = [
  * Ô nội dung bài viết dạng RICH TEXT (WYSIWYG) — soạn trực tiếp trên bản render,
  * không cho gõ HTML thô. Vẫn xuất `contentHtml` giới hạn đúng allowlist backend
  * (đậm, nghiêng, gạch chân, H2/H3, đoạn, danh sách, trích dẫn, liên kết, ảnh);
- * backend làm sạch lại khi lưu. API không có upload nên ảnh là URL https có sẵn
- * trên kho — chèn bằng nút ảnh rồi dán link.
+ * backend làm sạch lại khi lưu. Nút ảnh chèn một KHUNG ẢNH vào chỗ con trỏ; bấm
+ * chọn tệp hoặc kéo thả ảnh vào khung là tải thẳng lên kho qua MEDIA (presign),
+ * khung tự thành ảnh — không còn dán link.
  *
  * Dùng như control của `Form.Item` (nhận `value` / `onChange`).
  */
@@ -118,9 +127,7 @@ export function HtmlContentEditor({
   const t = useTranslations('admin.newsArticles.editor')
   const [mode, setMode] = useState<'edit' | 'preview'>('edit')
   const [linkOpen, setLinkOpen] = useState(false)
-  const [imageOpen, setImageOpen] = useState(false)
   const [linkUrl, setLinkUrl] = useState('')
-  const [imageUrl, setImageUrl] = useState('')
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -136,19 +143,21 @@ export function HtmlContentEditor({
           HTMLAttributes: { rel: 'noopener noreferrer', target: '_blank' }
         }
       }),
-      Image.configure({ inline: false })
+      ResizableImage.configure({ inline: false }),
+      ImagePlaceholder
     ],
     content: value ?? '',
     editorProps: { attributes: { class: 'admin-richtext' } },
-    onUpdate: ({ editor }) => onChange?.(normalize(editor.getHTML()))
+    onUpdate: ({ editor }) => onChange?.(toValue(editor.getHTML()))
   })
 
   // Đồng bộ khi `value` đổi từ bên ngoài (mở bài khác, reset form). Chỉ đặt lại
-  // khi khác nội dung hiện tại để không nhảy con trỏ trong lúc gõ.
+  // khi khác nội dung hiện tại để không nhảy con trỏ trong lúc gõ. So theo `toValue` (đã bỏ khung ảnh)
+  // để khung đang chờ không bị xoá mỗi lần form nhận lại giá trị.
   useEffect(() => {
     if (!editor) return
-    const next = value ? value : '<p></p>'
-    if (next !== editor.getHTML()) editor.commands.setContent(next, { emitUpdate: false })
+    if ((value ?? '') !== toValue(editor.getHTML()))
+      editor.commands.setContent(value || '<p></p>', { emitUpdate: false })
   }, [value, editor])
 
   const html = value ?? ''
@@ -170,17 +179,9 @@ export function HtmlContentEditor({
     }
   }
 
-  function applyImage() {
-    if (!editor) return
-    const raw = imageUrl.trim()
-    setImageOpen(false)
-    setImageUrl('')
-    if (raw)
-      editor
-        .chain()
-        .focus()
-        .setImage({ src: withHttps(raw) })
-        .run()
+  /** Chèn khung ảnh tại con trỏ (focus() trả lại vùng chọn cuối trong editor). */
+  function insertImagePlaceholder() {
+    editor?.chain().focus().insertContent({ type: IMAGE_PLACEHOLDER }).run()
   }
 
   return (
@@ -230,22 +231,14 @@ export function HtmlContentEditor({
                 icon={<LinkOutlined />}
               />
             </Popover>
-            <Popover
-              open={imageOpen}
-              onOpenChange={setImageOpen}
-              trigger='click'
-              content={
-                <UrlInput
-                  placeholder={t('imagePlaceholder')}
-                  action={t('urlAdd')}
-                  value={imageUrl}
-                  onChange={setImageUrl}
-                  onSubmit={applyImage}
-                />
-              }
-            >
-              <Button size='small' aria-label={t('tools.image')} icon={<PictureOutlined />} />
-            </Popover>
+            <Tooltip title={t('tools.image')}>
+              <Button
+                size='small'
+                aria-label={t('tools.image')}
+                icon={<PictureOutlined />}
+                onClick={insertImagePlaceholder}
+              />
+            </Tooltip>
           </>
         ) : null}
       </div>

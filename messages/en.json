@@ -5182,10 +5182,15 @@
         "edit": "Compose",
         "preview": "Preview",
         "count": "{count}/{max} characters",
-        "hint": "Images must be https links on the system image store. Disallowed tags are stripped on save.",
+        "hint": "Use the image button to add an image frame, then choose or drag and drop a picture into it (JPG, PNG, WebP). Disallowed tags are stripped on save.",
         "urlPlaceholder": "Paste an https link…",
         "urlAdd": "Insert",
-        "imagePlaceholder": "Paste an https image link…",
+        "imageDropTitle": "Click to choose an image or drag and drop it here",
+        "imageDropHint": "JPG, PNG or WebP. The image will sit exactly where this frame is.",
+        "imageUploading": "Uploading image…",
+        "imageRemove": "Remove image frame",
+        "imageDelete": "Delete image",
+        "imageResize": "Drag to resize the image",
         "tools": {
           "bold": "Bold",
           "italic": "Italic",
@@ -5197,7 +5202,7 @@
           "numberList": "Numbered list",
           "quote": "Quote",
           "link": "Link",
-          "image": "Insert image (paste link)"
+          "image": "Insert image"
         }
       }
     },
@@ -5424,6 +5429,8 @@
     "imageUpload": {
       "button": "Upload image",
       "done": "Image uploaded",
+      "dropHint": "Drop the file here to upload",
+      "orDrop": "or drag and drop an image here",
       "errors": {
         "UnsupportedType": "Only JPG, PNG or WebP images are accepted.",
         "TooLarge": "The image exceeds the allowed size.",

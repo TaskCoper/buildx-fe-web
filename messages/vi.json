@@ -5182,10 +5182,15 @@
         "edit": "Soạn",
         "preview": "Xem trước",
         "count": "{count}/{max} ký tự",
-        "hint": "Ảnh trong bài phải là link https trên kho ảnh của hệ thống. Hệ thống tự lọc thẻ không cho phép khi lưu.",
+        "hint": "Bấm nút ảnh để thêm khung ảnh, rồi chọn hoặc kéo thả ảnh từ máy vào khung (JPG, PNG, WebP). Hệ thống tự lọc thẻ không cho phép khi lưu.",
         "urlPlaceholder": "Dán link https…",
         "urlAdd": "Chèn",
-        "imagePlaceholder": "Dán link ảnh https…",
+        "imageDropTitle": "Bấm để chọn ảnh hoặc kéo thả ảnh vào đây",
+        "imageDropHint": "JPG, PNG hoặc WebP. Ảnh sẽ nằm đúng chỗ khung này.",
+        "imageUploading": "Đang tải ảnh lên…",
+        "imageRemove": "Bỏ khung ảnh",
+        "imageDelete": "Xóa ảnh",
+        "imageResize": "Kéo để đổi kích thước ảnh",
         "tools": {
           "bold": "In đậm",
           "italic": "In nghiêng",
@@ -5197,7 +5202,7 @@
           "numberList": "Danh sách số",
           "quote": "Trích dẫn",
           "link": "Liên kết",
-          "image": "Chèn ảnh (dán link)"
+          "image": "Chèn ảnh"
         }
       }
     },
@@ -5424,6 +5429,8 @@
     "imageUpload": {
       "button": "Tải ảnh lên",
       "done": "Đã tải ảnh lên",
+      "dropHint": "Thả tệp vào đây để tải lên",
+      "orDrop": "hoặc kéo thả ảnh vào đây",
       "errors": {
         "UnsupportedType": "Chỉ nhận ảnh JPG, PNG hoặc WebP.",
         "TooLarge": "Ảnh vượt quá dung lượng cho phép.",
