@@ -1,9 +1,11 @@
 import { useAuthStore } from '@/shared/auth'
 import { http } from '@/shared/lib/api'
 import type { PagedResult } from '@/shared/types'
+import type { HandbookStage } from '@/shared/cms'
 import type {
   HandbookArticleWithCategories,
   HandbookFloor,
+  HandbookNewsletter,
   HandbookQuota,
   HandbookTemplate,
   HandbookTemplateDetail,
@@ -26,6 +28,8 @@ import {
   type BmtStyleRef,
   type LibraryFilterOptions
 } from './handbook.library.logic'
+import { fetchNewsletter, fetchPageSections, fetchStages } from './handbook.cms'
+import { articleSlugOf, indexPageSections, normalizeStages, type PageSections } from './handbook.cms.logic'
 import { mockHandbookApi } from './handbook.mock'
 import {
   getNewsCategory,
@@ -62,6 +66,8 @@ interface BmtArticleCategory {
 
 interface BmtArticleSummary {
   id: string
+  /** Đường dẫn hiện tại; NULL với bài cũ chưa được gán đường dẫn (BR-NEWS-004 Except). */
+  slug?: string | null
   title: string
   readingTimeMinutes?: number | null
   coverImageUrl: string
@@ -205,8 +211,8 @@ function dimensionSpecs(width?: string | null, length?: string | null, area?: st
 function toArticleSummary(dto: BmtArticleSummary): HandbookArticleWithCategories {
   return {
     id: dto.id,
-    // Route `/handbook/bai-viet/[slug]` nhận id trực tiếp làm slug.
-    slug: dto.id,
+    // Route `/handbook/bai-viet/[slug]` nhận cả đường dẫn lẫn định danh; bài cũ chưa có đường dẫn dùng định danh.
+    slug: articleSlugOf(dto.slug, dto.id),
     title: dto.title,
     // BE đã bỏ `summary`; type UI khách bắt buộc `excerpt` nên để chuỗi rỗng.
     excerpt: '',
@@ -315,6 +321,31 @@ function toTemplateDetail(detail: BmtLibraryVersionDetail, content: LoadedVersio
  * ======================================================================== */
 
 export const bmtHandbookApi = {
+  /**
+   * Ba bước kèm chủ đề hướng dẫn (`GET /handbook/stages`). KHÔNG fallback mock: DB đã seed đủ ba bước nên lỗi hoặc
+   * rỗng là sự cố cần thấy. Chủ đề là danh mục gốc bật cờ hướng dẫn, nên một bài có thể xuất hiện ở nhiều chủ đề.
+   */
+  async listStages(): Promise<HandbookStage[]> {
+    return normalizeStages(await fetchStages())
+  },
+
+  /**
+   * Khối Bản tin (`GET /handbook/newsletter`). KHÔNG fallback mock: `featured` rỗng là trạng thái hợp lệ và làm
+   * trang ẩn cả dải (BR-HB-002 khoản 9).
+   */
+  async getNewsletter(): Promise<HandbookNewsletter> {
+    const newsletter = await fetchNewsletter()
+    return {
+      featured: (newsletter.featured ?? []).map(toArticleSummary),
+      related: (newsletter.related ?? []).map(toArticleSummary)
+    }
+  },
+
+  /** Khối chữ đã biên tập của trang Cẩm nang. Thiếu khối là hợp lệ: giao diện dùng bản dịch (BR-HB-003 khoản 6). */
+  async listPageSections(locale: string): Promise<PageSections> {
+    return indexPageSections(await fetchPageSections(locale))
+  },
+
   /**
    * Danh sách bài viết công khai (`GET /news/articles`). Panel tư vấn (`topic`)
    * không có API nên luôn dùng mock. API rỗng/lỗi → mock.

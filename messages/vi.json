@@ -1245,12 +1245,14 @@
       "articleCount": "({count} bài)",
       "readingTime": "{minutes} phút đọc",
       "topicEmpty": "Chủ đề này chưa có bài viết.",
-      "openStage": "Xem cẩm nang"
+      "openStage": "Xem cẩm nang",
+      "loadError": "Không tải được các bước của cẩm nang. Thử tải lại trang."
     },
     "newsletter": {
       "title": "Bản tin BuildX",
       "featured": "Bài viết nổi bật",
       "related": "Bài viết liên quan",
+      "loadError": "Không tải được bản tin. Thử tải lại trang.",
       "seeAllRelated": "Xem tất cả bài liên quan",
       "readingTime": "{minutes} phút đọc",
       "categories": {

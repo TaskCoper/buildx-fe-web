@@ -1245,12 +1245,14 @@
       "articleCount": "({count} articles)",
       "readingTime": "{minutes} min read",
       "topicEmpty": "No article in this topic yet.",
-      "openStage": "Open handbook"
+      "openStage": "Open handbook",
+      "loadError": "Could not load the handbook steps. Try reloading the page."
     },
     "newsletter": {
       "title": "BuildX newsletter",
       "featured": "Featured article",
       "related": "Related articles",
+      "loadError": "Could not load the newsletter. Try reloading the page.",
       "seeAllRelated": "See all related articles",
       "readingTime": "{minutes} min read",
       "categories": {

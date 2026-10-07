@@ -56,6 +56,17 @@ export interface HandbookTemplateStyles {
  */
 export interface HandbookArticleWithCategories extends HandbookArticle {
   categoryIds?: string[]
+  /**
+   * Mọi chủ đề hướng dẫn mà bài thuộc về, suy từ `categoryIds` và cây danh mục (BR-HB-001 khoản 7). Chỉ có khi bài
+   * đến từ API; bài mock dùng `topicId` đơn.
+   */
+  topicIds?: string[]
+}
+
+/** Khối Bản tin: bài nổi bật theo thứ tự biên tập và bài liên quan suy ra từ danh mục của bài đứng đầu. */
+export interface HandbookNewsletter {
+  featured: HandbookArticleWithCategories[]
+  related: HandbookArticleWithCategories[]
 }
 
 /**

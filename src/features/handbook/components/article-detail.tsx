@@ -32,8 +32,8 @@ import { cn } from '@/shared/lib/utils'
 import { formatDisplayDate } from '@/shared/utils'
 import { ARTICLE_META_ICON, ARTICLE_META_TEXT } from '../constants/article-meta'
 import { useArticleLabels } from '../hooks/use-article-labels'
-import { useHandbookArticle, useHandbookArticles, useHandbookStages } from '../hooks/use-handbook'
-import { selectRelatedArticles } from '../services/handbook.service'
+import { useHandbookArticle, useHandbookStages, useHandbookTopicArticles } from '../hooks/use-handbook'
+import { selectRelatedArticles, topicIdsOf } from '../services/handbook.service'
 import { ArticleEndExperience } from './article-action-experience'
 // [ARTICLE-CTA] Tạm ẩn khối mời "Áp dụng ngay cho dự án của bạn?" (giữa bài) — bỏ comment dòng dưới (và thêm
 // `ArticleCompactCta` vào import ở trên) để bật lại. Khối "Sẵn sàng áp dụng…" cuối bài vẫn hiện.
@@ -60,7 +60,8 @@ export function ArticleDetail({ slug, onCreateProject }: ArticleDetailProps) {
 
   const { data: article, isPending, isError, refetch } = useHandbookArticle(slug)
   useDocumentTitle(article?.title)
-  const { data: articles } = useHandbookArticles()
+  // Danh sách bài đã gắn `topicIds`: bài chi tiết không mang chủ đề nên lấy bản cùng id trong danh sách.
+  const { data: articles } = useHandbookTopicArticles()
   const { data: stages } = useHandbookStages()
   const { rootRef, entranceState, entranceStyle } = usePageEntrance(`handbook.article.${slug}`, {
     enabled: !isPending && Boolean(article),
@@ -68,10 +69,15 @@ export function ArticleDetail({ slug, onCreateProject }: ArticleDetailProps) {
     replayOnMount: true
   })
 
-  const stage = stages?.find((item) => item.id === article?.stage)
-  const topic = stage?.topics.find((item) => item.id === article?.topicId)
+  // Bài có thể thuộc nhiều chủ đề (BR-HB-001 khoản 7); dòng chỉ đường lấy chủ đề đầu tiên khớp.
+  const current = useMemo(() => articles?.find((item) => item.id === article?.id) ?? article, [articles, article])
+  const currentTopicIds = current ? topicIdsOf(current) : []
+  const stage =
+    stages?.find((item) => item.id === article?.stage) ??
+    stages?.find((item) => item.topics.some((candidate) => currentTopicIds.includes(candidate.id)))
+  const topic = stage?.topics.find((item) => currentTopicIds.includes(item.id))
 
-  const related = useMemo(() => (article ? selectRelatedArticles(articles ?? [], article) : []), [articles, article])
+  const related = useMemo(() => (current ? selectRelatedArticles(articles ?? [], current) : []), [articles, current])
   const articleRef = useRef<HTMLElement>(null)
   const navigationLockedRef = useRef(false)
   const exitAnimationRef = useRef<Animation | null>(null)
@@ -535,7 +541,10 @@ export function ArticleDetail({ slug, onCreateProject }: ArticleDetailProps) {
                         </span>
                         <span className={cn(ARTICLE_META_TEXT, 'block text-xs')}>
                           {[
-                            stages?.find((s) => s.id === item.stage)?.title,
+                            (
+                              stages?.find((s) => s.id === item.stage) ??
+                              stages?.find((s) => s.topics.some((c) => topicIdsOf(item).includes(c.id)))
+                            )?.title,
                             t('readingTime', { minutes: item.readingMinutes })
                           ]
                             .filter(Boolean)

@@ -21,9 +21,10 @@ import {
   HANDBOOK_CATEGORY_SELECT_EVENT
 } from '../constants/handbook.constants'
 import { ARTICLE_META_ICON, ARTICLE_META_TEXT } from '../constants/article-meta'
-import { articleInChip, chipNodes, descendantsByChip } from '../api/handbook.news.logic'
+import { sectionText } from '../api/handbook.cms.logic'
+import { articleInChip, chipNodes, descendantsByChip, excludeInstructionBranches } from '../api/handbook.news.logic'
 import { useArticleLabels } from '../hooks/use-article-labels'
-import { useHandbookArticles, useHandbookNewsCategoryTree } from '../hooks/use-handbook'
+import { useHandbookArticles, useHandbookNewsCategoryTree, useHandbookPageSections } from '../hooks/use-handbook'
 import { articleCategoryIds, sortByNewest } from '../services/handbook.service'
 import type { HandbookArticle, HandbookCategory } from '../types/handbook.types'
 
@@ -117,6 +118,7 @@ function readArticleListRestoreState(): ArticleListRestoreState | null {
 export function ArticleList() {
   const t = useTranslations('handbook.articles')
   const cmsLabels = useArticleLabels()
+  const pageSections = useHandbookPageSections()
   const locale = useLocale() as Locale
   const [restoreState] = useState(readArticleListRestoreState)
   const initialCategory = restoreState?.category ?? ALL
@@ -155,7 +157,9 @@ export function ArticleList() {
   const { data: categoryTree, isPending: categoryTreePending } = useHandbookNewsCategoryTree()
   const newsFilter = useMemo(() => {
     const nodes = categoryTree ?? []
-    const chips = chipNodes(nodes)
+    // Chủ đề hướng dẫn hiện bên trong một bước chứ không phải ở bộ lọc bài viết (BR-HB-001 khoản 3), nên bỏ cả
+    // nhánh của chúng trước khi dựng chip. Phần tính tập hậu duệ vẫn dùng toàn cây để lọc bài đúng như BE.
+    const chips = chipNodes(excludeInstructionBranches(nodes))
     return { chips, descendants: descendantsByChip(nodes, chips) }
   }, [categoryTree])
   const poolIsApi = useMemo(() => pool.some((article) => articleCategoryIds(article).length > 0), [pool])
@@ -528,8 +532,12 @@ export function ArticleList() {
       className='bg-card scroll-mt-[calc(var(--public-header-offset,64px)+0.75rem)] space-y-5 rounded-2xl border p-5 sm:p-6'
     >
       <header data-article-section-header className='space-y-1.5'>
-        <h2 className='text-foreground text-3xl font-bold tracking-tight text-balance'>{t('title')}</h2>
-        <p className='text-muted-foreground text-sm'>{t('subtitle')}</p>
+        <h2 className='text-foreground text-3xl font-bold tracking-tight text-balance'>
+          {sectionText(pageSections, 'articlesHeading', 'title') ?? t('title')}
+        </h2>
+        <p className='text-muted-foreground text-sm'>
+          {sectionText(pageSections, 'articlesHeading', 'description') ?? t('subtitle')}
+        </p>
       </header>
 
       <div

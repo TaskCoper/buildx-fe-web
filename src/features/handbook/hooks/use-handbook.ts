@@ -1,12 +1,14 @@
 'use client'
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useLocale } from 'next-intl'
 import { useCallback, useEffect, useMemo } from 'react'
 
 import { useAuthStore } from '@/shared/auth'
 import { useCmsCollection } from '@/shared/cms'
 import { env } from '@/shared/config/env'
 import { handbookApi } from '../api/handbook.api'
+import { withTopicIds } from '../api/handbook.cms.logic'
 import { mockHandbookApi } from '../api/handbook.mock'
 import { LibraryAccessDeniedError, type ArticleListQuery } from '../api/handbook.bmt'
 import { handbookKeys } from '../api/handbook.keys'
@@ -160,6 +162,54 @@ export function useHandbookStages() {
     queryFn: () => handbookApi.listStages(),
     staleTime: STATIC_CONTENT_STALE_TIME
   })
+}
+
+/**
+ * Bài viết kèm `topicIds`: các chủ đề hướng dẫn mà mỗi bài thuộc về, suy từ danh mục của bài và cây danh mục
+ * (BR-HB-001 khoản 7). Một bài gắn danh mục của nhiều chủ đề thì thuộc nhiều chủ đề. Dùng một lần tải danh sách bài
+ * chung với khối "Tất cả bài viết", nên số bài theo chủ đề và danh sách bài của chủ đề luôn khớp nhau.
+ */
+export function useHandbookTopicArticles() {
+  const articles = useHandbookArticles()
+  const stages = useHandbookStages()
+  const tree = useHandbookNewsCategoryTree()
+
+  const data = useMemo(
+    () => (articles.data ? withTopicIds(articles.data, stages.data ?? [], tree.data ?? []) : undefined),
+    [articles.data, stages.data, tree.data]
+  )
+
+  return {
+    data,
+    isPending: articles.isPending || stages.isPending,
+    error: stages.error ?? articles.error
+  }
+}
+
+/**
+ * Khối Bản tin: bài nổi bật theo thứ tự biên tập và bài liên quan suy từ danh mục của bài đứng đầu. `featured` rỗng
+ * nghĩa là không còn bài nổi bật nào đang công bố và khối không hiển thị (BR-HB-002 khoản 9).
+ */
+export function useHandbookNewsletter() {
+  return useQuery({
+    queryKey: handbookKeys.newsletter(),
+    queryFn: () => handbookApi.getNewsletter(),
+    staleTime: STATIC_CONTENT_STALE_TIME
+  })
+}
+
+/**
+ * Chữ cố định của trang Cẩm nang do admin biên tập. Chưa biên tập hoặc tải lỗi thì trả bảng rỗng và giao diện dùng
+ * bản dịch sẵn có (BR-HB-003 khoản 6): đó là nội dung mặc định được thiết kế, không phải dữ liệu giả.
+ */
+export function useHandbookPageSections() {
+  const locale = useLocale()
+  const query = useQuery({
+    queryKey: handbookKeys.pageSections(locale),
+    queryFn: () => handbookApi.listPageSections(locale),
+    staleTime: STATIC_CONTENT_STALE_TIME
+  })
+  return query.data
 }
 
 /**
