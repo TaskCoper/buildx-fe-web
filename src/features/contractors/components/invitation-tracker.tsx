@@ -494,22 +494,25 @@ function InvitationCard({
       {/* "Hoàn tất" → dải trên xanh (mục 6). */}
       {isDone ? <span aria-hidden className='bg-primary absolute inset-x-0 top-0 h-1' /> : null}
 
-      <div className='flex flex-wrap items-start gap-4'>
-        {contractor ? <ContractorLogo contractor={contractor} className='size-14 rounded-lg' /> : null}
+      <div className='flex flex-wrap items-start gap-x-4 gap-y-3'>
+        {/* Logo + tên đi chung một khối để màn hẹp đẩy cụm nút xuống dòng dưới, thay vì bóp cột tên còn vài chữ. */}
+        <div className='flex min-w-0 flex-[1_1_16rem] items-start gap-4'>
+          {contractor ? <ContractorLogo contractor={contractor} className='size-14 shrink-0 rounded-lg' /> : null}
 
-        <div className='min-w-0 flex-1'>
-          <div className='flex flex-wrap items-center gap-2'>
-            <h2 className='font-semibold'>{contractor?.name ?? invitation.contractorId}</h2>
-            {contractor?.verified ? <BadgeCheck className='text-primary size-4' /> : null}
+          <div className='min-w-0 flex-1'>
+            <div className='flex flex-wrap items-center gap-2'>
+              <h2 className='font-semibold text-pretty break-words'>{contractor?.name ?? invitation.contractorId}</h2>
+              {contractor?.verified ? <BadgeCheck className='text-primary size-4' /> : null}
+            </div>
+            {contractor ? (
+              <>
+                <p className='text-muted-foreground mt-0.5 text-sm'>
+                  {contractor.kind} · {contractor.officeAddress}
+                </p>
+                <ContractorStats contractor={contractor} dense className='mt-1.5' />
+              </>
+            ) : null}
           </div>
-          {contractor ? (
-            <>
-              <p className='text-muted-foreground mt-0.5 text-sm'>
-                {contractor.kind} · {contractor.officeAddress}
-              </p>
-              <ContractorStats contractor={contractor} dense className='mt-1.5' />
-            </>
-          ) : null}
         </div>
 
         <div className='flex shrink-0 flex-wrap items-center gap-2'>

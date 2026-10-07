@@ -10,6 +10,8 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { Be_Vietnam_Pro, Geist, Geist_Mono, Sriracha } from 'next/font/google'
 import { notFound } from 'next/navigation'
 
+import { RouteScrollReset } from './route-scroll-reset'
+
 import '../globals.css'
 
 const MOBILE_SCROLL_RESET_SCRIPT = `
@@ -179,6 +181,7 @@ export default async function LocaleLayout({
             <AppProviders>
               {/* Resolves the session once for the whole app so auth guards
                   never deadlock waiting for initialization. */}
+              <RouteScrollReset />
               <AuthBootstrap>{children}</AuthBootstrap>
             </AppProviders>
           </CmsMessagesProvider>

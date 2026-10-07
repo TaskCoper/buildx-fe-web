@@ -14,6 +14,7 @@ import { ROUTES } from '@/shared/constants/routes'
 import { usePageEntrance } from '@/shared/hooks'
 import { cn } from '@/shared/lib/utils'
 import { formatPriceTag } from '@/shared/utils'
+import { clearKeepScroll, keepScrollOnce } from '../../route-scroll-reset'
 
 interface PlanTabsProps {
   active: 'design' | 'supervision'
@@ -71,6 +72,8 @@ export function PlanTabs({ active }: PlanTabsProps) {
       })
     }
     setVisualActive(key as typeof active)
+    // Đổi tab giữ nguyên vị trí (đã cuộn tới thanh tab ở trên), không để lưới an toàn kéo về đầu trang.
+    keepScrollOnce()
     if (!reduceMotion) await new Promise((resolve) => setTimeout(resolve, 300))
     if (!reduceMotion && document.startViewTransition) {
       document.documentElement.style.setProperty('--plan-direction', key === 'supervision' ? '1' : '-1')
@@ -91,6 +94,7 @@ export function PlanTabs({ active }: PlanTabsProps) {
     } else {
       router.push(href, { scroll: false })
     }
+    clearKeepScroll()
     busy.current = false
     setIsChanging(false)
   }

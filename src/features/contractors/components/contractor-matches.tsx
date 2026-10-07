@@ -428,7 +428,7 @@ function ContractorMatchesContent({ projectId }: ContractorMatchesProps) {
           <span className='text-warning-strong flex size-11 shrink-0 items-center justify-center'>
             <Info className='size-6' />
           </span>
-          <div className='min-w-0 flex-1'>
+          <div className='min-w-0 flex-[1_1_14rem]'>
             <p className='font-semibold text-pretty'>{t('previewTitle')}</p>
             <p className='text-muted-foreground text-sm text-pretty'>{t('previewDescription')}</p>
           </div>
