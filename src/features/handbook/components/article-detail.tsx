@@ -34,8 +34,10 @@ import { ARTICLE_META_ICON, ARTICLE_META_TEXT } from '../constants/article-meta'
 import { useArticleLabels } from '../hooks/use-article-labels'
 import { useHandbookArticle, useHandbookArticles, useHandbookStages } from '../hooks/use-handbook'
 import { selectRelatedArticles } from '../services/handbook.service'
-// [ARTICLE-CTA] Tạm ẩn hai khối mời "Áp dụng ngay cho dự án của bạn?" / "Sẵn sàng áp dụng…" — bỏ comment để bật lại.
-// import { ArticleCompactCta, ArticleEndExperience } from './article-action-experience'
+import { ArticleEndExperience } from './article-action-experience'
+// [ARTICLE-CTA] Tạm ẩn khối mời "Áp dụng ngay cho dự án của bạn?" (giữa bài) — bỏ comment dòng dưới (và thêm
+// `ArticleCompactCta` vào import ở trên) để bật lại. Khối "Sẵn sàng áp dụng…" cuối bài vẫn hiện.
+// import { ArticleCompactCta } from './article-action-experience'
 import { ConsultButton } from './consult-button'
 
 interface ArticleDetailProps {
@@ -50,8 +52,7 @@ interface ArticleDetailProps {
  * Đường dẫn phân cấp bốn cấp theo đúng cấu trúc Cẩm nang → giai đoạn → chủ đề →
  * bài. Cột phải liệt kê các bài cùng chủ đề để đọc tiếp mà không rời chủ đề.
  */
-// [ARTICLE-CTA] `onCreateProject` chỉ dùng cho hai khối mời đang ẩn: bật lại thì thêm nó vào danh sách tham số.
-export function ArticleDetail({ slug }: ArticleDetailProps) {
+export function ArticleDetail({ slug, onCreateProject }: ArticleDetailProps) {
   const t = useTranslations('handbook.article')
   const locale = useLocale() as Locale
   const { nameOf: labelName } = useArticleLabels()
@@ -491,9 +492,7 @@ export function ArticleDetail({ slug }: ArticleDetailProps) {
             </div>
           </div>
 
-          {/* [ARTICLE-CTA] Tạm ẩn — bỏ comment để bật lại.
           <ArticleEndExperience article={article} articleRef={articleRef} onCreateProject={onCreateProject} />
-          */}
         </article>
 
         <aside
