@@ -5194,6 +5194,7 @@
         "imageUploading": "Đang tải ảnh lên…",
         "imageRemove": "Bỏ khung ảnh",
         "imageDelete": "Xóa ảnh",
+        "imageLoading": "Đang tải ảnh…",
         "imageResize": "Kéo để đổi kích thước ảnh",
         "tools": {
           "bold": "In đậm",

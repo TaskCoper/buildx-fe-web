@@ -5194,6 +5194,7 @@
         "imageUploading": "Uploading image…",
         "imageRemove": "Remove image frame",
         "imageDelete": "Delete image",
+        "imageLoading": "Loading image…",
         "imageResize": "Drag to resize the image",
         "tools": {
           "bold": "Bold",

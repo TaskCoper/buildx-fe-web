@@ -4,6 +4,7 @@ import { LoadingOutlined, PictureOutlined } from '@ant-design/icons'
 import { Node as TiptapNode, NodeViewWrapper, ReactNodeViewRenderer, type NodeViewProps } from '@tiptap/react'
 import { Upload } from 'antd'
 import { useTranslations } from 'next-intl'
+import { useState } from 'react'
 
 import { ACCEPTED_IMAGE_TYPES } from '@/shared/media'
 
@@ -24,40 +25,69 @@ export const stripImagePlaceholders = (html: string) => html.replace(/<div data-
  * Bấm nút ảnh trên thanh công cụ → chèn khung này vào đúng chỗ con trỏ. Bấm vào khung để chọn ảnh,
  * hoặc kéo ảnh từ máy thả vào khung; tải xong khung tự biến thành ảnh. Không muốn chèn nữa thì bấm
  * dấu X đỏ ở góc trên phải.
+ *
+ * Tải lên có thể lâu (xin chỗ → đẩy tệp → backend xác minh), nên trong lúc chờ khung hiện bản xem
+ * trước của ảnh vừa chọn, làm mờ và phủ vòng quay "Đang tải ảnh lên…" — không để khung đứng im.
  */
 function ImagePlaceholderView({ editor, node, getPos, deleteNode }: NodeViewProps) {
   const t = useTranslations('admin.newsArticles.editor')
   const { upload, busy } = useImageUpload()
+  // Địa chỉ cục bộ của ảnh đang tải, chỉ để xem trước trong lúc chờ.
+  const [preview, setPreview] = useState<string | null>(null)
 
   async function handleFile(file: File) {
-    const url = await upload(file)
-    if (!url) return
-    const pos = getPos()
-    // Khung có thể đã bị gỡ trong lúc chờ tải. Khi đó không chèn gì: ảnh chưa gắn vào bài sẽ bị
-    // backend dọn sau 24 giờ (BR-MEDIA-002).
-    if (pos === undefined || editor.state.doc.nodeAt(pos)?.type.name !== IMAGE_PLACEHOLDER) return
-    editor
-      .chain()
-      .focus()
-      .insertContentAt({ from: pos, to: pos + node.nodeSize }, { type: 'image', attrs: { src: url } })
-      .run()
+    const local = file.type.startsWith('image/') ? URL.createObjectURL(file) : null
+    setPreview(local)
+    try {
+      const url = await upload(file)
+      if (!url) return
+      const pos = getPos()
+      // Khung có thể đã bị gỡ trong lúc chờ tải. Khi đó không chèn gì: ảnh chưa gắn vào bài sẽ bị
+      // backend dọn sau 24 giờ (BR-MEDIA-002).
+      if (pos === undefined || editor.state.doc.nodeAt(pos)?.type.name !== IMAGE_PLACEHOLDER) return
+      editor
+        .chain()
+        .focus()
+        .insertContentAt({ from: pos, to: pos + node.nodeSize }, { type: 'image', attrs: { src: url } })
+        .run()
+    } finally {
+      if (local) URL.revokeObjectURL(local)
+      setPreview(null)
+    }
   }
 
   return (
     <NodeViewWrapper contentEditable={false} className='my-2'>
       <FileDropZone disabled={busy} onFiles={([file]) => file && void handleFile(file)}>
-        <Upload.Dragger
-          accept={ACCEPTED_IMAGE_TYPES.join(',')}
-          showUploadList={false}
-          multiple={false}
-          disabled={busy}
-          // Không để antd tự POST tệp đi đâu — tải lên do `useImageUpload` điều khiển.
-          customRequest={({ file }) => void handleFile(file as File)}
-        >
-          <p className='ant-upload-drag-icon'>{busy ? <LoadingOutlined /> : <PictureOutlined />}</p>
-          <p className='ant-upload-text'>{busy ? t('imageUploading') : t('imageDropTitle')}</p>
-          <p className='ant-upload-hint'>{t('imageDropHint')}</p>
-        </Upload.Dragger>
+        {busy ? (
+          <div className='relative grid min-h-44 place-items-center overflow-hidden rounded-lg border border-dashed border-[var(--ant-color-primary,#16a34a)] bg-[var(--admin-surface)] p-4'>
+            {preview ? (
+              // eslint-disable-next-line @next/next/no-img-element -- bản xem trước cục bộ (blob:), không qua tối ưu ảnh của Next
+              <img src={preview} alt='' className='max-h-64 max-w-full rounded-md object-contain opacity-40' />
+            ) : null}
+            <div role='status' className='absolute inset-0 grid place-items-center'>
+              {/* Viên nền đặc để chữ vẫn đọc được khi nằm đè lên nội dung ảnh xem trước. */}
+              <div className='flex items-center gap-2 rounded-full bg-[var(--admin-surface)] px-4 py-2 shadow-md'>
+                <LoadingOutlined spin className='text-lg text-[var(--ant-color-primary,#16a34a)]' />
+                <span className='text-sm font-medium'>{t('imageUploading')}</span>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <Upload.Dragger
+            accept={ACCEPTED_IMAGE_TYPES.join(',')}
+            showUploadList={false}
+            multiple={false}
+            // Không để antd tự POST tệp đi đâu — tải lên do `useImageUpload` điều khiển.
+            customRequest={({ file }) => void handleFile(file as File)}
+          >
+            <p className='ant-upload-drag-icon'>
+              <PictureOutlined />
+            </p>
+            <p className='ant-upload-text'>{t('imageDropTitle')}</p>
+            <p className='ant-upload-hint'>{t('imageDropHint')}</p>
+          </Upload.Dragger>
+        )}
         <NodeRemoveButton label={t('imageRemove')} disabled={busy} onClick={() => deleteNode()} />
       </FileDropZone>
     </NodeViewWrapper>
