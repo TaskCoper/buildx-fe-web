@@ -38,10 +38,10 @@ export function JourneyDialogShell({
         <div className='relative shrink-0 bg-background px-5 pt-5 sm:pt-5 sm:max-[900px]:px-6 min-[900px]:px-44 max-[899px]:pb-3'>
           <PopupBrandLogo />
 
-          <div className='flex justify-end'>
+          <div className='h-9 sm:h-10'>
             <DialogClose
               aria-label={t('close')}
-              className='bg-muted/80 hover:bg-muted flex size-9 items-center justify-center rounded-full transition-all duration-200 hover:scale-105 active:scale-95 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none sm:size-10'
+              className='bg-muted/80 hover:bg-muted absolute top-5 right-5 flex size-9 items-center justify-center rounded-full transition-all duration-200 hover:scale-105 active:scale-95 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none sm:right-6 sm:size-10'
             >
               <X className='size-5' strokeWidth={2.2} />
             </DialogClose>
