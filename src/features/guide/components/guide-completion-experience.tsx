@@ -233,15 +233,6 @@ function GuideEndCardDialog({
         <div className='relative shrink-0 bg-background px-5 pt-5 sm:max-[900px]:px-6 min-[900px]:px-44 max-[899px]:pb-3'>
           <PopupBrandLogo />
 
-          <motion.div
-            initial={reduceMotion ? false : { opacity: 0, y: -6, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: reduceMotion ? 0 : 0.28, ease: [0.22, 1, 0.36, 1] }}
-            className='bg-accent text-primary-strong mx-auto flex w-fit items-center justify-center rounded-full px-4 py-2 text-sm font-bold'
-          >
-            {t('badge')}
-          </motion.div>
-
           <DialogClose
             aria-label={t('close')}
             className='bg-muted/80 hover:bg-muted absolute top-4 right-5 flex size-10 items-center justify-center rounded-full transition-[transform,background-color] duration-150 hover:scale-105 active:scale-95 max-[899px]:top-3 max-[899px]:right-3 max-[899px]:size-9'

@@ -72,16 +72,6 @@ export function TemplateLookupExhaustedDialog({
               <X className='size-5' />
             </DialogClose>
 
-            <motion.div
-              initial={reduceMotion ? false : { opacity: 0, y: -8, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ duration: reduceMotion ? 0 : 0.24, ease: [0.22, 1, 0.36, 1] }}
-              className='flex w-fit items-center gap-2 rounded-full border border-white/30 bg-white/10 px-4 py-2 text-[13px] font-bold backdrop-blur-md max-[899px]:text-[12px]'
-            >
-              <Crown className='size-4' />
-              {t('badge')}
-            </motion.div>
-
             <div className='mt-6 max-[899px]:mt-4'>
               <motion.div
                 initial={reduceMotion ? false : { opacity: 0, y: 14 }}
