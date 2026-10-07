@@ -33,7 +33,7 @@ export function FormPage({
   children: ReactNode
 }) {
   return (
-    <div className={cn('flex w-full flex-col gap-2', wide ? 'max-w-6xl' : 'max-w-4xl')}>
+    <div className={cn('mx-auto flex w-full flex-col gap-2', wide ? 'max-w-5xl' : 'max-w-3xl')}>
       <div>
         <Button type='text' size='small' icon={<ArrowLeftOutlined />} onClick={onBack}>
           {listTitle}

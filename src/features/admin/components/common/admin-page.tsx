@@ -43,7 +43,9 @@ export function AdminPage({
     <div className='flex w-full flex-col gap-4'>
       <div
         className={cn(
-          'flex flex-wrap items-start gap-4',
+          // Có dòng mô tả (nhiều dòng) thì canh đầu; không có (vd. trang form) thì canh giữa để tiêu đề thẳng hàng với nút.
+          'flex flex-wrap gap-4',
+          description ? 'items-start' : 'items-center',
           // `top-15` = 60px = chiều cao Header (xem `headerHeight` ở AntdProvider).
           // Nền phải ĐỤC, nếu không chữ bên dưới cuộn xuyên qua khối dính.
           sticky &&

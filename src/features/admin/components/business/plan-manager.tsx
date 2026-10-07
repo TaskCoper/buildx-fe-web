@@ -683,7 +683,7 @@ function PlanFields({
         {t('basicSection')}
       </Text>
       <Row gutter={16}>
-        <Col xs={24}>
+        <Col xs={24} md={9}>
           {isNew ? (
             <Form.Item
               name='code'
@@ -699,7 +699,7 @@ function PlanFields({
             </Form.Item>
           )}
         </Col>
-        <Col xs={24}>
+        <Col xs={24} md={15}>
           <Form.Item
             name='name'
             label={t('name')}
@@ -741,7 +741,7 @@ function PlanFields({
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'minmax(150px, 1.3fr) minmax(140px, 1fr) minmax(170px, 1fr)',
+                gridTemplateColumns: 'minmax(150px, 190px) minmax(150px, 1fr) minmax(170px, 1fr)',
                 columnGap: 16,
                 alignItems: 'center',
                 minWidth: 520
@@ -862,12 +862,12 @@ function PlanFields({
         {t('coverImageHint')}
       </Text>
       <Row gutter={16}>
-        <Col xs={24} md={8}>
+        <Col xs={24} md={6}>
           <Form.Item name='isHighlighted' label={t('isHighlighted')} valuePropName='checked'>
             <Switch />
           </Form.Item>
         </Col>
-        <Col xs={24} md={16}>
+        <Col xs={24} md={18}>
           <Form.Item
             name='highlightLabel'
             label={t('highlightLabel')}
