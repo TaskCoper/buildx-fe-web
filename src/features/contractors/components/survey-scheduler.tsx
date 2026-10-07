@@ -64,7 +64,7 @@ import {
   type SurveyFormValues
 } from '../schemas/survey.schema'
 import { fullAddress } from '../services/brief.service'
-import { isNotAccepting, remainingInvites } from '../services/contractor-list.service'
+import { isNotAccepting, remainingInvites, withDistanceFrom } from '../services/contractor-list.service'
 import { useContractorsStore } from '../store/contractors.store'
 import type { SurveyBooking } from '../types/contractor.types'
 import { ContractorLogo } from './contractor-logo'
@@ -451,6 +451,14 @@ export function SurveyScheduler({ projectId, contractorId }: SurveySchedulerProp
     )
   }
 
+  // API chi tiết nhà thầu không trả khoảng cách (chỉ API danh sách kèm công trình mới trả), nên tự tính từ toạ độ
+  // công trình của dự án tới trụ sở nhà thầu. Thiếu toạ độ một bên thì vẫn là "chưa tính", không đoán.
+  const site = brief?.constructionSite
+  const withDistance = withDistanceFrom(
+    contractor,
+    site ? { latitude: site.latitude, longitude: site.longitude } : undefined
+  )
+
   /** Dải chỉ số cạnh tên nhà thầu — ba ô, đúng ảnh S16 (không có phạm vi phục vụ). */
   const facts = [
     {
@@ -462,9 +470,12 @@ export function SurveyScheduler({ projectId, contractorId }: SurveySchedulerProp
     {
       key: 'distance',
       icon: MapPin,
-      value: tCommon('distanceShort', {
-        km: formatNumber(contractor.distanceKm, locale, { minimumFractionDigits: 1 })
-      }),
+      value:
+        withDistance.distanceKnown === false
+          ? tCommon('distanceUnknown')
+          : tCommon('distanceShort', {
+              km: formatNumber(withDistance.distanceKm, locale, { minimumFractionDigits: 1 })
+            }),
       hint: tCommon('distanceSuffix')
     },
     {
