@@ -9,14 +9,19 @@ import { normalizeSite, type AdminConstructionSite } from './construction-sites.
  *
  * Phạm vi xem do BE tính từ quyền: `assignment.manage` (admin luôn có) thấy mọi công trình;
  * chỉ có `supervision.complete` thì chỉ thấy công trình của gói mình đang phụ trách; không
- * có cả hai → 403. Không có tham số lọc / tìm kiếm / sắp xếp, thứ tự mặc định mới nhất
- * trước. Logic chuẩn hoá nằm ở `construction-sites.logic.ts`.
+ * có cả hai → 403. Chỉ lọc được theo một phần mã hồ sơ (`code`, không phân biệt hoa thường,
+ * bỏ qua dấu gạch); thứ tự mặc định mới nhất trước. Logic chuẩn hoá nằm ở `construction-sites.logic.ts`.
  */
 const BASE = '/admin/construction-sites'
 
 export const constructionSitesAdminApi = {
-  async list(params: { pageIndex: number; pageSize: number }): Promise<PagedResult<AdminConstructionSite>> {
-    const page = await http.get<PagedResult<unknown>>(BASE, { params })
+  async list(params: {
+    pageIndex: number
+    pageSize: number
+    code?: string
+  }): Promise<PagedResult<AdminConstructionSite>> {
+    const { code, ...paging } = params
+    const page = await http.get<PagedResult<unknown>>(BASE, { params: { ...paging, ...(code ? { code } : {}) } })
     return { ...page, items: (page.items ?? []).map(normalizeSite) }
   },
 

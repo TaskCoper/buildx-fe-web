@@ -970,7 +970,8 @@ export function ConstructionSiteForm({ projectId }: { projectId: string }) {
                     <SelectItem value='none'>{t('independent')}</SelectItem>
                     {sourceItems.map((item) => (
                       <SelectItem key={item.estimateId} value={item.estimateId}>
-                        {item.name}
+                        {/* Kèm mã dự toán để phân biệt các bản trùng tên. */}
+                        {item.code ? `${item.name} · ${item.code}` : item.name}
                       </SelectItem>
                     ))}
                     {site?.sourceEstimateId &&

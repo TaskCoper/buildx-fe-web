@@ -1,4 +1,8 @@
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import { getTranslations } from 'next-intl/server'
+
+import type { Locale } from '@/i18n/routing'
 
 /**
  * Catch-all cho đường dẫn không khớp màn nào. Chuyển tiếp sang `not-found.tsx`
@@ -15,6 +19,17 @@ import { notFound } from 'next/navigation'
  * Đặt vào trong group thì catch-all thành anh em cùng cấp với `handbook`,
  * `plans`, `contractors`… và quy tắc "đoạn tĩnh thắng đoạn động" hoạt động đúng.
  */
+/**
+ * Tiêu đề tab của trang 404: "Không tìm thấy trang | BuildX". Phải đặt ở ĐÂY chứ không ở `not-found.tsx` —
+ * Next không lấy metadata của `not-found` khi nó được gọi từ một trang, nhưng vẫn dùng `generateMetadata` của
+ * chính trang đã gọi `notFound()`.
+ */
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params
+  const t = await getTranslations({ locale: locale as Locale, namespace: 'errors.pageNotFound' })
+  return { title: t('title') }
+}
+
 export default function CatchAllPage() {
   notFound()
 }

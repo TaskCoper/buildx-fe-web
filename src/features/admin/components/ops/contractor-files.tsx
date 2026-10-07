@@ -15,6 +15,7 @@ import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 
 import { acceptAttribute, uploadFile, type MediaPurpose } from '@/shared/media'
+import { FileDropZone } from '../common/file-drop-zone'
 import { useContractorErrorMessage } from './contractor-errors'
 import {
   MAX_IMAGES_PER_SET,
@@ -56,21 +57,27 @@ function useUploader(purpose: MediaPurpose, onUploaded: (url: string) => void) {
   const describe = useContractorErrorMessage()
   const [pending, setPending] = useState(0)
 
-  const customRequest: UploadProps['customRequest'] = async ({ file, onSuccess, onError }) => {
+  /** Một đường tải cho cả bấm chọn tệp lẫn kéo thả. Trả `true` khi tệp đã lên và đã báo `onUploaded`. */
+  const upload = async (file: File): Promise<boolean> => {
     setPending((count) => count + 1)
     try {
-      const uploaded = await uploadFile(file as File, purpose)
+      const uploaded = await uploadFile(file, purpose)
       onUploaded(uploaded.url)
-      onSuccess?.('ok')
+      return true
     } catch (error) {
       message.error(describe(error))
-      onError?.(error as Error)
+      return false
     } finally {
       setPending((count) => count - 1)
     }
   }
 
-  return { busy: pending > 0, customRequest, accept: acceptAttribute(purpose) }
+  const customRequest: UploadProps['customRequest'] = async ({ file, onSuccess, onError }) => {
+    if (await upload(file as File)) onSuccess?.('ok')
+    else onError?.(new Error('upload failed'))
+  }
+
+  return { busy: pending > 0, upload, customRequest, accept: acceptAttribute(purpose) }
 }
 
 /* ===== Dải ảnh: xem trước, đổi chỗ, xoá, tải thêm ===== */
@@ -95,8 +102,16 @@ export function ImageStrip({ items, max, replaceWhenFull, onUploaded, onRemove, 
   const uploader = useUploader('ContractorImage', onUploaded)
   const canUpload = replaceWhenFull || items.length < max
 
+  // Thả nhiều tệp một lần chỉ nhận đủ số chỗ còn trống (ô đơn thì một tệp, thay ảnh cũ).
+  const dropLimit = replaceWhenFull ? 1 : Math.max(max - items.length, 0)
+
   return (
-    <div className='flex flex-wrap items-start gap-3'>
+    <FileDropZone
+      className='flex flex-wrap items-start gap-3'
+      disabled={!canUpload}
+      multiple={max > 1}
+      onFiles={(files) => files.slice(0, dropLimit).forEach((file) => void uploader.upload(file))}
+    >
       {items.map((item, index) => (
         <div key={item.key} className='flex flex-col items-center gap-1'>
           <div className='h-[72px] w-24 overflow-hidden rounded-lg border border-[var(--admin-border)]'>
@@ -150,7 +165,7 @@ export function ImageStrip({ items, max, replaceWhenFull, onUploaded, onRemove, 
           </Button>
         </Upload>
       ) : null}
-    </div>
+    </FileDropZone>
   )
 }
 
@@ -174,7 +189,10 @@ function ScanField({ url, assetId, contractorId, onChange }: ScanFieldProps) {
   const href = url ?? (assetId && contractorId ? legacyAssetPath(contractorId, assetId) : undefined)
 
   return (
-    <div className='flex flex-wrap items-center gap-2'>
+    <FileDropZone
+      className='flex flex-wrap items-center gap-2'
+      onFiles={([file]) => file && void uploader.upload(file)}
+    >
       {hasFile ? (
         <>
           {isImageUrl(url) ? (
@@ -206,7 +224,7 @@ function ScanField({ url, assetId, contractorId, onChange }: ScanFieldProps) {
       <Text type='secondary' style={{ fontSize: 12 }}>
         {t('scanHint')}
       </Text>
-    </div>
+    </FileDropZone>
   )
 }
 

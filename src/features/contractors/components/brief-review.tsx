@@ -335,6 +335,12 @@ export function BriefReview({ projectId }: BriefReviewProps) {
 
           <div>
             <h2 className='text-xl font-bold tracking-tight text-pretty'>{brief.name}</h2>
+            {site?.code ? (
+              <p data-site-code className='text-muted-foreground mt-1 font-mono text-xs select-all'>
+                <span className='sr-only'>{t('codeLabel')}: </span>
+                {site.code}
+              </p>
+            ) : null}
             <p className='text-muted-foreground mt-1 text-sm'>
               {[brief.buildingType, scaleLabel].filter(Boolean).join(' · ')}
             </p>

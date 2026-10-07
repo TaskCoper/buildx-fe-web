@@ -1929,7 +1929,8 @@
       "downloadPdf": "Tải hồ sơ PDF",
       "downloadXlsx": "Tải bảng dự toán Excel",
       "downloading": "Đang chuẩn bị tệp…",
-      "downloadFailed": "Chưa tải được tệp. Bạn thử lại sau ít phút, hoặc link có thể đã hết hạn."
+      "downloadFailed": "Chưa tải được tệp. Bạn thử lại sau ít phút, hoặc link có thể đã hết hạn.",
+      "codeLabel": "Mã dự toán"
     },
     "help": {
       "label": "Xem hướng dẫn",
@@ -2052,7 +2053,8 @@
         "ConstructionSiteInUse": "Dự toán đang được dùng bởi một công trình nên chưa thể xóa."
       },
       "createdAt": "Tạo ngày {date}",
-      "progressLabel": "Tiến độ thiết kế – dự toán"
+      "progressLabel": "Tiến độ thiết kế – dự toán",
+      "codeLabel": "Mã dự toán"
     },
     "phonePrompt": {
       "title": "Bổ sung số điện thoại",
@@ -2245,7 +2247,14 @@
       },
       "addressHint": "Gõ địa chỉ rồi chọn một gợi ý — hệ thống cần toạ độ để tìm nhà thầu quanh công trình.",
       "coordinatesReady": "Đã xác định được toạ độ của địa chỉ này.",
-      "needCoordinates": "Hãy chọn địa chỉ từ danh sách gợi ý để lấy toạ độ."
+      "needCoordinates": "Hãy chọn địa chỉ từ danh sách gợi ý để lấy toạ độ.",
+      "codeLabel": "Mã hồ sơ",
+      "search": {
+        "label": "Tìm công trình theo mã hồ sơ",
+        "placeholder": "Tìm theo mã hồ sơ, ví dụ T4W8NC",
+        "emptyTitle": "Không tìm thấy công trình",
+        "emptyDescription": "Không có công trình nào có mã hồ sơ chứa “{code}”."
+      }
     },
     "info": {
       "title": "Thông tin tài khoản",
@@ -2282,7 +2291,8 @@
       },
       "progressLabel": "Tiến độ thiết kế – dự toán",
       "stepShort": "Bước {step}",
-      "floorArea": "{area} m²"
+      "floorArea": "{area} m²",
+      "codeLabel": "Mã dự toán"
     },
     "dossiers": {
       "title": "Hồ sơ dự án",
@@ -2328,7 +2338,8 @@
       "deleteCancel": "Giữ lại",
       "deleteSuccess": "Đã xóa hồ sơ dự án.",
       "deleteInUse": "Hồ sơ đang có gói giám sát nên không xóa được.",
-      "deleteFailed": "Chưa xóa được hồ sơ. Vui lòng thử lại."
+      "deleteFailed": "Chưa xóa được hồ sơ. Vui lòng thử lại.",
+      "codeLabel": "Mã hồ sơ"
     },
     "purchaseHistory": {
       "title": "Lịch sử mua gói",
@@ -3278,7 +3289,9 @@
         "start": "Dự kiến khởi công",
         "documents": "Tài liệu đính kèm",
         "surveyNote": "Ghi chú khảo sát"
-      }
+      },
+      "siteCode": "Mã hồ sơ",
+      "searchBySiteCode": "Tìm theo mã hồ sơ"
     },
     "invitationStatus": {
       "sent": "Đã gửi",
@@ -5186,10 +5199,16 @@
         "edit": "Soạn",
         "preview": "Xem trước",
         "count": "{count}/{max} ký tự",
-        "hint": "Ảnh trong bài phải là link https trên kho ảnh của hệ thống. Hệ thống tự lọc thẻ không cho phép khi lưu.",
+        "hint": "Bấm nút ảnh để thêm khung ảnh, rồi chọn hoặc kéo thả ảnh từ máy vào khung (JPG, PNG, WebP). Hệ thống tự lọc thẻ không cho phép khi lưu.",
         "urlPlaceholder": "Dán link https…",
         "urlAdd": "Chèn",
-        "imagePlaceholder": "Dán link ảnh https…",
+        "imageDropTitle": "Bấm để chọn ảnh hoặc kéo thả ảnh vào đây",
+        "imageDropHint": "JPG, PNG hoặc WebP. Ảnh sẽ nằm đúng chỗ khung này.",
+        "imageUploading": "Đang tải ảnh lên…",
+        "imageRemove": "Bỏ khung ảnh",
+        "imageDelete": "Xóa ảnh",
+        "imageLoading": "Đang tải ảnh…",
+        "imageResize": "Kéo để đổi kích thước ảnh",
         "tools": {
           "bold": "In đậm",
           "italic": "In nghiêng",
@@ -5201,7 +5220,7 @@
           "numberList": "Danh sách số",
           "quote": "Trích dẫn",
           "link": "Liên kết",
-          "image": "Chèn ảnh (dán link)"
+          "image": "Chèn ảnh"
         }
       }
     },
@@ -5428,6 +5447,8 @@
     "imageUpload": {
       "button": "Tải ảnh lên",
       "done": "Đã tải ảnh lên",
+      "dropHint": "Thả tệp vào đây để tải lên",
+      "orDrop": "hoặc kéo thả ảnh vào đây",
       "errors": {
         "UnsupportedType": "Chỉ nhận ảnh JPG, PNG hoặc WebP.",
         "TooLarge": "Ảnh vượt quá dung lượng cho phép.",
@@ -5500,7 +5521,9 @@
       "fileGroups": {
         "Drawing": "Bản vẽ",
         "ConditionPhoto": "Ảnh hiện trạng"
-      }
+      },
+      "code": "Mã hồ sơ",
+      "searchByCode": "Tìm theo mã hồ sơ"
     }
   },
   "contractors": {
@@ -5833,7 +5856,8 @@
         "address": "Địa chỉ",
         "budget": "Ngân sách dự kiến",
         "startWindow": "Dự kiến khởi công"
-      }
+      },
+      "codeLabel": "Mã hồ sơ"
     },
     "rating": {
       "action": "Đánh giá nhà thầu",
@@ -6571,7 +6595,8 @@
           "Within3To6Months": "Trong 3–6 tháng tới",
           "Undecided": "Chưa xác định"
         },
-        "site": "Tên công trình"
+        "site": "Tên công trình",
+        "siteCode": "Mã hồ sơ"
       },
       "privacy": "Số điện thoại được lưu cùng lời mời để đội hỗ trợ liên hệ sắp lịch.",
       "phoneInvalid": "Số điện thoại cần có chữ số, tối đa 20 ký tự; chỉ dùng số, dấu + ở đầu, khoảng trắng, dấu chấm, gạch ngang hoặc ngoặc.",
@@ -7150,9 +7175,10 @@
     }
   },
   "meta": {
-    "home": "Thiết kế và dự toán xây nhà bằng AI từ ảnh lô đất | BuildX",
     "design": "Thiết kế & Dự toán",
     "designInput": "Nhập thông tin dự án",
+    "siteTitle": "NỀN TẢNG AI HỖ TRỢ LẬP KẾ HOẠCH & TRIỂN KHAI CÔNG TRÌNH | BuildX",
+    "siteDescription": "Nền tảng hỗ trợ lập kế hoạch & triển khai công trình. tạo phương án thiết kế và dự toán, so sánh lựa chọn, tìm nhà thầu phù hợp và theo dõi quá trình triển khai trên cùng một nền tảng",
     "designEstimate": "Kết quả dự toán",
     "designDossier": "Hồ sơ thi công",
     "contractors": "Tìm nhà thầu",
@@ -7164,16 +7190,17 @@
     "contractorInvitations": "Lời mời báo giá",
     "contractorBrief": "Hồ sơ dự án",
     "contractorReview": "Kiểm tra hồ sơ dự án",
-    "handbook": "Cẩm nang xây nhà",
+    "handbook": "Cẩm nang",
     "handbookArticle": "Bài viết cẩm nang",
     "handbookTemplate": "Mẫu thiết kế",
-    "guide": "Hướng dẫn sử dụng",
+    "guide": "Hướng dẫn",
     "plans": "Bảng giá",
     "plansSupervision": "Gói giám sát thi công",
     "consult": "Tư vấn 1:1",
     "consultDetail": "Hồ sơ kiến trúc sư",
     "account": "Tài khoản của tôi",
     "accountProjects": "Dự án của tôi",
+    "consultantName": "Kiến trúc sư - {name}",
     "accountDossiers": "Hồ sơ của tôi",
     "accountPurchases": "Lịch sử mua hàng",
     "accountConsultations": "Lịch sử tư vấn 1:1",

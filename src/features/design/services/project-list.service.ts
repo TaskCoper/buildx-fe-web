@@ -48,14 +48,30 @@ export function miniStepState(step: DesignStep, project: Pick<Project, 'currentS
   return 'pending'
 }
 
+const CODE_BRAND = 'BUILDX'
+
+/**
+ * Khóa so một phần mã dự toán, giống `BuildXCodes.SearchKey` của backend: bỏ dấu
+ * gạch và khoảng trắng, đổi chữ hoa, rồi bỏ tiền tố thương hiệu. Không so phần
+ * "BUILDX" vì mã nào cũng có, nên tìm tên bằng "i" sẽ khớp mọi dự toán.
+ */
+const codeKey = (value: string) => {
+  const normalized = value.replace(/[-\s]/g, '').toUpperCase()
+  return normalized.startsWith(CODE_BRAND) ? normalized.slice(CODE_BRAND.length) : normalized
+}
+
 /**
  * Ô tìm khớp cả tên lẫn mã dự án ("Tìm theo tên hoặc mã dự án..."). So khớp
- * không phân biệt hoa thường và bỏ dấu cách thừa hai đầu.
+ * không phân biệt hoa thường và bỏ dấu cách thừa hai đầu. Mã dự toán khớp một
+ * phần và bỏ qua dấu gạch: "q7k2m9" hay "20261005Q7K" đều ra BUILDX-20261005-Q7K2M9;
+ * gõ đúng "BUILDX" thì khớp mọi dự toán có mã.
  */
 export function matchesQuery(project: Project, query: string): boolean {
   const needle = query.trim().toLowerCase()
   if (!needle) return true
-  return project.name.toLowerCase().includes(needle) || project.id.toLowerCase().includes(needle)
+  if (project.name.toLowerCase().includes(needle) || project.id.toLowerCase().includes(needle)) return true
+  if (!project.code) return false
+  return codeKey(project.code).includes(codeKey(needle))
 }
 
 export function filterProjects(projects: readonly Project[], filter: Pick<ProjectListFilter, 'query' | 'status'>) {

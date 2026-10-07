@@ -154,7 +154,7 @@ export function StepEstimateView({ projectId }: { projectId: string }) {
         title={
           result && resultVisible
             ? project
-              ? t('pageTitleWithProject', { name: project.name, id: displayProjectId(project.id) })
+              ? t('pageTitleWithProject', { name: project.name, id: displayProjectId(project.id, project.code) })
               : t('pageTitle')
             : failed
               ? t('pageTitle')

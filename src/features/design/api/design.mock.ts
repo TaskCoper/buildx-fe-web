@@ -1,5 +1,6 @@
 import { mockDelay } from '@/shared/lib/mock'
 import type { ApiError } from '@/shared/types'
+import { sampleRecordCode } from '@/shared/utils'
 import { DESIGN_INPUT_CONFIG_ERROR } from '../constants/design.constants'
 import { designInputConfigErrors, emptyDesignInput } from '../services/design-input.service'
 import { grandTotal, rollUpSections, subItemAmount, type DraftSection } from '../services/estimate.service'
@@ -271,6 +272,7 @@ function persistShared(store: MockStore, projectId: string): void {
 
   const entry: SharedDossier = {
     projectName: project.name,
+    projectCode: project.code ?? null,
     address: store.inputs[projectId]?.address ?? '',
     createdAt: project.createdAt,
     sections: SAMPLE_SECTIONS,
@@ -316,6 +318,7 @@ export const mockDesignApi = {
       const now = new Date().toISOString()
       const project: Project = {
         id: nextId(store),
+        code: sampleRecordCode('estimate', now),
         name: payload.name,
         description: payload.description,
         createdAt: now,

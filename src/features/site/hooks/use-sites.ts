@@ -1,16 +1,20 @@
 'use client'
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { siteApi } from '../api/site.api'
 import { siteKeys } from '../api/site.keys'
 import type { SiteInput } from '../types/site.types'
 
-/** Danh sách công trình của khách. */
-export function useSites() {
+/**
+ * Danh sách công trình của khách. Có `code` thì BE lọc theo một phần mã hồ sơ; để trống là toàn bộ danh sách (ô chọn
+ * công trình khi gán gói luôn dùng danh sách đầy đủ).
+ */
+export function useSites(code = '') {
   return useQuery({
-    queryKey: siteKeys.sites(),
-    queryFn: () => siteApi.listSites()
+    queryKey: code ? siteKeys.sitesByCode(code) : siteKeys.sites(),
+    queryFn: () => siteApi.listSites(code || undefined),
+    placeholderData: keepPreviousData
   })
 }
 

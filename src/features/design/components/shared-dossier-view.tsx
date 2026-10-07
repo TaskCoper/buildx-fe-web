@@ -144,6 +144,12 @@ export function SharedDossierView({ token, share }: { token: string; share?: { s
       <header className='space-y-2'>
         <p className='text-muted-foreground text-xs tracking-widest uppercase'>{t('eyebrow')}</p>
         <h1 className='text-3xl font-semibold tracking-tight text-balance'>{data.projectName}</h1>
+        {data.projectCode ? (
+          <p data-project-code className='text-muted-foreground font-mono text-sm select-all'>
+            <span className='sr-only'>{t('codeLabel')}: </span>
+            {data.projectCode}
+          </p>
+        ) : null}
         <p className='text-muted-foreground text-sm'>
           {[data.address, data.createdAt ? formatDisplayDate(data.createdAt, locale) : ''].filter(Boolean).join(' · ')}
         </p>

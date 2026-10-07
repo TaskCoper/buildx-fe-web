@@ -21,6 +21,7 @@ export function QuotationDossier({ detail }: { detail: QuotationDetail }) {
   }
   const fields = [
     [s('site'), detail.snapshot.siteName],
+    ...(detail.request.siteCode ? [[s('siteCode'), detail.request.siteCode]] : []),
     [s('buildingType'), profile.buildingType.name],
     [s('area'), decimal(profile.areaM2) + ' m²'],
     [s('condition'), profile.condition.name],

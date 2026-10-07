@@ -141,6 +141,13 @@ export function MyProjects({ renderSupervision }: MyProjectsProps = {}) {
                         dòng, ngăn bằng dấu chấm giữa. Hai vế sau chỉ có sau khi
                         khách qua Bước 1 và Bước 2, thiếu vế nào thì bỏ luôn cả
                         dấu ngăn của vế đó. */}
+                    {project.code ? (
+                      <p data-project-code className='text-muted-foreground font-mono text-xs select-all'>
+                        <span className='sr-only'>{t('codeLabel')}: </span>
+                        {project.code}
+                      </p>
+                    ) : null}
+
                     <ProjectMeta project={project} />
 
                     {/* Hình S24: nhãn + ba CHẤM có số và tên bước, không phải ba
