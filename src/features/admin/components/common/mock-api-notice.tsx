@@ -17,7 +17,7 @@ export function MockApiNotice() {
       type='warning'
       showIcon
       icon={<WarningOutlined />}
-      message={t('title')}
+      title={t('title')}
       description={t('description')}
       style={{ marginBottom: 12 }}
     />
