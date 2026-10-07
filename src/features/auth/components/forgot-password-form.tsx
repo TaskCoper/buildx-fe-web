@@ -135,7 +135,7 @@ export function ForgotPasswordForm() {
   const backToLogin = (
     <Button asChild variant='link' className='mt-4 w-full'>
       {/* Đăng nhập là DIALOG (`?auth=login` trên trang chủ), không có route `/login`. */}
-      <Link href={`${ROUTES.HOME}?auth=login`}>
+      <Link data-back-navigation href={`${ROUTES.HOME}?auth=login`}>
         <ArrowLeft className='size-4' />
         {t('backToLogin')}
       </Link>

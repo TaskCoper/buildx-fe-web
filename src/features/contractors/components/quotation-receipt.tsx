@@ -117,7 +117,9 @@ export function QuotationReceipt({ projectId, requestId }: { projectId: string; 
       )}
       <div className='flex flex-wrap gap-3'>
         <Button asChild variant='outline'>
-          <Link href={contractorMatchesRoute(projectId)}>{t('back')}</Link>
+          <Link data-back-navigation href={contractorMatchesRoute(projectId)}>
+            {t('back')}
+          </Link>
         </Button>
         {requestId ? (
           <Button asChild>

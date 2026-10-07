@@ -5,6 +5,7 @@ import { motion, useReducedMotion } from 'motion/react'
 import { useTranslations } from 'next-intl'
 
 import { Link } from '@/i18n/navigation'
+import { Button } from '@/shared/components/ui'
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from '@/shared/components/ui/dialog'
 import { designCreateRoute, ROUTES } from '@/shared/constants/routes'
 import { BUILDING_IMAGE, rememberHandbookQuotaReturn } from '@/shared/lib'
@@ -126,35 +127,43 @@ export function TemplateLookupExhaustedDialog({
               }}
               className='mt-auto grid gap-4 min-[900px]:grid-cols-3 max-[899px]:mt-5 max-[899px]:grid-cols-1 max-[899px]:gap-3'
             >
-              <Link
-                href={ROUTES.PLANS}
-                onClick={openPlans}
-                className='group/button inline-flex h-[58px] items-center justify-center gap-2.5 rounded-[14px] brand-green-button px-5 text-[15px] font-bold text-white shadow-[0_8px_20px_rgba(0,0,0,.14)] transition-[background-color,filter] duration-150 hover:brightness-[1.015] max-[899px]:h-[56px] max-[899px]:rounded-[12px] max-[899px]:text-[14px]'
+              <Button
+                asChild
+                className='group/button h-[58px] gap-2.5 rounded-full px-5 text-[15px] font-bold has-[>svg]:px-5 max-[899px]:h-[56px] max-[899px]:text-[14px]'
               >
-                <Crown className='size-5 shrink-0 max-[899px]:size-4.5' />
-                <span>{t('more')}</span>
-                <span aria-hidden className='transition-transform duration-150 group-hover/button:translate-x-0.5'>
-                  →
-                </span>
-              </Link>
+                <Link href={ROUTES.PLANS} onClick={openPlans}>
+                  <Crown className='size-5 shrink-0 max-[899px]:size-4.5' />
+                  <span>{t('more')}</span>
+                  <span aria-hidden className='transition-transform duration-150 group-hover/button:translate-x-0.5'>
+                    →
+                  </span>
+                </Link>
+              </Button>
 
-              <Link
-                href={designCreateRoute()}
-                onClick={() => onOpenChange(false)}
-                className='inline-flex h-[58px] items-center justify-center gap-2.5 rounded-[14px] border border-white/48 bg-white/[0.025] px-5 text-[15px] font-bold text-white transition-[background-color,border-color] duration-150 hover:border-white/55 hover:bg-white/[0.04] active:bg-white/[0.025] max-[899px]:h-[56px] max-[899px]:rounded-[12px] max-[899px]:bg-transparent max-[899px]:text-[14px]'
+              <Button
+                asChild
+                variant='transparent'
+                className='h-[58px] gap-2.5 rounded-full border border-white/48 bg-white/[0.025] px-5 text-[15px] font-bold text-white hover:border-white/55 hover:bg-white/[0.04] focus-visible:border-white/55 focus-visible:ring-white/50 active:bg-white/[0.025] has-[>svg]:px-5 max-[899px]:h-[56px] max-[899px]:bg-transparent max-[899px]:text-[14px]'
               >
-                <FilePlus2 className='size-5 shrink-0 max-[899px]:size-4.5' />
-                {t('useSelected')}
-              </Link>
+                <Link href={designCreateRoute()} onClick={() => onOpenChange(false)}>
+                  <FilePlus2 className='size-5 shrink-0 max-[899px]:size-4.5' />
+                  {t('useSelected')}
+                </Link>
+              </Button>
 
-              <Link
-                href={`${ROUTES.CONSULT}?template=${encodeURIComponent(template.id)}`}
-                onClick={() => onOpenChange(false)}
-                className='inline-flex h-[58px] items-center justify-center gap-2.5 rounded-[14px] border border-white/48 bg-transparent px-5 text-[15px] font-bold text-white transition-[background-color,border-color] duration-150 hover:border-white/55 hover:bg-white/[0.025] active:bg-white/[0.018] max-[899px]:h-[56px] max-[899px]:rounded-[12px] max-[899px]:text-[14px]'
+              <Button
+                asChild
+                variant='transparent'
+                className='h-[58px] gap-2.5 rounded-full border border-white/48 bg-transparent px-5 text-[15px] font-bold text-white hover:border-white/55 hover:bg-white/[0.025] focus-visible:border-white/55 focus-visible:ring-white/50 active:bg-white/[0.018] has-[>svg]:px-5 max-[899px]:h-[56px] max-[899px]:text-[14px]'
               >
-                <MessageCircle className='size-5 shrink-0 max-[899px]:size-4.5' />
-                {t('consult')}
-              </Link>
+                <Link
+                  href={`${ROUTES.CONSULT}?template=${encodeURIComponent(template.id)}`}
+                  onClick={() => onOpenChange(false)}
+                >
+                  <MessageCircle className='size-5 shrink-0 max-[899px]:size-4.5' />
+                  {t('consult')}
+                </Link>
+              </Button>
             </motion.div>
 
             <motion.div
@@ -166,10 +175,13 @@ export function TemplateLookupExhaustedDialog({
               <p className='max-w-[820px]'>{period === 'month' ? t('footnoteMonth') : t('footnoteDay')}</p>
               <button
                 type='button'
+                aria-label={t('close')}
                 onClick={() => onOpenChange(false)}
                 className='shrink-0 text-white/82 underline decoration-white/40 underline-offset-4 transition-colors duration-150 hover:text-white'
               >
-                {t('later')}
+                <span aria-hidden className='invisible'>
+                  {t('later')}
+                </span>
               </button>
             </motion.div>
           </div>

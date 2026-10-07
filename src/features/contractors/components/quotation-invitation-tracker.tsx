@@ -52,7 +52,8 @@ export function QuotationInvitationTracker({ projectId }: { projectId: string })
       <ProjectContextBar brief={brief} />
       <Link
         href={contractorMatchesRoute(projectId)}
-        className='text-primary-strong inline-flex items-center gap-1.5 text-sm font-medium'
+        data-back-navigation
+        className='text-foreground inline-flex items-center gap-1.5 text-sm font-medium'
       >
         <ChevronLeft className='size-4' />
         {t('back')}

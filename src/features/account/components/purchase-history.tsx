@@ -78,18 +78,18 @@ function StatusPill({
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 rounded-full px-2 py-1 max-md:text-xs text-[11px] font-medium',
+        'inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 max-md:text-xs text-[11px] font-medium whitespace-nowrap',
         STATUS_TONE[status]
       )}
     >
       {status === 'pending' && pulsePending ? (
         <motion.span
-          className={cn('size-1.5 rounded-full', dotClass)}
+          className={cn('size-1.5 shrink-0 rounded-full', dotClass)}
           animate={reduceMotion ? undefined : { opacity: [1, 0.35, 1] }}
           transition={reduceMotion ? undefined : { duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
         />
       ) : (
-        <span className={cn('size-1.5 rounded-full', dotClass)} />
+        <span className={cn('size-1.5 shrink-0 rounded-full', dotClass)} />
       )}
       {label}
     </span>
@@ -282,7 +282,7 @@ export function PurchaseHistory() {
               <table className='w-full min-w-[720px] border-collapse text-left'>
                 <thead className='bg-muted/50 text-muted-foreground max-md:text-xs text-[11px] uppercase'>
                   <tr>
-                    <th className='px-4 py-3 font-medium'>{t('table.code')}</th>
+                    <th className='px-4 py-3 font-medium'>{t('table.project')}</th>
                     <th className='px-4 py-3 font-medium'>{t('table.date')}</th>
                     <th className='px-4 py-3 font-medium'>{t('table.plan')}</th>
                     <th className='px-4 py-3 text-right font-medium'>{t('table.amount')}</th>
@@ -303,7 +303,11 @@ export function PurchaseHistory() {
                       }
                       className='border-t align-top transition-colors duration-200 hover:bg-primary/5 motion-reduce:transition-none'
                     >
-                      <td className='px-4 py-3 font-mono text-xs font-semibold'>#{transaction.id}</td>
+                      <td className='px-4 py-3 text-xs font-semibold'>
+                        <p className='line-clamp-3 wrap-anywhere' title={transaction.projectName}>
+                          {transaction.projectName?.trim() || t('projectUnavailable')}
+                        </p>
+                      </td>
                       <td className='px-4 py-3 text-xs'>
                         <div>{formatDisplayDate(transaction.createdAt, locale)}</div>
                         <div className='text-muted-foreground mt-0.5'>
@@ -367,9 +371,11 @@ export function PurchaseHistory() {
                   className='space-y-3 p-4 transition-colors duration-200 hover:bg-primary/5 motion-reduce:transition-none'
                 >
                   <div className='flex items-start justify-between gap-3'>
-                    <div>
-                      <p className='font-mono text-xs font-semibold'>#{transaction.id}</p>
-                      <p className='mt-1 text-sm font-semibold'>
+                    <div className='min-w-0 flex-1'>
+                      <p className='line-clamp-3 text-sm font-semibold wrap-anywhere' title={transaction.projectName}>
+                        {transaction.projectName?.trim() || t('projectUnavailable')}
+                      </p>
+                      <p className='text-muted-foreground mt-1 text-xs'>
                         {transaction.planName ?? t(`tier.${transaction.tier}`)}
                       </p>
                     </div>

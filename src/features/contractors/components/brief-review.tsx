@@ -205,8 +205,7 @@ export function BriefReview({ projectId }: BriefReviewProps) {
       transition={{ duration: reduceMotion ? 0 : 0.32, ease: revealEase }}
       className='mx-auto w-full max-w-[90rem] space-y-5 lg:space-y-6 px-4 py-5 lg:px-8'
     >
-      {/* Hình S11: link quay lại màu XANH, và ngay cạnh nó là viên nhãn
-          "HỒ SƠ TỰ TẠO" — bản trước không có viên nhãn này. */}
+      {/* Link quay lại dùng màu chữ chính; viên nhãn "HỒ SƠ TỰ TẠO" nằm cạnh bên. */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -215,7 +214,8 @@ export function BriefReview({ projectId }: BriefReviewProps) {
       >
         <Link
           href={contractorBriefRoute(projectId)}
-          className='text-primary-strong hover:text-primary inline-flex items-center gap-1.5 text-sm font-medium'
+          data-back-navigation
+          className='text-foreground hover:text-foreground inline-flex items-center gap-1.5 text-sm font-medium'
         >
           <ArrowLeft className='size-4' />
           {t('back')}

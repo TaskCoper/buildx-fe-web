@@ -308,7 +308,8 @@ export function ArticleDetail({ slug, onCreateProject }: ArticleDetailProps) {
       <Link
         href={ROUTES.HANDBOOK}
         onClick={(event) => navigateArticle(event, ROUTES.HANDBOOK, 'back')}
-        className='text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-sm font-medium transition-colors lg:hidden'
+        data-back-navigation
+        className='text-foreground hover:text-foreground inline-flex items-center gap-1.5 text-sm font-medium transition-colors lg:hidden'
       >
         <ArrowLeft className='size-4' />
         {t('breadcrumbRoot')}

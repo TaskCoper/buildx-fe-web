@@ -2105,6 +2105,7 @@
     },
     "purchaseHistory": {
       "title": "Lịch sử mua gói",
+      "projectUnavailable": "Chưa có thông tin công trình",
       "description": "Toàn bộ đơn hàng của bạn và trạng thái thanh toán.",
       "viewPlans": "Xem các gói",
       "designPlan": "Gói thiết kế",
@@ -2135,6 +2136,7 @@
       },
       "table": {
         "code": "Mã đơn",
+        "project": "Công trình",
         "date": "Ngày",
         "plan": "Gói",
         "amount": "Số tiền",

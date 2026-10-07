@@ -520,7 +520,8 @@ function MockInviteSent({ projectId, requestId }: InviteSentProps) {
                   <Link
                     href={contractorMatchesRoute(projectId)}
                     onClick={backToList}
-                    className='text-primary-strong font-medium underline underline-offset-4'
+                    data-back-navigation
+                    className='text-foreground font-medium underline underline-offset-4'
                   >
                     {t('remainingInvites', { count: remainingInvites(invitations ?? []) })}
                   </Link>
@@ -553,7 +554,7 @@ function MockInviteSent({ projectId, requestId }: InviteSentProps) {
           </motion.span>
           {/* Còn lượt mời → nút thứ hai là "Mời thêm nhà thầu (còn x)", hiện ngay cùng nút
               chính (góp ý NT35: dòng gợi ý nhỏ bên trên dễ bị lỡ). Hết lượt → "Quay lại danh sách". */}
-          <Button asChild variant='outline' className='border-primary/50 text-primary-strong min-w-52'>
+          <Button data-back-navigation asChild variant='outline' className='text-foreground min-w-52'>
             <Link href={contractorMatchesRoute(projectId)} onClick={backToList}>
               {invitesLeft > 0 ? t('inviteMore', { left: invitesLeft }) : tCommon('backToList')}
             </Link>

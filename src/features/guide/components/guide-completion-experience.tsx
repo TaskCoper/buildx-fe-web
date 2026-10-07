@@ -230,7 +230,7 @@ function GuideEndCardDialog({
         showCloseButton={false}
         className='max-h-[calc(100dvh-24px)] w-[min(1080px,calc(100vw-24px))] max-w-[1080px] gap-0 overflow-x-hidden overflow-y-auto rounded-[24px] border-0 bg-background p-0 shadow-2xl sm:max-w-[1080px] max-[899px]:flex max-[899px]:w-[calc(100vw-24px)] max-[899px]:max-w-[calc(100vw-24px)] max-[899px]:flex-col max-[899px]:rounded-[24px]'
       >
-        <div className='relative shrink-0 bg-background px-5 pt-5 sm:px-6 max-[899px]:pb-3'>
+        <div className='relative shrink-0 bg-background px-5 pt-5 sm:max-[900px]:px-6 min-[900px]:px-44 max-[899px]:pb-3'>
           <PopupBrandLogo />
 
           <motion.div
