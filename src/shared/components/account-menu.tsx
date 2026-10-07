@@ -88,7 +88,7 @@ export function AccountMenu({
   const nextStagger = () => staggerClass(staggerIndex++)
 
   return (
-    <DropdownMenu onOpenChange={onOpenChange}>
+    <DropdownMenu modal={false} onOpenChange={onOpenChange}>
       <DropdownMenuTrigger asChild>
         <Button
           variant='ghost'

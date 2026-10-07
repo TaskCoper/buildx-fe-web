@@ -51,19 +51,13 @@ export function GuestMenu({ onOpenChange }: { onOpenChange?: (open: boolean) => 
 
   // Mở popup ở tick sau, không mở ngay trong handler của menu item.
   //
-  // Cả dropdown lẫn popup đều là lớp "modal" của Radix: khi mở, lớp ghi lại
-  // `pointer-events` hiện tại của <body> rồi đặt thành `none`, lúc đóng thì trả
-  // lại đúng giá trị đã ghi. Mở popup ngay trong handler nghĩa là popup mount
-  // khi dropdown chưa tháo xong, nên nó ghi lại `none` — và tới khi người dùng
-  // đăng nhập xong, popup đóng và áp `none` trở lại cho <body>: cả trang không
-  // bấm được gì cho tới khi F5. Lùi một tick là dropdown đã tháo và trả
-  // `pointer-events` về bình thường trước khi popup ghi lại.
+  // Đợi dropdown trả focus về avatar trước khi popup nhận focus.
   const openAfterMenuCloses = (mode: 'login' | 'register') => {
     setTimeout(() => open(mode), 0)
   }
 
   return (
-    <DropdownMenu onOpenChange={onOpenChange}>
+    <DropdownMenu modal={false} onOpenChange={onOpenChange}>
       <DropdownMenuTrigger asChild>
         <Button
           variant='ghost'
