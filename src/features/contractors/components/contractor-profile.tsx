@@ -65,12 +65,11 @@ import { useCountUp, useDocumentTitle } from '@/shared/hooks'
 import { cn } from '@/shared/lib/utils'
 import { formatDate, formatDisplayDate, formatNumber } from '@/shared/utils'
 import { mergeProjectDetail } from '../api/contractors.logic'
-import { env } from '@/shared/config/env'
 import { CONTRACTOR_TABS, MAX_INVITATIONS, type ContractorTab } from '../constants/contractors.constants'
 import { useBrief } from '../hooks/use-brief'
 import { useContractor, useContractorProject } from '../hooks/use-contractors'
 import { useInvitations } from '../hooks/use-invitations'
-import { isInvited } from '../services/contractor-list.service'
+import { isInvited, isNotAccepting } from '../services/contractor-list.service'
 import { useContractorsStore } from '../store/contractors.store'
 import type { Contractor, ContractorPhoto, ContractorProject } from '../types/contractor.types'
 import { MATCHES_LAST_VIEWED_KEY } from './contractor-matches'
@@ -181,9 +180,9 @@ function InviteButton({
   const { limit } = useInvitations(projectId)
   const rfq = useTranslations('contractors.rfq')
 
-  if (env.NEXT_PUBLIC_USE_MOCK_API && !contractor.acceptingProjects) {
+  if (isNotAccepting(contractor)) {
     return (
-      <Button size={size} className='w-full opacity-50' disabled>
+      <Button size={size} className='w-full opacity-50' disabled title={tCommon('notAccepting')}>
         <Send className='size-4' />
         {tCommon('invite')}
       </Button>

@@ -15,6 +15,7 @@ import { cn } from '@/shared/lib/utils'
 import { formatNumber } from '@/shared/utils'
 import { useInvitations } from '../hooks/use-invitations'
 import { MAX_INVITATIONS } from '../constants/contractors.constants'
+import { isNotAccepting } from '../services/contractor-list.service'
 import type { Contractor } from '../types/contractor.types'
 import { ContractorLogo } from './contractor-logo'
 
@@ -67,6 +68,9 @@ export function ContractorCard({
   const { limit, isError, siteRequired } = useInvitations(projectId)
   const locale = useLocale() as Locale
   const reduceMotion = useReducedMotion()
+
+  // Nhà thầu đã ngưng nhận dự án thì khóa nút mời (khóa chứ không ẩn, để biết vì sao không bấm được).
+  const notAccepting = isNotAccepting(contractor)
 
   const [navigatingProfile, setNavigatingProfile] = useState(false)
   const [navigatingInvite, setNavigatingInvite] = useState(false)
@@ -273,6 +277,11 @@ export function ContractorCard({
               <CircleCheck className='size-4' />
               {tMatches('viewInvites')}
             </Link>
+          </Button>
+        ) : notAccepting ? (
+          <Button disabled title={t('notAccepting')}>
+            <Send className='size-4' />
+            {t('invite')}
           </Button>
         ) : inviteLocked ? (
           <Button
