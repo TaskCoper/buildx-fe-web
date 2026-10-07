@@ -2911,6 +2911,7 @@
       "created": "Record added.",
       "saved": "Saved. The public site is updated.",
       "deleted": "Record deleted.",
+      "recordNotFound": "This record was not found. It may have been deleted or is no longer in the list.",
       "apiError": "The server returned an error. Please try again."
     },
     "table": {

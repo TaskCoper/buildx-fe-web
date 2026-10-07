@@ -2911,6 +2911,7 @@
       "created": "Đã thêm bản ghi mới.",
       "saved": "Đã lưu. Site công khai cập nhật ngay.",
       "deleted": "Đã xóa bản ghi.",
+      "recordNotFound": "Không tìm thấy bản ghi này. Có thể nó đã bị xóa hoặc không còn trong danh sách.",
       "apiError": "Máy chủ báo lỗi. Vui lòng thử lại."
     },
     "table": {

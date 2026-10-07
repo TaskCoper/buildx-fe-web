@@ -1,10 +1,10 @@
 'use client'
 
-import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Alert, App, Button, Checkbox, Descriptions, Drawer, Form, Grid, Input, Space, Tag, Typography } from 'antd'
+import { DeleteOutlined } from '@ant-design/icons'
+import { useQuery } from '@tanstack/react-query'
+import { Alert, App, Checkbox, Descriptions, Form, Input, Space, Tag, Typography } from 'antd'
 import { useTranslations } from 'next-intl'
-import { useMemo, useState } from 'react'
+import { useMemo, useRef } from 'react'
 
 import { isApiError } from '@/shared/lib/api'
 import { adminKeys } from '../../api/admin.keys'
@@ -18,7 +18,6 @@ import {
   type PermissionItem,
   type RoleSummary
 } from '../../api/bmt/roles.api'
-import { useUnsavedGuard } from '../../hooks/use-unsaved-guard'
 import { matchesKeyword, pageLocally } from '../../services/local-page.service'
 import { ApiResourceManager } from '../common/api-resource-manager'
 import type { RowAction } from '../common/row-actions-menu'
@@ -44,11 +43,6 @@ const KNOWN_MODULES = [
   'library'
 ] as const
 type KnownModule = (typeof KNOWN_MODULES)[number]
-
-interface EditorState {
-  mode: 'create' | 'edit'
-  role: RoleSummary | null
-}
 
 interface RoleFormValues {
   name: string
@@ -87,17 +81,8 @@ export function RoleManager() {
   const t = useTranslations('admin')
   const tr = useTranslations('admin.rbacRoles')
   const { message, modal } = App.useApp()
-  const [form] = Form.useForm<RoleFormValues>()
-  const screens = Grid.useBreakpoint()
-  const queryClient = useQueryClient()
-
-  const [editor, setEditor] = useState<EditorState | null>(null)
-  const [originalPerms, setOriginalPerms] = useState<string[]>([])
-  const [dirty, setDirty] = useState(false)
-  const [saving, setSaving] = useState(false)
-  const [loadingId, setLoadingId] = useState<string | null>(null)
-
-  useUnsavedGuard(dirty)
+  // Quyền của vai trò lúc mở sửa (đọc từ API) — để Lưu biết quyền có đổi không (STORY-RBAC-001 ALT-01).
+  const originalPerms = useRef<string[]>([])
 
   const permissionsQuery = useQuery({
     queryKey: adminKeys.bmt('permissions'),
@@ -108,238 +93,137 @@ export function RoleManager() {
   const permMap = useMemo(() => new Map<string, PermissionItem>(permissions.map((p) => [p.code, p])), [permissions])
   const permLabel = (code: string) => permMap.get(code)?.label ?? code
 
-  async function refreshRoles() {
-    await queryClient.invalidateQueries({ queryKey: adminKeys.bmt('roles') })
-  }
-
-  function openCreate() {
-    form.resetFields()
-    form.setFieldsValue({ name: '', permissions: [] })
-    setOriginalPerms([])
-    setDirty(false)
-    setEditor({ mode: 'create', role: null })
-  }
-
-  async function openEdit(role: RoleSummary) {
-    setLoadingId(role.id)
-    try {
+  return (
+    <ApiResourceManager<RoleSummary>
+      title={tr('title')}
+      description={tr('description')}
+      queryKey={adminKeys.bmt('roles')}
+      searchable
+      fetchPage={async ({ pageIndex, pageSize, keyword }) => {
+        const rows = (await listRoles()).filter((role) => matchesKeyword(role.name, keyword))
+        return pageLocally(rows, pageIndex, pageSize)
+      }}
+      rowKey={(item) => item.id}
+      // Vai trò `System` bị khóa cả sửa lẫn xóa (BR-RBAC-002).
+      editLocked={(role) => role.kind === 'System'}
+      createValues={() => ({ name: '', permissions: [] })}
+      onCreate={async (values) => {
+        const { name, permissions: perms } = values as unknown as RoleFormValues
+        await createRole({ name: name.trim(), permissions: perms ?? [] })
+      }}
       // BR/STORY: sửa thì đọc chi tiết để lấy danh sách quyền HIỆN TẠI (nguồn thật).
-      const detail = await getRole(role.id)
-      form.resetFields()
-      form.setFieldsValue({ name: detail.name, permissions: detail.permissions })
-      setOriginalPerms(detail.permissions)
-      setDirty(false)
-      setEditor({ mode: 'edit', role })
-    } catch (err) {
-      message.error(isApiError(err) ? err.message : t('feedback.apiError'))
-    } finally {
-      setLoadingId(null)
-    }
-  }
-
-  function closeEditor() {
-    setEditor(null)
-    setDirty(false)
-    form.resetFields()
-  }
-
-  function requestClose() {
-    if (!dirty) return closeEditor()
-    modal.confirm({
-      title: t('actions.discardConfirmTitle'),
-      content: t('actions.discardConfirmBody'),
-      okText: t('actions.discard'),
-      okButtonProps: { danger: true },
-      cancelText: t('actions.keepEditing'),
-      onOk: closeEditor
-    })
-  }
-
-  async function submit() {
-    if (!editor) return
-    const values = await form.validateFields().catch(() => null)
-    if (!values) return
-    const name = values.name.trim()
-    const perms = values.permissions ?? []
-    setSaving(true)
-    try {
-      if (editor.mode === 'create') {
-        await createRole({ name, permissions: perms })
-        message.success(t('feedback.created'))
-      } else if (editor.role) {
-        const detail = await updateRole(editor.role.id, { name, permissions: perms })
-        message.success(t('feedback.saved'))
+      toFormValues={async (role) => {
+        const detail = await getRole(role.id)
+        originalPerms.current = detail.permissions
+        return { name: detail.name, permissions: detail.permissions }
+      }}
+      onUpdate={async (values, role) => {
+        const { name, permissions: chosen } = values as unknown as RoleFormValues
+        const perms = chosen ?? []
+        const detail = await updateRole(role.id, { name: name.trim(), permissions: perms })
         // STORY-RBAC-001 ALT-01: đổi quyền của vai trò còn người giữ → chưa hiệu lực ngay.
-        if (!sameSet(perms, originalPerms) && editor.role.memberCount > 0) {
+        if (!sameSet(perms, originalPerms.current) && role.memberCount > 0) {
           modal.info({
             title: tr('effectiveNoteTitle'),
             content: tr('effectiveNote', { minutes: detail.effectiveWithinMinutes })
           })
         }
-      }
-      await refreshRoles()
-      closeEditor()
-    } catch (err) {
-      message.error(isApiError(err) ? err.message : t('feedback.apiError'))
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  return (
-    <>
-      <ApiResourceManager<RoleSummary>
-        title={tr('title')}
-        description={tr('description')}
-        queryKey={adminKeys.bmt('roles')}
-        searchable
-        fetchPage={async ({ pageIndex, pageSize, keyword }) => {
-          const rows = (await listRoles()).filter((role) => matchesKeyword(role.name, keyword))
-          return pageLocally(rows, pageIndex, pageSize)
-        }}
-        rowKey={(item) => item.id}
-        extraActions={
-          <Button type='primary' icon={<PlusOutlined />} onClick={openCreate}>
-            {t('actions.create')}
-          </Button>
-        }
-        rowActions={(role, ctx): RowAction[] => {
-          // Vai trò `System` bị khóa cả sửa lẫn xóa (BR-RBAC-002).
-          if (role.kind === 'System') {
-            return [
-              { key: 'edit', label: t('actions.edit'), icon: <EditOutlined />, disabled: true, onClick: () => {} },
-              {
-                key: 'delete',
-                label: t('actions.delete'),
-                icon: <DeleteOutlined />,
-                danger: true,
-                disabled: true,
-                onClick: () => {}
+      }}
+      renderForm={() => <RoleFormFields groups={groupByModule(permissions)} loading={permissionsQuery.isPending} />}
+      rowActions={(role, ctx): RowAction[] => [
+        {
+          key: 'delete',
+          label: t('actions.delete'),
+          icon: <DeleteOutlined />,
+          danger: true,
+          disabled: role.kind === 'System',
+          onClick: () =>
+            modal.confirm({
+              title: tr('deleteTitle', { name: role.name }),
+              content: <div style={{ maxWidth: 300 }}>{tr('deleteBody')}</div>,
+              okText: t('actions.delete'),
+              okButtonProps: { danger: true },
+              cancelText: t('actions.cancel'),
+              onOk: async () => {
+                try {
+                  await deleteRole(role.id)
+                  await ctx.refresh()
+                  message.success(t('feedback.deleted'))
+                } catch (err) {
+                  message.error(isApiError(err) ? err.message : t('feedback.apiError'))
+                }
               }
-            ]
-          }
-          return [
+            })
+        }
+      ]}
+      columns={[
+        {
+          title: tr('columns.name'),
+          dataIndex: 'name',
+          render: (name: string, role) => (
+            <Space orientation='vertical' size={0}>
+              <Text strong>{name}</Text>
+              {role.code ? (
+                <Text type='secondary' style={{ fontSize: 12 }}>
+                  {role.code}
+                </Text>
+              ) : null}
+            </Space>
+          )
+        },
+        {
+          title: tr('columns.kind'),
+          dataIndex: 'kind',
+          width: 130,
+          render: (kind: RoleSummary['kind']) => (
+            <StatusTag tone={kind === 'System' ? 'info' : 'off'}>{tr(`kind.${kind}`)}</StatusTag>
+          )
+        },
+        {
+          title: tr('columns.memberCount'),
+          dataIndex: 'memberCount',
+          width: 130,
+          align: 'right',
+          render: (count: number) => count
+        },
+        {
+          title: tr('columns.permissionCount'),
+          key: 'permissionCount',
+          width: 120,
+          align: 'right',
+          render: (_, role) => role.permissions.length
+        }
+      ]}
+      renderView={(role) => (
+        <Descriptions
+          size='small'
+          column={1}
+          bordered
+          items={[
+            { key: 'name', label: tr('columns.name'), children: role.name },
+            ...(role.code ? [{ key: 'code', label: tr('view.code'), children: role.code }] : []),
+            { key: 'kind', label: tr('columns.kind'), children: tr(`kind.${role.kind}`) },
+            { key: 'members', label: tr('columns.memberCount'), children: role.memberCount },
             {
-              key: 'edit',
-              label: t('actions.edit'),
-              icon: <EditOutlined />,
-              disabled: loadingId === role.id,
-              onClick: () => void openEdit(role)
-            },
-            {
-              key: 'delete',
-              label: t('actions.delete'),
-              icon: <DeleteOutlined />,
-              danger: true,
-              onClick: () =>
-                modal.confirm({
-                  title: tr('deleteTitle', { name: role.name }),
-                  content: <div style={{ maxWidth: 300 }}>{tr('deleteBody')}</div>,
-                  okText: t('actions.delete'),
-                  okButtonProps: { danger: true },
-                  cancelText: t('actions.cancel'),
-                  onOk: async () => {
-                    try {
-                      await deleteRole(role.id)
-                      await ctx.refresh()
-                      message.success(t('feedback.deleted'))
-                    } catch (err) {
-                      message.error(isApiError(err) ? err.message : t('feedback.apiError'))
-                    }
-                  }
-                })
+              key: 'permissions',
+              label: tr('columns.permissionCount'),
+              children:
+                role.permissions.length === 0 ? (
+                  <Text type='secondary'>{tr('view.noPermissions')}</Text>
+                ) : (
+                  <Space size={4} wrap>
+                    {role.permissions.map((code) => (
+                      <Tag key={code} color={permMap.get(code)?.requiresAssignment ? 'orange' : 'blue'}>
+                        {permLabel(code)}
+                      </Tag>
+                    ))}
+                  </Space>
+                )
             }
-          ]
-        }}
-        columns={[
-          {
-            title: tr('columns.name'),
-            dataIndex: 'name',
-            render: (name: string, role) => (
-              <Space orientation='vertical' size={0}>
-                <Text strong>{name}</Text>
-                {role.code ? (
-                  <Text type='secondary' style={{ fontSize: 12 }}>
-                    {role.code}
-                  </Text>
-                ) : null}
-              </Space>
-            )
-          },
-          {
-            title: tr('columns.kind'),
-            dataIndex: 'kind',
-            width: 130,
-            render: (kind: RoleSummary['kind']) => (
-              <StatusTag tone={kind === 'System' ? 'info' : 'off'}>{tr(`kind.${kind}`)}</StatusTag>
-            )
-          },
-          {
-            title: tr('columns.memberCount'),
-            dataIndex: 'memberCount',
-            width: 130,
-            align: 'right',
-            render: (count: number) => count
-          },
-          {
-            title: tr('columns.permissionCount'),
-            key: 'permissionCount',
-            width: 120,
-            align: 'right',
-            render: (_, role) => role.permissions.length
-          }
-        ]}
-        renderView={(role) => (
-          <Descriptions
-            size='small'
-            column={1}
-            bordered
-            items={[
-              { key: 'name', label: tr('columns.name'), children: role.name },
-              ...(role.code ? [{ key: 'code', label: tr('view.code'), children: role.code }] : []),
-              { key: 'kind', label: tr('columns.kind'), children: tr(`kind.${role.kind}`) },
-              { key: 'members', label: tr('columns.memberCount'), children: role.memberCount },
-              {
-                key: 'permissions',
-                label: tr('columns.permissionCount'),
-                children:
-                  role.permissions.length === 0 ? (
-                    <Text type='secondary'>{tr('view.noPermissions')}</Text>
-                  ) : (
-                    <Space size={4} wrap>
-                      {role.permissions.map((code) => (
-                        <Tag key={code} color={permMap.get(code)?.requiresAssignment ? 'orange' : 'blue'}>
-                          {permLabel(code)}
-                        </Tag>
-                      ))}
-                    </Space>
-                  )
-              }
-            ]}
-          />
-        )}
-      />
-
-      <Drawer
-        open={editor !== null}
-        onClose={requestClose}
-        size={screens.md ? 560 : '100%'}
-        destroyOnHidden
-        title={editor?.mode === 'edit' ? t('actions.edit') : t('actions.create')}
-        extra={
-          <Space>
-            <Button onClick={requestClose}>{t('actions.cancel')}</Button>
-            <Button type='primary' loading={saving} onClick={submit}>
-              {t('actions.save')}
-            </Button>
-          </Space>
-        }
-      >
-        <Form form={form} layout='vertical' onValuesChange={() => setDirty(true)}>
-          <RoleFormFields groups={groupByModule(permissions)} loading={permissionsQuery.isPending} />
-        </Form>
-      </Drawer>
-    </>
+          ]}
+        />
+      )}
+    />
   )
 }
 
