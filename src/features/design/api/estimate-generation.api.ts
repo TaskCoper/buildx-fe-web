@@ -37,6 +37,8 @@ export interface EstimateResultRaw {
   operationId: string
   contractVersion: string
   estimateName: string
+  /** Mã dự toán `BUILDX-YYYYMMDD-XXXXXX`; thiếu khi API chưa trả. */
+  estimateCode?: string | null
   dossier: { content?: unknown; files?: ResultFile[] }
   exportAvailability?: ExportAvailability[]
 }
@@ -217,6 +219,7 @@ export const estimateGenerationApi = {
     http.get<{
       shareId: string
       estimateName: string
+      estimateCode?: string | null
       dossier: { content?: unknown; files?: ResultFile[] }
       exportAvailability?: ExportAvailability[]
     }>(`/public/estimate-shares/${shareId}`, { withCredentials: false, headers: { 'X-Estimate-Share-Token': token } }),

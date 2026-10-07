@@ -98,7 +98,7 @@ export function useDownloadDossier({ dossier, result, info, advisory }: UseDownl
         advisory,
         info: [
           [t('info.customerName'), info.customerName],
-          [t('info.projectName'), `${info.projectName} (${displayProjectId(info.projectId)})`],
+          [t('info.projectName'), `${info.projectName} (${displayProjectId(info.projectId, info.projectCode)})`],
           [t('info.phone'), info.phone],
           [t('info.address'), info.address],
           [t('info.createdAt'), info.createdAt ? formatDisplayDate(info.createdAt, locale) : ''],

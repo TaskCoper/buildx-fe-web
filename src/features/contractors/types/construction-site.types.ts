@@ -57,8 +57,11 @@ export const siteAttachmentSchema = z.object({
   createdAtUtc: z.string(),
   contentPath: z.string()
 })
+/** Mã hồ sơ `BUILDX-HS-YYYYMMDD-XXXXXX` do BE cấp; thiếu khi API chưa trả. */
+const recordCode = z.string().nullable().optional()
 export const siteDetailSchema = z.object({
   constructionSiteId: id,
+  code: recordCode,
   name: z.string(),
   address: z.string(),
   latitude: z.number().finite().min(-90).max(90),
@@ -86,6 +89,7 @@ export const siteDetailSchema = z.object({
 })
 export const siteSavedSchema = siteDetailSchema.pick({
   constructionSiteId: true,
+  code: true,
   name: true,
   address: true,
   latitude: true,
@@ -113,7 +117,8 @@ export const coordinatesSchema = z.object({
   longitude: z.number().finite().min(-180).max(180)
 })
 export const sourcePageSchema = z.object({
-  items: z.array(z.object({ estimateId: id, name: z.string(), operationId: id })),
+  /** `code` là mã dự toán `BUILDX-YYYYMMDD-XXXXXX`. */
+  items: z.array(z.object({ estimateId: id, code: recordCode, name: z.string(), operationId: id })),
   pageIndex: z.number(),
   pageSize: z.number(),
   totalCount: z.number(),

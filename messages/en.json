@@ -1929,7 +1929,8 @@
       "downloadPdf": "Download PDF dossier",
       "downloadXlsx": "Download Excel estimate",
       "downloading": "Preparing the file…",
-      "downloadFailed": "Couldn't download the file. Try again in a few minutes — the link may also have expired."
+      "downloadFailed": "Couldn't download the file. Try again in a few minutes — the link may also have expired.",
+      "codeLabel": "Estimate code"
     },
     "help": {
       "label": "View guide",
@@ -2052,7 +2053,8 @@
         "ConstructionSiteInUse": "The estimate is used by a construction site and cannot be deleted."
       },
       "createdAt": "Created {date}",
-      "progressLabel": "Design & estimate progress"
+      "progressLabel": "Design & estimate progress",
+      "codeLabel": "Estimate code"
     },
     "phonePrompt": {
       "title": "Add your phone number",
@@ -2245,7 +2247,14 @@
       },
       "addressHint": "Type the address then pick a suggestion — coordinates are needed to find nearby contractors.",
       "coordinatesReady": "Coordinates found for this address.",
-      "needCoordinates": "Please pick the address from the suggestion list to get coordinates."
+      "needCoordinates": "Please pick the address from the suggestion list to get coordinates.",
+      "codeLabel": "Site record code",
+      "search": {
+        "label": "Search sites by record code",
+        "placeholder": "Search by record code, e.g. T4W8NC",
+        "emptyTitle": "No sites found",
+        "emptyDescription": "No site has a record code containing “{code}”."
+      }
     },
     "info": {
       "title": "Account information",
@@ -2282,7 +2291,8 @@
       },
       "progressLabel": "Design & estimate progress",
       "stepShort": "Step {step}",
-      "floorArea": "{area} m²"
+      "floorArea": "{area} m²",
+      "codeLabel": "Estimate code"
     },
     "dossiers": {
       "title": "Project dossiers",
@@ -2328,7 +2338,8 @@
       "deleteCancel": "Keep it",
       "deleteSuccess": "Project dossier deleted.",
       "deleteInUse": "This dossier has a supervision package, so it cannot be deleted.",
-      "deleteFailed": "Could not delete the dossier. Please try again."
+      "deleteFailed": "Could not delete the dossier. Please try again.",
+      "codeLabel": "Site record code"
     },
     "purchaseHistory": {
       "title": "Purchase history",
@@ -3278,7 +3289,9 @@
         "start": "Planned start",
         "documents": "Attachments",
         "surveyNote": "Survey note"
-      }
+      },
+      "siteCode": "Site record code",
+      "searchBySiteCode": "Search by site record code"
     },
     "invitationStatus": {
       "sent": "Sent",
@@ -5508,7 +5521,9 @@
       "fileGroups": {
         "Drawing": "Drawing",
         "ConditionPhoto": "Site photo"
-      }
+      },
+      "code": "Record code",
+      "searchByCode": "Search by record code"
     }
   },
   "contractors": {
@@ -5841,7 +5856,8 @@
         "address": "Address",
         "budget": "Expected budget",
         "startWindow": "Expected start"
-      }
+      },
+      "codeLabel": "Site record code"
     },
     "rating": {
       "action": "Rate this contractor",
@@ -6579,7 +6595,8 @@
           "Within3To6Months": "Within 3–6 months",
           "Undecided": "Undecided"
         },
-        "site": "Construction site name"
+        "site": "Construction site name",
+        "siteCode": "Site record code"
       },
       "privacy": "Your phone is saved with the invitation so support can arrange the appointment.",
       "phoneInvalid": "Use up to 20 characters with at least one digit: numbers, a leading +, spaces, dots, hyphens or parentheses.",

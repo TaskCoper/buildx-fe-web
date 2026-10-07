@@ -1,4 +1,5 @@
 import { useAuthStore } from '@/shared/auth'
+import { sampleRecordCode } from '@/shared/utils'
 import type { bmtConstructionSitesApi } from './construction-sites.api'
 import type { SiteCatalog, SiteDetail, PendingSiteFile } from '../types/construction-site.types'
 
@@ -85,6 +86,7 @@ export const mockConstructionSitesApi: typeof bmtConstructionSitesApi = {
     const type = catalog.types.find((item) => item.id === request.profile?.buildingTypeId)
     const site: SiteDetail = {
       constructionSiteId: crypto.randomUUID(),
+      code: sampleRecordCode('site', now),
       name: request.name,
       address: `${request.profile.addressDetail}, Phường Ba Đình, Thành phố Hà Nội`,
       latitude: request.latitude,

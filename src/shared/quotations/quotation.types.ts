@@ -6,6 +6,8 @@ export const quotationItemSchema = z.object({
   id: z.string().uuid(),
   constructionSiteId: z.string().uuid(),
   siteName: z.string(),
+  /** Mã hồ sơ công trình `BUILDX-HS-YYYYMMDD-XXXXXX`; `null`/thiếu khi API chưa trả. */
+  siteCode: z.string().nullable().optional(),
   contractorId: z.string().uuid(),
   contractorName: z.string(),
   status: z.enum(QUOTATION_STATUSES),

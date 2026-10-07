@@ -1929,7 +1929,8 @@
       "downloadPdf": "Tải hồ sơ PDF",
       "downloadXlsx": "Tải bảng dự toán Excel",
       "downloading": "Đang chuẩn bị tệp…",
-      "downloadFailed": "Chưa tải được tệp. Bạn thử lại sau ít phút, hoặc link có thể đã hết hạn."
+      "downloadFailed": "Chưa tải được tệp. Bạn thử lại sau ít phút, hoặc link có thể đã hết hạn.",
+      "codeLabel": "Mã dự toán"
     },
     "help": {
       "label": "Xem hướng dẫn",
@@ -2052,7 +2053,8 @@
         "ConstructionSiteInUse": "Dự toán đang được dùng bởi một công trình nên chưa thể xóa."
       },
       "createdAt": "Tạo ngày {date}",
-      "progressLabel": "Tiến độ thiết kế – dự toán"
+      "progressLabel": "Tiến độ thiết kế – dự toán",
+      "codeLabel": "Mã dự toán"
     },
     "phonePrompt": {
       "title": "Bổ sung số điện thoại",
@@ -2245,7 +2247,14 @@
       },
       "addressHint": "Gõ địa chỉ rồi chọn một gợi ý — hệ thống cần toạ độ để tìm nhà thầu quanh công trình.",
       "coordinatesReady": "Đã xác định được toạ độ của địa chỉ này.",
-      "needCoordinates": "Hãy chọn địa chỉ từ danh sách gợi ý để lấy toạ độ."
+      "needCoordinates": "Hãy chọn địa chỉ từ danh sách gợi ý để lấy toạ độ.",
+      "codeLabel": "Mã hồ sơ",
+      "search": {
+        "label": "Tìm công trình theo mã hồ sơ",
+        "placeholder": "Tìm theo mã hồ sơ, ví dụ T4W8NC",
+        "emptyTitle": "Không tìm thấy công trình",
+        "emptyDescription": "Không có công trình nào có mã hồ sơ chứa “{code}”."
+      }
     },
     "info": {
       "title": "Thông tin tài khoản",
@@ -2282,7 +2291,8 @@
       },
       "progressLabel": "Tiến độ thiết kế – dự toán",
       "stepShort": "Bước {step}",
-      "floorArea": "{area} m²"
+      "floorArea": "{area} m²",
+      "codeLabel": "Mã dự toán"
     },
     "dossiers": {
       "title": "Hồ sơ dự án",
@@ -2328,7 +2338,8 @@
       "deleteCancel": "Giữ lại",
       "deleteSuccess": "Đã xóa hồ sơ dự án.",
       "deleteInUse": "Hồ sơ đang có gói giám sát nên không xóa được.",
-      "deleteFailed": "Chưa xóa được hồ sơ. Vui lòng thử lại."
+      "deleteFailed": "Chưa xóa được hồ sơ. Vui lòng thử lại.",
+      "codeLabel": "Mã hồ sơ"
     },
     "purchaseHistory": {
       "title": "Lịch sử mua gói",
@@ -3278,7 +3289,9 @@
         "start": "Dự kiến khởi công",
         "documents": "Tài liệu đính kèm",
         "surveyNote": "Ghi chú khảo sát"
-      }
+      },
+      "siteCode": "Mã hồ sơ",
+      "searchBySiteCode": "Tìm theo mã hồ sơ"
     },
     "invitationStatus": {
       "sent": "Đã gửi",
@@ -5508,7 +5521,9 @@
       "fileGroups": {
         "Drawing": "Bản vẽ",
         "ConditionPhoto": "Ảnh hiện trạng"
-      }
+      },
+      "code": "Mã hồ sơ",
+      "searchByCode": "Tìm theo mã hồ sơ"
     }
   },
   "contractors": {
@@ -5841,7 +5856,8 @@
         "address": "Địa chỉ",
         "budget": "Ngân sách dự kiến",
         "startWindow": "Dự kiến khởi công"
-      }
+      },
+      "codeLabel": "Mã hồ sơ"
     },
     "rating": {
       "action": "Đánh giá nhà thầu",
@@ -6579,7 +6595,8 @@
           "Within3To6Months": "Trong 3–6 tháng tới",
           "Undecided": "Chưa xác định"
         },
-        "site": "Tên công trình"
+        "site": "Tên công trình",
+        "siteCode": "Mã hồ sơ"
       },
       "privacy": "Số điện thoại được lưu cùng lời mời để đội hỗ trợ liên hệ sắp lịch.",
       "phoneInvalid": "Số điện thoại cần có chữ số, tối đa 20 ký tự; chỉ dùng số, dấu + ở đầu, khoảng trắng, dấu chấm, gạch ngang hoặc ngoặc.",

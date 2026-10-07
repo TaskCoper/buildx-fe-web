@@ -51,6 +51,8 @@ export interface ApiResourceManagerProps<T> {
   columns: NonNullable<TableProps<T>['columns']>
   /** Có ô tìm kiếm: từ khóa đi thẳng lên server (`keyword`). */
   searchable?: boolean
+  /** Gợi ý riêng cho ô tìm kiếm khi màn chỉ tìm theo một trường (ví dụ mã hồ sơ); bỏ trống dùng câu chung. */
+  searchPlaceholder?: string
   /** Các trường trong Drawer thêm / sửa. */
   renderForm?: (form: FormInstance, ctx: { isNew: boolean; item: T | null }) => ReactNode
   /** Giá trị form khi bấm "Thêm mới". Bỏ trống = màn không cho thêm. */
@@ -102,6 +104,7 @@ export function ApiResourceManager<T>({
   rowKey,
   columns,
   searchable = false,
+  searchPlaceholder,
   renderForm,
   createValues,
   onCreate,
@@ -249,7 +252,7 @@ export function ApiResourceManager<T>({
             <Input.Search
               allowClear
               prefix={<SearchOutlined />}
-              placeholder={t('table.searchPlaceholder')}
+              placeholder={searchPlaceholder ?? t('table.searchPlaceholder')}
               value={query}
               onChange={(event) => {
                 setQuery(event.target.value)

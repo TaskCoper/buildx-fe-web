@@ -229,6 +229,14 @@ export function ProjectCard({ project, onRename, onDelete }: ProjectCardProps) {
           </DropdownMenu>
         </div>
 
+        {/* Mã dự toán BE cấp — chữ đơn cách, bấm là chọn cả mã để sao chép. */}
+        {project.code ? (
+          <p data-project-code className='text-muted-foreground mt-1 font-mono text-xs select-all'>
+            <span className='sr-only'>{t('codeLabel')}: </span>
+            {project.code}
+          </p>
+        ) : null}
+
         <p className='text-muted-foreground mt-1 text-xs'>
           {t('createdAt', { date: formatDisplayDate(project.createdAt, locale) })}
         </p>

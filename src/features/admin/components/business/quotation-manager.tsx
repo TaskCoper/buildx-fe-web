@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Alert, App, Button, DatePicker, Descriptions, Form, Input, Select, Spin } from 'antd'
+import { Alert, App, Button, DatePicker, Descriptions, Form, Input, Select, Spin, Typography } from 'antd'
 import dayjs, { type Dayjs } from 'dayjs'
 import { useFormatter, useTranslations } from 'next-intl'
 import { useState } from 'react'
@@ -30,7 +30,11 @@ export function QuotationManager() {
       description={t('adminDescription')}
       queryKey={['admin', 'quotation-requests', userId, status]}
       rowKey={(item) => item.id}
-      fetchPage={({ pageIndex, pageSize }) => quotationApi.adminList({ pageIndex, pageSize, status })}
+      searchable
+      searchPlaceholder={admin('invitations.searchBySiteCode')}
+      fetchPage={({ pageIndex, pageSize, keyword }) =>
+        quotationApi.adminList({ pageIndex, pageSize, status, ...(keyword ? { siteCode: keyword } : {}) })
+      }
       drawerWidth={850}
       banner={
         <Select
@@ -44,7 +48,20 @@ export function QuotationManager() {
         />
       }
       columns={[
-        { key: 'site', title: admin('invitations.project'), dataIndex: 'siteName' },
+        {
+          key: 'site',
+          title: admin('invitations.project'),
+          render: (_, item) => (
+            <div className='flex flex-col'>
+              <span>{item.siteName}</span>
+              {item.siteCode ? (
+                <Typography.Text type='secondary' code style={{ fontSize: 12 }}>
+                  {item.siteCode}
+                </Typography.Text>
+              ) : null}
+            </div>
+          )
+        },
         { key: 'contractor', title: admin('invitations.contractor'), dataIndex: 'contractorName' },
         { key: 'status', title: admin('invitations.status'), render: (_, item) => t(`states.${item.status}`) },
         { key: 'desired', title: t('desired'), render: (_, item) => stamp(item.desiredAtUtc) },
@@ -117,6 +134,15 @@ function QuotationAdminDetail({ id, ctx }: { id: string; ctx: ApiRowContext }) {
         column={1}
         items={[
           { key: 'site', label: admin('invitations.project'), children: request.snapshot.siteName },
+          {
+            key: 'siteCode',
+            label: admin('invitations.siteCode'),
+            children: request.request.siteCode ? (
+              <Typography.Text copyable>{request.request.siteCode}</Typography.Text>
+            ) : (
+              '—'
+            )
+          },
           { key: 'customer', label: admin('invitations.customer'), children: detail.customerEmail },
           { key: 'contractor', label: admin('invitations.contractor'), children: request.request.contractorName },
           { key: 'phone', label: t('phone'), children: request.contactPhone },

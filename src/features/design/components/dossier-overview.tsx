@@ -21,6 +21,8 @@ export interface DossierProjectInfo {
   customerName: string
   projectName: string
   projectId: string
+  /** Mã dự toán `BUILDX-YYYYMMDD-XXXXXX`; thiếu thì hiển thị mã rút gọn từ id. */
+  projectCode?: string | null
   phone: string
   address: string
   createdAt: string
@@ -170,7 +172,7 @@ export function DossierOverview({
   // dòng 1 và dòng 2 cạnh nhau chứ không phải "5 dòng trái, 5 dòng phải".
   const leftRows: InfoRow[] = [
     { labelKey: 'customerName', value: info.customerName },
-    { labelKey: 'projectName', value: `${info.projectName} (${displayProjectId(info.projectId)})` },
+    { labelKey: 'projectName', value: `${info.projectName} (${displayProjectId(info.projectId, info.projectCode)})` },
     { labelKey: 'phone', value: info.phone },
     { labelKey: 'address', value: info.address },
     { labelKey: 'createdAt', value: formatDisplayDate(info.createdAt, locale) }
@@ -210,7 +212,7 @@ export function DossierOverview({
   const shares = result ? costShares(result.sections) : null
   const cover = {
     title: info.projectName,
-    subtitle: [info.address, displayProjectId(info.projectId)].filter(Boolean).join(' · '),
+    subtitle: [info.address, displayProjectId(info.projectId, info.projectCode)].filter(Boolean).join(' · '),
     rows: [
       { label: t('info.scale'), value: info.scaleLabel },
       { label: t('info.package'), value: info.packageLabel },
