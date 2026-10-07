@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useState } from 'react'
 
+import { useApiErrorText } from '@/shared/hooks'
+
 import {
   estimateGenerationApi,
   fetchSharedBlob,
@@ -26,13 +28,15 @@ export function saveBlob(blob: Blob, fileName: string) {
  */
 export function useSharedDownload(shareId: string, token: string) {
   const [pending, setPending] = useState<ExportFormat | null>(null)
-  const [failed, setFailed] = useState(false)
+  const apiErrorText = useApiErrorText()
+  // `null` = chưa lỗi; chuỗi rỗng = lỗi không rõ lý do (giao diện dùng câu chung).
+  const [failure, setFailure] = useState<string | null>(null)
 
   const download = useCallback(
     async (format: ExportFormat) => {
       if (pending) return
       setPending(format)
-      setFailed(false)
+      setFailure(null)
       try {
         const started = await estimateGenerationApi.publicRequestExport(shareId, token, format)
         const done = await waitForExport(() => estimateGenerationApi.publicGetExport(shareId, token, started.exportId))
@@ -42,16 +46,16 @@ export function useSharedDownload(shareId: string, token: string) {
           token
         )
         saveBlob(blob, fileName ?? `ho-so.${format === 'Pdf' ? 'pdf' : 'xlsx'}`)
-      } catch {
-        setFailed(true)
+      } catch (error) {
+        setFailure(apiErrorText(error, ''))
       } finally {
         setPending(null)
       }
     },
-    [pending, shareId, token]
+    [pending, shareId, token, apiErrorText]
   )
 
-  return { download, pending, failed }
+  return { download, pending, failed: failure !== null, failureMessage: failure || null }
 }
 
 /**

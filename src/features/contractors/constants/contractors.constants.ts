@@ -6,7 +6,8 @@ import type {
   RatingLevel,
   ServiceRegion,
   SiteCondition,
-  StartWindow
+  StartWindow,
+  SurveyWindow
 } from '../types/contractor.types'
 
 /**
@@ -69,6 +70,9 @@ export const RATING_LEVELS: readonly RatingLevel[] = ['any', 'good', 'great'] as
 
 /** Mốc khởi công dự kiến (S10). */
 export const START_WINDOWS: readonly StartWindow[] = ['asap', 'in-1-3-months', 'in-3-6-months', 'undecided'] as const
+
+/** Thời gian khảo sát của nhà thầu (S09) — thứ tự hiển thị của bộ lọc ở landing. */
+export const SURVEY_WINDOWS: readonly SurveyWindow[] = ['h24', 'h48', 'h72', 'over72'] as const
 
 /** Thanh 4 nấc trạng thái lời mời (S18) — thứ tự cũng là thứ tự thời gian. */
 export const INVITATION_STEPS: readonly InvitationStatus[] = ['sent', 'received', 'accepted', 'done'] as const

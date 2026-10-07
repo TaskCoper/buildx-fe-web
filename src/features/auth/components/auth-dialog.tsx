@@ -73,7 +73,7 @@ export function AuthDialog() {
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className='sm:max-w-lg'>
+      <DialogContent className='overflow-x-hidden sm:max-w-lg'>
         <DialogHeader className='items-center text-center'>
           <DialogTitle className='text-title'>{t(`${mode}.title`)}</DialogTitle>
           <DialogDescription>{t(`${mode}.subtitle`)}</DialogDescription>

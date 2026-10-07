@@ -55,6 +55,14 @@ export const briefDrafts = {
     localStorage.setItem(key(userId), JSON.stringify(store))
     return owned
   },
+  /** Xoá bản nháp theo mã, và mọi bản nháp đang trỏ tới công trình `siteId` (khi hồ sơ đã tạo công trình trên server). */
+  remove: (id: string, siteId?: string, userId = requireBriefUserId()) => {
+    const store = read(userId)
+    for (const [draftId, brief] of Object.entries(store)) {
+      if (draftId === id || (siteId && brief.constructionSiteId === siteId)) delete store[draftId]
+    }
+    localStorage.setItem(key(userId), JSON.stringify(store))
+  },
   empty: (id = `local-${crypto.randomUUID()}`, userId = requireBriefUserId()): ProjectBrief => ({
     ...emptyBrief(),
     userId: requireBriefUserId(userId),

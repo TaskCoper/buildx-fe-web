@@ -13,7 +13,7 @@ import { EstimateSheet, HotlineLink, Photo, PlanDrawing, ProjectReadyOptionsDial
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { useSiteImage } from '@/shared/cms'
-import { useMounted, usePageEntrance } from '@/shared/hooks'
+import { useApiErrorText, useMounted, usePageEntrance } from '@/shared/hooks'
 import { canShowReadyProjectPopup, cn } from '@/shared/lib'
 import { formatNumber } from '@/shared/utils'
 import { ROUTES, contractorMatchesRoute, shareRoute } from '@/shared/constants/routes'
@@ -79,6 +79,7 @@ export function DossierReady({
   onFilesEntered
 }: DossierReadyProps) {
   const t = useTranslations('design.dossier')
+  const apiErrorText = useApiErrorText()
   const reduced = useReducedMotion()
   useEffect(() => {
     if (reduced && filesEntering) onFilesEntered?.()
@@ -213,8 +214,8 @@ export function DossierReady({
       await pdf.download()
       setDownloaded(true)
       window.setTimeout(() => setDownloaded(false), 900)
-    } catch {
-      toast.error(t('exportError'))
+    } catch (error) {
+      toast.error(apiErrorText(error, t('exportError')))
     }
   }
 

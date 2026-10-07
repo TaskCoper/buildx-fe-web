@@ -208,16 +208,26 @@ export interface ApiContractor {
   acceptingProjects?: boolean
   rating?: number
   ratingCount?: number
+  latitude?: number
+  longitude?: number
   serviceAreas: string[]
   buildingTypeIds: string[]
+  /** Tên danh mục join hiện hành (`buildingTypes[].name`, `scopes[].name`). */
+  buildingTypeNames: string[]
+  scopeNames: string[]
   logoUrl?: string
-  photoUrls: string[]
+  /** Ảnh hồ sơ (không gồm logo) theo `position`, kèm loại ảnh của BE (`Cover`, `Office`, `Team`). */
+  photos: { url: string; kind?: string }[]
   projects: ApiProject[]
   verified: boolean
 }
 
 const idsOf = (value: unknown): string[] =>
   (Array.isArray(value) ? value : []).map((entry) => text(bag(entry)?.id)).filter((id): id is string => Boolean(id))
+const namesOf = (value: unknown): string[] =>
+  (Array.isArray(value) ? value : [])
+    .map((entry) => text(bag(entry)?.name))
+    .filter((name): name is string => Boolean(name))
 
 /**
  * `PublicContractorDetail` → `ApiContractor`. Đọc `profile` lồng (hình dạng thật); nếu BE trả phẳng như
@@ -238,7 +248,17 @@ export function normalizeContractor(raw: unknown): ApiContractor | null {
     .map(bag)
     .filter((entry): entry is Bag => entry !== null)
   const logo = images.find((entry) => /logo/i.test(text(entry.kind) ?? ''))
-  const photoUrls = readImageUrls({ images: images.filter((entry) => entry !== logo) })
+  const photoImages = images.filter((entry) => entry !== logo)
+  const kindByUrl = new Map<string, string>()
+  for (const entry of photoImages) {
+    const url = readImageUrls({ images: [entry] })[0]
+    const kind = text(entry.kind)
+    if (url && kind && !kindByUrl.has(url)) kindByUrl.set(url, kind)
+  }
+  const photos = readImageUrls({ images: photoImages }).map((url) => {
+    const kind = kindByUrl.get(url)
+    return kind ? { url, kind } : { url }
+  })
 
   return {
     id,
@@ -259,13 +279,18 @@ export function normalizeContractor(raw: unknown): ApiContractor | null {
     ...(bool(profile.acceptingProjects) !== undefined ? { acceptingProjects: bool(profile.acceptingProjects) } : {}),
     ...(num(profile.rating) !== undefined ? { rating: num(profile.rating) } : {}),
     ...(num(profile.ratingCount) !== undefined ? { ratingCount: num(profile.ratingCount) } : {}),
+    ...(num(profile.latitude) !== undefined && num(profile.longitude) !== undefined
+      ? { latitude: num(profile.latitude), longitude: num(profile.longitude) }
+      : {}),
     serviceAreas: (text(profile.serviceAreaText) ?? '')
       .split(/[,;\n]/)
       .map((part) => part.trim())
       .filter(Boolean),
     buildingTypeIds: idsOf(root.buildingTypes),
+    buildingTypeNames: namesOf(root.buildingTypes),
+    scopeNames: namesOf(root.scopes),
     ...(logo ? { logoUrl: readImageUrls({ images: [logo] })[0] } : {}),
-    photoUrls,
+    photos,
     projects: (Array.isArray(root.projects) ? root.projects : [])
       .map(normalizeProject)
       .filter((p): p is ApiProject => p !== null),
@@ -289,7 +314,9 @@ export function contractorFromApi(api: ApiContractor): Contractor {
     reviewCount: api.ratingCount ?? 0,
     ratingKnown: api.rating != null,
     reviewCountKnown: api.ratingCount != null,
-    similarProjects: 0,
+    // Chi tiết không có ngữ cảnh dự án của khách nên BE không tính "dự án tương tự"; trang hồ sơ hiện số này
+    // với chữ "đã thực hiện", nên dùng toàn bộ dự án BE trả (TDD-CTR-002: chi tiết trả toàn bộ dự án).
+    similarProjects: api.projects.length,
     completedProjects: api.projects.length,
     distanceKm: 0,
     serviceAreas: api.serviceAreas,
@@ -302,8 +329,13 @@ export function contractorFromApi(api: ApiContractor): Contractor {
     acceptingProjectsKnown: api.acceptingProjects != null,
     intro: api.intro ?? '',
     strengths: [],
-    photos: api.photoUrls.map((url) => ({ url, caption: '' })),
+    photos: api.photos.map((photo) => ({ url: photo.url, caption: '', ...(photo.kind ? { kind: photo.kind } : {}) })),
     buildingTypeIds: api.buildingTypeIds,
+    buildingTypeNames: api.buildingTypeNames,
+    scopeNames: api.scopeNames,
+    ...(api.latitude !== undefined && api.longitude !== undefined
+      ? { latitude: api.latitude, longitude: api.longitude }
+      : {}),
     scopes: [],
     ...(api.shortDescription ? { shortDescription: api.shortDescription } : {}),
     officeAddress: api.address ?? '',

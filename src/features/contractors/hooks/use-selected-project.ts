@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/shared/auth'
+import { isApiError } from '@/shared/lib/api'
 import { contractorKeys } from '../api/contractors.keys'
 import { projectSelectionApi } from '../api/project-selection.api'
 import { selectedProjectSiteId } from '../services/project-selection.service'
@@ -49,6 +50,6 @@ export function useSelectProject() {
       if (useAuthStore.getState().user?.id !== userId) return
       client.setQueryData(contractorKeys.selection(userId), selection)
     },
-    onError: () => toast.error(t('saveSelectionError'))
+    onError: (error) => toast.error(isApiError(error) ? error.message : t('saveSelectionError'))
   })
 }

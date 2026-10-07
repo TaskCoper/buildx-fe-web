@@ -388,8 +388,9 @@ export function SurveyScheduler({ projectId, contractorId }: SurveySchedulerProp
                 'ConstructionSiteNotFound',
                 'DependencyUnavailable'
               ] as const
-            ).find((item) => isApiError(error) && item === error.code)
-            toast.error(code ? rfq(`errors.${code}`) : rfq('sendFailed'))
+            ).find((item) => isApiError(error) && (item === error.code || item === error.messageCode))
+            // Mã ngoài danh sách: câu BE đã dịch theo mã/status (vd. hệ thống bận) thay vì "gửi thất bại" chung.
+            toast.error(code ? rfq(`errors.${code}`) : isApiError(error) ? error.message : rfq('sendFailed'))
           }
         }
       )

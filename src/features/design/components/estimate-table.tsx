@@ -1,12 +1,11 @@
 'use client'
 
 import { Check, FileSpreadsheet } from 'lucide-react'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { AnimatePresence, LayoutGroup, motion } from 'motion/react'
 import { useLocale, useTranslations } from 'next-intl'
 
 import type { Locale } from '@/i18n/routing'
-import { Button } from '@/shared/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/ui/table'
 import { cn } from '@/shared/lib/utils'
 import { formatCurrency } from '@/shared/utils'
@@ -37,8 +36,6 @@ export function EstimateTable({ result, context, onTotalSettled }: EstimateTable
   const [tab, setTab] = useState<CostSection>('structure')
   const [downloaded, setDownloaded] = useState(false)
   const [totalSettled, setTotalSettled] = useState(false)
-  const [detailOpen, setDetailOpen] = useState(false)
-  const tableViewportRef = useRef<HTMLDivElement>(null)
   const { download, isPending } = useDownloadEstimate(result, context)
 
   async function runDownload() {
@@ -58,17 +55,7 @@ export function EstimateTable({ result, context, onTotalSettled }: EstimateTable
 
   function selectTab(section: CostSection) {
     if (section === tab) return
-    setDetailOpen(false)
     setTab(section)
-  }
-
-  function toggleDetail() {
-    setDetailOpen((open) => {
-      if (!open) {
-        window.setTimeout(() => tableViewportRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 180)
-      }
-      return !open
-    })
   }
 
   const active = result.sections.find((section) => section.section === tab)
@@ -138,7 +125,6 @@ export function EstimateTable({ result, context, onTotalSettled }: EstimateTable
         </LayoutGroup>
 
         <motion.div
-          ref={tableViewportRef}
           layout
           className='mt-4 overflow-hidden rounded-xl border'
           transition={{ layout: { duration: 0.3, ease: [0.22, 1, 0.36, 1] } }}
@@ -178,27 +164,6 @@ export function EstimateTable({ result, context, onTotalSettled }: EstimateTable
                       </TableCell>
                     </TableRow>
                   ))}
-                  {detailOpen
-                    ? items.flatMap((item, itemIndex) =>
-                        item.children.map((child, childIndex) => (
-                          <TableRow
-                            key={`${item.id}-${child.id}`}
-                            data-estimate-detail-row
-                            style={
-                              {
-                                '--detail-row-delay': `${itemIndex * 90 + childIndex * 45}ms`
-                              } as React.CSSProperties
-                            }
-                            className='bg-muted/20'
-                          >
-                            <TableCell className='text-muted-foreground py-2.5 pl-8 text-sm'>{child.label}</TableCell>
-                            <TableCell className='text-muted-foreground py-2.5 pr-4 text-right text-sm tabular-nums'>
-                              {formatCurrency(child.amount, locale)}
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      )
-                    : null}
                   <TableRow
                     data-estimate-total-row
                     style={{ '--total-row-delay': `${totalDelay}ms` } as React.CSSProperties}
@@ -221,10 +186,6 @@ export function EstimateTable({ result, context, onTotalSettled }: EstimateTable
         </motion.div>
 
         <div className='mt-4 flex flex-wrap items-center gap-x-5 gap-y-3'>
-          <Button variant='outline' className='tracking-wide' onClick={toggleDetail} aria-expanded={detailOpen}>
-            {t('viewDetail')}
-          </Button>
-
           <button
             type='button'
             onClick={() => void runDownload()}

@@ -1330,6 +1330,8 @@ export type CmsServiceRegion = 'north' | 'central' | 'south'
 export interface CmsContractorPhoto {
   url?: string
   caption: string
+  /** Loại ảnh của BE (`Cover` | `Office` | `Team`): ảnh API không có chú thích chữ nên giao diện đặt theo loại. */
+  kind?: string
 }
 
 /** Dự án tiêu biểu của nhà thầu (S13). */
@@ -1564,6 +1566,12 @@ export interface CmsContractor {
   buildingTypeIds?: string[]
   /** Các Phạm vi thi công nhận thực hiện. */
   scopes?: CmsContractorScope[]
+  /** Tên Loại công trình / Phạm vi thi công do API trả (danh mục động, id là GUID). Dữ liệu mẫu không có. */
+  buildingTypeNames?: string[]
+  scopeNames?: string[]
+  /** Toạ độ trụ sở do API trả — để tính khoảng cách tới công trình khi API không trả sẵn `distanceKm`. */
+  latitude?: number
+  longitude?: number
   /** Mô tả ngắn dưới tên. */
   shortDescription?: string
   /** Số năm kinh nghiệm — nhập tay, không tự tính từ năm thành lập. */

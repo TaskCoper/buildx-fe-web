@@ -8,7 +8,6 @@ import { Link } from '@/i18n/navigation'
 import { Badge } from '@/shared/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/components/ui/dialog'
 import { handbookTemplateRoute } from '@/shared/constants/routes'
-import { FavoriteButton } from '@/shared/favorite'
 import { cn } from '@/shared/lib/utils'
 import type { HandbookTemplate } from '../types/handbook.types'
 import { FloorSwitcher, resolveFloor } from './floor-switcher'
@@ -61,17 +60,6 @@ export function TemplateQuickView({ template, onClose }: TemplateQuickViewProps)
                   {template.specs.floorArea ? ` · ${template.specs.floorArea}` : ''}
                 </Badge>
               ) : null}
-              <FavoriteButton
-                variant='full'
-                item={{
-                  templateId: template.id,
-                  kind: template.kind,
-                  name: template.name,
-                  imageUrl: template.imageUrl ?? template.floors[0]?.imageUrl ?? '',
-                  tagLabel: template.styleLabel
-                }}
-                className='ml-auto'
-              />
             </div>
 
             <div className='grid gap-5 md:grid-cols-[1.4fr_1fr]'>

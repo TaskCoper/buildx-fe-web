@@ -14,6 +14,7 @@ import { Input } from '@/shared/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select'
 import { Textarea } from '@/shared/components/ui/textarea'
 import { ROUTES } from '@/shared/constants/routes'
+import { useApiErrorText } from '@/shared/hooks'
 import { cn } from '@/shared/lib/utils'
 import { acceptAttribute, checkFile, uploadImage } from '@/shared/media'
 import { designKeys } from '../api/design.keys'
@@ -70,10 +71,26 @@ function SectionCard({ index, title, children }: { index: number; title: string;
 }
 
 /** Thẻ chọn phong cách (kiến trúc / nội thất) ở cột phải. */
-function StyleCard({ id, title, hint, children }: { id: string; title: string; hint: string; children: ReactNode }) {
+function StyleCard({
+  id,
+  title,
+  hint,
+  required = false,
+  children
+}: {
+  id: string
+  title: string
+  hint: string
+  /** Dấu * cùng kiểu `FieldLabel`: nhóm phong cách đang hiện thì BE bắt buộc chọn một. */
+  required?: boolean
+  children: ReactNode
+}) {
   return (
     <section id={id} className='bg-card rounded-2xl border p-5 shadow-xs sm:p-6'>
-      <h2 className='text-base font-semibold'>{title}</h2>
+      <h2 className='text-base font-semibold'>
+        {title}
+        {required ? <span className='text-destructive ml-0.5'>*</span> : null}
+      </h2>
       <p className='text-muted-foreground mt-1 mb-4 text-sm'>{hint}</p>
       {children}
     </section>
@@ -121,6 +138,7 @@ function SaveIndicator({
  */
 export function StepInputApiForm({ projectId, onSubmit }: StepInputApiFormProps) {
   const t = useTranslations('design.inputApi')
+  const apiErrorText = useApiErrorText()
   const tInput = useTranslations('design.input')
   const input = useEstimateInput(projectId)
   const start = useStartGeneration(projectId)
@@ -209,8 +227,9 @@ export function StepInputApiForm({ projectId, onSubmit }: StepInputApiFormProps)
       // Ảnh cũ giữ nguyên cho tới khi ảnh mới tải xong (BR-PROJ-002 khoản 8): chỉ ghi vào form sau khi thành công.
       const uploaded = await uploadImage(file)
       input.patch({ inputImageUrl: uploaded.url })
-    } catch {
-      toast.error(t('image.errorUpload'))
+    } catch (error) {
+      // Nêu đúng lý do khi BE/kho từ chối (định dạng, dung lượng, kho chưa sẵn sàng…) thay vì một câu chung.
+      toast.error(apiErrorText(error, t('image.errorUpload')))
     } finally {
       setUploading(false)
       if (fileRef.current) fileRef.current.value = ''
@@ -445,7 +464,10 @@ export function StepInputApiForm({ projectId, onSubmit }: StepInputApiFormProps)
             <SectionCard index={3} title={t('groups.media')}>
               <div className='grid gap-5 md:grid-cols-2'>
                 <div id='field-imageOrDescription' className='space-y-2'>
-                  <FieldLabel hint={t('image.hint')}>{t('image.label')}</FieldLabel>
+                  {/* Dấu * như form mock/hình mẫu; luật vẫn là "ảnh HOẶC mô tả" (BR-PROJ-002), nên hint nêu rõ cần một trong hai. */}
+                  <FieldLabel hint={t('image.hint')} required>
+                    {t('image.label')}
+                  </FieldLabel>
                   {draft.inputImageUrl ? (
                     <div className='group relative h-52 overflow-hidden rounded-xl border'>
                       <Image
@@ -550,6 +572,7 @@ export function StepInputApiForm({ projectId, onSubmit }: StepInputApiFormProps)
                 id='field-architectureStyleId'
                 title={t('style.architecture')}
                 hint={t('style.architectureHint')}
+                required
               >
                 <ChoiceCards
                   className='grid-cols-2 sm:grid-cols-2'
@@ -562,7 +585,7 @@ export function StepInputApiForm({ projectId, onSubmit }: StepInputApiFormProps)
             ) : null}
 
             {fields.interior ? (
-              <StyleCard id='field-interiorStyleId' title={t('style.interior')} hint={t('style.interiorHint')}>
+              <StyleCard id='field-interiorStyleId' title={t('style.interior')} hint={t('style.interiorHint')} required>
                 <ChoiceCards
                   className='grid-cols-2 sm:grid-cols-2'
                   options={styleOptions('interior')}

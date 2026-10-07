@@ -27,10 +27,13 @@ export function estimateStateKind(state: string | null | undefined): EstimateSta
   }
 }
 
-/** Bước đang dừng suy từ trạng thái AI: chưa gửi → 1, đang xử lý / thất bại → 2, có kết quả → 3. */
-export function stepOfState(state: string | null | undefined): 1 | 2 | 3 {
-  const kind = estimateStateKind(state)
-  return kind === 'succeeded' ? 3 : kind === 'draft' ? 1 : 2
+/**
+ * Bước đang dừng suy từ trạng thái AI: chưa gửi → 1; đang xử lý / thất bại / đã có kết quả → 2. Có kết quả mà chưa xuất
+ * hồ sơ thì khách vẫn đang ở Bước 2 (xem dự toán), không phải Bước 3. Sang Bước 3 hoàn tất chỉ khi hồ sơ PDF đã xuất
+ * xong — việc đó cần hỏi thêm tệp xuất nên do tầng API làm (`resolveStep` ở design.bmt.ts).
+ */
+export function stepOfState(state: string | null | undefined): 1 | 2 {
+  return estimateStateKind(state) === 'draft' ? 1 : 2
 }
 
 /** Lý do thất bại cho khách (khoá dịch `design.estimateApi.failure.<kind>`). */
