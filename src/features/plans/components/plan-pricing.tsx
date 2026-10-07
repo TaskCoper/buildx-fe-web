@@ -1119,7 +1119,7 @@ function PlanCard({
                 {highlights(plan).map((feature, i) => (
                   <li
                     key={feature}
-                    style={{ '--line-delay': `${0.2 + delay + i * 0.09}s` } as CSSProperties}
+                    style={{ '--line-delay': `${0.05 + delay * 0.4 + i * 0.05}s` } as CSSProperties}
                     className='plan-feature-line flex items-start gap-[2cqw] text-sm leading-snug'
                   >
                     <CheckCircle2

@@ -56,8 +56,18 @@ export function ConsultantRail({ consultants, activeId, isPending, activeConsult
   }, [baseResults, activeConsultant, query])
 
   const activeRef = useRef<HTMLLIElement>(null)
+  const listRef = useRef<HTMLUListElement>(null)
   useEffect(() => {
-    activeRef.current?.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'nearest' })
+    // Chỉ cuộn bên trong danh sách. `scrollIntoView` còn kéo cả trang theo, nên vừa vào hồ sơ KTS ở
+    // điện thoại trang bị trượt khỏi đầu trang.
+    const list = listRef.current
+    const item = activeRef.current
+    if (!list || !item) return
+    const listRect = list.getBoundingClientRect()
+    const itemRect = item.getBoundingClientRect()
+    const behavior = reduceMotion ? 'auto' : 'smooth'
+    if (itemRect.top < listRect.top) list.scrollBy({ top: itemRect.top - listRect.top, behavior })
+    else if (itemRect.bottom > listRect.bottom) list.scrollBy({ top: itemRect.bottom - listRect.bottom, behavior })
   }, [reduceMotion, visualActiveId])
 
   return (
@@ -81,7 +91,7 @@ export function ConsultantRail({ consultants, activeId, isPending, activeConsult
         </div>
       ) : (
         <LayoutGroup id='consultant-rail-selection'>
-          <ul className='max-h-[32rem] space-y-1 overflow-y-auto scroll-py-1 pr-1'>
+          <ul ref={listRef} className='max-h-[32rem] space-y-1 overflow-y-auto scroll-py-1 pr-1'>
             <AnimatePresence initial={false}>
               {results.map((consultant) => {
                 const active = consultant.id === visualActiveId

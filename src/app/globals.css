@@ -4681,17 +4681,17 @@ body main {
   stroke-dasharray: 18;
   stroke-dashoffset: 18;
 }
-.plan-slide[data-prices-done='true'] .plan-features[data-seen='true'] .plan-feature-title {
-  animation: plan-reveal 0.46s var(--entry-delay) cubic-bezier(0.2, 0.72, 0.3, 1) both;
+.plan-features[data-seen='true'] .plan-feature-title {
+  animation: plan-reveal 0.46s calc(var(--entry-delay) * 0.4) cubic-bezier(0.2, 0.72, 0.3, 1) both;
 }
-.plan-slide[data-prices-done='true'] .plan-features[data-seen='true'] .plan-feature-line > span {
-  animation: plan-reveal 0.52s calc(var(--line-delay) + 0.38s) cubic-bezier(0.2, 0.72, 0.3, 1) both;
+.plan-features[data-seen='true'] .plan-feature-line > span {
+  animation: plan-reveal 0.52s calc(var(--line-delay) + 0.15s) cubic-bezier(0.2, 0.72, 0.3, 1) both;
 }
-.plan-slide[data-prices-done='true'] .plan-features[data-seen='true'] .plan-feature-line svg circle {
+.plan-features[data-seen='true'] .plan-feature-line svg circle {
   animation: plan-draw 0.3s var(--line-delay) ease-out both;
 }
-.plan-slide[data-prices-done='true'] .plan-features[data-seen='true'] .plan-feature-line svg path {
-  animation: plan-draw 0.28s calc(var(--line-delay) + 0.28s) ease-out both;
+.plan-features[data-seen='true'] .plan-feature-line svg path {
+  animation: plan-draw 0.28s calc(var(--line-delay) + 0.15s) ease-out both;
 }
 @keyframes plan-draw {
   to {
@@ -5006,10 +5006,10 @@ body main {
   opacity: 0;
 }
 .supervision-inspection-band[data-seen='true'] .supervision-inspection-text {
-  animation: supervision-band-text-in 0.38s 0.88s ease-out forwards;
+  animation: supervision-band-text-in 0.38s 0.3s ease-out forwards;
 }
 .supervision-inspection-band[data-control='true'][data-seen='true'] .supervision-inspection-text {
-  animation-delay: 1.26s;
+  animation-delay: 0.45s;
 }
 .supervision-inspection-band[data-empty='true'][data-seen='true'] .supervision-inspection-text {
   animation-delay: 0.24s;
@@ -5048,10 +5048,11 @@ body main {
   transform: scaleX(1);
 }
 .supervision-benefits[data-seen='true'] .supervision-benefit {
-  animation: supervision-benefit-in 0.48s calc(1s + var(--benefit-index) * 0.09s) cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: supervision-benefit-in 0.48s calc(0.35s + var(--benefit-index) * 0.09s) cubic-bezier(0.16, 1, 0.3, 1)
+    forwards;
 }
 .supervision-benefits[data-seen='true'] .supervision-benefit svg * {
-  animation: plan-value-icon-draw 0.42s calc(0.92s + var(--benefit-index) * 0.09s) ease-out forwards;
+  animation: plan-value-icon-draw 0.42s calc(0.45s + var(--benefit-index) * 0.09s) ease-out forwards;
 }
 .supervision-benefits[data-empty='true'][data-seen='true'] .supervision-benefit {
   animation-delay: calc(0.42s + var(--benefit-index) * 0.09s);
@@ -5111,7 +5112,7 @@ body main {
   }
 }
 .supervision-price {
-  animation: supervision-price-settle 0.28s 3.05s ease-out;
+  animation: supervision-price-settle 0.28s 0.7s ease-out;
 }
 @keyframes supervision-price-settle {
   50% {
