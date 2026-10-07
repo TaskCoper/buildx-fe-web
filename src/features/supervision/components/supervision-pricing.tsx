@@ -822,7 +822,7 @@ function Journey() {
       className='supervision-journey bg-card relative rounded-2xl border p-5'
     >
       <motion.h2
-        className='text-primary-strong text-2xl font-bold tracking-wide uppercase'
+        className='text-primary-strong text-center text-2xl font-bold tracking-wide uppercase'
         initial={{ opacity: 0, y: 8 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.7 }}
@@ -876,14 +876,14 @@ function JourneyCard({ step, number, delay }: { step: JourneyStepKey; number: nu
   return (
     <motion.div
       style={{ '--journey-delay': `${delay}s` } as CSSProperties}
-      className='supervision-journey-card bg-card relative flex w-44 shrink-0 flex-col items-center rounded-xl border px-2.5 pt-5 pb-4 text-center'
+      className='supervision-journey-card group/journey-card bg-card relative flex w-44 shrink-0 flex-col items-center rounded-xl border px-2.5 pt-5 pb-4 text-center'
       initial={{ opacity: 0, y: 10 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.44, delay, ease: pricingEase }}
     >
       <motion.span
-        className='bg-primary text-primary-foreground absolute -top-3.5 flex size-7 items-center justify-center rounded-full text-sm font-semibold'
+        className='bg-primary text-primary-foreground absolute -top-3.5 flex size-7 items-center justify-center rounded-full text-sm font-semibold transition-colors duration-200 group-hover/journey-card:bg-brand-orange motion-reduce:transition-none'
         initial={{ scale: 0.55 }}
         whileInView={{ scale: 1 }}
         viewport={{ once: true }}
@@ -894,8 +894,14 @@ function JourneyCard({ step, number, delay }: { step: JourneyStepKey; number: nu
       {/* Ô tên cao cố định bằng HAI dòng: tên một dòng và tên hai dòng đều
           chiếm chỗ như nhau, nhờ vậy icon và mô tả của tám bước nằm thẳng hàng
           thay vì chỗ lồi chỗ lõm. */}
-      <p className='flex min-h-9 items-center text-sm leading-tight font-medium text-pretty'>{t(step)}</p>
-      <Icon aria-hidden className='supervision-journey-icon text-primary my-3 size-8 shrink-0' strokeWidth={1.5} />
+      <p className='flex min-h-9 items-center text-sm leading-tight font-medium text-pretty transition-colors duration-200 group-hover/journey-card:text-brand-orange motion-reduce:transition-none'>
+        {t(step)}
+      </p>
+      <Icon
+        aria-hidden
+        className='supervision-journey-icon text-primary my-3 size-8 shrink-0 transition-colors duration-200 group-hover/journey-card:text-brand-orange motion-reduce:transition-none'
+        strokeWidth={1.5}
+      />
       <p className='text-muted-foreground max-md:text-xs text-sm leading-snug text-pretty'>{t(`${step}Body`)}</p>
     </motion.div>
   )
