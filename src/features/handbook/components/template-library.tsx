@@ -242,18 +242,23 @@ export function TemplateLibrary() {
       ),
     [pool, kind, buildingType]
   )
+  // Đồng bộ với Bước 1 và bộ lọc nhà thầu: 1 tầng là "Trệt", n tầng là "Trệt + (n−1) lầu".
+  const scaleLabel = useCallback(
+    (count: number) => (count <= 1 ? t('floorGround') : t('floorUpper', { count: count - 1 })),
+    [t]
+  )
   const floorOptions = useMemo(() => {
     if (apiMode)
       return (apiFilters?.floorCounts ?? []).map((count) => ({
         value: String(count),
-        label: t('floorOption', { count })
+        label: scaleLabel(count)
       }))
     return uniqueOptions(
       scopedPool,
       (template) => template.tags.floorCount,
-      (template) => floorCountLabel(template.tags.floorCount, (count) => t('floorOption', { count }))
+      (template) => floorCountLabel(template.tags.floorCount, scaleLabel)
     )
-  }, [apiMode, apiFilters, scopedPool, t])
+  }, [apiMode, apiFilters, scopedPool, scaleLabel])
   const architectureOptions = apiMode
     ? (apiFilters?.architectureStyles ?? []).map((style) => ({ value: style.styleId, label: style.name }))
     : uniqueOptions(
@@ -269,8 +274,7 @@ export function TemplateLibrary() {
         (template) => template.styleLabel
       )
 
-  const floorSelectedLabel =
-    floorCount === ALL ? t('optionAll') : t('floorOption', { count: floorCountOf(floorCount) ?? 1 })
+  const floorSelectedLabel = floorCount === ALL ? t('optionAll') : scaleLabel(floorCountOf(floorCount) ?? 1)
   const buildingSelectedLabel =
     buildingType === ALL
       ? t('optionAll')
