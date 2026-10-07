@@ -203,7 +203,8 @@ export function ContractorCompare({ projectId }: ContractorCompareProps) {
           <button
             type='button'
             onClick={goBack}
-            className='text-primary-strong inline-flex items-center gap-2 text-sm font-medium lg:absolute lg:top-1 lg:left-0'
+            data-back-navigation
+            className='text-foreground inline-flex items-center gap-2 text-sm font-medium lg:absolute lg:top-1 lg:left-0'
           >
             ← {tCommon('backToList')}
           </button>
@@ -254,7 +255,7 @@ export function ContractorCompare({ projectId }: ContractorCompareProps) {
         <EmptyState
           title={t('tooFew', { min: MIN_COMPARE })}
           action={
-            <Button variant='outline' onClick={goBack}>
+            <Button data-back-navigation variant='outline' onClick={goBack}>
               {t('back')}
             </Button>
           }
@@ -548,7 +549,7 @@ export function ContractorCompare({ projectId }: ContractorCompareProps) {
             </div>
 
             <div className='flex flex-wrap gap-2'>
-              <Button variant='outline' onClick={goBack}>
+              <Button data-back-navigation variant='outline' onClick={goBack}>
                 {t('back')}
               </Button>
               <motion.span

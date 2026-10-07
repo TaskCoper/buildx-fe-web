@@ -184,10 +184,13 @@ export function ProjectReadyOptionsDialog({
           <div className='flex shrink-0 justify-end bg-background px-5 pt-4 pb-4 sm:px-6'>
             <button
               type='button'
+              aria-label={t('close')}
               onClick={() => handleOpenChange(false)}
               className='text-muted-foreground hover:text-foreground text-sm underline decoration-current/60 underline-offset-4 transition-colors duration-150'
             >
-              {t('later')}
+              <span aria-hidden className='invisible'>
+                {t('later')}
+              </span>
             </button>
           </div>
         </DialogContent>
@@ -202,7 +205,7 @@ function ReadyDialogHeader({ title, subtitle, closeLabel }: { title: string; sub
   const reduceMotion = useReducedMotion()
 
   return (
-    <div className='relative shrink-0 bg-background px-5 pt-5 sm:px-6 max-[899px]:pb-3'>
+    <div className='relative shrink-0 bg-background px-5 pt-5 sm:max-[900px]:px-6 min-[900px]:px-44 max-[899px]:pb-3'>
       <PopupBrandLogo />
 
       <DialogClose

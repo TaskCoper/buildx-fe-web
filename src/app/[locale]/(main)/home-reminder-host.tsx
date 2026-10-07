@@ -13,6 +13,7 @@ import { useAuth } from '@/shared/auth'
 import { useChatContextStore } from '@/shared/chat-context'
 import { useCmsCollection } from '@/shared/cms'
 import { TurnkeyRequestDialog } from '@/shared/components/common'
+import { Button } from '@/shared/components/ui'
 import { env } from '@/shared/config/env'
 import { HOME_REMINDER_WAKE_EVENT, JOURNEY_POPUP_TEST_MODE } from '@/shared/constants'
 import { ROUTES, contractorMatchesRoute, supervisionPlansRoute, supervisionRoute } from '@/shared/constants/routes'
@@ -493,7 +494,7 @@ export function HomeReminderHost() {
                 setCollapsed(false)
                 setCollapseCycle((value) => value + 1)
               }}
-              className='fixed right-6 bottom-6 z-[55] inline-flex h-[48px] items-center gap-2.5 rounded-full brand-green-button px-4 pr-5 text-[14px] font-bold text-white shadow-[0_14px_32px_-14px_rgba(42,117,63,.55)] transition-[background-color,box-shadow] duration-200 ease-out hover:shadow-[0_16px_36px_-14px_rgba(42,117,63,.62)] max-[899px]:right-0 max-[899px]:left-0 max-[899px]:mx-auto max-[899px]:w-fit'
+              className='fixed right-6 bottom-6 z-[55] inline-flex h-[48px] items-center gap-2.5 rounded-full brand-green-button px-4 pr-5 text-[14px] font-bold text-white shadow-[0_14px_32px_-14px_rgba(42,117,63,.55)] transition-[background-color,box-shadow] duration-200 ease-out hover:shadow-[0_16px_36px_-14px_rgba(42,117,63,.62)] min-[900px]:right-[calc(1.5rem+3.5rem+15px)] min-[900px]:bottom-7 max-[899px]:right-0 max-[899px]:left-0 max-[899px]:mx-auto max-[899px]:w-fit'
             >
               <span className='flex size-6 items-center justify-center rounded-full bg-[#f36a16] text-xs font-extrabold text-white'>
                 1
@@ -508,47 +509,44 @@ export function HomeReminderHost() {
               animate={{ opacity: 1, x: 0, y: 0, scale: 1 }}
               exit={{ opacity: 0, x: 10, y: 8, scale: 0.99 }}
               transition={{ duration: reduceMotion ? 0 : 0.28, ease: [0.22, 1, 0.36, 1] }}
-              className='fixed right-3 bottom-3 z-[55] w-[calc(100vw-24px)] max-w-[570px] overflow-hidden rounded-[22px] border border-accent bg-white text-[#202623] shadow-[0_22px_55px_-25px_rgba(42,117,63,.36)] sm:right-6 sm:bottom-6'
+              className='fixed right-3 bottom-3 z-[55] w-[calc(100vw-24px)] max-w-[570px] overflow-hidden rounded-[22px] border border-accent bg-white text-[#202623] shadow-[0_22px_55px_-25px_rgba(42,117,63,.36)] sm:right-6 sm:bottom-6 min-[900px]:max-w-[440px]'
             >
-              <div className='relative px-7 pt-5 pb-5 max-sm:px-5'>
+              <div className='relative px-7 pt-5 pb-5 min-[900px]:px-5 min-[900px]:py-4 max-sm:px-5'>
                 <button
                   type='button'
                   aria-label={t('collapse')}
                   onClick={closeReminder}
-                  className='absolute top-4 right-4 grid size-11 place-items-center rounded-full bg-[#f3f5f3] text-[#303734] transition-colors duration-150 hover:bg-[#eaeeeb]'
+                  className='absolute top-4 right-4 grid size-11 place-items-center rounded-full bg-[#f3f5f3] text-[#303734] transition-colors duration-150 hover:bg-[#eaeeeb] min-[900px]:size-9'
                 >
                   <X className='size-4.5' />
                 </button>
 
-                <div className='pr-14'>
+                <div className='pr-14 min-[900px]:pr-10'>
                   <p className='flex items-center gap-2 max-md:text-xs text-[11px] font-extrabold tracking-[0.18em] text-primary-strong uppercase'>
                     <span className='size-2 rounded-full bg-primary-strong' />
                     {t('eyebrow')}
                   </p>
-                  <h3 className='mt-2 max-w-[440px] text-[20px] leading-[1.18] font-extrabold tracking-[-0.02em]'>
+                  <h3 className='mt-2 max-w-[440px] text-[20px] leading-[1.18] font-extrabold tracking-[-0.02em] min-[900px]:text-[18px]'>
                     {title}
                   </h3>
                   <p className='mt-2 max-w-[470px] text-[14px] leading-[1.55] text-[#7a847d]'>{body}</p>
                 </div>
 
-                <motion.button
+                <Button
                   type='button'
                   onClick={handlePrimary}
-                  whileHover={reduceMotion ? undefined : { y: -1 }}
-                  whileTap={reduceMotion ? undefined : { scale: 0.995 }}
-                  transition={{ duration: reduceMotion ? 0 : 0.18, ease: [0.22, 1, 0.36, 1] }}
-                  className='mt-6 inline-flex h-[54px] w-full items-center justify-center gap-2 rounded-[12px] bg-[linear-gradient(to_top,var(--brand-gradient-from)_0%,var(--brand-gradient-to)_100%)] px-4 text-[15px] font-extrabold text-white shadow-[0_8px_18px_-10px_rgba(42,117,63,.42)] transition-[filter,box-shadow] duration-180 hover:brightness-[1.015] hover:shadow-[0_10px_20px_-10px_rgba(42,117,63,.46)]'
+                  className='mt-6 h-[54px] w-full px-4 text-[15px] font-extrabold min-[900px]:mt-4 min-[900px]:h-11 min-[900px]:text-sm'
                 >
                   {snapshot.state === 'S1' ? <Crown className='size-4' /> : <Lightbulb className='size-4' />}
                   {primaryLabel}
                   <ArrowRight className='size-4' />
-                </motion.button>
+                </Button>
 
                 {secondaryLabel ? (
                   <button
                     type='button'
                     onClick={handleSecondary}
-                    className='mx-auto mt-4 block text-[13px] font-bold text-primary-strong transition-colors duration-150 hover:text-primary-strong'
+                    className='mx-auto mt-4 block text-[13px] font-bold text-primary-strong transition-colors duration-150 hover:text-primary-strong min-[900px]:mt-3'
                   >
                     {secondaryLabel}
                   </button>

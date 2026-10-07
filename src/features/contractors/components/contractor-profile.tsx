@@ -444,7 +444,8 @@ export function ContractorProfile({ projectId, contractorId, tab }: ContractorPr
         <Link
           href={contractorMatchesRoute(projectId)}
           onClick={() => window.sessionStorage.setItem(MATCHES_LAST_VIEWED_KEY, contractorId)}
-          className='text-primary-strong inline-flex items-center gap-2 text-sm font-medium'
+          data-back-navigation
+          className='text-foreground inline-flex items-center gap-2 text-sm font-medium'
         >
           ← {tCommon('backToList')}
         </Link>

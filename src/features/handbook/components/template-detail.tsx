@@ -582,7 +582,8 @@ export function TemplateDetail({ templateId }: { templateId: string }) {
       <div className='space-y-3'>
         <Link
           href={ROUTES.HANDBOOK}
-          className='text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-sm font-medium transition-colors lg:hidden'
+          data-back-navigation
+          className='text-foreground hover:text-foreground inline-flex items-center gap-1.5 text-sm font-medium transition-colors lg:hidden'
         >
           <ArrowLeft className='size-4' />
           {t('breadcrumbRoot')}
@@ -620,8 +621,9 @@ export function TemplateDetail({ templateId }: { templateId: string }) {
           data-entrance-step='1'
           data-entrance-from='left'
           data-detail-back
+          data-back-navigation
           onClick={handleBack}
-          className='text-primary inline-flex items-center gap-1.5 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30'
+          className='text-foreground inline-flex items-center gap-1.5 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30'
         >
           <ArrowLeft data-detail-back-arrow className='size-4 transition-transform duration-200' />
           <span>{t('back')}</span>
@@ -1373,7 +1375,9 @@ function TemplateDetailLocked({ deniedCode }: { deniedCode: string | null }) {
             </Button>
           ) : null}
           <Button asChild variant='outline'>
-            <Link href={`${ROUTES.HANDBOOK}?tab=library`}>{t('backToLibrary')}</Link>
+            <Link data-back-navigation href={`${ROUTES.HANDBOOK}?tab=library`}>
+              {t('backToLibrary')}
+            </Link>
           </Button>
         </div>
       </div>

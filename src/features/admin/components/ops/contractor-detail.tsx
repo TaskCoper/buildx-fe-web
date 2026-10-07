@@ -104,7 +104,9 @@ export function ContractorDetail({ id }: { id: string }) {
         title={t('contractors.notFound')}
         extra={
           <Link href={ADMIN_ROUTES.CONTRACTORS}>
-            <Button>{t('contractors.backToList')}</Button>
+            <Button data-back-navigation style={{ color: 'var(--foreground)' }}>
+              {t('contractors.backToList')}
+            </Button>
           </Link>
         }
       />
@@ -413,7 +415,9 @@ export function ContractorDetail({ id }: { id: string }) {
       actions={
         <>
           <Link href={ADMIN_ROUTES.CONTRACTORS}>
-            <Button icon={<ArrowLeftOutlined />}>{t('contractors.backToList')}</Button>
+            <Button data-back-navigation style={{ color: 'var(--foreground)' }} icon={<ArrowLeftOutlined />}>
+              {t('contractors.backToList')}
+            </Button>
           </Link>
           <Button
             icon={<EditOutlined />}

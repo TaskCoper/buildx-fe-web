@@ -93,7 +93,9 @@ export function CustomerDetail({ id }: { id: string }) {
         title={t('customers.notFound')}
         extra={
           <Link href={ADMIN_ROUTES.CUSTOMERS}>
-            <Button>{t('customers.backToList')}</Button>
+            <Button data-back-navigation style={{ color: 'var(--foreground)' }}>
+              {t('customers.backToList')}
+            </Button>
           </Link>
         }
       />
@@ -167,7 +169,9 @@ export function CustomerDetail({ id }: { id: string }) {
       actions={
         <>
           <Link href={ADMIN_ROUTES.CUSTOMERS}>
-            <Button icon={<ArrowLeftOutlined />}>{t('customers.backToList')}</Button>
+            <Button data-back-navigation style={{ color: 'var(--foreground)' }} icon={<ArrowLeftOutlined />}>
+              {t('customers.backToList')}
+            </Button>
           </Link>
           {banning ? (
             <Button danger icon={<LockOutlined />} onClick={() => setBanOpen(true)}>

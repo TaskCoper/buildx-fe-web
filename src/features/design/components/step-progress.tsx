@@ -82,7 +82,8 @@ export function StepProgress({
           {previousStep ? (
             <Link
               href={previousStep.href}
-              className='text-muted-foreground hover:text-foreground mb-2 inline-flex items-center gap-1.5 text-sm font-medium transition-colors lg:hidden'
+              data-back-navigation
+              className='text-foreground hover:text-foreground mb-2 inline-flex items-center gap-1.5 text-sm font-medium transition-colors lg:hidden'
             >
               <ArrowLeft className='size-4' />
               {previousStep.label}
@@ -91,7 +92,8 @@ export function StepProgress({
           {back ? (
             <Link
               href={back.href}
-              className='text-muted-foreground hover:text-foreground mb-2 inline-flex items-center gap-1.5 text-sm transition-colors'
+              data-back-navigation
+              className='text-foreground hover:text-foreground mb-2 inline-flex items-center gap-1.5 text-sm transition-colors'
             >
               <ArrowLeft className='size-4' />
               {back.label}
