@@ -2536,6 +2536,8 @@
     },
     "popular": "Phổ biến nhất",
     "popularShort": "Phổ biến",
+    "prevPlan": "Xem gói trước",
+    "nextPlan": "Xem gói tiếp theo",
     "oneTime": "Thanh toán 1 lần",
     "featuresTitleByTier": {
       "basic": "Bao gồm các tính năng",

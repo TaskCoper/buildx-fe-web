@@ -142,6 +142,9 @@ function SupervisionPricingContent({ projectId }: SupervisionPricingProps) {
           data-entrance-from='right'
           data-hovering={hoveredTier ? 'true' : undefined}
           className='supervision-card-track grid items-stretch gap-6 md:grid-cols-3'
+          // Ở điện thoại track cuộn ngang (overflow-x:auto) nên cắt luôn trục dọc; chừa 20px phía trên cho nhãn
+          // "Khuyến nghị" nhô lên -top-3 của thẻ, margin âm bù lại để khoảng cách với tiêu đề không đổi.
+          style={{ paddingTop: 20, marginTop: -20 }}
         >
           {packages.map((item, index) => (
             <PackageCard

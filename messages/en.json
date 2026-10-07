@@ -2536,6 +2536,8 @@
     },
     "popular": "Most popular",
     "popularShort": "Popular",
+    "prevPlan": "Previous plan",
+    "nextPlan": "Next plan",
     "oneTime": "One-time payment",
     "featuresTitleByTier": {
       "basic": "Includes these features",

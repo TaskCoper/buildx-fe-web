@@ -493,7 +493,7 @@ export function HomeReminderHost() {
                 setCollapsed(false)
                 setCollapseCycle((value) => value + 1)
               }}
-              className='fixed right-6 bottom-6 z-[55] inline-flex h-[48px] items-center gap-2.5 rounded-full brand-green-button px-4 pr-5 text-[14px] font-bold text-white shadow-[0_14px_32px_-14px_rgba(42,117,63,.55)] transition-[background-color,box-shadow] duration-200 ease-out hover:shadow-[0_16px_36px_-14px_rgba(42,117,63,.62)] max-[899px]:right-0 max-[899px]:left-0 max-[899px]:mx-auto max-[899px]:w-fit'
+              className='fixed right-[96px] bottom-[28px] z-[55] inline-flex h-[48px] items-center gap-2.5 rounded-full brand-green-button px-4 pr-5 text-[14px] font-bold text-white shadow-[0_14px_32px_-14px_rgba(42,117,63,.55)] transition-[background-color,box-shadow] duration-200 ease-out hover:shadow-[0_16px_36px_-14px_rgba(42,117,63,.62)] max-[899px]:right-[80px]'
             >
               <span className='flex size-6 items-center justify-center rounded-full bg-[#f36a16] text-xs font-extrabold text-white'>
                 1
@@ -537,7 +537,7 @@ export function HomeReminderHost() {
                   whileHover={reduceMotion ? undefined : { y: -1 }}
                   whileTap={reduceMotion ? undefined : { scale: 0.995 }}
                   transition={{ duration: reduceMotion ? 0 : 0.18, ease: [0.22, 1, 0.36, 1] }}
-                  className='mt-6 inline-flex h-[54px] w-full items-center justify-center gap-2 rounded-[12px] bg-[linear-gradient(to_top,var(--brand-gradient-from)_0%,var(--brand-gradient-to)_100%)] px-4 text-[15px] font-extrabold text-white shadow-[0_8px_18px_-10px_rgba(42,117,63,.42)] transition-[filter,box-shadow] duration-180 hover:brightness-[1.015] hover:shadow-[0_10px_20px_-10px_rgba(42,117,63,.46)]'
+                  className='mt-6 brand-green-button inline-flex h-[54px] w-full items-center justify-center gap-2 rounded-full px-4 text-[15px] font-extrabold text-white'
                 >
                   {snapshot.state === 'S1' ? <Crown className='size-4' /> : <Lightbulb className='size-4' />}
                   {primaryLabel}
