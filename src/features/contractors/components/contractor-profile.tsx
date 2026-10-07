@@ -415,7 +415,7 @@ export function ContractorProfile({ projectId, contractorId, tab }: ContractorPr
     {
       key: 'accepting',
       icon: Briefcase,
-      label: contractor.acceptingProjects ? tCommon('acceptingLabel') : tCommon('notAccepting'),
+      label: contractor.acceptingProjects ? tCommon('acceptingLabel') : tCommon('notAcceptingLabel'),
       value: tCommon('acceptingSuffix')
     },
     // `value` chỉ in 3 nơi đầu cho gọn; `fullValue` là cả danh sách, hiện ở tooltip khi hover (dòng bị cắt "…").

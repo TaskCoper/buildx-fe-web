@@ -5559,6 +5559,7 @@
       "surveyHours": "within {hours}h",
       "acceptingLabel": "Accepting",
       "acceptingSuffix": "projects",
+      "notAcceptingLabel": "Paused accepting",
       "informationUnknown": "Not provided",
       "ratingUnknown": "No rating yet",
       "projectAvailability": "Project availability",

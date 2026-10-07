@@ -5559,6 +5559,7 @@
       "surveyHours": "trong {hours}h",
       "acceptingLabel": "Đang nhận",
       "acceptingSuffix": "dự án",
+      "notAcceptingLabel": "Tạm ngưng nhận",
       "informationUnknown": "Chưa cập nhật",
       "ratingUnknown": "Chưa có đánh giá",
       "projectAvailability": "Trạng thái nhận dự án",
