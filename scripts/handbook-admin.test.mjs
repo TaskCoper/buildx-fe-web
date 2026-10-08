@@ -198,10 +198,10 @@ const viMessages = JSON.parse(await readFile(new URL('../messages/vi.json', impo
 const enMessages = JSON.parse(await readFile(new URL('../messages/en.json', import.meta.url), 'utf8'))
 const sectionOf = (key) => sections.HANDBOOK_SECTIONS.find((section) => section.key === key)
 
-test('có đủ sáu khối chữ của trang Cẩm nang, tên hai tab đứng đầu và banner Thư viện mẫu đứng cuối', () => {
+test('có đủ sáu khối chữ của trang Cẩm nang, xếp theo thứ tự trên trang: tên hai tab đầu, banner Thư viện mẫu cuối', () => {
   assert.deepEqual(
     sections.HANDBOOK_SECTIONS.map((section) => section.key),
-    ['tabs', 'hero', 'stagesHeading', 'articlesHeading', 'newsletterHeading', 'libraryBanner']
+    ['tabs', 'hero', 'stagesHeading', 'newsletterHeading', 'articlesHeading', 'libraryBanner']
   )
 })
 
@@ -214,8 +214,8 @@ test('mỗi khối thuộc đúng một nhóm trên màn quản trị: tên hai 
   assert.deepEqual(sections.HANDBOOK_SECTION_GROUPS.news, [
     'hero',
     'stagesHeading',
-    'articlesHeading',
-    'newsletterHeading'
+    'newsletterHeading',
+    'articlesHeading'
   ])
 })
 

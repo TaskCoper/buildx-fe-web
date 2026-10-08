@@ -1,13 +1,28 @@
 'use client'
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Alert, App, Button, Card, Form, Input, Popconfirm, Segmented, Skeleton, Space, Tabs, Tag } from 'antd'
+import {
+  Alert,
+  App,
+  Button,
+  Card,
+  Form,
+  Input,
+  Popconfirm,
+  Segmented,
+  Skeleton,
+  Space,
+  Tabs,
+  Tag,
+  Typography
+} from 'antd'
 import { useTranslations } from 'next-intl'
-import { useState } from 'react'
+import { Suspense, useState, type ReactNode } from 'react'
 
 import { isApiError } from '@/shared/lib/api'
 import { adminKeys } from '../../api/admin.keys'
 import { handbookAdminApi, type BmtPageSectionAdmin } from '../../api/bmt/handbook.api'
+import { useFormPage } from '../../hooks/use-form-page'
 import {
   HANDBOOK_SECTIONS,
   HANDBOOK_SECTION_GROUPS,
@@ -17,10 +32,15 @@ import {
   formValuesFor,
   sameContent,
   type SectionDef,
-  type SectionGroup
+  type SectionGroup,
+  type SectionKey
 } from '../../services/handbook-sections.service'
 import { AdminPage } from '../common/admin-page'
 import { ImageUrlField } from '../common/field-kit'
+import { HandbookNewsletterManager } from './handbook-newsletter-manager'
+import { HandbookStepManager } from './handbook-step-manager'
+
+const { Text } = Typography
 
 type ContentLocale = 'vi' | 'en'
 
@@ -37,18 +57,57 @@ const sectionsKey = (locale: ContentLocale) => adminKeys.bmt('handbook-sections'
 const loadMessages = (locale: ContentLocale): Promise<unknown> =>
   import(`../../../../../messages/${locale}.json`).then((module) => module.default as unknown)
 
+/** Khối chữ theo mã để dựng đúng thẻ ở đúng chỗ. */
+const SECTIONS_BY_KEY = new Map(HANDBOOK_SECTIONS.map((section) => [section.key, section]))
+
 /**
- * NỘI DUNG CHỮ CỦA TRANG CẨM NANG (STORY-HB-004, BR-HB-003).
+ * NỘI DUNG TRANG CẨM NANG (STORY-HB-001 đến STORY-HB-004, BR-HB-001 đến BR-HB-003).
  *
- * Sáu khối chữ cố định — tên hai tab, phần mở đầu, tiêu đề nhóm ba bước, tiêu đề khối bài viết, tiêu đề khối Bản tin
- * và banner của tab Thư viện mẫu — theo từng ngôn ngữ. Khối chưa biên tập thì trang dùng bản dịch sẵn có, nên form mở ra với chính chữ đang hiển thị để sửa từ
- * đó. Một ngôn ngữ chưa có bản riêng không mượn bản của ngôn ngữ khác.
+ * Gom mọi thứ người quản lý sửa ở trang Cẩm nang vào một màn, chia hai tab theo tab của trang công khai và xếp theo
+ * đúng thứ tự người đọc thấy:
+ * - Tên hai tab đứng trên thanh tab vì dùng chung cho cả hai.
+ * - Tab Tin tức: phần mở đầu, ba bước và chủ đề hướng dẫn, khối Bản tin với bài nổi bật, khối bài viết.
+ * - Tab Thư viện mẫu: banner.
+ *
+ * Các thẻ chữ lưu riêng từng ngôn ngữ; khối chưa biên tập thì trang dùng bản dịch sẵn có nên form mở ra với chính chữ
+ * đang hiển thị, và ngôn ngữ chưa có bản riêng không mượn bản của ngôn ngữ khác. Ba bước, chủ đề hướng dẫn và bài nổi
+ * bật không theo ngôn ngữ.
+ *
+ * Ngôn ngữ và tab đang chọn giữ ở thành phần ngoài cùng để khi mở form sửa một bước (form thay cả màn) rồi quay lại
+ * thì vẫn ở đúng chỗ cũ.
  */
 export function HandbookContentManager() {
-  const t = useTranslations('admin')
-  const tc = useTranslations('admin.handbookContent')
   const [locale, setLocale] = useState<ContentLocale>('vi')
   const [tab, setTab] = useState<ContentTab>('news')
+
+  // `useFormPage` đọc `useSearchParams` nên cần ranh giới Suspense.
+  return (
+    <Suspense fallback={<Skeleton active />}>
+      <ContentScreen locale={locale} onLocaleChange={setLocale} tab={tab} onTabChange={setTab} />
+    </Suspense>
+  )
+}
+
+interface ContentScreenProps {
+  locale: ContentLocale
+  onLocaleChange: (locale: ContentLocale) => void
+  tab: ContentTab
+  onTabChange: (tab: ContentTab) => void
+}
+
+function ContentScreen(props: ContentScreenProps) {
+  const formPage = useFormPage()
+
+  // Form Thêm / Sửa / Xem của một bước là một trang riêng thay cả màn (cách `ApiResourceManager` hoạt động), nên khi
+  // đang mở form chỉ dựng phần ba bước; phần còn lại quay lại khi đóng form.
+  if (formPage.mode) return <HandbookStepManager />
+
+  return <ContentLayout {...props} />
+}
+
+function ContentLayout({ locale, onLocaleChange, tab, onTabChange }: ContentScreenProps) {
+  const t = useTranslations('admin')
+  const tc = useTranslations('admin.handbookContent')
 
   const saved = useQuery({
     queryKey: sectionsKey(locale),
@@ -61,30 +120,37 @@ export function HandbookContentManager() {
     staleTime: Infinity
   })
 
-  if (saved.isPending || defaults.isPending) return <Skeleton active />
-  if (saved.error || !saved.data || defaults.error) {
+  const byKey = new Map((saved.data ?? []).map((section) => [section.sectionKey, section]))
+
+  /**
+   * Thẻ chữ của một khối. Lỗi hoặc đang tải chỉ ảnh hưởng các thẻ chữ: ba bước và bài nổi bật tự tải riêng nên vẫn
+   * dùng được khi API khối chữ gặp sự cố.
+   */
+  const card = (key: SectionKey) => {
+    const section = SECTIONS_BY_KEY.get(key)
+    if (!section) return null
+    if (saved.isPending || defaults.isPending) return <Skeleton key={key} active />
+    if (saved.error || !saved.data || defaults.error) {
+      return (
+        <Alert
+          key={key}
+          type='error'
+          showIcon
+          title={isApiError(saved.error) ? saved.error.message : t('feedback.apiError')}
+        />
+      )
+    }
     return (
-      <Alert type='error' showIcon title={isApiError(saved.error) ? saved.error.message : t('feedback.apiError')} />
+      <SectionCard
+        // Đổi ngôn ngữ hoặc version thì dựng lại form để giá trị ban đầu khớp bản vừa tải.
+        key={`${locale}:${key}:${byKey.get(key)?.version ?? 0}`}
+        section={section}
+        locale={locale}
+        saved={byKey.get(key) ?? null}
+        messages={defaults.data}
+      />
     )
   }
-
-  const byKey = new Map(saved.data.map((section) => [section.sectionKey, section]))
-  const sectionsOf = (group: SectionGroup) =>
-    HANDBOOK_SECTIONS.filter((section) => HANDBOOK_SECTION_GROUPS[group].includes(section.key))
-  const renderCards = (group: SectionGroup) => (
-    <Space orientation='vertical' size={16} style={{ width: '100%' }}>
-      {sectionsOf(group).map((section) => (
-        <SectionCard
-          // Đổi ngôn ngữ hoặc version thì dựng lại form để giá trị ban đầu khớp bản vừa tải.
-          key={`${locale}:${section.key}:${byKey.get(section.key)?.version ?? 0}`}
-          section={section}
-          locale={locale}
-          saved={byKey.get(section.key) ?? null}
-          messages={defaults.data}
-        />
-      ))}
-    </Space>
-  )
 
   return (
     <AdminPage
@@ -93,7 +159,7 @@ export function HandbookContentManager() {
       actions={
         <Segmented<ContentLocale>
           value={locale}
-          onChange={setLocale}
+          onChange={onLocaleChange}
           options={[
             { value: 'vi', label: tc('locales.vi') },
             { value: 'en', label: tc('locales.en') }
@@ -103,17 +169,57 @@ export function HandbookContentManager() {
     >
       <Space orientation='vertical' size={16} style={{ width: '100%' }}>
         {/* Tên hai tab đặt tên cho chính thanh tab nên dùng chung cho cả hai tab. */}
-        {renderCards('shared')}
+        {HANDBOOK_SECTION_GROUPS.shared.map(card)}
         <Tabs
           activeKey={tab}
-          onChange={(key) => setTab(key as ContentTab)}
+          onChange={(key) => onTabChange(key as ContentTab)}
           items={[
-            { key: 'news', label: tc('groups.news'), children: renderCards('news') },
-            { key: 'library', label: tc('groups.library'), children: renderCards('library') }
+            {
+              key: 'news',
+              label: tc('groups.news'),
+              children: (
+                <Space orientation='vertical' size={32} style={{ width: '100%' }}>
+                  <ContentGroup title={tc('newsGroups.top.title')} hint={tc('newsGroups.top.hint')}>
+                    {card('hero')}
+                    {card('stagesHeading')}
+                    <HandbookStepManager />
+                  </ContentGroup>
+                  <ContentGroup title={tc('newsGroups.newsletter.title')} hint={tc('newsGroups.newsletter.hint')}>
+                    {card('newsletterHeading')}
+                    <HandbookNewsletterManager />
+                  </ContentGroup>
+                  <ContentGroup title={tc('newsGroups.articles.title')} hint={tc('newsGroups.articles.hint')}>
+                    {card('articlesHeading')}
+                  </ContentGroup>
+                </Space>
+              )
+            },
+            {
+              key: 'library',
+              label: tc('groups.library'),
+              children: (
+                <Space orientation='vertical' size={16} style={{ width: '100%' }}>
+                  {HANDBOOK_SECTION_GROUPS.library.map(card)}
+                </Space>
+              )
+            }
           ]}
         />
       </Space>
     </AdminPage>
+  )
+}
+
+/** Một nhóm theo vùng của trang công khai: tiêu đề, một dòng nói vùng đó nằm ở đâu, rồi các thẻ sửa. */
+function ContentGroup({ title, hint, children }: { title: string; hint: string; children: ReactNode }) {
+  return (
+    <section className='flex flex-col gap-4'>
+      <div className='border-primary border-l-4 pl-3'>
+        <div className='text-base font-semibold'>{title}</div>
+        <Text type='secondary'>{hint}</Text>
+      </div>
+      {children}
+    </section>
   )
 }
 

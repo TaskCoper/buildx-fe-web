@@ -105,6 +105,7 @@ export function HandbookStepManager() {
       <ApiResourceManager<StageRow>
         title={t('nav.handbookSteps')}
         description={t('handbookSteps.description')}
+        compactHeader
         queryKey={SNAPSHOT_KEY}
         fetchPage={async (): Promise<PagedResult<StageRow>> => {
           const snapshot = await loadSnapshot()

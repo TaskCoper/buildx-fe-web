@@ -5328,6 +5328,7 @@
     "handbookNewsletter": {
       "description": "Chọn và sắp xếp các bài nổi bật của khối Bản tin trên trang Cẩm nang. Thứ tự do bạn quyết định, không theo ngày công bố. Nên xếp dư vài bài: bài đang ẩn hoặc nháp bị bỏ qua khi hiển thị và các bài sau dồn lên, nhưng vẫn giữ chỗ nên công bố lại là về đúng vị trí cũ. Bài liên quan bên cạnh khối do hệ thống tự lấy theo danh mục của bài đứng đầu.",
       "listTitle": "Bài nổi bật — trang hiển thị {count} bài đầu đang công bố",
+      "title": "Bài viết nổi bật",
       "addPlaceholder": "Tìm bài để thêm vào khối…",
       "addButton": "Thêm bài viết",
       "addTitle": "Thêm bài viết vào khối Bản tin",
@@ -5355,9 +5356,20 @@
       "states": { "Draft": "Nháp", "Published": "Đã công bố", "Hidden": "Đang ẩn" }
     },
     "handbookContent": {
-      "description": "Sửa các dòng chữ cố định của trang Cẩm nang theo từng ngôn ngữ: tên hai tab, phần mở đầu và các khối của tab Tin tức, banner của tab Thư viện mẫu. Khối chưa sửa dùng bản dịch sẵn có của trang, nên form mở ra với đúng chữ đang hiển thị. Mỗi ngôn ngữ sửa riêng; ngôn ngữ chưa sửa không mượn chữ của ngôn ngữ khác.",
+      "description": "Quản lý nội dung trang Cẩm nang theo hai tab Tin tức và Thư viện mẫu, xếp theo đúng thứ tự người đọc thấy trên trang. Các thẻ chữ sửa riêng từng ngôn ngữ: khối chưa sửa dùng bản dịch sẵn có nên form mở ra với đúng chữ đang hiển thị, và ngôn ngữ chưa sửa không mượn chữ của ngôn ngữ khác. Ba bước, chủ đề hướng dẫn và bài nổi bật dùng chung cho mọi ngôn ngữ.",
       "locales": { "vi": "Tiếng Việt", "en": "Tiếng Anh" },
       "groups": { "news": "Tin tức", "library": "Thư viện mẫu" },
+      "newsGroups": {
+        "top": {
+          "title": "Đầu trang và ba bước",
+          "hint": "Phần mở đầu và ba bước xây nhà ở đầu tab Tin tức. Ba bước và chủ đề hướng dẫn dùng chung cho mọi ngôn ngữ."
+        },
+        "newsletter": {
+          "title": "Bản tin BuildX",
+          "hint": "Khối Bản tin nằm ngay dưới ba bước: bài nổi bật và bài liên quan."
+        },
+        "articles": { "title": "Danh sách bài viết", "hint": "Khối bài viết nằm cuối tab Tin tức." }
+      },
       "edited": "Đã biên tập",
       "usingDefault": "Đang dùng bản mặc định",
       "restore": "Khôi phục mặc định",

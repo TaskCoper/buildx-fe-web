@@ -122,8 +122,9 @@ export function HandbookNewsletterManager() {
 
   return (
     <AdminPage
-      title={t('nav.handbookNewsletter')}
+      title={tn('title')}
       description={tn('description')}
+      compact
       actions={
         <Space>
           <Button onClick={reload} disabled={!dirty || saving}>

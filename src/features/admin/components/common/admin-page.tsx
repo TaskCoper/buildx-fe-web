@@ -27,12 +27,15 @@ export function AdminPage({
   description,
   actions,
   sticky,
+  compact,
   children
 }: {
   title: string
   description?: string
   actions?: ReactNode
   sticky?: boolean
+  /** Tiêu đề cấp nhỏ, dùng khi màn được nhúng làm một phần của màn khác thay vì là cả trang. */
+  compact?: boolean
   children: ReactNode
 }) {
   return (
@@ -53,7 +56,7 @@ export function AdminPage({
         )}
       >
         <div className='min-w-60 flex-1'>
-          <Title level={4} style={{ margin: 0 }}>
+          <Title level={compact ? 5 : 4} style={{ margin: 0 }}>
             {title}
           </Title>
           {description ? (

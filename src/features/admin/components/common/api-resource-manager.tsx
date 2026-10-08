@@ -42,6 +42,8 @@ export interface ApiRowContext {
 export interface ApiResourceManagerProps<T> {
   title: string
   description?: string
+  /** Tiêu đề cấp nhỏ cho danh sách, khi màn được nhúng làm một phần của màn khác. */
+  compactHeader?: boolean
   /**
    * Gốc query key của màn. Mọi tham số lọc bên ngoài phải nằm trong key này để
    * đổi bộ lọc là tải lại đúng trang.
@@ -118,6 +120,7 @@ export function ApiResourceManager<T>(props: ApiResourceManagerProps<T>) {
 function ApiResourceManagerBody<T>({
   title,
   description,
+  compactHeader,
   queryKey,
   fetchPage,
   rowKey,
@@ -277,6 +280,7 @@ function ApiResourceManagerBody<T>({
     <AdminPage
       title={title}
       description={description}
+      compact={compactHeader}
       actions={
         <>
           {extraActions}

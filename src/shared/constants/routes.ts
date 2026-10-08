@@ -83,11 +83,11 @@ export const ADMIN_ROUTES = {
   ARTICLE_LABELS: '/admin/article-labels',
   /** Lời nhận xét khách hàng ở trang chủ (ảnh đại diện + nội dung). */
   TESTIMONIALS: '/admin/testimonials',
-  /** Các bước trong Cẩm nang + Nhóm cẩm nang (epic HandbookStepManagement). */
+  /** Đường dẫn cũ của Các bước Cẩm nang; đã gộp vào `HANDBOOK_CONTENT` (tab Tin tức) và tự chuyển hướng. */
   HANDBOOK_STEPS: '/admin/handbook-steps',
-  /** Chọn và sắp xếp bài nổi bật của khối Bản tin (STORY-HB-003). */
+  /** Đường dẫn cũ của Bản tin Cẩm nang; đã gộp vào `HANDBOOK_CONTENT` (tab Tin tức) và tự chuyển hướng. */
   HANDBOOK_NEWSLETTER: '/admin/handbook-newsletter',
-  /** Chữ cố định của trang Cẩm nang theo từng ngôn ngữ (STORY-HB-004). */
+  /** Nội dung trang Cẩm nang: chữ cố định, ba bước, chủ đề, bài nổi bật và banner thư viện (STORY-HB-001 đến 004). */
   HANDBOOK_CONTENT: '/admin/handbook-content',
   /** Video hướng dẫn của trang Hướng dẫn. */
   GUIDE_VIDEOS: '/admin/guide-videos',

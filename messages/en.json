@@ -5328,6 +5328,7 @@
     "handbookNewsletter": {
       "description": "Choose and order the featured articles of the newsletter block on the handbook page. You decide the order, not the publication date. Add a few spare articles: hidden or draft articles are skipped on the page and the ones after them move up, but they keep their place, so republishing puts them back where they were. The related articles next to the block are picked automatically from the category of the first one.",
       "listTitle": "Featured articles — the page shows the first {count} published",
+      "title": "Featured articles",
       "addPlaceholder": "Search for an article to add…",
       "addButton": "Add article",
       "addTitle": "Add articles to the Newsletter block",
@@ -5355,9 +5356,20 @@
       "states": { "Draft": "Draft", "Published": "Published", "Hidden": "Hidden" }
     },
     "handbookContent": {
-      "description": "Edit the fixed text of the handbook page per language: the two tab names, the opening and the blocks of the News tab, and the banner of the Template library tab. A block you have not edited uses the page's built-in translation, so the form opens with the text currently shown. Each language is edited on its own; an unedited language never borrows another language's text.",
+      "description": "Manage the handbook page content in two tabs, News and Template library, in the order readers see it on the page. The text cards are edited per language: a block you have not edited uses the page's built-in translation, so the form opens with the text currently shown, and an unedited language never borrows another language's text. The three steps, topics and featured articles are shared by every language.",
       "locales": { "vi": "Vietnamese", "en": "English" },
       "groups": { "news": "News", "library": "Template library" },
+      "newsGroups": {
+        "top": {
+          "title": "Top of the page and the three steps",
+          "hint": "The opening and the three building steps at the top of the News tab. The steps and topics are shared by every language."
+        },
+        "newsletter": {
+          "title": "BuildX newsletter",
+          "hint": "The Newsletter block sits right below the three steps: featured and related articles."
+        },
+        "articles": { "title": "Article list", "hint": "The articles block sits at the bottom of the News tab." }
+      },
       "edited": "Edited",
       "usingDefault": "Using the default",
       "restore": "Restore default",

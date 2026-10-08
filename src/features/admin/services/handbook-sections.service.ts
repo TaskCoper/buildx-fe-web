@@ -62,6 +62,7 @@ export const HANDBOOK_SECTIONS: readonly SectionDef[] = [
     ]
   },
   { key: 'stagesHeading', fields: [text('title', ['handbook', 'foundation', 'stagesTitle'])] },
+  { key: 'newsletterHeading', fields: [text('title', ['handbook', 'newsletter', 'title'])] },
   {
     key: 'articlesHeading',
     fields: [
@@ -69,7 +70,6 @@ export const HANDBOOK_SECTIONS: readonly SectionDef[] = [
       { name: 'description', kind: 'textarea', defaultPath: ['handbook', 'articles', 'subtitle'], required: true }
     ]
   },
-  { key: 'newsletterHeading', fields: [text('title', ['handbook', 'newsletter', 'title'])] },
   {
     key: 'libraryBanner',
     fields: [
@@ -95,7 +95,7 @@ export type SectionGroup = 'shared' | 'news' | 'library'
  */
 export const HANDBOOK_SECTION_GROUPS: Readonly<Record<SectionGroup, readonly SectionKey[]>> = {
   shared: ['tabs'],
-  news: ['hero', 'stagesHeading', 'articlesHeading', 'newsletterHeading'],
+  news: ['hero', 'stagesHeading', 'newsletterHeading', 'articlesHeading'],
   library: ['libraryBanner']
 }
 
