@@ -892,7 +892,7 @@ function Journey() {
         {t('title')}
       </motion.h2>
 
-      <div className='supervision-journey-track mt-6 flex items-stretch gap-1.5 overflow-x-auto overflow-y-hidden pt-4 pb-2 lg:justify-center'>
+      <div className='supervision-journey-track mt-6 flex items-stretch gap-6 overflow-x-auto overflow-y-hidden pt-4 pb-2 md:gap-8 lg:justify-center'>
         {JOURNEY_STEPS.map((step, index) => (
           <JourneyCard key={step} step={step} number={index + 1} delay={0.16 + index * 0.2} />
         ))}
@@ -916,7 +916,7 @@ function JourneyCard({ step, number, delay }: { step: JourneyStepKey; number: nu
       transition={{ duration: 0.44, delay, ease: pricingEase }}
     >
       <motion.span
-        className='bg-accent text-accent-foreground absolute -top-3 left-1/2 z-10 inline-flex h-6 w-fit max-w-fit min-w-6 -translate-x-1/2 items-center justify-center rounded-sm px-1.5 text-xs font-semibold tracking-[0.08em] transition-colors duration-200 group-hover/journey-card:bg-brand-orange motion-reduce:transition-none'
+        className='bg-accent text-accent-foreground absolute -top-4 left-1/2 z-10 inline-flex h-8 w-fit max-w-fit min-w-8 -translate-x-1/2 items-center justify-center rounded-md px-2 text-sm font-semibold tracking-[0.08em] transition-colors duration-200 group-hover/journey-card:bg-brand-orange motion-reduce:transition-none'
         initial={{ scale: 0.55 }}
         whileInView={{ scale: 1 }}
         viewport={{ once: true }}

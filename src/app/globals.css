@@ -6373,7 +6373,7 @@ html[data-pricing-scrolling='true'] .supervision-journey-flow-dot {
   .supervision-journey-track {
     flex-direction: column;
     align-items: stretch;
-    gap: 16px;
+    gap: 24px;
     overflow: hidden;
   }
   .supervision-journey-card {
