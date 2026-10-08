@@ -5357,6 +5357,7 @@
     "handbookContent": {
       "description": "Sửa các dòng chữ cố định của trang Cẩm nang theo từng ngôn ngữ: tên hai tab, phần mở đầu và các khối của tab Tin tức, banner của tab Thư viện mẫu. Khối chưa sửa dùng bản dịch sẵn có của trang, nên form mở ra với đúng chữ đang hiển thị. Mỗi ngôn ngữ sửa riêng; ngôn ngữ chưa sửa không mượn chữ của ngôn ngữ khác.",
       "locales": { "vi": "Tiếng Việt", "en": "Tiếng Anh" },
+      "groups": { "news": "Tin tức", "library": "Thư viện mẫu" },
       "edited": "Đã biên tập",
       "usingDefault": "Đang dùng bản mặc định",
       "restore": "Khôi phục mặc định",

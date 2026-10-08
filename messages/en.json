@@ -5357,6 +5357,7 @@
     "handbookContent": {
       "description": "Edit the fixed text of the handbook page per language: the two tab names, the opening and the blocks of the News tab, and the banner of the Template library tab. A block you have not edited uses the page's built-in translation, so the form opens with the text currently shown. Each language is edited on its own; an unedited language never borrows another language's text.",
       "locales": { "vi": "Vietnamese", "en": "English" },
+      "groups": { "news": "News", "library": "Template library" },
       "edited": "Edited",
       "usingDefault": "Using the default",
       "restore": "Restore default",

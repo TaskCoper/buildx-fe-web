@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Alert, App, Button, Card, Form, Input, Popconfirm, Segmented, Skeleton, Space, Tag } from 'antd'
+import { Alert, App, Button, Card, Form, Input, Popconfirm, Segmented, Skeleton, Space, Tabs, Tag } from 'antd'
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 
@@ -10,17 +10,22 @@ import { adminKeys } from '../../api/admin.keys'
 import { handbookAdminApi, type BmtPageSectionAdmin } from '../../api/bmt/handbook.api'
 import {
   HANDBOOK_SECTIONS,
+  HANDBOOK_SECTION_GROUPS,
   SECTION_TEXT_MAX_LENGTH,
   buildContent,
   defaultsFor,
   formValuesFor,
   sameContent,
-  type SectionDef
+  type SectionDef,
+  type SectionGroup
 } from '../../services/handbook-sections.service'
 import { AdminPage } from '../common/admin-page'
 import { ImageUrlField } from '../common/field-kit'
 
 type ContentLocale = 'vi' | 'en'
+
+/** Hai tab của màn; khối dùng chung (`shared`) nằm trên thanh tab nên không có tab riêng. */
+type ContentTab = Exclude<SectionGroup, 'shared'>
 
 /** Tên nhãn của khối trong `admin.handbookContent.sections.<key>`. */
 const sectionsKey = (locale: ContentLocale) => adminKeys.bmt('handbook-sections', locale)
@@ -43,6 +48,7 @@ export function HandbookContentManager() {
   const t = useTranslations('admin')
   const tc = useTranslations('admin.handbookContent')
   const [locale, setLocale] = useState<ContentLocale>('vi')
+  const [tab, setTab] = useState<ContentTab>('news')
 
   const saved = useQuery({
     queryKey: sectionsKey(locale),
@@ -63,6 +69,22 @@ export function HandbookContentManager() {
   }
 
   const byKey = new Map(saved.data.map((section) => [section.sectionKey, section]))
+  const sectionsOf = (group: SectionGroup) =>
+    HANDBOOK_SECTIONS.filter((section) => HANDBOOK_SECTION_GROUPS[group].includes(section.key))
+  const renderCards = (group: SectionGroup) => (
+    <Space orientation='vertical' size={16} style={{ width: '100%' }}>
+      {sectionsOf(group).map((section) => (
+        <SectionCard
+          // Đổi ngôn ngữ hoặc version thì dựng lại form để giá trị ban đầu khớp bản vừa tải.
+          key={`${locale}:${section.key}:${byKey.get(section.key)?.version ?? 0}`}
+          section={section}
+          locale={locale}
+          saved={byKey.get(section.key) ?? null}
+          messages={defaults.data}
+        />
+      ))}
+    </Space>
+  )
 
   return (
     <AdminPage
@@ -80,16 +102,16 @@ export function HandbookContentManager() {
       }
     >
       <Space orientation='vertical' size={16} style={{ width: '100%' }}>
-        {HANDBOOK_SECTIONS.map((section) => (
-          <SectionCard
-            // Đổi ngôn ngữ hoặc version thì dựng lại form để giá trị ban đầu khớp bản vừa tải.
-            key={`${locale}:${section.key}:${byKey.get(section.key)?.version ?? 0}`}
-            section={section}
-            locale={locale}
-            saved={byKey.get(section.key) ?? null}
-            messages={defaults.data}
-          />
-        ))}
+        {/* Tên hai tab đặt tên cho chính thanh tab nên dùng chung cho cả hai tab. */}
+        {renderCards('shared')}
+        <Tabs
+          activeKey={tab}
+          onChange={(key) => setTab(key as ContentTab)}
+          items={[
+            { key: 'news', label: tc('groups.news'), children: renderCards('news') },
+            { key: 'library', label: tc('groups.library'), children: renderCards('library') }
+          ]}
+        />
       </Space>
     </AdminPage>
   )

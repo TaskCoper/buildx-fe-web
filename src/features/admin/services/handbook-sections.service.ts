@@ -86,6 +86,19 @@ export const HANDBOOK_SECTIONS: readonly SectionDef[] = [
   }
 ]
 
+/** Nhóm hiển thị trên màn quản trị: `shared` nằm trên thanh tab, `news` và `library` là hai tab. */
+export type SectionGroup = 'shared' | 'news' | 'library'
+
+/**
+ * Khối nào nằm ở đâu trên màn quản trị. Tên hai tab dùng chung cho cả hai tab nên đứng riêng ở trên thanh tab; phần
+ * mở đầu và các khối còn lại thuộc tab Tin tức; banner thuộc tab Thư viện mẫu. Mỗi khối thuộc đúng một nhóm.
+ */
+export const HANDBOOK_SECTION_GROUPS: Readonly<Record<SectionGroup, readonly SectionKey[]>> = {
+  shared: ['tabs'],
+  news: ['hero', 'stagesHeading', 'articlesHeading', 'newsletterHeading'],
+  library: ['libraryBanner']
+}
+
 /** Chữ mặc định của các trường trong `messages` của một ngôn ngữ. Trường ảnh và khóa thiếu cho chuỗi rỗng. */
 export function defaultsFor(fields: readonly SectionField[], messages: unknown): Record<string, string> {
   const result: Record<string, string> = {}

@@ -205,6 +205,20 @@ test('có đủ sáu khối chữ của trang Cẩm nang, tên hai tab đứng �
   )
 })
 
+test('mỗi khối thuộc đúng một nhóm trên màn quản trị: tên hai tab dùng chung, banner ở tab Thư viện mẫu', () => {
+  const grouped = Object.values(sections.HANDBOOK_SECTION_GROUPS).flat()
+  assert.deepEqual([...grouped].sort(), sections.HANDBOOK_SECTIONS.map((section) => section.key).sort())
+  assert.equal(new Set(grouped).size, grouped.length, 'một khối không được nằm ở hai nhóm')
+  assert.deepEqual(sections.HANDBOOK_SECTION_GROUPS.shared, ['tabs'])
+  assert.deepEqual(sections.HANDBOOK_SECTION_GROUPS.library, ['libraryBanner'])
+  assert.deepEqual(sections.HANDBOOK_SECTION_GROUPS.news, [
+    'hero',
+    'stagesHeading',
+    'articlesHeading',
+    'newsletterHeading'
+  ])
+})
+
 test('banner Thư viện mẫu: tiêu đề và mô tả bắt buộc, ảnh nền tùy chọn, không có trường của hero', () => {
   const banner = sectionOf('libraryBanner')
   assert.deepEqual(
