@@ -2848,6 +2848,7 @@
     },
     "nav": {
       "handbookNewsletter": "Handbook newsletter",
+      "homeContent": "Home page content",
       "handbookContent": "Handbook page content",
 
       "dashboard": "To-do",
@@ -5354,6 +5355,202 @@
       "notShownEmpty": "The block has no articles, so the handbook page is hiding the whole newsletter strip. Add a published article to show it.",
       "notShownAllHidden": "None of the articles in the block is published, so the handbook page is hiding the whole newsletter strip. Republish one of them or add another article.",
       "states": { "Draft": "Draft", "Published": "Published", "Hidden": "Hidden" }
+    },
+    "homeContent": {
+      "description": "Text, images, icons, templates and featured videos of the home page, split into 11 blocks in scroll order. Each language is saved separately: a block you have not edited uses the built-in content, so the form opens with the text visitors currently see, and only what differs from the built-in content is saved. Button links are kept by the app and cannot be edited here.",
+      "locales": {
+        "vi": "Vietnamese",
+        "en": "English"
+      },
+      "edited": "Edited",
+      "usingDefault": "Using default",
+      "restore": "Restore default",
+      "restoreConfirm": "Delete the edited version of this block? The home page will go back to the built-in content.",
+      "restored": "Default restored.",
+      "restoredBecauseSame": "The content now matches the default, so the edited version was removed.",
+      "unchanged": "Nothing differs from the default yet, so there is nothing to save.",
+      "notDeclaredTitle": "The server has no home page to save to",
+      "notDeclared": "The backend in this environment has not declared the home page yet (404 PageSectionNotFound). You can still view and draft on the current content, but Save will not succeed until the backend is updated.",
+      "iconHint": "A lucide-react icon name, for example Camera or pencil-ruler. Leave empty to use the default icon.",
+      "iconInvalid": "An icon name contains only letters, digits and hyphens, up to 64 characters.",
+      "iconNotFound": "This icon was not found; the home page will use the default icon.",
+      "pickTemplates": "Pick up to {max} templates",
+      "pickGuides": "Pick up to {max} videos",
+      "pickLoadError": "Could not load the list. Try reloading the page.",
+      "idsHint": "Up to {max}. Shown in the order you pick them; leave empty to let the home page choose as before.",
+      "rowTitle": "Item {index}",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "addRow": "Add item",
+      "maxReached": "Limit of {max} items reached",
+      "sections": {
+        "hero": {
+          "title": "Top of the page",
+          "hint": "The big headline, two buttons, the sample \"Project file\" card on the right and the rotating background images."
+        },
+        "stats": {
+          "title": "Figures strip",
+          "hint": "Five figures right below the top of the page."
+        },
+        "painPoints": {
+          "title": "Common problems",
+          "hint": "The \"Facing these problems too?\" block with five cards."
+        },
+        "journey": {
+          "title": "Project journey",
+          "hint": "The five-step strip from creating a project to construction."
+        },
+        "services": {
+          "title": "Service plans",
+          "hint": "The plan picker by stage, four cards."
+        },
+        "dossiers": {
+          "title": "Template library",
+          "hint": "The \"Template library list\" strip with 2D and 3D drawing tabs."
+        },
+        "guides": {
+          "title": "User guides",
+          "hint": "The guide video strip, up to three videos."
+        },
+        "consult": {
+          "title": "1:1 consultation",
+          "hint": "The booking block with an architect. Text only; the architect list comes from the Architects screen."
+        },
+        "brands": {
+          "title": "Partner brands",
+          "hint": "The scrolling strip of brand logos."
+        },
+        "testimonials": {
+          "title": "Customers about BuildX",
+          "hint": "Customer reviews."
+        },
+        "cta": {
+          "title": "Closing call to action",
+          "hint": "The call to create a project at the end of the home page."
+        }
+      },
+      "lists": {
+        "hero": {
+          "slides": {
+            "title": "Rotating background images",
+            "hint": "Leave empty to use the default image set. One or more images replace the default set entirely. Up to 8 images."
+          }
+        },
+        "stats": {
+          "items": {
+            "title": "Five figures",
+            "hint": "Exactly 5 cards in a fixed order. Leave an icon empty to use the card default."
+          }
+        },
+        "painPoints": {
+          "items": {
+            "title": "Five problem cards",
+            "hint": "Exactly 5 cards in a fixed order. Leave an icon empty to use the default."
+          }
+        },
+        "journey": {
+          "items": {
+            "title": "Five journey steps",
+            "hint": "Exactly 5 steps in a fixed order. Leave the illustration empty to use the step default."
+          }
+        },
+        "services": {
+          "items": {
+            "title": "Four service plans",
+            "hint": "Exactly 4 cards in a fixed order. Leave an icon empty to use the default."
+          }
+        },
+        "dossiers": {
+          "templateIds2d": {
+            "title": "Featured 2D drawing templates",
+            "hint": "Pick up to 4. Leave empty and this tab shows the newest templates. Templates that are not 2D are ignored."
+          },
+          "templateIds3d": {
+            "title": "Featured 3D drawing templates",
+            "hint": "Pick up to 4. Leave empty and this tab shows the newest templates. Templates that are not 3D are ignored."
+          }
+        },
+        "guides": {
+          "guideIds": {
+            "title": "Featured videos",
+            "hint": "Pick up to 3 published videos. A video hidden later is skipped automatically."
+          }
+        },
+        "brands": {
+          "logos": {
+            "title": "Brand logos",
+            "hint": "Leave empty to use the default logo set. One or more logos replace it entirely. Up to 30 logos."
+          }
+        },
+        "testimonials": {
+          "reviews": {
+            "title": "Customer reviews",
+            "hint": "Leave empty to use the default reviews. One or more reviews replace them entirely. Up to 12 reviews."
+          }
+        }
+      },
+      "fields": {
+        "eyebrow": "Line above the title",
+        "titleLead": "Title — first part",
+        "titleAccent": "Title — highlighted part",
+        "subtitle": "Short description",
+        "primaryCta": "Main button",
+        "secondaryCta": "Secondary button",
+        "cardTitle": "Project card — title",
+        "cardAreaLabel": "Project card — area label",
+        "cardAreaValue": "Project card — area value",
+        "cardTypeLabel": "Project card — building type label",
+        "cardTypeValue": "Project card — building type value",
+        "cardStyleLabel": "Project card — style label",
+        "cardStyleValue": "Project card — style value",
+        "cardOptionsLabel": "Project card — options label",
+        "cardOptionsValue": "Project card — options value",
+        "cardTotalLabel": "Project card — estimate total label",
+        "cardTotalValue": "Project card — estimate total value",
+        "cardCta": "Project card — button text",
+        "imageUrl": "Image",
+        "icon": "Icon",
+        "value": "Highlighted value",
+        "label": "Description",
+        "title": "Title",
+        "description": "Description",
+        "note": "Question on the left",
+        "cta": "Button text",
+        "currentStepBadge": "\"You are at this step\" label",
+        "labelYouDo": "\"What you do\" label",
+        "labelBuildxDoes": "\"What BuildX does\" label",
+        "labelYouGet": "\"What you get\" label",
+        "youDo": "What you do",
+        "buildxDoes": "What BuildX does",
+        "youGet": "What you get",
+        "iconUrl": "Step illustration (optional)",
+        "viewAll": "\"View all\" link text",
+        "usedAtStep": "Used at step",
+        "action": "Button text",
+        "tab2d": "2D drawings tab name",
+        "tab3d": "3D drawings tab name",
+        "viewOne": "Single template button text",
+        "name": "Name",
+        "meta": "Extra information",
+        "quote": "Quote",
+        "avatarUrl": "Avatar (optional)"
+      },
+      "fieldsBySection": {
+        "hero": {
+          "imageUrl": "Background image"
+        },
+        "stats": {
+          "label": "Short description"
+        },
+        "brands": {
+          "name": "Brand name",
+          "imageUrl": "Logo"
+        },
+        "testimonials": {
+          "name": "Customer name",
+          "meta": "House type · area · location"
+        }
+      }
     },
     "handbookContent": {
       "description": "Manage the handbook page content in two tabs, News and Template library, in the order readers see it on the page. The text cards are edited per language: a block you have not edited uses the page's built-in translation, so the form opens with the text currently shown, and an unedited language never borrows another language's text. The three steps, topics and featured articles are shared by every language.",

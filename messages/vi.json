@@ -2848,6 +2848,7 @@
     },
     "nav": {
       "handbookNewsletter": "Bản tin Cẩm nang",
+      "homeContent": "Nội dung trang chủ",
       "handbookContent": "Nội dung trang Cẩm nang",
 
       "dashboard": "Việc cần xử lý",
@@ -5354,6 +5355,202 @@
       "notShownEmpty": "Khối chưa có bài nào nên trang Cẩm nang đang ẩn cả dải Bản tin. Thêm bài đang công bố để dải này hiển thị.",
       "notShownAllHidden": "Không có bài nào trong khối đang công bố nên trang Cẩm nang đang ẩn cả dải Bản tin. Công bố lại một bài đã xếp hoặc thêm bài khác.",
       "states": { "Draft": "Nháp", "Published": "Đã công bố", "Hidden": "Đang ẩn" }
+    },
+    "homeContent": {
+      "description": "Chữ, ảnh, icon, mẫu và video nổi bật của trang chủ, chia 11 khối theo đúng thứ tự khi cuộn trang. Mỗi ngôn ngữ lưu riêng: khối chưa sửa dùng nội dung có sẵn nên form mở ra với đúng chữ đang hiển thị, và chỉ phần khác bản có sẵn mới được lưu. Đường dẫn của các nút do ứng dụng giữ, không sửa ở đây.",
+      "locales": {
+        "vi": "Tiếng Việt",
+        "en": "Tiếng Anh"
+      },
+      "edited": "Đã biên tập",
+      "usingDefault": "Đang dùng bản mặc định",
+      "restore": "Khôi phục mặc định",
+      "restoreConfirm": "Xóa bản đã sửa của khối này? Trang chủ sẽ quay lại dùng nội dung có sẵn.",
+      "restored": "Đã khôi phục bản mặc định.",
+      "restoredBecauseSame": "Nội dung đã trùng bản mặc định nên bản đã sửa được gỡ.",
+      "unchanged": "Chưa có gì khác bản mặc định nên chưa cần lưu.",
+      "notDeclaredTitle": "Máy chủ chưa có trang chủ để lưu",
+      "notDeclared": "Backend ở môi trường này chưa khai báo trang chủ (404 PageSectionNotFound). Bạn vẫn xem và soạn được trên nội dung hiện có, nhưng bấm Lưu sẽ chưa thành công cho tới khi backend được cập nhật.",
+      "iconHint": "Tên icon thư viện lucide-react, ví dụ Camera hoặc pencil-ruler. Bỏ trống thì dùng icon mặc định.",
+      "iconInvalid": "Tên icon chỉ gồm chữ, số và dấu gạch ngang, tối đa 64 ký tự.",
+      "iconNotFound": "Không tìm thấy icon này; trang chủ sẽ dùng icon mặc định.",
+      "pickTemplates": "Chọn tối đa {max} mẫu",
+      "pickGuides": "Chọn tối đa {max} video",
+      "pickLoadError": "Không tải được danh sách. Thử tải lại trang.",
+      "idsHint": "Tối đa {max}. Hiện theo đúng thứ tự bạn chọn; để trống thì trang chủ tự chọn như trước.",
+      "rowTitle": "Mục {index}",
+      "moveUp": "Chuyển lên",
+      "moveDown": "Chuyển xuống",
+      "addRow": "Thêm mục",
+      "maxReached": "Đã đủ {max} mục",
+      "sections": {
+        "hero": {
+          "title": "Phần đầu trang",
+          "hint": "Tiêu đề lớn, hai nút, thẻ \"Hồ sơ dự án\" mẫu bên phải và ảnh nền xoay vòng."
+        },
+        "stats": {
+          "title": "Dải số liệu",
+          "hint": "Năm số liệu ngay dưới phần đầu trang."
+        },
+        "painPoints": {
+          "title": "Những vấn đề thường gặp",
+          "hint": "Khối \"Bạn cũng đang gặp những vấn đề này?\" với năm thẻ."
+        },
+        "journey": {
+          "title": "Hành trình dự án",
+          "hint": "Dải năm bước từ tạo dự án đến thi công."
+        },
+        "services": {
+          "title": "Gói dịch vụ",
+          "hint": "Khối chọn gói theo giai đoạn, bốn thẻ."
+        },
+        "dossiers": {
+          "title": "Thư viện mẫu",
+          "hint": "Dải \"Danh sách thư viện mẫu\" chia hai tab bản vẽ 2D và 3D."
+        },
+        "guides": {
+          "title": "Hướng dẫn sử dụng",
+          "hint": "Dải video hướng dẫn, hiện tối đa ba video."
+        },
+        "consult": {
+          "title": "Tư vấn 1:1",
+          "hint": "Khối đặt lịch với kiến trúc sư. Chỉ sửa chữ; danh sách kiến trúc sư lấy từ màn Kiến trúc sư."
+        },
+        "brands": {
+          "title": "Thương hiệu đối tác",
+          "hint": "Dải logo thương hiệu chạy ngang."
+        },
+        "testimonials": {
+          "title": "Khách hàng nói về BuildX",
+          "hint": "Các ý kiến của khách hàng."
+        },
+        "cta": {
+          "title": "Lời kêu gọi cuối trang",
+          "hint": "Khối kêu gọi tạo dự án ở cuối trang chủ."
+        }
+      },
+      "lists": {
+        "hero": {
+          "slides": {
+            "title": "Ảnh nền xoay vòng",
+            "hint": "Bỏ trống thì trang dùng bộ ảnh mặc định. Có ít nhất một ảnh thì thay hoàn toàn bộ mặc định. Tối đa 8 ảnh."
+          }
+        },
+        "stats": {
+          "items": {
+            "title": "Năm số liệu",
+            "hint": "Đúng 5 thẻ, thứ tự cố định. Icon bỏ trống thì dùng icon mặc định của thẻ."
+          }
+        },
+        "painPoints": {
+          "items": {
+            "title": "Năm thẻ vấn đề",
+            "hint": "Đúng 5 thẻ, thứ tự cố định. Icon bỏ trống thì dùng icon mặc định."
+          }
+        },
+        "journey": {
+          "items": {
+            "title": "Năm bước của hành trình",
+            "hint": "Đúng 5 bước, thứ tự cố định. Ảnh minh họa bỏ trống thì dùng hình mặc định của bước."
+          }
+        },
+        "services": {
+          "items": {
+            "title": "Bốn gói dịch vụ",
+            "hint": "Đúng 4 thẻ, thứ tự cố định. Icon bỏ trống thì dùng icon mặc định."
+          }
+        },
+        "dossiers": {
+          "templateIds2d": {
+            "title": "Mẫu bản vẽ 2D nổi bật",
+            "hint": "Chọn tối đa 4 mẫu. Để trống thì tab này lấy các mẫu mới nhất. Mẫu không phải loại 2D sẽ bị bỏ qua."
+          },
+          "templateIds3d": {
+            "title": "Mẫu bản vẽ 3D nổi bật",
+            "hint": "Chọn tối đa 4 mẫu. Để trống thì tab này lấy các mẫu mới nhất. Mẫu không phải loại 3D sẽ bị bỏ qua."
+          }
+        },
+        "guides": {
+          "guideIds": {
+            "title": "Video nổi bật",
+            "hint": "Chọn tối đa 3 video đã đăng. Video bị ẩn sau đó sẽ tự bị bỏ qua."
+          }
+        },
+        "brands": {
+          "logos": {
+            "title": "Logo thương hiệu",
+            "hint": "Bỏ trống thì trang dùng bộ logo mặc định. Có ít nhất một logo thì thay hoàn toàn. Tối đa 30 logo."
+          }
+        },
+        "testimonials": {
+          "reviews": {
+            "title": "Ý kiến khách hàng",
+            "hint": "Bỏ trống thì trang dùng các ý kiến mặc định. Có ít nhất một ý kiến thì thay hoàn toàn. Tối đa 12 ý kiến."
+          }
+        }
+      },
+      "fields": {
+        "eyebrow": "Dòng nhãn phía trên",
+        "titleLead": "Tiêu đề — phần đầu",
+        "titleAccent": "Tiêu đề — phần nhấn màu",
+        "subtitle": "Mô tả ngắn",
+        "primaryCta": "Nút chính",
+        "secondaryCta": "Nút phụ",
+        "cardTitle": "Thẻ hồ sơ — tiêu đề",
+        "cardAreaLabel": "Thẻ hồ sơ — nhãn diện tích",
+        "cardAreaValue": "Thẻ hồ sơ — giá trị diện tích",
+        "cardTypeLabel": "Thẻ hồ sơ — nhãn loại công trình",
+        "cardTypeValue": "Thẻ hồ sơ — giá trị loại công trình",
+        "cardStyleLabel": "Thẻ hồ sơ — nhãn phong cách",
+        "cardStyleValue": "Thẻ hồ sơ — giá trị phong cách",
+        "cardOptionsLabel": "Thẻ hồ sơ — nhãn phương án",
+        "cardOptionsValue": "Thẻ hồ sơ — giá trị phương án",
+        "cardTotalLabel": "Thẻ hồ sơ — nhãn tổng dự toán",
+        "cardTotalValue": "Thẻ hồ sơ — giá trị tổng dự toán",
+        "cardCta": "Thẻ hồ sơ — chữ trên nút",
+        "imageUrl": "Ảnh",
+        "icon": "Icon",
+        "value": "Giá trị nổi bật",
+        "label": "Mô tả",
+        "title": "Tiêu đề",
+        "description": "Mô tả",
+        "note": "Câu hỏi bên trái",
+        "cta": "Chữ trên nút",
+        "currentStepBadge": "Nhãn \"Bạn đang ở bước này\"",
+        "labelYouDo": "Nhãn \"Bạn làm gì\"",
+        "labelBuildxDoes": "Nhãn \"BuildX làm gì\"",
+        "labelYouGet": "Nhãn \"Bạn nhận được gì\"",
+        "youDo": "Bạn làm gì",
+        "buildxDoes": "BuildX làm gì",
+        "youGet": "Bạn nhận được gì",
+        "iconUrl": "Ảnh minh họa bước (không bắt buộc)",
+        "viewAll": "Chữ liên kết \"Xem tất cả\"",
+        "usedAtStep": "Dùng ở bước",
+        "action": "Chữ trên nút",
+        "tab2d": "Tên tab bản vẽ 2D",
+        "tab3d": "Tên tab bản vẽ 3D",
+        "viewOne": "Chữ nút xem một mẫu",
+        "name": "Tên",
+        "meta": "Thông tin thêm",
+        "quote": "Lời nhận xét",
+        "avatarUrl": "Ảnh đại diện (không bắt buộc)"
+      },
+      "fieldsBySection": {
+        "hero": {
+          "imageUrl": "Ảnh nền"
+        },
+        "stats": {
+          "label": "Mô tả ngắn"
+        },
+        "brands": {
+          "name": "Tên thương hiệu",
+          "imageUrl": "Logo"
+        },
+        "testimonials": {
+          "name": "Tên khách hàng",
+          "meta": "Loại nhà · diện tích · nơi ở"
+        }
+      }
     },
     "handbookContent": {
       "description": "Quản lý nội dung trang Cẩm nang theo hai tab Tin tức và Thư viện mẫu, xếp theo đúng thứ tự người đọc thấy trên trang. Các thẻ chữ sửa riêng từng ngôn ngữ: khối chưa sửa dùng bản dịch sẵn có nên form mở ra với đúng chữ đang hiển thị, và ngôn ngữ chưa sửa không mượn chữ của ngôn ngữ khác. Ba bước, chủ đề hướng dẫn và bài nổi bật dùng chung cho mọi ngôn ngữ.",

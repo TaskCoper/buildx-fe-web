@@ -491,3 +491,47 @@ Rà soát toàn bộ endpoint đã nối so với Swagger live (133 path / 160 o
 - Response detail trả sẵn URL con (`eventsPath`, `historyPath`, `detailUrl`…) nhưng code tự ghép chuỗi từ id → nên đọc theo path BE trả cho bền với thay đổi routing.
 - Nút Google login không có endpoint BE (mock/trang trí).
 - Admin library thiếu filter server-side (2D/3D, tên) → code tải hết mẫu + lọc client (nặng nếu nhiều mẫu) → đề xuất BE thêm filter cho `GET /admin/library/templates`.
+
+## 8. Nội dung trang chủ do admin biên tập — chờ BE deploy trang `home` (08/10/2026)
+
+Trang chủ đã đọc nội dung biên tập từ `GET /api/v1/pages/home/sections?locale={vi|en}`, cùng cơ chế "khối chữ" mà Cẩm nang đang dùng (`PUT /admin/pages/{pageKey}/sections/{sectionKey}`).
+
+### 1. Đã làm phía site khách
+
+- `page.tsx` gọi API ở **server** (làm mới tối đa 60 giây, quá 4 giây thì bỏ qua) để HTML đầu tiên đã có chữ admin sửa, không bị nháy từ chữ mặc định sang chữ mới.
+- Khối nào chưa lưu, hoặc trường nào để trống, thì giao diện dùng nội dung có sẵn trong `messages/*.json`. Lỗi API hoặc phản hồi sai hình dạng cũng rơi về nội dung có sẵn, nên trang chủ không bao giờ trống vì CMS.
+- Chế độ `NEXT_PUBLIC_USE_MOCK_API=true` không gọi API.
+
+### 2. Chưa nối vì API thiếu (báo BE)
+
+Kiểm tra thật 08/10/2026:
+
+| Lệnh gọi                                 | Kết quả                                                        |
+| ---------------------------------------- | -------------------------------------------------------------- |
+| `GET /pages/handbook/sections?locale=vi` | 200, `value: []` (trang đã khai báo, chưa có bản lưu)          |
+| `GET /pages/home/sections?locale=vi`     | **404** `PageSectionNotFound` — "Trang này chưa được khai báo" |
+
+Source BE (`bmt-be/src/bmt-be.contract/services/handbook/PageSectionCatalog.cs`, kèm `HomePageSectionTests.cs`) **đã khai báo trang `home` với đúng 11 khối** như bảng dưới, nhưng môi trường `bmt-api.vnzdna.com` chưa chạy bản có trang này. FE đã làm màn admin **Nội dung trang chủ** (`/admin/home-content`) theo hình dạng đó; trên môi trường hiện tại màn vẫn mở và soạn được, còn bấm Lưu sẽ nhận 404 của BE cho tới khi deploy. **Đề nghị BE deploy bản có trang `home`.** Mọi trường chữ, ảnh và icon đều không bắt buộc (để trống thì giao diện dùng nội dung có sẵn).
+
+| `sectionKey`   | Trường chữ                                                                                                                                                                                                                                                                                  | Danh sách                                                                                                                               |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `hero`         | `eyebrow`, `titleLead`, `titleAccent`, `subtitle`, `primaryCta`, `secondaryCta`, `cardTitle`, `cardAreaLabel`, `cardAreaValue`, `cardTypeLabel`, `cardTypeValue`, `cardStyleLabel`, `cardStyleValue`, `cardOptionsLabel`, `cardOptionsValue`, `cardTotalLabel`, `cardTotalValue`, `cardCta` | `slides[]` — 1 đến 8 mục `{ imageUrl }` (ảnh nền xoay vòng)                                                                             |
+| `stats`        | —                                                                                                                                                                                                                                                                                           | `items[]` — 5 mục `{ icon, value, label }`                                                                                              |
+| `painPoints`   | `title`, `subtitle`, `note`                                                                                                                                                                                                                                                                 | `items[]` — 5 mục `{ icon, title, description }`                                                                                        |
+| `services`     | `title`, `subtitle`, `viewAll`                                                                                                                                                                                                                                                              | `items[]` — 4 mục `{ icon, title, description, usedAtStep, action }`                                                                    |
+| `journey`      | `title`, `subtitle`, `cta`, `currentStepBadge`, `labelYouDo`, `labelBuildxDoes`, `labelYouGet`                                                                                                                                                                                              | `items[]` — 5 mục theo thứ tự project, design, dossier, contractor, build: `{ title, description, youDo, buildxDoes, youGet, iconUrl }` |
+| `dossiers`     | `title`, `viewAll`, `viewOne`, `tab2d`, `tab3d`                                                                                                                                                                                                                                             | `templateIds2d[]`, `templateIds3d[]` — id mẫu thư viện, giữ đúng thứ tự admin chọn                                                      |
+| `guides`       | `title`, `subtitle`, `viewAll`                                                                                                                                                                                                                                                              | `guideIds[]` — id video Hướng dẫn (tối đa 3 hiển thị)                                                                                   |
+| `consult`      | `title`, `description`, `viewAll`                                                                                                                                                                                                                                                           | —                                                                                                                                       |
+| `brands`       | `title`                                                                                                                                                                                                                                                                                     | `logos[]` — `{ imageUrl, name }`                                                                                                        |
+| `testimonials` | `title`                                                                                                                                                                                                                                                                                     | `reviews[]` — tối đa 12 mục `{ name, meta, quote, avatarUrl }`                                                                          |
+| `cta`          | `title`, `subtitle`, `action`                                                                                                                                                                                                                                                               | —                                                                                                                                       |
+
+### 3. Lưu ý
+
+- `icon` là tên icon của thư viện lucide-react, nhận cả `PencilRuler` lẫn `pencil-ruler`. Tên không tồn tại thì giao diện dùng icon mặc định của vị trí đó, nên BE chỉ cần kiểm tra là chuỗi ngắn (≤ 64 ký tự, chữ, số, gạch ngang).
+- Các trường ảnh (`imageUrl`, `iconUrl`, `avatarUrl`) đi theo quy tắc ảnh thuộc tên miền kho đã có ở các khối khác.
+- Đường dẫn của nút (CTA) **không** nằm trong CMS, chỉ có nhãn.
+- `templateIds2d/3d` và `guideIds` chỉ là danh sách id. Mẫu hoặc video đã ẩn/xóa thì bị bỏ qua, không bù thêm mục khác; nếu admin chưa chọn gì thì trang chủ tự chọn như trước.
+- `stats`, `painPoints`, `journey` phải đủ đúng 5 mục và `services` đúng 4 mục (BE bắt số mục cố định, gắn theo thứ tự thẻ trên giao diện); trường nào của mục để trống thì thẻ đó dùng chữ có sẵn. Vì vậy màn admin ghi cả danh sách khi có thẻ nào đổi.
+- Màn admin làm theo mẫu "Nội dung trang Cẩm nang": lưu từng khối, gửi `expectedVersion`, mỗi ngôn ngữ một bản. Khi trang `home` chưa có trên BE, màn hiện cảnh báo vàng và vẫn cho soạn.
