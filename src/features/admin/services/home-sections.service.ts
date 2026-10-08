@@ -63,6 +63,11 @@ export interface HomeSectionDef {
   key: HomeSectionKey
   fields: readonly HomeField[]
   lists: readonly HomeList[]
+  /**
+   * Giới hạn CHUNG cho tổng số id của mọi danh sách id trong khối (mẫu 2D và 3D cộng lại). Backend chỉ giới hạn từng
+   * danh sách, nên giới hạn chung này do màn admin giữ.
+   */
+  idsTotalMax?: number
 }
 
 /** Giới hạn độ dài mỗi trường chữ. */
@@ -202,7 +207,9 @@ export const HOME_SECTIONS: readonly HomeSectionDef[] = [
     lists: [
       { type: 'ids', name: 'templateIds2d', max: 4, source: 'templates' },
       { type: 'ids', name: 'templateIds3d', max: 4, source: 'templates' }
-    ]
+    ],
+    // Cả hai tab cộng lại chỉ chọn tối đa 4 mẫu.
+    idsTotalMax: 4
   },
   {
     key: 'guides',
@@ -383,6 +390,23 @@ export function buildContent(section: HomeSectionDef, values: Record<string, unk
     }
   }
   return content
+}
+
+/** Số id đang chọn ở mọi danh sách id của khối (bỏ id trống và trùng trong từng danh sách). */
+export function idsUsed(section: HomeSectionDef, values: Record<string, unknown> | undefined): number {
+  let used = 0
+  for (const list of section.lists) {
+    if (list.type !== 'ids') continue
+    const raw = values?.[list.name]
+    const ids = Array.isArray(raw) ? raw.map(clean).filter(Boolean) : []
+    used += new Set(ids).size
+  }
+  return used
+}
+
+/** Khối có giới hạn chung về số id mà đang chọn vượt quá. */
+export function exceedsIdsTotal(section: HomeSectionDef, values: Record<string, unknown> | undefined): boolean {
+  return section.idsTotalMax !== undefined && idsUsed(section, values) > section.idsTotalMax
 }
 
 /** Hai nội dung có giống nhau không (so sâu, bỏ qua thứ tự khóa của đối tượng). */

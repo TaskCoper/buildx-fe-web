@@ -193,3 +193,20 @@ test('tên icon hợp lệ: chữ, số, gạch ngang, tối đa 64 ký tự', (
   for (const ok of ['Camera', 'pencil-ruler', 'Grid2x2']) assert.equal(home.ICON_NAME_PATTERN.test(ok), true, ok)
   for (const bad of ['', 'a b', '<svg>', 'a'.repeat(65)]) assert.equal(home.ICON_NAME_PATTERN.test(bad), false, bad)
 })
+
+test('dossiers: tổng id 2D + 3D tối đa 4, các khối khác không có giới hạn chung', () => {
+  const def = section('dossiers')
+  assert.equal(def.idsTotalMax, 4)
+  for (const other of home.HOME_SECTIONS.filter((item) => item.key !== 'dossiers')) {
+    assert.equal(other.idsTotalMax, undefined, other.key)
+  }
+
+  assert.equal(home.idsUsed(def, { templateIds2d: ['a', 'b'], templateIds3d: ['c'] }), 3)
+  assert.equal(home.idsUsed(def, { templateIds2d: ['a', 'a', ' '], templateIds3d: [] }), 1)
+  assert.equal(home.idsUsed(def, undefined), 0)
+
+  assert.equal(home.exceedsIdsTotal(def, { templateIds2d: ['a', 'b'], templateIds3d: ['c', 'd'] }), false)
+  assert.equal(home.exceedsIdsTotal(def, { templateIds2d: ['a', 'b', 'c'], templateIds3d: ['d', 'e'] }), true)
+  assert.equal(home.exceedsIdsTotal(def, { templateIds2d: ['a', 'b', 'c', 'd'], templateIds3d: [] }), false)
+  assert.equal(home.exceedsIdsTotal(section('guides'), { guideIds: ['a', 'b', 'c', 'd', 'e'] }), false)
+})

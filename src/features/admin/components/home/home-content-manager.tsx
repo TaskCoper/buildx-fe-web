@@ -15,7 +15,9 @@ import {
   HOME_TEXT_MAX_LENGTH,
   ICON_NAME_PATTERN,
   buildContent,
+  exceedsIdsTotal,
   formValuesFor,
+  idsUsed,
   rowDefaults,
   sameContent,
   type HomeField,
@@ -173,7 +175,13 @@ function SectionForm({
     )
     if (!valid) return
 
-    const content = buildContent(section, form.getFieldsValue(true) as Record<string, unknown>, messages)
+    const current = form.getFieldsValue(true) as Record<string, unknown>
+    if (exceedsIdsTotal(section, current)) {
+      message.error(tc('idsTotalExceeded', { max: section.idsTotalMax ?? 0 }))
+      return
+    }
+
+    const content = buildContent(section, current, messages)
 
     // Mọi thứ đã về đúng bản có sẵn: không có gì để lưu, và bản đã lưu (nếu có) trở nên thừa.
     if (Object.keys(content).length === 0) {
@@ -231,7 +239,7 @@ function SectionForm({
           ) : list.type === 'repeat' ? (
             <RepeatRows list={list} section={section} />
           ) : (
-            <IdsField list={list} />
+            <IdsField list={list} section={section} />
           )}
         </div>
       ))}
@@ -438,12 +446,24 @@ function RepeatRows({ list, section }: { list: HomeRepeatList; section: HomeSect
 }
 
 /** Chọn mẫu hoặc video từ kho; thứ tự chọn là thứ tự trên trang. */
-function IdsField({ list }: { list: HomeIdList }) {
+function IdsField({ list, section }: { list: HomeIdList; section: HomeSectionDef }) {
   const tc = useTranslations('admin.homeContent')
+  const form = Form.useFormInstance()
+  const values = Form.useWatch([], form) as Record<string, unknown> | undefined
+
+  // Khối có giới hạn chung (2D + 3D): ô này chỉ chọn thêm được phần còn lại sau khi trừ số đã chọn ở các ô khác.
+  const total = section.idsTotalMax
+  const used = idsUsed(section, values)
+  const raw = values?.[list.name]
+  const own = Array.isArray(raw) ? raw.length : 0
+  const max = total === undefined ? list.max : Math.max(0, Math.min(list.max, total - (used - own)))
 
   return (
-    <Form.Item name={list.name} extra={tc('idsHint', { max: list.max })}>
-      {list.source === 'templates' ? <TemplateIdsSelect max={list.max} /> : <GuideIdsSelect max={list.max} />}
+    <Form.Item
+      name={list.name}
+      extra={total === undefined ? tc('idsHint', { max: list.max }) : tc('idsTotalHint', { max: total, used })}
+    >
+      {list.source === 'templates' ? <TemplateIdsSelect max={max} /> : <GuideIdsSelect max={max} />}
     </Form.Item>
   )
 }

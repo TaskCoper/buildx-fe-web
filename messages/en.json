@@ -5375,6 +5375,8 @@
       "pickTemplates": "Pick up to {max} templates",
       "pickGuides": "Pick up to {max} videos",
       "pickLoadError": "Could not load the list. Try reloading the page.",
+      "idsTotalHint": "Across the 2D and 3D boxes together, pick up to {max} templates ({used} selected). Shown in the order you pick them; a box left empty lets that tab show the newest templates.",
+      "idsTotalExceeded": "Both tabs together can hold at most {max} templates. Remove some and save again.",
       "idsHint": "Up to {max}. Shown in the order you pick them; leave empty to let the home page choose as before.",
       "rowTitle": "Item {index}",
       "moveUp": "Move up",
@@ -5461,11 +5463,11 @@
         "dossiers": {
           "templateIds2d": {
             "title": "Featured 2D drawing templates",
-            "hint": "Pick up to 4. Leave empty and this tab shows the newest templates. Templates that are not 2D are ignored."
+            "hint": "Together with the 3D box, pick up to 4 in total. Leave empty and this tab shows the newest templates. Templates that are not 2D are ignored."
           },
           "templateIds3d": {
             "title": "Featured 3D drawing templates",
-            "hint": "Pick up to 4. Leave empty and this tab shows the newest templates. Templates that are not 3D are ignored."
+            "hint": "Together with the 2D box, pick up to 4 in total. Leave empty and this tab shows the newest templates. Templates that are not 3D are ignored."
           }
         },
         "guides": {

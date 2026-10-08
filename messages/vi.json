@@ -5375,6 +5375,8 @@
       "pickTemplates": "Chọn tối đa {max} mẫu",
       "pickGuides": "Chọn tối đa {max} video",
       "pickLoadError": "Không tải được danh sách. Thử tải lại trang.",
+      "idsTotalHint": "Tổng cả hai ô 2D và 3D chọn tối đa {max} mẫu (đang chọn {used}). Hiện theo đúng thứ tự bạn chọn; ô nào để trống thì tab đó tự lấy các mẫu mới nhất.",
+      "idsTotalExceeded": "Cả hai tab cộng lại chỉ chọn tối đa {max} mẫu. Bỏ bớt mẫu rồi lưu lại.",
       "idsHint": "Tối đa {max}. Hiện theo đúng thứ tự bạn chọn; để trống thì trang chủ tự chọn như trước.",
       "rowTitle": "Mục {index}",
       "moveUp": "Chuyển lên",
@@ -5461,11 +5463,11 @@
         "dossiers": {
           "templateIds2d": {
             "title": "Mẫu bản vẽ 2D nổi bật",
-            "hint": "Chọn tối đa 4 mẫu. Để trống thì tab này lấy các mẫu mới nhất. Mẫu không phải loại 2D sẽ bị bỏ qua."
+            "hint": "Cùng ô 3D, tổng chọn tối đa 4 mẫu. Để trống thì tab này lấy các mẫu mới nhất. Mẫu không phải loại 2D sẽ bị bỏ qua."
           },
           "templateIds3d": {
             "title": "Mẫu bản vẽ 3D nổi bật",
-            "hint": "Chọn tối đa 4 mẫu. Để trống thì tab này lấy các mẫu mới nhất. Mẫu không phải loại 3D sẽ bị bỏ qua."
+            "hint": "Cùng ô 2D, tổng chọn tối đa 4 mẫu. Để trống thì tab này lấy các mẫu mới nhất. Mẫu không phải loại 3D sẽ bị bỏ qua."
           }
         },
         "guides": {

@@ -44,7 +44,7 @@ test('khóa dịch: mọi khóa ghép được đều có chữ ở cả tiếng
     for (const key of ['description', 'edited', 'usingDefault', 'restore', 'restoreConfirm', 'restored']) text(key)
     for (const key of ['unchanged', 'restoredBecauseSame']) text(key)
     for (const key of ['iconHint', 'iconInvalid', 'iconNotFound', 'rowTitle', 'idsHint']) text(key)
-    for (const key of ['pickTemplates', 'pickGuides', 'pickLoadError']) text(key)
+    for (const key of ['pickTemplates', 'pickGuides', 'pickLoadError', 'idsTotalHint', 'idsTotalExceeded']) text(key)
     for (const key of ['moveUp', 'moveDown', 'addRow', 'maxReached', 'locales.vi', 'locales.en']) text(key)
 
     for (const def of home.HOME_SECTIONS) {

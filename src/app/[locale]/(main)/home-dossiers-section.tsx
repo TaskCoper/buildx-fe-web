@@ -17,7 +17,8 @@ const PER_LIBRARY = 4
  * `features/handbook`, nên dữ liệu thư viện 2D/3D và khung hình `TemplateFigure` được dựng ở đây rồi
  * truyền xuống dưới dạng thẻ đã sẵn sàng hiển thị.
  *
- * Admin chọn tối đa 4 mẫu cho mỗi tab (khối `dossiers` của trang chủ) thì hiện đúng các mẫu đó, theo thứ tự đã chọn;
+ * Admin chọn tối đa 4 mẫu cho cả hai tab cộng lại (khối `dossiers` của trang chủ) thì mỗi tab hiện đúng các mẫu đã
+ * chọn thuộc loại của tab, theo thứ tự đã chọn;
  * mẫu bị ẩn hoặc không còn công khai thì tự bị bỏ qua, và tab nào chưa chọn (hoặc chọn xong mà không còn mẫu nào
  * hiện được) thì lấy các mẫu mới nhất như trước.
  */
