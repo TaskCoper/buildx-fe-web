@@ -5369,8 +5369,6 @@
       "restored": "Default restored.",
       "restoredBecauseSame": "The content now matches the default, so the edited version was removed.",
       "unchanged": "Nothing differs from the default yet, so there is nothing to save.",
-      "notDeclaredTitle": "The server has no home page to save to",
-      "notDeclared": "The backend in this environment has not declared the home page yet (404 PageSectionNotFound). You can still view and draft on the current content, but Save will not succeed until the backend is updated.",
       "iconHint": "A lucide-react icon name, for example Camera or pencil-ruler. Leave empty to use the default icon.",
       "iconInvalid": "An icon name contains only letters, digits and hyphens, up to 64 characters.",
       "iconNotFound": "This icon was not found; the home page will use the default icon.",

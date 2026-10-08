@@ -534,4 +534,4 @@ Source BE (`bmt-be/src/bmt-be.contract/services/handbook/PageSectionCatalog.cs`,
 - Đường dẫn của nút (CTA) **không** nằm trong CMS, chỉ có nhãn.
 - `templateIds2d/3d` và `guideIds` chỉ là danh sách id. Mẫu hoặc video đã ẩn/xóa thì bị bỏ qua, không bù thêm mục khác; nếu admin chưa chọn gì thì trang chủ tự chọn như trước.
 - `stats`, `painPoints`, `journey` phải đủ đúng 5 mục và `services` đúng 4 mục (BE bắt số mục cố định, gắn theo thứ tự thẻ trên giao diện); trường nào của mục để trống thì thẻ đó dùng chữ có sẵn. Vì vậy màn admin ghi cả danh sách khi có thẻ nào đổi.
-- Màn admin làm theo mẫu "Nội dung trang Cẩm nang": lưu từng khối, gửi `expectedVersion`, mỗi ngôn ngữ một bản. Khi trang `home` chưa có trên BE, màn hiện cảnh báo vàng và vẫn cho soạn.
+- Màn admin làm theo mẫu "Nội dung trang Cẩm nang": lưu từng khối, gửi `expectedVersion`, mỗi ngôn ngữ một bản. Khi trang `home` chưa có trên BE, màn vẫn hiện form trên nội dung có sẵn; bấm Lưu thì lỗi 404 của BE hiện qua thông báo.

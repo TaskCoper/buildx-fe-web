@@ -5369,8 +5369,6 @@
       "restored": "Đã khôi phục bản mặc định.",
       "restoredBecauseSame": "Nội dung đã trùng bản mặc định nên bản đã sửa được gỡ.",
       "unchanged": "Chưa có gì khác bản mặc định nên chưa cần lưu.",
-      "notDeclaredTitle": "Máy chủ chưa có trang chủ để lưu",
-      "notDeclared": "Backend ở môi trường này chưa khai báo trang chủ (404 PageSectionNotFound). Bạn vẫn xem và soạn được trên nội dung hiện có, nhưng bấm Lưu sẽ chưa thành công cho tới khi backend được cập nhật.",
       "iconHint": "Tên icon thư viện lucide-react, ví dụ Camera hoặc pencil-ruler. Bỏ trống thì dùng icon mặc định.",
       "iconInvalid": "Tên icon chỉ gồm chữ, số và dấu gạch ngang, tối đa 64 ký tự.",
       "iconNotFound": "Không tìm thấy icon này; trang chủ sẽ dùng icon mặc định.",

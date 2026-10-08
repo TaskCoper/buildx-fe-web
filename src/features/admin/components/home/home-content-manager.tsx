@@ -64,7 +64,7 @@ export function HomeContentManager() {
     staleTime: Infinity
   })
 
-  // Backend chưa khai báo trang chủ: vẫn cho xem và soạn trên chữ có sẵn, nhưng nói rõ là chưa lưu được.
+  // Backend chưa khai báo trang chủ (404): vẫn hiện form trên chữ có sẵn; bấm Lưu thì lỗi của BE hiện qua thông báo.
   const notDeclared = isApiError(saved.error) && saved.error.status === 404
   const loadFailed = saved.isError && !notDeclared
   const byKey = new Map((saved.data ?? []).map((section) => [section.sectionKey, section]))
@@ -123,12 +123,7 @@ export function HomeContentManager() {
         />
       }
     >
-      <Space orientation='vertical' size={16} style={{ width: '100%' }}>
-        {notDeclared ? (
-          <Alert type='warning' showIcon title={tc('notDeclaredTitle')} description={tc('notDeclared')} />
-        ) : null}
-        {body}
-      </Space>
+      {body}
     </AdminPage>
   )
 }

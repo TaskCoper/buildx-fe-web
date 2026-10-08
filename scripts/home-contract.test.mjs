@@ -42,7 +42,7 @@ test('khóa dịch: mọi khóa ghép được đều có chữ ở cả tiếng
 
     assert.equal(typeof pick(messages, 'admin.nav.homeContent'), 'string', `${lang}: thiếu admin.nav.homeContent`)
     for (const key of ['description', 'edited', 'usingDefault', 'restore', 'restoreConfirm', 'restored']) text(key)
-    for (const key of ['unchanged', 'restoredBecauseSame', 'notDeclaredTitle', 'notDeclared']) text(key)
+    for (const key of ['unchanged', 'restoredBecauseSame']) text(key)
     for (const key of ['iconHint', 'iconInvalid', 'iconNotFound', 'rowTitle', 'idsHint']) text(key)
     for (const key of ['pickTemplates', 'pickGuides', 'pickLoadError']) text(key)
     for (const key of ['moveUp', 'moveDown', 'addRow', 'maxReached', 'locales.vi', 'locales.en']) text(key)
