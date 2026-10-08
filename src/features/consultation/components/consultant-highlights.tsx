@@ -23,6 +23,10 @@ interface ConsultantHighlightsProps {
    * truyền thẳng `project.buildingType`, không cần bảng ánh xạ nào.
    */
   preferredSpecialtyId?: string
+  /** Tiêu đề, dòng mô tả và nhãn "Xem tất cả" do admin đặt ở trang chủ; không truyền thì dùng chữ có sẵn. */
+  title?: string
+  description?: string
+  viewAllLabel?: string
 }
 
 /** Lịch còn hiệu lực (chưa diễn ra / chưa hủy) — chỉ những lịch này mới tính là "Đã đặt lịch". */
@@ -44,7 +48,12 @@ const ACTIVE_BOOKING_STATUSES = new Set(['pending', 'confirmed'])
  * "Đã đặt lịch" khi hệ thống CÓ lịch hẹn còn hiệu lực với KTS đó (góp ý BuildX:
  * trước đây bấm là đổi ngay, tải lại thì mất, không tạo lịch nào).
  */
-export function ConsultantHighlights({ preferredSpecialtyId }: ConsultantHighlightsProps) {
+export function ConsultantHighlights({
+  preferredSpecialtyId,
+  title,
+  description,
+  viewAllLabel
+}: ConsultantHighlightsProps) {
   const t = useTranslations('consult.home')
   const { data: consultants, isPending } = useConsultants()
   const { isAuthenticated } = useAuth()
@@ -63,9 +72,11 @@ export function ConsultantHighlights({ preferredSpecialtyId }: ConsultantHighlig
         <header className='mb-4 grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-6 gap-y-2 lg:mb-8 lg:gap-x-10'>
           <div className='contents'>
             {/* Cùng khuôn với "Hướng dẫn sử dụng": tiêu đề + một dòng mô tả, không có dòng nhãn. */}
-            <h2 className='text-2xl font-bold tracking-tight text-balance lg:text-[1.75rem]'>{t('titleMobile')}</h2>
+            <h2 className='text-2xl font-bold tracking-tight text-balance lg:text-[1.75rem]'>
+              {title ?? t('titleMobile')}
+            </h2>
             <p className='text-primary-foreground col-span-2 row-start-2 max-w-2xl text-sm text-pretty'>
-              {t('title')}. {t('subtitle')}
+              {description ?? `${t('title')}. ${t('subtitle')}`}
             </p>
           </div>
 
@@ -74,7 +85,7 @@ export function ConsultantHighlights({ preferredSpecialtyId }: ConsultantHighlig
             className='max-lg:h-8 max-lg:shrink-0 hover:text-primary-foreground focus-visible:text-primary-foreground col-start-2 row-start-1 inline-flex items-center gap-1.5 text-sm font-medium underline-offset-4 transition-colors hover:underline focus-visible:underline'
           >
             {/* Mobile: chỉ còn mũi tên, chữ giữ lại cho trình đọc màn hình. */}
-            <span className='max-lg:sr-only'>{t('viewAll')}</span>
+            <span className='max-lg:sr-only'>{viewAllLabel ?? t('viewAll')}</span>
             <ChevronRight className='size-6 lg:hidden' />
             <ArrowRight className='hidden size-4 lg:block' />
           </Link>

@@ -4,6 +4,9 @@ import { Clock, Cog, FileText, House, Users, type LucideIcon } from 'lucide-reac
 import { motion, useReducedMotion } from 'motion/react'
 import { useTranslations } from 'next-intl'
 
+import { useHomeSections } from '@/shared/cms/home-content'
+import { itemText, sectionItems } from '@/shared/cms/home-sections'
+import { NamedIcon } from '@/shared/components/common'
 import { useCountUp } from '@/shared/hooks'
 import { scrollToAndFlash } from '@/shared/lib'
 import { cn } from '@/shared/lib/utils'
@@ -54,6 +57,8 @@ function splitLeadingNumber(value: string): { number: number; suffix: string } |
 export function HomeStats() {
   const t = useTranslations('landing.stats')
   const reduceMotion = useReducedMotion()
+  // Nội dung admin đã lưu (khối `stats`, 5 mục theo đúng thứ tự HOME_STATS); trường trống thì dùng chữ và icon có sẵn.
+  const saved = sectionItems(useHomeSections(), 'stats', 'items')
 
   return (
     <motion.section
@@ -66,17 +71,19 @@ export function HomeStats() {
       {/* Điện thoại: 1 cột dọc, mỗi ô một hàng (icon trái · chữ phải) theo ảnh tham chiếu; ô
           kẻ hàng bằng `border-t` từ ô thứ hai. Từ `lg`: 1 hàng 5 ô. */}
       <ul className='bg-card grid grid-cols-1 overflow-hidden rounded-2xl border shadow-lg lg:grid-cols-5'>
-        {HOME_STATS.map((stat) => {
+        {HOME_STATS.map((stat, index) => {
           const Icon = STAT_ICON[stat]
           const target = STAT_TARGET[stat]
-          const rawValue = t(`${stat}.value`)
+          const item = saved?.[index]
+          const rawValue = itemText(item, 'value') ?? t(`${stat}.value`)
           const parsed = splitLeadingNumber(rawValue)
 
           return (
             <StatCell
               key={stat}
               Icon={Icon}
-              label={t(`${stat}.label`)}
+              iconName={itemText(item, 'icon')}
+              label={itemText(item, 'label') ?? t(`${stat}.label`)}
               rawValue={rawValue}
               parsed={parsed}
               onActivate={target ? () => scrollToAndFlash(target) : undefined}
@@ -90,13 +97,15 @@ export function HomeStats() {
 
 interface StatCellProps {
   Icon: LucideIcon
+  /** Tên icon lucide admin đã đặt; trống thì dùng `Icon`. */
+  iconName?: string
   label: string
   rawValue: string
   parsed: { number: number; suffix: string } | null
   onActivate?: () => void
 }
 
-function StatCell({ Icon, label, rawValue, parsed, onActivate }: StatCellProps) {
+function StatCell({ Icon, iconName, label, rawValue, parsed, onActivate }: StatCellProps) {
   const { ref, display } = useCountUp(parsed?.number ?? 0, { duration: 1.45, delay: 0.1 })
 
   return (
@@ -123,7 +132,9 @@ function StatCell({ Icon, label, rawValue, parsed, onActivate }: StatCellProps) 
         {/* Icon để TRẦN theo ảnh mockup — không ô nền bo góc; rê ô thì không còn nền
             nào hiện sau lưng icon. */}
         <span className='animate-in fade-in-0 slide-in-from-bottom-2 -m-1.5 flex shrink-0 items-center justify-center rounded-full p-1.5 duration-700 ease-out motion-reduce:animate-none'>
-          <Icon
+          <NamedIcon
+            name={iconName}
+            fallback={Icon}
             className='text-primary group-hover:text-brand-orange size-6 shrink-0 transition-colors'
             strokeWidth={1.75}
           />

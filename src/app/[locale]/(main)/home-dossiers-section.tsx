@@ -5,6 +5,8 @@ import { useMemo } from 'react'
 
 import { TemplateFigure, useHandbookTemplates, type HandbookTemplate } from '@/features/handbook'
 import { HomeDossiers, type HomeTemplateFactKind, type HomeTemplateItem } from '@/features/landing'
+import { useHomeSections } from '@/shared/cms/home-content'
+import { pickByIds, sectionIds } from '@/shared/cms/home-sections'
 import { handbookTemplateRoute } from '@/shared/constants/routes'
 
 /** Số mẫu lấy từ MỖI thư viện: 4 thẻ đầu là bản vẽ 2D, 4 thẻ sau là nội thất 3D. */
@@ -14,16 +16,29 @@ const PER_LIBRARY = 4
  * App-layer glue cho dải "Danh sách thư viện mẫu" ở trang chủ: `features/landing` không import được
  * `features/handbook`, nên dữ liệu thư viện 2D/3D và khung hình `TemplateFigure` được dựng ở đây rồi
  * truyền xuống dưới dạng thẻ đã sẵn sàng hiển thị.
+ *
+ * Admin chọn tối đa 4 mẫu cho mỗi tab (khối `dossiers` của trang chủ) thì hiện đúng các mẫu đó, theo thứ tự đã chọn;
+ * mẫu bị ẩn hoặc không còn công khai thì tự bị bỏ qua, và tab nào chưa chọn (hoặc chọn xong mà không còn mẫu nào
+ * hiện được) thì lấy các mẫu mới nhất như trước.
  */
 export function HomeDossiersSection() {
   const tCard = useTranslations('handbook.card')
+  const sections = useHomeSections()
   const { data: templates, isPending } = useHandbookTemplates()
 
   const items = useMemo<HomeTemplateItem[] | undefined>(() => {
     if (isPending) return undefined
     const all = templates ?? []
-    const pick = (kind: HandbookTemplate['kind']) =>
-      all.filter((template) => template.kind === kind).slice(0, PER_LIBRARY)
+    const pick = (kind: HandbookTemplate['kind']) => {
+      const ofKind = all.filter((template) => template.kind === kind)
+      const chosen = pickByIds(
+        ofKind,
+        sectionIds(sections, 'dossiers', kind === '2d' ? 'templateIds2d' : 'templateIds3d'),
+        (template) => template.id,
+        PER_LIBRARY
+      )
+      return chosen && chosen.length > 0 ? chosen : ofKind.slice(0, PER_LIBRARY)
+    }
 
     const toItem = (template: HandbookTemplate): HomeTemplateItem => {
       const { specs } = template
@@ -57,7 +72,7 @@ export function HomeDossiersSection() {
     }
 
     return [...pick('2d'), ...pick('3d')].map(toItem)
-  }, [isPending, templates, tCard])
+  }, [isPending, templates, tCard, sections])
 
   return <HomeDossiers items={items} />
 }
