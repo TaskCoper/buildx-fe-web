@@ -508,7 +508,9 @@
       "StillValidating": "Tệp đang được kiểm tra lâu hơn dự kiến. Vui lòng thử lại sau ít phút.",
       "TooLarge": "Tệp vượt quá dung lượng cho phép.",
       "ExportFailed": "Chưa tạo được tệp xuất. Vui lòng thử lại.",
-      "AuditLogImmutable": "Nhật ký không thể sửa hoặc xoá."
+      "AuditLogImmutable": "Nhật ký không thể sửa hoặc xoá.",
+      "InvalidCmsCacheTarget": "Trang hoặc ngôn ngữ cần làm mới không hợp lệ.",
+      "CmsAuthorizationUnavailable": "Chưa kiểm tra được quyền làm mới nội dung. Vui lòng thử lại."
     }
   },
   "validation": {
@@ -2834,6 +2836,7 @@
       "consult": "Tư vấn 1:1",
       "people": "Khách hàng",
       "library": "Thư viện",
+      "content": "Nội dung",
       "catalog": "Danh mục công trình",
       "packages": "Gói dịch vụ",
       "access": "Nhân sự & phân quyền"
@@ -2856,10 +2859,10 @@
     },
     "nav": {
       "handbookNewsletter": "Bản tin Cẩm nang",
-      "homeContent": "Nội dung trang chủ",
-      "footerContent": "Chân trang & Về BuildX",
-      "contractorsContent": "Trang Tìm nhà thầu",
-      "handbookContent": "Nội dung trang Cẩm nang",
+      "homeContent": "Trang chủ",
+      "footerContent": "Footer",
+      "contractorsContent": "Tìm nhà thầu",
+      "handbookContent": "Cẩm nang",
 
       "dashboard": "Việc cần xử lý",
       "templates": "Thư viện mẫu",
@@ -5426,6 +5429,9 @@
       "notShownEmpty": "Khối chưa có bài nào nên trang Cẩm nang đang ẩn cả dải Bản tin. Thêm bài đang công bố để dải này hiển thị.",
       "notShownAllHidden": "Không có bài nào trong khối đang công bố nên trang Cẩm nang đang ẩn cả dải Bản tin. Công bố lại một bài đã xếp hoặc thêm bài khác.",
       "states": { "Draft": "Nháp", "Published": "Đã công bố", "Hidden": "Đang ẩn" }
+    },
+    "cmsCache": {
+      "refreshFailed": "Nội dung đã lưu nhưng chưa làm mới được trang công khai. Trang sẽ cập nhật theo chu kỳ làm mới tự động."
     },
     "homeContent": {
       "contractorsDescription": "Chữ, ảnh đầu trang và icon của trang Tìm nhà thầu, chia 5 khối theo đúng thứ tự khi cuộn trang: đầu trang, bốn cam kết, An toàn & minh bạch, câu hỏi thường gặp và dải kêu gọi cuối trang. Mỗi ngôn ngữ lưu riêng: khối chưa sửa dùng nội dung có sẵn nên form mở ra với đúng chữ đang hiển thị, và chỉ phần khác bản có sẵn mới được lưu. Đường dẫn của các nút do ứng dụng giữ, không sửa ở đây.",

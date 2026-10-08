@@ -508,7 +508,9 @@
       "StillValidating": "The file is taking longer than expected to check. Please try again in a few minutes.",
       "TooLarge": "The file is larger than allowed.",
       "ExportFailed": "The export file couldn't be created. Please try again.",
-      "AuditLogImmutable": "Audit logs can't be edited or deleted."
+      "AuditLogImmutable": "Audit logs can't be edited or deleted.",
+      "InvalidCmsCacheTarget": "The page or language to refresh is invalid.",
+      "CmsAuthorizationUnavailable": "Unable to verify content refresh permissions. Please try again."
     }
   },
   "validation": {
@@ -2834,6 +2836,7 @@
       "consult": "1:1 consultation",
       "people": "Customers",
       "library": "Library",
+      "content": "Content",
       "catalog": "Construction catalogue",
       "packages": "Plans",
       "access": "Staff & access"
@@ -2856,10 +2859,10 @@
     },
     "nav": {
       "handbookNewsletter": "Handbook newsletter",
-      "homeContent": "Home page content",
-      "footerContent": "Footer & About BuildX",
-      "contractorsContent": "Find contractors page",
-      "handbookContent": "Handbook page content",
+      "homeContent": "Home",
+      "footerContent": "Footer",
+      "contractorsContent": "Find contractors",
+      "handbookContent": "Handbook",
 
       "dashboard": "To-do",
       "templates": "Template library",
@@ -5426,6 +5429,9 @@
       "notShownEmpty": "The block has no articles, so the handbook page is hiding the whole newsletter strip. Add a published article to show it.",
       "notShownAllHidden": "None of the articles in the block is published, so the handbook page is hiding the whole newsletter strip. Republish one of them or add another article.",
       "states": { "Draft": "Draft", "Published": "Published", "Hidden": "Hidden" }
+    },
+    "cmsCache": {
+      "refreshFailed": "Content was saved, but the public page could not be refreshed. It will update during automatic revalidation."
     },
     "homeContent": {
       "contractorsDescription": "Text, hero image and icons of the Find contractors page, in 5 blocks in scroll order: hero, the four promises, Safe & transparent, FAQ and the closing call to action. Each language is saved separately: a block you have not edited uses the built-in content, so the form opens with exactly what visitors see, and only what differs from the built-in text is saved. Button links are kept by the app and cannot be edited here.",

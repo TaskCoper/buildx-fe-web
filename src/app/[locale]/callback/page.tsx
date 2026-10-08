@@ -9,8 +9,8 @@ import { ROUTES } from '@/shared/constants/routes'
 import { pageMetadata } from '@/shared/lib/page-metadata'
 
 /**
- * ISR: trang dựng sẵn rồi làm mới nền sau mỗi chừng này giây (khớp chu kỳ lấy nội dung CMS ở server). Backend còn gọi
- * webhook `/api/revalidate` để làm mới ngay khi admin lưu. Phải là số viết thẳng: Next đọc giá trị này lúc build.
+ * Cache khung dùng chung 60 giây; query, token và dữ liệu được xử lý ở client.
+ * Sau thời hạn, lượt truy cập tiếp theo kích hoạt làm mới nền.
  */
 export const revalidate = 60
 

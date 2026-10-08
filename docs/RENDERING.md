@@ -1,63 +1,35 @@
-# Cách dựng trang: site khách (ISR) và khu quản trị (CSR)
+# Cách dựng trang và lưu cache
 
-Cập nhật: 08/10/2026.
+Các trang khách hiện dùng ISR 60 giây để cache HTML công khai hoặc khung trang dùng chung. Dữ liệu tài khoản, dự án, đơn hàng và quyền admin được lấy ở client bằng phiên hiện tại. Nội dung CMS có webhook riêng để hết hạn cache ngay sau khi lưu.
 
-## Tóm tắt
+## ISR của site khách
 
-- **Site của khách** (mọi route ngoài `(admin)`): dựng sẵn HTML rồi làm mới nền sau mỗi **60 giây** (ISR). Backend còn gọi webhook để làm mới **ngay** khi admin lưu hoặc xóa nội dung.
-- **Khu quản trị** (`/admin/...`): chỉ chạy ở trình duyệt (CSR). HTML trả về chỉ có vòng quay chờ, không có nội dung quản trị.
-- Kiểm bằng `pnpm test:rendering` (đọc mã nguồn, chạy trong vài giây). Việc dựng thật xem mục "Kiểm tra thực tế" ở cuối.
+Layout `(main)`, `(auth)` và `(checkout)` khai báo `revalidate = 60`. Các trang `callback`, `share/[token]` và `estimates/shared/[shareId]` khai báo cùng thời hạn. Trang có đoạn đường dẫn động trả `generateStaticParams() => []`, nên Next dựng và cache khi đường dẫn đó được mở lần đầu. `[...rest]` và route chuyển hướng admin cũ vẫn là trang động.
 
-## Site của khách: ISR
+60 giây là thời hạn cache. Sau thời hạn, lượt truy cập tiếp theo có thể nhận bản cũ và kích hoạt dựng lại ở nền. Nếu không có truy cập hoặc backend lỗi, nội dung không được bảo đảm cập nhật sau đúng 60 giây. Đây là hành vi [ISR của Next.js](https://nextjs.org/docs/app/guides/incremental-static-regeneration).
 
-Mỗi trang khách là một trang tĩnh (`●` trong bảng route của `next build`) kèm thời gian làm mới. Phản hồi có `Cache-Control: s-maxage=60, stale-while-revalidate=…` và `x-nextjs-cache: HIT`. Hết 60 giây, người xem kế tiếp vẫn nhận ngay bản cũ (`STALE`) và Next dựng lại bản mới ở nền.
+ISR hiện chỉ lưu khung dùng chung của các trang riêng tư. Server không đọc cookie đăng nhập để lấy hồ sơ, dự án hay đơn hàng rồi đưa các dữ liệu đó vào HTML chung. `AuthBootstrap` xác nhận `/users/me` ở client trước khi dựng nội dung riêng tư; backend kiểm quyền cho mỗi request dữ liệu. Khi thêm dữ liệu theo phiên vào Server Component, phải đánh giá lại cách dựng và dùng SSR động khi cần. Không ép mọi tính năng tương lai phải dùng ISR.
 
-Quy tắc để một trang giữ được ISR:
+Các query `createProject`, `project`, `plan`, `offer`, `tab`, `request` và `stage` được đọc bằng `useSearchParams()` ở client. Query không tạo bản cache HTML riêng. Trang bảng giá giám sát có `Suspense` cục bộ với bảng giá công khai làm fallback, nên HTML ban đầu vẫn có bảng giá. Các trang riêng tư chờ xác thực trước khi hiện dữ liệu. Next.js giải thích ảnh hưởng của hook này tới HTML tĩnh tại [useSearchParams](https://nextjs.org/docs/app/api-reference/functions/use-search-params).
 
-1. **Không đọc dữ liệu theo từng request ở server.** Cấm `searchParams` (prop của `page.tsx`), `cookies()`, `headers()`, `draftMode()`, `connection()`, `export const dynamic` và `fetch(..., { cache: 'no-store' })` trong `page.tsx` và `layout.tsx` của site khách. Chỉ một lần dùng là cả trang thành động (`ƒ`), không còn được lưu đệm.
-2. **Tham số truy vấn (`?project=`, `?tab=`…) đọc ở client** bằng `useSearchParams()` trong một component client nhỏ cạnh trang (ví dụ `contractor-firm-view.tsx`). Trang công khai có nội dung cần cho tìm kiếm thì bọc component đó trong `<Suspense fallback={bản không có tham số}>` (ví dụ `plans/supervision`), để HTML dựng sẵn vẫn đủ nội dung.
-3. **Trang có đoạn đường dẫn động** (`[projectId]`, `[slug]`…) phải có `generateStaticParams` trả `[]`: không dựng sẵn trang nào lúc build, trang đầu tiên được mở sẽ được dựng rồi lưu đệm (ISR theo yêu cầu). Ngoại lệ có chủ ý: `[...rest]` (404) để động, vì lưu đệm mỗi đường dẫn lạ sẽ làm đầy bộ nhớ đệm.
-4. **Mỗi cụm trang khai báo `export const revalidate = 60`** (số viết thẳng, Next đọc lúc build): layout của `(main)`, `(auth)`, `(checkout)` và các trang đứng ngoài nhóm (`callback`, `share/[token]`, `estimates/shared/[shareId]`).
-5. **Layout dùng `Link` của `@/i18n/navigation` ở server phải tự gọi `setRequestLocale(locale)`.** Layout con chạy trước khi trang đặt ngôn ngữ; thiếu bước này next-intl đọc `headers()` và cả nhóm trang thành động (từng làm `/forgot-password` mất ISR).
-6. **Dữ liệu theo người dùng nằm ở client** (TanStack Query, phiên đăng nhập qua cookie httpOnly). Trang chỉ là khung dùng chung, nên các trang cần đăng nhập vẫn ISR được.
+Layout đăng nhập tự gọi `setRequestLocale(locale)` trước khi dựng `Link` của next-intl. Nhờ vậy, việc xác định ngôn ngữ không phải đọc header của từng request và làm cả nhóm trang thành động.
 
-### Làm mới ngay khi admin sửa nội dung (webhook)
+## Admin lấy dữ liệu ở client
 
-Nội dung CMS ở server (trang chủ, chân trang, trang pháp lý, trang Tìm nhà thầu) lấy qua `fetchPageSections`: `GET /pages/{pageKey}/sections`, làm mới 60 giây, **gắn thẻ `page-sections:{pageKey}`**. Backend gọi webhook sau khi transaction lưu hoặc xóa khối chữ đã commit:
+`(admin)/layout.tsx` giữ metadata `noindex`, `nofollow` và CSS, rồi import `AdminApp`, một Client Component. Next tải mã khung admin theo route cùng lúc với kiểm tra phiên. HTML ban đầu chỉ có loading; form và dữ liệu quản trị xuất hiện sau khi client xác nhận phiên và quyền.
 
-```
-POST {CLIENT_BASE_URL}/api/revalidate
-x-revalidate-secret: <khóa>
-{ "tags": ["page-sections:home"] }        // hoặc "paths": ["/vi/contractors"]
-```
+Không dùng thêm `dynamic(..., { ssr: false })` cho toàn bộ khung admin. Trong bản thử nghiệm, root guard đã chặn dựng khung khi chưa xác thực, nên cách này tạo một bước tải nối tiếp: `/users/me` trả về, sau đó trình duyệt mới yêu cầu module khung admin. Import trực tiếp bỏ bước chờ này, vẫn giữ dữ liệu ở client và Ant Design trong nhóm route admin. `ssr: false` vẫn phù hợp với thành phần thật sự cần API riêng của trình duyệt; xem [hướng dẫn lazy loading](https://nextjs.org/docs/app/guides/lazy-loading).
 
-- Làm mới theo thẻ nên một lần gọi cập nhật mọi trang đã dùng khối chữ đó, kể cả chân trang nằm trong layout của cả nhóm trang.
-- Thẻ hết hạn ngay (`expire: 0`): người xem kế tiếp nhận bản mới, không phải bản cũ trong lúc nó làm mới ngầm.
-- Trả `200 { revalidated, tags, paths }`; `401` khóa sai; `400` nội dung sai khuôn (thẻ `[a-z0-9:_-]`, tối đa 64 ký tự; đường dẫn bắt đầu bằng `/`; tối đa 20 mục); `503` khi chưa đặt khóa (webhook tắt); chỉ nhận `POST`.
-- Khóa so sánh bằng `timingSafeEqual`. Webhook chỉ là tăng tốc: lỗi hay chưa cấu hình thì trang vẫn tự làm mới sau tối đa 60 giây.
+CSR không thay thế phân quyền của backend. Cookie `bmt.auth` chỉ giúp điều hướng sớm; marker này không chứng minh phiên hợp lệ. Cache HTML loading của admin cũng không chứa quyền hay hồ sơ của người dùng.
 
-Cấu hình, hai phía phải **cùng một giá trị**:
+## Làm mới nội dung CMS
 
-| Phía     | Biến                                  | Ghi chú                                                        |
-| -------- | ------------------------------------- | -------------------------------------------------------------- |
-| Frontend | `REVALIDATE_SECRET` (container chạy)  | Để trống thì webhook tắt (503)                                 |
-| Backend  | `FRONTEND_REVALIDATE_SECRET` (GitHub) | Để trống thì backend không gọi webhook                         |
-| Backend  | `CLIENT_BASE_URL` (đã có)             | Địa chỉ web mà backend gọi: `{CLIENT_BASE_URL}/api/revalidate` |
+Hợp đồng duy nhất là `POST /api/cms/revalidate`, payload `{ "pageKey": "home", "locale": "vi" }`, tag `cms:{pageKey}:{locale}`. Backend giao thông báo qua Outbox sau commit. Next gọi `revalidateTag(tag, { expire: 0 })` và `revalidatePath` để lần đọc tiếp theo lấy nội dung mới. Xem [CMS_CACHE.md](CMS_CACHE.md) để cấu hình secret, quyền gọi API và phạm vi Footer.
 
-Tạo khóa: `openssl rand -hex 32`. Server của web cũng cần `BMT_API_ORIGIN` lúc chạy (đã thêm vào `.docker/compose.yaml`) để tự gọi API khi dựng và làm mới trang.
+API không đẩy HTML mới tới tab đang mở. Người đọc cần tải lại hoặc điều hướng lại. Khi có CDN ngoài Next.js hay nhiều instance dùng cache riêng, cần xử lý tầng cache đó khi triển khai.
 
-## Khu quản trị: CSR
+## Kiểm chứng
 
-`(admin)/layout.tsx` chỉ giữ tiêu đề tab (`noindex`) và CSS. Toàn bộ bộ khung (Ant Design, kiểm tra đăng nhập, kiểm tra quyền, menu) nằm trong `AdminApp` và được nạp bằng `next/dynamic` với `ssr: false` ở `AdminClientRoot`. Vì vậy:
+Chạy `pnpm build`, sau đó `pnpm test:rendering`. Bộ test chạy output standalone trong thư mục cache riêng và gọi API fixture chỉ đọc. Nó kiểm manifest production, header ISR, cache HIT, nội dung Home và Footer sau webhook, HTML bảng giá có query, khung riêng tư không gọi `/users/me` ở server, loading/noindex của admin và chuyển hướng khách chưa đăng nhập. CI chạy bộ test sau build.
 
-- HTML của mọi trang `/admin/...` chỉ có vòng quay chờ; sau khi hydrate mới tải bộ khung admin rồi kiểm tra phiên và quyền.
-- Trang admin không tự lấy dữ liệu ở server; dữ liệu đi qua TanStack Query ở client.
-- Trang có đoạn động (`customers/[id]`) có `generateStaticParams` để vẫn là khung tĩnh dùng chung.
-
-## Kiểm tra thực tế
-
-`pnpm test:rendering` đọc mã nguồn để giữ các quy tắc trên. Để kiểm thật, chạy bản build production:
-
-1. `next build`: cột bên phải bảng route phải ghi `1m 1y` cho trang khách; chỉ `[...rest]`, `/admin/contractors/[id]` (chuyển hướng cũ) và các `/api/*` là `ƒ`.
-2. `next start` (hoặc container) rồi gọi: `curl -sI /vi/contractors` phải có `x-nextjs-cache: HIT` và `s-maxage=60`; `curl -s /vi/admin/orders` chỉ có vòng quay chờ.
-3. Gọi webhook với đúng khóa rồi tải lại trang khách: nội dung mới phải hiện ngay, không phải chờ 60 giây.
+Các test này không kiểm luồng thanh toán hay tích hợp database thật. Khi sửa query hoặc guard, kiểm thêm trên trình duyệt với tài khoản/fixture phù hợp: tab nhà thầu, giai đoạn giám sát, dự án gắn với gói mua và quyền truy cập admin. Không dùng kiểm tra chuỗi trong source code để kết luận ISR/CSR chạy đúng.

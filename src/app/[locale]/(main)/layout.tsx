@@ -5,8 +5,9 @@ import { ChatDock } from '../chat-dock'
 import { MainChrome } from './main-chrome'
 
 /**
- * ISR: trang dựng sẵn rồi làm mới nền sau mỗi chừng này giây (khớp chu kỳ lấy nội dung CMS ở server). Backend còn gọi
- * webhook `/api/revalidate` để làm mới ngay khi admin lưu. Phải là số viết thẳng: Next đọc giá trị này lúc build.
+ * Khung trang dùng chung có ISR 60 giây. Sau thời hạn, lượt truy cập tiếp theo
+ * kích hoạt làm mới nền; CMS có webhook /api/cms/revalidate để hết hạn ngay.
+ * Phải là số viết thẳng vì Next đọc giá trị này lúc build.
  */
 export const revalidate = 60
 

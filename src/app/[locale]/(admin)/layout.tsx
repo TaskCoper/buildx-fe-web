@@ -3,7 +3,7 @@ import { getTranslations } from 'next-intl/server'
 import type { ReactNode } from 'react'
 
 import type { Locale } from '@/i18n/routing'
-import { AdminClientRoot } from './admin-client-root'
+import { AdminApp } from './admin-app'
 
 import './admin.css'
 
@@ -20,10 +20,11 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 /**
  * Khung khu quản trị — route group `(admin)` nên URL vẫn là `/admin/...`.
  *
- * Khu này là CSR: layout chỉ giữ tiêu đề tab và CSS, còn toàn bộ bộ khung (Ant Design, kiểm tra đăng nhập, quyền, menu)
- * nằm trong `AdminApp` và chỉ chạy ở trình duyệt (xem `AdminClientRoot`). Trái với site của khách, nơi trang được dựng sẵn
- * và làm mới theo chu kỳ (ISR).
+ * Dữ liệu và quyền được kiểm tra ở client. Import trực tiếp để Next tải mã
+ * khung admin cùng lúc với kiểm tra phiên, tránh chờ /users/me rồi mới tải
+ * thêm một module qua dynamic ssr:false. AuthBootstrap vẫn trả loading trong
+ * HTML ban đầu; không đưa hồ sơ hay dữ liệu quản trị vào cache của server.
  */
 export default function AdminLayout({ children }: { children: ReactNode }) {
-  return <AdminClientRoot>{children}</AdminClientRoot>
+  return <AdminApp>{children}</AdminApp>
 }

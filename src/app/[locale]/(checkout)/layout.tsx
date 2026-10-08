@@ -4,8 +4,8 @@ import { CheckoutHeader } from '@/shared/layouts'
 import { ChatDock } from '../chat-dock'
 
 /**
- * ISR: trang dựng sẵn rồi làm mới nền sau mỗi chừng này giây (khớp chu kỳ lấy nội dung CMS ở server). Backend còn gọi
- * webhook `/api/revalidate` để làm mới ngay khi admin lưu. Phải là số viết thẳng: Next đọc giá trị này lúc build.
+ * Cache khung dùng chung; thông tin đơn hàng và thanh toán chỉ lấy ở client
+ * bằng phiên hiện tại, không đưa vào HTML dùng chung của ISR.
  */
 export const revalidate = 60
 

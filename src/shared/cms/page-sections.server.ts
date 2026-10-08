@@ -1,5 +1,5 @@
 import { indexHomeSections, type BmtPageSection, type HomeSections } from './home-sections'
-import { pageSectionsTag } from './revalidation'
+import { cmsCacheTag } from './cms-cache'
 
 /**
  * Lấy các khối chữ công khai của một trang (`GET /pages/{pageKey}/sections`), chạy ở SERVER. Dùng chung cho trang chủ,
@@ -11,7 +11,7 @@ import { pageSectionsTag } from './revalidation'
 
 const API_ORIGIN = (process.env.BMT_API_ORIGIN ?? 'https://bmt-api.vnzdna.com').replace(/\/$/, '')
 
-/** Admin sửa xong thấy trên trang trong tối đa chừng này giây (trang được dựng sẵn và làm mới định kỳ). */
+/** Làm mới định kỳ dự phòng; admin lưu thành công sẽ xoá cache theo tag ngay. */
 const REVALIDATE_SECONDS = 60
 
 /** Quá thời gian này thì bỏ qua CMS, dùng nội dung có sẵn. */
@@ -31,8 +31,7 @@ export async function fetchPageSections(pageKey: string, locale: string): Promis
       `${API_ORIGIN}/api/v1/pages/${encodeURIComponent(pageKey)}/sections?locale=${encodeURIComponent(locale)}`,
       {
         headers: { Accept: 'application/json' },
-        // Thẻ để backend làm mới ngay qua webhook `/api/revalidate` khi admin lưu, không phải chờ hết chu kỳ.
-        next: { revalidate: REVALIDATE_SECONDS, tags: [pageSectionsTag(pageKey)] },
+        next: { revalidate: REVALIDATE_SECONDS, tags: [cmsCacheTag(pageKey, locale)] },
         signal: AbortSignal.timeout(TIMEOUT_MS)
       }
     )

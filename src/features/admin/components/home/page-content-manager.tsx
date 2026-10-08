@@ -21,9 +21,11 @@ import { useTranslations } from 'next-intl'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 
 import { isApiError } from '@/shared/lib/api'
+import type { CmsPageKey } from '@/shared/cms/cms-cache'
 import { adminKeys } from '../../api/admin.keys'
 import type { BmtPageSectionAdmin, BmtPageSectionWrite } from '../../api/bmt/handbook.api'
 import { useUnsavedGuard } from '../../hooks/use-unsaved-guard'
+import { useCmsCacheRefresh } from '../../hooks/use-cms-cache-refresh'
 import {
   HOME_HTML_MAX_LENGTH,
   HOME_TEXT_MAX_LENGTH,
@@ -62,8 +64,8 @@ export interface PageSectionsApi {
 
 /** Mô tả một màn sửa nội dung trang theo khối. Các giá trị nên là hằng ở cấp module để tham chiếu ổn định. */
 export interface PageContentManagerProps {
-  /** Mã trang trên backend; chỉ dùng để tách khóa cache giữa các màn. */
-  pageKey: string
+  /** Mã trang trên backend, dùng cho cache admin và cache trang công khai. */
+  pageKey: CmsPageKey
   sections: readonly HomeSectionDef[]
   api: PageSectionsApi
   title: string
@@ -196,7 +198,7 @@ function PageContentForm({
   messages,
   onPendingChange
 }: {
-  pageKey: string
+  pageKey: CmsPageKey
   sections: readonly HomeSectionDef[]
   api: PageSectionsApi
   locale: ContentLocale
@@ -207,6 +209,7 @@ function PageContentForm({
   const t = useTranslations('admin')
   const tc = useTranslations('admin.homeContent')
   const texts = useHomeTexts()
+  const refreshCmsCache = useCmsCacheRefresh()
   const { message } = App.useApp()
   const { token } = theme.useToken()
   const queryClient = useQueryClient()
@@ -293,6 +296,8 @@ function PageContentForm({
     }
     const done = succeeded.length
 
+    if (done > 0) await refreshCmsCache(pageKey, locale)
+
     await refresh()
     const fresh = queryClient.getQueryData<BmtPageSectionAdmin[]>(sectionsKeyOf(pageKey, locale)) ?? []
 
@@ -333,6 +338,7 @@ function PageContentForm({
     setBusy(true)
     try {
       await api.deleteSection(section.key, locale)
+      await refreshCmsCache(pageKey, locale)
       await refresh()
       form.setFieldValue(section.key, formValuesFor(section, undefined, messages))
       const after = readValues()

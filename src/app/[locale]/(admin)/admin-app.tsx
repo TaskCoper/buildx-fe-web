@@ -9,7 +9,8 @@ import { AdminAccount } from './admin-account'
 import { AdminForbidden } from './admin-forbidden'
 
 /**
- * Ứng dụng khu quản trị, chỉ chạy ở trình duyệt (xem `AdminClientRoot`).
+ * Khung quản trị và dữ liệu theo phiên được dựng sau khi client xác nhận /users/me.
+ * Mã khung thuộc bundle của route admin, được tải song song với kiểm tra phiên.
  *
  * Ba lớp bọc, từ ngoài vào:
  *   1. `AntdProvider` — chỉ nhánh này nạp Ant Design, site công khai không dính.

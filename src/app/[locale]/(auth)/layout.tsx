@@ -10,8 +10,8 @@ import { Logo } from '@/shared/components/common'
 import { ROUTES } from '@/shared/constants/routes'
 
 /**
- * ISR: trang dựng sẵn rồi làm mới nền sau mỗi chừng này giây (khớp chu kỳ lấy nội dung CMS ở server). Backend còn gọi
- * webhook `/api/revalidate` để làm mới ngay khi admin lưu. Phải là số viết thẳng: Next đọc giá trị này lúc build.
+ * Cache khung dùng chung; kiểm tra phiên và dữ liệu xác thực nằm ở client.
+ * Sau 60 giây, lượt truy cập tiếp theo kích hoạt làm mới nền.
  */
 export const revalidate = 60
 
