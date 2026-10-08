@@ -193,3 +193,50 @@ test('formValuesFor ưu tiên bản đã lưu, thiếu thì dùng chữ mặc đ
   assert.equal(values.title, 'Đã sửa')
   assert.equal(values.eyebrow, 'Kicker mặc định')
 })
+
+test('sortedRoots chỉ lấy danh mục gốc theo thứ tự rồi định danh', () => {
+  const list = [category('b', null, { sortOrder: 1 }), category('child', 'b'), category('a', null, { sortOrder: 0 })]
+  assert.deepEqual(
+    logic.sortedRoots(list).map((c) => c.id),
+    ['a', 'b']
+  )
+})
+
+// Dãy gốc chung: r0(nhãn) t1(bước 1) r2(nhãn) t3(bước 1) t4(bước 3) t5(bước 1) r6(nhãn)
+const roots = [
+  category('r0', null, { sortOrder: 0 }),
+  category('t1', null, { sortOrder: 1, isInstruction: true, stageId: 'S1' }),
+  category('r2', null, { sortOrder: 2 }),
+  category('t3', null, { sortOrder: 3, isInstruction: true, stageId: 'S1' }),
+  category('t4', null, { sortOrder: 4, isInstruction: true, stageId: 'S3' }),
+  category('t5', null, { sortOrder: 5, isInstruction: true, stageId: 'S1' }),
+  category('r6', null, { sortOrder: 6 })
+]
+const stage1 = roots.filter((r) => r.stageId === 'S1')
+
+test('topicMove lên: đứng ngay trước chủ đề liền trước của cùng bước, bỏ qua danh mục khác bước chen giữa', () => {
+  assert.equal(logic.topicMove(roots, stage1, 2, 'up').before.id, 't3')
+  assert.equal(logic.topicMove(roots, stage1, 1, 'up').before.id, 't1')
+  assert.equal(logic.topicMove(roots, stage1, 0, 'up'), null, 'đã ở đầu bước')
+})
+
+test('topicMove xuống: đứng trước danh mục gốc kế tiếp sau chủ đề liền sau, kể cả khi có chủ đề của bước khác chen', () => {
+  // t1 xuống: phải đứng sau t3 (chủ đề kế của bước 1), tức trước t4 (gốc kế sau t3), dù t4 thuộc bước 3.
+  assert.equal(logic.topicMove(roots, stage1, 0, 'down').before.id, 't4')
+  // t3 xuống: sau t5, tức trước r6.
+  assert.equal(logic.topicMove(roots, stage1, 1, 'down').before.id, 'r6')
+  assert.equal(logic.topicMove(roots, stage1, 2, 'down'), null, 'đã ở cuối bước')
+})
+
+test('topicMove xuống: chủ đề liền sau là danh mục gốc cuối cùng thì xuống cuối dãy (before = null)', () => {
+  const tail = [
+    category('t1', null, { sortOrder: 0, stageId: 'S1' }),
+    category('t2', null, { sortOrder: 1, stageId: 'S1' })
+  ]
+  assert.deepEqual(logic.topicMove(tail, tail, 0, 'down'), { before: null })
+})
+
+test('topicMove bỏ qua chỉ số ngoài danh sách', () => {
+  assert.equal(logic.topicMove(roots, stage1, -1, 'up'), null)
+  assert.equal(logic.topicMove(roots, stage1, 9, 'down'), null)
+})

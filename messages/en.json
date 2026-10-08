@@ -1110,7 +1110,8 @@
       "viewAll": "See all articles",
       "newBadge": "New",
       "readTime": "{minutes} min read",
-      "titleMobile": "Home-building handbook"
+      "titleMobile": "Home-building handbook",
+      "loadError": "Could not load the latest articles. Try reloading the page."
     },
     "card": {
       "imageCount": "{count} 3D images",
@@ -1264,6 +1265,7 @@
     },
     "articles": {
       "uncategorized": "Uncategorized",
+      "loadError": "Could not load the article list. Try reloading the page.",
 
       "eyebrow": "BuildX handbook",
       "title": "Explore building knowledge",
@@ -5393,7 +5395,9 @@
       "inUse": "{count} articles remain — move or remove them before deleting.",
       "deleteConfirm": "Delete group \"{name}\"?",
       "deletedToast": "Group {name} deleted.",
-      "hint": "Renaming or changing the icon does not change its articles. Groups cannot move to another step."
+      "hint": "Renaming or changing the icon does not change its articles. Groups cannot move to another step.",
+      "moveUp": "Move group up",
+      "moveDown": "Move group down"
     },
     "costGroups": {
       "description": "Estimate results are grouped by these cost groups; the grand total equals the sum of groups. Groups with items cannot be deleted.",

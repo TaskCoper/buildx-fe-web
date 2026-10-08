@@ -9,7 +9,6 @@ import { useCmsCollection } from '@/shared/cms'
 import { env } from '@/shared/config/env'
 import { handbookApi } from '../api/handbook.api'
 import { withTopicIds } from '../api/handbook.cms.logic'
-import { mockHandbookApi } from '../api/handbook.mock'
 import { LibraryAccessDeniedError, type ArticleListQuery } from '../api/handbook.bmt'
 import { handbookKeys } from '../api/handbook.keys'
 import type { TemplateStyleQuery } from '../api/handbook.library'
@@ -53,22 +52,17 @@ export function useHandbookTemplate(id: string, options?: { enabled?: boolean })
 }
 
 /**
- * Bài viết (`source: 'mock'` cho các khối trang Cẩm nang chưa lấy API: chỉ danh sách bài viết dưới cùng dùng API). `query` lọc ở phía BE (`categoryId` gồm cả danh mục con, `keyword`); bỏ trống thì lấy
- * bài mới nhất như trước và để giao diện tự lọc trên danh sách đã tải.
+ * Bài viết công khai. `query` lọc ở phía BE (`categoryId` gồm cả danh mục con, `keyword`); bỏ trống thì lấy bài mới
+ * nhất và để giao diện tự lọc trên danh sách đã tải. Có `topic` là panel tư vấn, không có API nên dùng mock.
  */
-export function useHandbookArticles(
-  topic?: 'architecture' | 'interior',
-  query?: ArticleListQuery,
-  options?: { source?: 'api' | 'mock' }
-) {
-  const mock = options?.source === 'mock'
-  const base =
+export function useHandbookArticles(topic?: 'architecture' | 'interior', query?: ArticleListQuery) {
+  const key =
     query?.categoryId || query?.keyword
       ? `${topic ?? 'all'}:${query?.categoryId ?? ''}:${query?.keyword ?? ''}`
       : (topic ?? 'all')
   return useQuery({
-    queryKey: handbookKeys.articleList(mock ? `mock:${base}` : base),
-    queryFn: () => (mock ? mockHandbookApi.listArticles(topic) : handbookApi.listArticles(topic, query)),
+    queryKey: handbookKeys.articleList(key),
+    queryFn: () => handbookApi.listArticles(topic, query),
     staleTime: STATIC_CONTENT_STALE_TIME
   })
 }

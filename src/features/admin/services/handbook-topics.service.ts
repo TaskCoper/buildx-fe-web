@@ -68,3 +68,49 @@ export function countArticlesPerTopic(
 export function canDeleteTopic(topic: TopicCategory, articleCount: number): boolean {
   return !topic.hasChildren && articleCount === 0
 }
+
+/** Các danh mục gốc theo thứ tự backend lưu (thứ tự rồi định danh) — dãy chung mà chủ đề của mọi bước chen vào. */
+export function sortedRoots(categories: readonly TopicCategory[]): TopicCategory[] {
+  return categories
+    .filter((category) => !category.parentId)
+    .sort((a, b) => a.sortOrder - b.sortOrder || a.id.localeCompare(b.id))
+}
+
+export interface TopicMove {
+  /**
+   * Danh mục mà chủ đề sẽ đứng NGAY TRƯỚC, hoặc `null` để xuống cuối dãy danh mục gốc. Khớp `beforeCategoryId`
+   * của API đổi vị trí.
+   */
+  before: TopicCategory | null
+}
+
+/**
+ * Chủ đề ở vị trí `index` trong danh sách của MỘT bước dời lên/xuống một nấc thì API cần mốc nào.
+ *
+ * Chủ đề của nhiều bước cùng nằm trong một dãy danh mục gốc nên không thể đổi chỗ theo chỉ số của riêng một bước:
+ * - Lên: đứng ngay trước chủ đề liền trước của CÙNG bước.
+ * - Xuống: đứng sau chủ đề liền sau của cùng bước, tức ngay trước danh mục gốc kế tiếp trong dãy chung; nếu chủ đề
+ *   liền sau đã là cuối dãy thì xuống cuối.
+ *
+ * Trả `null` khi không dời được (đầu hoặc cuối danh sách của bước).
+ */
+export function topicMove(
+  roots: readonly TopicCategory[],
+  stageTopics: readonly TopicCategory[],
+  index: number,
+  direction: 'up' | 'down'
+): TopicMove | null {
+  if (index < 0 || index >= stageTopics.length) return null
+
+  if (direction === 'up') {
+    const previous = stageTopics[index - 1]
+    return previous ? { before: previous } : null
+  }
+
+  const next = stageTopics[index + 1]
+  if (!next) return null
+
+  const nextPosition = roots.findIndex((root) => root.id === next.id)
+  if (nextPosition < 0) return null
+  return { before: roots[nextPosition + 1] ?? null }
+}

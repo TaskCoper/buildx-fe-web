@@ -1110,7 +1110,8 @@
       "viewAll": "Xem tất cả bài viết",
       "newBadge": "Mới",
       "readTime": "{minutes} phút đọc",
-      "titleMobile": "Cẩm nang xây nhà"
+      "titleMobile": "Cẩm nang xây nhà",
+      "loadError": "Không tải được bài viết mới nhất. Thử tải lại trang."
     },
     "card": {
       "imageCount": "{count} ảnh 3D",
@@ -1264,6 +1265,7 @@
     },
     "articles": {
       "uncategorized": "Chưa phân loại",
+      "loadError": "Không tải được danh sách bài viết. Thử tải lại trang.",
 
       "eyebrow": "Cẩm nang BuildX",
       "title": "Khám phá kiến thức xây dựng",
@@ -5393,7 +5395,9 @@
       "inUse": "Còn {count} bài viết — chuyển hoặc gỡ các bài khỏi nhóm trước khi xóa.",
       "deleteConfirm": "Xóa nhóm \"{name}\"?",
       "deletedToast": "Đã xóa nhóm {name}.",
-      "hint": "Đổi tên hoặc icon không làm thay đổi các bài viết trong nhóm. Không chuyển nhóm sang Bước khác."
+      "hint": "Đổi tên hoặc icon không làm thay đổi các bài viết trong nhóm. Không chuyển nhóm sang Bước khác.",
+      "moveUp": "Chuyển nhóm lên",
+      "moveDown": "Chuyển nhóm xuống"
     },
     "costGroups": {
       "description": "Kết quả dự toán trình bày theo các nhóm chi phí này; tổng dự toán bằng tổng các nhóm. Nhóm còn hạng mục thì không xóa được.",

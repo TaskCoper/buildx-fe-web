@@ -12,7 +12,7 @@ import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import { handbookArticleRoute } from '@/shared/constants/routes'
-import { useDebouncedValue } from '@/shared/hooks'
+import { useApiErrorText, useDebouncedValue } from '@/shared/hooks'
 import { cn } from '@/shared/lib/utils'
 import { formatDisplayDate } from '@/shared/utils'
 import {
@@ -117,6 +117,7 @@ function readArticleListRestoreState(): ArticleListRestoreState | null {
  */
 export function ArticleList() {
   const t = useTranslations('handbook.articles')
+  const apiErrorText = useApiErrorText()
   const cmsLabels = useArticleLabels()
   const pageSections = useHandbookPageSections()
   const locale = useLocale() as Locale
@@ -148,7 +149,7 @@ export function ArticleList() {
   const visualCategoryRef = useRef<ArticleFilter>(initialCategory)
 
   const debouncedTerm = useDebouncedValue(term, 250).trim()
-  const { data: articles, isPending } = useHandbookArticles()
+  const { data: articles, isPending, error } = useHandbookArticles()
   const pool = useMemo(() => articles ?? [], [articles])
 
   // Chip lọc: bài từ BMT API → danh mục tin của BMT (cây công khai); bài mock → nhãn mock như cũ.
@@ -619,6 +620,11 @@ export function ArticleList() {
               <Skeleton key={index} className='h-72 rounded-xl' />
             ))}
           </div>
+        ) : error && !articles ? (
+          // Không rơi về bài mẫu: lỗi tải danh sách là sự cố cần thấy, khác với danh sách rỗng hợp lệ ở nhánh dưới.
+          <p role='alert' className='text-muted-foreground rounded-xl border border-dashed p-6 text-sm'>
+            {apiErrorText(error, t('loadError'))}
+          </p>
         ) : visible.length === 0 ? (
           <div
             data-article-empty

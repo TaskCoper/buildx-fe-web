@@ -1,5 +1,5 @@
 import { useAuthStore } from '@/shared/auth'
-import { http } from '@/shared/lib/api'
+import { http, isApiError } from '@/shared/lib/api'
 import type { PagedResult } from '@/shared/types'
 import type { HandbookStage } from '@/shared/cms'
 import type {
@@ -347,39 +347,35 @@ export const bmtHandbookApi = {
   },
 
   /**
-   * Danh sách bài viết công khai (`GET /news/articles`). Panel tư vấn (`topic`)
-   * không có API nên luôn dùng mock. API rỗng/lỗi → mock.
+   * Danh sách bài viết công khai (`GET /news/articles`). Panel tư vấn (`topic`) không có API nên vẫn dùng mock.
+   * KHÔNG rơi về mock khi lỗi hoặc khi rỗng: rỗng là trạng thái hợp lệ, lỗi để màn hiện thông báo.
    */
   async listArticles(topic?: string, query?: ArticleListQuery): Promise<HandbookArticleWithCategories[]> {
     if (topic) return mockHandbookApi.listArticles(topic)
     const keyword = query?.keyword?.trim()
-    const filtered = Boolean(query?.categoryId || keyword)
-    try {
-      // `categoryId` ở BE gồm bài gắn thẳng vào danh mục VÀ mọi danh mục con, không trùng bài;
-      // id không tồn tại cho trang rỗng (không phải 404).
-      const page = await http.get<PagedResult<BmtArticleSummary>>('/news/articles', {
-        params: {
-          pageIndex: 1,
-          pageSize: 100,
-          ...(query?.categoryId ? { categoryId: query.categoryId } : {}),
-          ...(keyword ? { keyword } : {})
-        }
-      })
-      // Trang rỗng là kết quả hợp lệ của một bộ lọc; chỉ khi KHÔNG lọc mà rỗng mới về mock.
-      if (!page.items.length) return filtered ? [] : mockHandbookApi.listArticles(topic)
-      return page.items.map(toArticleSummary)
-    } catch {
-      return mockHandbookApi.listArticles(topic)
-    }
+    // `categoryId` ở BE gồm bài gắn thẳng vào danh mục VÀ mọi danh mục con, không trùng bài;
+    // id không tồn tại cho trang rỗng (không phải 404).
+    const page = await http.get<PagedResult<BmtArticleSummary>>('/news/articles', {
+      params: {
+        pageIndex: 1,
+        pageSize: 100,
+        ...(query?.categoryId ? { categoryId: query.categoryId } : {}),
+        ...(keyword ? { keyword } : {})
+      }
+    })
+    return page.items.map(toArticleSummary)
   },
 
-  /** Chi tiết bài viết công khai (`GET /news/articles/{id}`). 404/lỗi → mock. */
+  /**
+   * Chi tiết bài viết công khai (`GET /news/articles/{id}`). 404 (bài nháp, ẩn hoặc không tồn tại) → `null`;
+   * lỗi khác được ném lên để màn hiện trạng thái lỗi và cho thử lại. KHÔNG rơi về mock.
+   */
   async getArticle(idOrSlug: string): Promise<HandbookArticleWithCategories | null> {
     try {
       return toArticleDetail(await http.get<BmtArticleDetail>(`/news/articles/${idOrSlug}`))
-    } catch {
-      // 404 (bài nháp/ẩn/không tồn tại) hoặc lỗi bất kỳ → về mock để demo không trống.
-      return mockHandbookApi.getArticle(idOrSlug)
+    } catch (error) {
+      if (isApiError(error) && error.status === 404) return null
+      throw error
     }
   },
 

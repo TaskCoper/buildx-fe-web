@@ -1,6 +1,6 @@
 'use client'
 
-import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons'
+import { ArrowDownOutlined, ArrowUpOutlined, DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Alert,
@@ -38,6 +38,8 @@ import {
   canDeleteTopic,
   countArticlesPerTopic,
   instructionTopics,
+  sortedRoots,
+  topicMove,
   type TopicCategory
 } from '../../services/handbook-topics.service'
 import { ApiResourceManager } from '../common/api-resource-manager'
@@ -65,6 +67,8 @@ async function listAllArticleCategories(): Promise<{ categoryIds: string[] }[]> 
 
 interface HandbookSnapshot {
   stages: BmtHandbookStageAdmin[]
+  /** Mọi danh mục gốc theo thứ tự lưu — chủ đề của các bước và nhãn tin tức nằm chung một dãy khi đổi vị trí. */
+  roots: TopicCategory[]
   topics: TopicCategory[]
   counts: Record<string, number>
 }
@@ -80,7 +84,7 @@ async function loadSnapshot(): Promise<HandbookSnapshot> {
     listAllArticleCategories()
   ])
   const topics = instructionTopics(categories)
-  return { stages, topics, counts: countArticlesPerTopic(articles, categories, topics) }
+  return { stages, roots: sortedRoots(categories), topics, counts: countArticlesPerTopic(articles, categories, topics) }
 }
 
 type StageRow = BmtHandbookStageAdmin & { topics: TopicCategory[]; counts: Record<string, number> }
@@ -299,6 +303,8 @@ function HandbookGroups() {
   const [selected, setSelected] = useState<string | null>(null)
   const [draft, setDraft] = useState<GroupDraft | null>(null)
   const [saving, setSaving] = useState(false)
+  /** Chủ đề đang được dời chỗ: khóa các nút Lên / Xuống trong lúc chờ để không gửi hai lệnh chồng nhau. */
+  const [moving, setMoving] = useState<string | null>(null)
   const [form] = Form.useForm<GroupFormValues>()
 
   const stages = data?.stages ?? []
@@ -364,6 +370,32 @@ function HandbookGroups() {
     }
   }
 
+  /**
+   * Dời một chủ đề lên / xuống một nấc trong bước. Mốc tính từ danh sách đang hiện nên nếu người khác vừa đổi
+   * thứ tự, backend trả xung đột phiên bản; khi đó tải lại để màn khớp với dữ liệu mới.
+   */
+  const move = async (index: number, direction: 'up' | 'down') => {
+    const topic = topics[index]
+    const target = topicMove(data?.roots ?? [], topics, index, direction)
+    if (!topic || !target) return
+
+    setMoving(topic.id)
+    try {
+      await newsAdminApi.moveCategory(topic.id, {
+        expectedVersion: topic.version,
+        expectedParentId: null,
+        beforeCategoryId: target.before?.id,
+        expectedBeforeVersion: target.before?.version
+      })
+      await refresh()
+    } catch (err) {
+      fail(err)
+      await refresh()
+    } finally {
+      setMoving(null)
+    }
+  }
+
   if (isPending) return <Skeleton active />
   if (error && !data) {
     return <Alert type='error' showIcon title={isApiError(error) ? error.message : t('feedback.apiError')} />
@@ -409,11 +441,25 @@ function HandbookGroups() {
           {
             title: t('table.actions'),
             key: 'actions',
-            width: 110,
-            render: (_, topic) => {
+            width: 170,
+            render: (_, topic, index) => {
               const used = countIn(topic.id)
               return (
                 <Space size={0}>
+                  <Button
+                    type='text'
+                    icon={<ArrowUpOutlined />}
+                    aria-label={t('handbookGroups.moveUp')}
+                    disabled={index === 0 || moving !== null}
+                    onClick={() => move(index, 'up')}
+                  />
+                  <Button
+                    type='text'
+                    icon={<ArrowDownOutlined />}
+                    aria-label={t('handbookGroups.moveDown')}
+                    disabled={index === topics.length - 1 || moving !== null}
+                    onClick={() => move(index, 'down')}
+                  />
                   <Button
                     type='text'
                     icon={<EditOutlined />}

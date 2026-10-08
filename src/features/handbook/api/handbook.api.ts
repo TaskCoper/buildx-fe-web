@@ -3,15 +3,14 @@ import { bmtHandbookApi } from './handbook.bmt'
 import { mockHandbookApi } from './handbook.mock'
 
 /**
- * Chức năng đã nối BMT API — GIỮ MOCK LÀM NỀN. DB backend đang rỗng nên mọi hàm
- * ở đây TỰ VỀ MOCK khi API trả rỗng / lỗi / 404 / chưa đăng nhập (xem
- * `handbook.bmt.ts`), để demo không bị trống và giao diện đã chốt vẫn chạy đúng
- * với cả dữ liệu mock cũ lẫn API mới.
+ * Chức năng đã nối BMT API — GIỮ MOCK LÀM NỀN cho các hàm CHƯA đổi sang đọc thẳng BE: chúng tự về mock khi API trả
+ * rỗng / lỗi / 404 / chưa đăng nhập (xem `handbook.bmt.ts`), để demo không bị trống và giao diện đã chốt vẫn chạy
+ * đúng với cả dữ liệu mock cũ lẫn API mới.
  *
  * Đã nối:
- *   - Bài viết: `listArticles` (`GET /news/articles`), `getArticle`
- *     (`GET /news/articles/{id}`, kèm `contentHtml`). Panel tư vấn theo `topic`
- *     không có API → luôn mock.
+ *   - Bài viết: `listArticles` (`GET /news/articles`), `getArticle` (`GET /news/articles/{id}`, kèm `contentHtml`) —
+ *     KHÔNG fallback mock: rỗng là hợp lệ, 404 của chi tiết là `null`, lỗi khác để màn hiện trạng thái lỗi. Chỉ
+ *     panel tư vấn theo `topic` không có API nên vẫn dùng mock.
  *   - Thư viện mẫu: `listTemplates` (`GET /design-templates`, KHÔNG fallback mock), `getTemplate`
  *     (chi tiết CẦN ĐĂNG NHẬP: access-info → open trừ 1 lượt → library-versions +
  *     assets), `getQuota` (`catalog.detail` của `/me/design-subscription`).
