@@ -12,9 +12,10 @@ import { Checkbox } from '@/shared/components/ui/checkbox'
 import { contractorFirmRoute, contractorInvitationsRoute, contractorInviteRoute } from '@/shared/constants/routes'
 import { useCountUp } from '@/shared/hooks/use-count-up'
 import { cn } from '@/shared/lib/utils'
-import { formatNumber } from '@/shared/utils'
+import { formatNumber, type GeoPoint } from '@/shared/utils'
 import { useInvitations } from '../hooks/use-invitations'
 import { MAX_INVITATIONS } from '../constants/contractors.constants'
+import { withDistanceFrom } from '../services/contractor-list.service'
 import type { Contractor } from '../types/contractor.types'
 import { ContractorLogo } from './contractor-logo'
 
@@ -36,6 +37,11 @@ interface ContractorCardProps {
   ringFlash?: boolean
   /** Xã/phường của công trình — ghi sau số km ("12,3 km từ Phường Tân An"). Trống thì ghi "từ công trình". */
   siteWardName?: string
+  /**
+   * Toạ độ công trình. API danh sách chỉ trả khoảng cách khi lọc theo bán kính, nên thẻ tự tính từ toạ độ hai bên
+   * (cùng cách với trang hồ sơ) để ô khoảng cách hiện ngay khi tính được.
+   */
+  siteCoords?: GeoPoint
 }
 
 /**
@@ -63,7 +69,8 @@ export function ContractorCard({
   inviteLocked,
   compareLocked = false,
   ringFlash = false,
-  siteWardName
+  siteWardName,
+  siteCoords
 }: ContractorCardProps) {
   const t = useTranslations('contractors.common')
   const tMatches = useTranslations('contractors.matches')
@@ -80,6 +87,7 @@ export function ContractorCard({
   }
 
   const place = siteWardName?.trim()
+  const withDistance = withDistanceFrom(contractor, siteCoords)
 
   /** Ba ô chỉ số: đánh giá · khoảng cách (chỉ khi đã tính) · khảo sát. */
   const facts: { key: string; icon: typeof Star; iconClass?: string; value: ReactNode; hint: string }[] = [
@@ -102,7 +110,7 @@ export function ContractorCard({
           : t('reviewCount', { count: contractor.reviewCount })
     },
     // Chưa tính được khoảng cách (thiếu toạ độ một bên) thì KHÔNG hiện ô này, thay vì ghi "Chưa tính khoảng cách".
-    ...(contractor.distanceKnown === false
+    ...(withDistance.distanceKnown === false
       ? []
       : [
           {
@@ -110,7 +118,7 @@ export function ContractorCard({
             icon: MapPin,
             value: (
               <AnimatedMetric
-                value={Math.round(contractor.distanceKm * 10)}
+                value={Math.round(withDistance.distanceKm * 10)}
                 format={(value) =>
                   t('distanceShort', { km: formatNumber(value / 10, locale, { minimumFractionDigits: 1 }) })
                 }
