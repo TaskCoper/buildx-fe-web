@@ -11,11 +11,13 @@ import { Photo } from '@/shared/components/common'
 import { Button } from '@/shared/components/ui/button'
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import { handbookArticleRoute } from '@/shared/constants/routes'
+import { useApiErrorText } from '@/shared/hooks'
 import { cn } from '@/shared/lib/utils'
 import { handbookTopicIcon } from '@/shared/lib/handbook-icons'
+import { sectionText } from '../api/handbook.cms.logic'
 import { ARTICLE_META_ICON, ARTICLE_META_TEXT } from '../constants/article-meta'
-import { useHandbookArticles, useHandbookStages } from '../hooks/use-handbook'
-import { articlesOfTopic, countArticlesByTopic } from '../services/handbook.service'
+import { useHandbookPageSections, useHandbookStages, useHandbookTopicArticles } from '../hooks/use-handbook'
+import { articlesOfTopic, countArticlesByTopic, topicIdsOf } from '../services/handbook.service'
 import type { HandbookStage, HandbookStageId } from '../types/handbook.types'
 
 /** Biểu tượng của một Nhóm cẩm nang — admin chọn trong bộ icon dùng chung (HandbookStepManagement §4). */
@@ -127,8 +129,13 @@ export function FoundationBlock() {
   // cùng một câu, để mỗi khối một bản dịch riêng là admin sửa một chỗ hụt chỗ kia.
   const tArticles = useTranslations('handbook.articles')
 
-  const { data: stages, isPending } = useHandbookStages()
-  const { data: articles } = useHandbookArticles(undefined, undefined, { source: 'mock' })
+  const { data: stages, isPending, error: stagesError } = useHandbookStages()
+  // Bài kèm `topicIds`: một bài gắn danh mục của nhiều chủ đề thì hiện ở cả các chủ đề đó (BR-HB-001 khoản 7).
+  const { data: articles } = useHandbookTopicArticles()
+  // Chữ do admin biên tập (BR-HB-003); chưa biên tập thì dùng bản dịch sẵn có.
+  const pageSections = useHandbookPageSections()
+  const apiErrorText = useApiErrorText()
+  const heroImage = sectionText(pageSections, 'hero', 'backgroundImageUrl') ?? bannerImage
 
   const [openStage, setOpenStage] = useState<HandbookStageId | null>(null)
   const [openTopic, setOpenTopic] = useState<string | null>(null)
@@ -989,7 +996,7 @@ export function FoundationBlock() {
         <Photo
           className='foundation-hero-motion absolute inset-0 -z-10 size-full transition-[filter] duration-300 motion-reduce:!filter-none'
           imageClassName='object-[70%_center]'
-          src={bannerImage}
+          src={heroImage}
           alt=''
           priority
           sizes='(max-width: 1440px) 100vw, 1400px'
@@ -1004,17 +1011,17 @@ export function FoundationBlock() {
             data-foundation-sequence
             className='text-primary-strong flex items-center gap-3 text-xs font-semibold tracking-[0.14em] uppercase'
           >
-            {t('kicker')}
+            {sectionText(pageSections, 'hero', 'eyebrow') ?? t('kicker')}
             <span aria-hidden className='bg-primary-strong/40 h-px w-16' />
           </p>
           <h2
             data-foundation-sequence
             className='text-primary-strong text-4xl leading-[1.1] font-bold tracking-tight text-balance lg:text-5xl'
           >
-            {t('title')}
+            {sectionText(pageSections, 'hero', 'title') ?? t('title')}
           </h2>
           <p data-foundation-sequence className='text-foreground/75 max-w-md text-sm leading-relaxed sm:text-base'>
-            {t('description')}
+            {sectionText(pageSections, 'hero', 'description') ?? t('description')}
           </p>
           <Button
             data-foundation-cta
@@ -1059,7 +1066,7 @@ export function FoundationBlock() {
             }}
           >
             <span data-foundation-cta-sheen data-nudge={ctaNudge} aria-hidden />
-            <span className='relative z-10'>{t('start')}</span>
+            <span className='relative z-10'>{sectionText(pageSections, 'hero', 'ctaLabel') ?? t('start')}</span>
             <ArrowRight
               data-foundation-cta-arrow
               data-nudge={ctaNudge}
@@ -1070,7 +1077,7 @@ export function FoundationBlock() {
       </div>
 
       <h3 ref={stagesHeadingRef} className='text-base font-semibold'>
-        {t('stagesTitle')}
+        {sectionText(pageSections, 'stagesHeading', 'title') ?? t('stagesTitle')}
       </h3>
 
       {isPending ? (
@@ -1079,13 +1086,20 @@ export function FoundationBlock() {
             <Skeleton key={index} className='h-36 rounded-xl' />
           ))}
         </div>
+      ) : stagesError && !stages?.length ? (
+        // Không rơi về dữ liệu giả: lỗi tải ba bước là sự cố cần thấy.
+        <p role='alert' className='text-muted-foreground rounded-xl border border-dashed p-6 text-sm'>
+          {apiErrorText(stagesError, t('loadError'))}
+        </p>
       ) : (
         <div ref={stepsRef} className='grid gap-4 lg:grid-cols-3' style={{ marginBlockEnd: 0 }}>
           {stages?.map((stage) => {
             const open = stage.id === openStage
             const stageArticle =
               articles?.find((article) => article.stage === stage.id) ??
-              articles?.find((article) => stage.topics.some((topic) => topic.id === article.topicId))
+              articles?.find((article) =>
+                topicIdsOf(article).some((topicId) => stage.topics.some((topic) => topic.id === topicId))
+              )
             return (
               <article
                 data-foundation-step={stage.order}

@@ -6,6 +6,7 @@ import {
   App,
   Button,
   Descriptions,
+  type DescriptionsProps,
   Empty,
   Form,
   Input,
@@ -43,6 +44,13 @@ import { StatusTag, type StatusTone } from '../common/status-tag'
 import { DateRangeFilter, rangeToUtc, stamp, useCommerceLabels, useVnd, type DateRange } from './commerce-kit'
 
 const { Text } = Typography
+
+type DetailItem = NonNullable<DescriptionsProps['items']>[number]
+
+/** Hai cột trên trang rộng; dòng cuối giãn hết hàng để số mục lẻ không để lại một ô trống bên phải. */
+const DETAIL_COLUMNS = { xs: 1, md: 2 } as const
+const fillLastRow = (items: DetailItem[]): DetailItem[] =>
+  items.map((item, index) => (index === items.length - 1 ? { ...item, span: 'filled' as const } : item))
 
 /** Sắc thái trạng thái đơn thanh toán — quy ước tone dùng chung. */
 const ORDER_STATE_TONE: Record<PaymentOrderState, StatusTone> = {
@@ -301,10 +309,10 @@ function PaymentOrderDetail({ orderId }: { orderId: string }) {
       {order.orderingDiscrepancy ? <Alert type='warning' showIcon title={t('orderingDiscrepancyHint')} /> : null}
       <Descriptions
         size='small'
-        column={1}
+        column={DETAIL_COLUMNS}
         bordered
         title={t('orderBlock')}
-        items={[
+        items={fillLastRow([
           {
             key: 'code',
             label: t('paymentCode'),
@@ -314,12 +322,12 @@ function PaymentOrderDetail({ orderId }: { orderId: string }) {
               </Text>
             )
           },
-          { key: 'id', label: t('orderId'), children: <Text copyable>{order.id}</Text> },
           {
             key: 'state',
             label: t('orderState'),
             children: <StatusTag tone={ORDER_STATE_TONE[order.state]}>{t(`orderStates.${order.state}`)}</StatusTag>
           },
+          { key: 'id', label: t('orderId'), span: 2, children: <Text copyable>{order.id}</Text> },
           { key: 'plan', label: t('plan'), children: order.planNameAtPurchase },
           { key: 'kind', label: t('kind'), children: labels.kind(order.kind) },
           { key: 'offer', label: t('offer'), children: labels.offer(order.offerKey) },
@@ -337,29 +345,29 @@ function PaymentOrderDetail({ orderId }: { orderId: string }) {
           ...(order.expiredAtUtc
             ? [{ key: 'expired', label: t('expiredAt'), children: stamp(order.expiredAtUtc) }]
             : [])
-        ]}
+        ])}
       />
       <Descriptions
         size='small'
-        column={1}
+        column={DETAIL_COLUMNS}
         bordered
         title={t('amountBlock')}
-        items={[
+        items={fillLastRow([
           { key: 'price', label: t('price'), children: <Text strong>{vnd(order.priceVnd)}</Text> },
           { key: 'received', label: t('received'), children: vnd(order.receivedAmountVnd) },
           { key: 'eligible', label: t('eligible'), children: vnd(order.eligibleAmountVnd) },
           { key: 'remaining', label: t('remaining'), children: vnd(order.remainingAmountVnd) },
           { key: 'extra', label: t('extraReceived'), children: vnd(order.extraReceivedAmountVnd) },
           { key: 'count', label: t('transactionCount'), children: order.transactionCount }
-        ]}
+        ])}
       />
       {order.fulfillment ? (
         <Descriptions
           size='small'
-          column={1}
+          column={DETAIL_COLUMNS}
           bordered
           title={t('fulfillmentBlock')}
-          items={[
+          items={fillLastRow([
             {
               key: 'disposition',
               label: t('disposition'),
@@ -367,7 +375,7 @@ function PaymentOrderDetail({ orderId }: { orderId: string }) {
             },
             { key: 'at', label: t('fulfilledAt'), children: stamp(order.fulfillment.completedAtUtc) },
             { key: 'applied', label: t('appliedPaidAt'), children: stamp(order.fulfillment.appliedPaidAtUtc) }
-          ]}
+          ])}
         />
       ) : null}
 
@@ -585,11 +593,11 @@ function PurchaseDetail({ orderId }: { orderId: string }) {
     <Space orientation='vertical' size={16} style={{ width: '100%' }}>
       <Descriptions
         size='small'
-        column={1}
+        column={DETAIL_COLUMNS}
         bordered
         title={t('purchaseBlock')}
         extra={<LifecycleActions purchase={purchase} />}
-        items={[
+        items={fillLastRow([
           {
             key: 'state',
             label: t('effectiveState'),
@@ -614,24 +622,30 @@ function PurchaseDetail({ orderId }: { orderId: string }) {
           ...(purchase.kind === 'Supervision'
             ? [{ key: 'site', label: t('constructionSite'), children: purchase.constructionSiteName || '—' }]
             : [])
-        ]}
+        ])}
       />
       {period ? (
         <Descriptions
           size='small'
-          column={1}
+          column={DETAIL_COLUMNS}
           bordered
           title={t('periodBlock')}
           items={[
             { key: 'state', label: t('lifecycleState'), children: t(`periodStates.${period.lifecycleState}`) },
             { key: 'starts', label: t('startsAt'), children: stamp(period.startsAtUtc) },
-            { key: 'ends', label: t('endsAt'), children: stamp(period.scheduledEndsAtUtc) },
+            {
+              key: 'ends',
+              label: t('endsAt'),
+              span: period.closedAtUtc ? 1 : 'filled',
+              children: stamp(period.scheduledEndsAtUtc)
+            },
             ...(period.closedAtUtc
               ? [{ key: 'closed', label: t('closedAt'), children: stamp(period.closedAtUtc) }]
               : []),
             {
               key: 'quotas',
               label: t('quotas'),
+              span: 2,
               children: period.quotas.length ? (
                 <ul className='m-0 list-disc pl-4'>
                   {period.quotas.map((quota) => (
@@ -655,16 +669,16 @@ function PurchaseDetail({ orderId }: { orderId: string }) {
       {grant ? (
         <Descriptions
           size='small'
-          column={1}
+          column={DETAIL_COLUMNS}
           bordered
           title={t('grantBlock')}
-          items={[
+          items={fillLastRow([
             { key: 'state', label: t('lifecycleState'), children: t(`grantStates.${grant.state}`) },
             { key: 'granted', label: t('grantedAt'), children: stamp(grant.grantedAtUtc) },
             { key: 'deadline', label: t('assignmentDeadline'), children: stamp(grant.assignmentDeadlineUtc) },
             { key: 'first', label: t('firstAssignedAt'), children: stamp(grant.firstAssignedAtUtc) },
             { key: 'assigned', label: t('assignedAt'), children: stamp(grant.assignedAtUtc) }
-          ]}
+          ])}
         />
       ) : null}
       <div>

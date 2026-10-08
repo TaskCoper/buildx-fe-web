@@ -25,7 +25,7 @@ import { Fragment, useEffect, useRef, useState, type CSSProperties } from 'react
 import { Link } from '@/i18n/navigation'
 import type { Locale } from '@/i18n/routing'
 import type { SupervisionPackage, SupervisionTier } from '@/shared/cms'
-import { Photo, PricingMotionProvider, pricingEase, usePricingMotion } from '@/shared/components/common'
+import { Photo, PricingMotionProvider, pricingEase } from '@/shared/components/common'
 import { Button } from '@/shared/components/ui/button'
 import { checkoutConfirmRoute } from '@/shared/constants/routes'
 import { usePageEntrance } from '@/shared/hooks'
@@ -870,14 +870,11 @@ const JOURNEY_ICONS: Record<JourneyStepKey, typeof ShieldCheck> = {
   report: FileText,
   handover: House
 }
-const MotionArrowRight = motion.create(ArrowRight)
 
 function Journey() {
   const t = useTranslations('supervision.pricing.journey')
   const ref = useRef<HTMLElement>(null)
   const visible = useInView(ref, { amount: 0.15 })
-  const { isScrolling } = usePricingMotion()
-  const dotActive = visible && !isScrolling
 
   return (
     <section
@@ -897,42 +894,14 @@ function Journey() {
 
       <div className='supervision-journey-track mt-6 flex items-stretch gap-1.5 overflow-x-auto overflow-y-hidden pt-4 pb-2 lg:justify-center'>
         {JOURNEY_STEPS.map((step, index) => (
-          <Fragment key={step}>
-            {index > 0 ? <FlowJoin delay={0.06 + index * 0.2} active={dotActive} /> : null}
-            <JourneyCard step={step} number={index + 1} delay={0.16 + index * 0.2} />
-          </Fragment>
+          <JourneyCard key={step} step={step} number={index + 1} delay={0.16 + index * 0.2} />
         ))}
       </div>
     </section>
   )
 }
 
-/** Mũi tên nối hai bước đi thẳng. */
-function FlowJoin({ delay, active }: { delay: number; active: boolean }) {
-  return (
-    <MotionArrowRight
-      aria-hidden
-      className='supervision-journey-join text-muted-foreground size-4 shrink-0 self-center'
-      initial={{ opacity: 0, scaleX: 0 }}
-      whileInView={{ opacity: 1, scaleX: 1 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.22, delay, ease: pricingEase }}
-    >
-      <motion.circle
-        aria-hidden
-        className='supervision-journey-flow-dot'
-        cx='2'
-        cy='12'
-        r='2.1'
-        initial={false}
-        animate={active ? { opacity: [0, 1, 1, 0], cx: [2, 2, 20, 20] } : { opacity: 0 }}
-        transition={{ duration: 0.7, delay: 2.1 + delay, ease: 'linear', repeat: Infinity, repeatDelay: 8.2 }}
-      />
-    </MotionArrowRight>
-  )
-}
-
-/** Một bước trên dòng chính: số ở mép trên, tên, icon, rồi mô tả. */
+/** Một bước trên dòng chính: số pill ở mép trên, tên, icon, rồi mô tả. */
 function JourneyCard({ step, number, delay }: { step: JourneyStepKey; number: number; delay: number }) {
   const t = useTranslations('supervision.pricing.journey')
   const Icon = JOURNEY_ICONS[step]
@@ -940,25 +909,25 @@ function JourneyCard({ step, number, delay }: { step: JourneyStepKey; number: nu
   return (
     <motion.div
       style={{ '--journey-delay': `${delay}s` } as CSSProperties}
-      className='supervision-journey-card group/journey-card bg-card relative flex w-44 shrink-0 flex-col items-center rounded-xl border px-2.5 pt-5 pb-4 text-center'
+      className='supervision-journey-card group/journey-card bg-card relative flex w-44 shrink-0 flex-col items-center rounded-xl border border-primary/25 px-3 pt-5 pb-4 text-center'
       initial={{ opacity: 0, y: 10 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.44, delay, ease: pricingEase }}
     >
       <motion.span
-        className='bg-primary text-primary-foreground absolute -top-3.5 flex size-7 items-center justify-center rounded-full text-sm font-semibold transition-colors duration-200 group-hover/journey-card:bg-brand-orange motion-reduce:transition-none'
+        className='bg-accent text-accent-foreground absolute -top-3 left-1/2 z-10 inline-flex h-6 w-fit max-w-fit min-w-6 -translate-x-1/2 items-center justify-center rounded-sm px-1.5 text-xs font-semibold tracking-[0.08em] transition-colors duration-200 group-hover/journey-card:bg-brand-orange motion-reduce:transition-none'
         initial={{ scale: 0.55 }}
         whileInView={{ scale: 1 }}
         viewport={{ once: true }}
         transition={{ type: 'spring', stiffness: 360, damping: 20, delay: delay + 0.1 }}
       >
-        {number}
+        {String(number).padStart(2, '0')}
       </motion.span>
       {/* Ô tên cao cố định bằng HAI dòng: tên một dòng và tên hai dòng đều
           chiếm chỗ như nhau, nhờ vậy icon và mô tả của tám bước nằm thẳng hàng
           thay vì chỗ lồi chỗ lõm. */}
-      <p className='flex min-h-9 items-center text-sm leading-tight font-medium text-pretty transition-colors duration-200 group-hover/journey-card:text-brand-orange motion-reduce:transition-none'>
+      <p className='flex min-h-9 w-full items-center text-left text-sm leading-tight font-medium text-pretty transition-colors duration-200 group-hover/journey-card:text-brand-orange motion-reduce:transition-none'>
         {t(step)}
       </p>
       <Icon
@@ -966,7 +935,9 @@ function JourneyCard({ step, number, delay }: { step: JourneyStepKey; number: nu
         className='supervision-journey-icon text-primary my-3 size-8 shrink-0 transition-colors duration-200 group-hover/journey-card:text-brand-orange motion-reduce:transition-none'
         strokeWidth={1.5}
       />
-      <p className='text-muted-foreground max-md:text-xs text-sm leading-snug text-pretty'>{t(`${step}Body`)}</p>
+      <p className='text-muted-foreground max-md:text-xs mt-1 w-full text-left text-sm leading-snug text-pretty'>
+        {t(`${step}Body`)}
+      </p>
     </motion.div>
   )
 }

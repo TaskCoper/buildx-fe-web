@@ -1,6 +1,6 @@
 'use client'
 
-import { Form, Input, InputNumber } from 'antd'
+import { Col, Form, Input, InputNumber, Row } from 'antd'
 import { useTranslations } from 'next-intl'
 
 import type { CmsCostGroup } from '@/shared/cms'
@@ -53,25 +53,29 @@ export function CostGroupManager() {
         { title: t('costGroups.items'), key: 'items', width: 140, render: (_, record) => itemCount(record) }
       ]}
       renderForm={() => (
-        <>
-          <Form.Item
-            name='name'
-            label={t('costGroups.name')}
-            rules={[
-              { required: true, whitespace: true, message: t('fields.requiredMessage') },
-              { max: 100, message: t('fields.maxLength', { max: 100 }) }
-            ]}
-          >
-            <Input maxLength={100} />
-          </Form.Item>
-          <Form.Item
-            name='order'
-            label={t('costGroups.order')}
-            rules={[{ required: true, type: 'integer', min: 1, message: t('costGroups.orderRule') }]}
-          >
-            <InputNumber min={1} precision={0} style={{ width: 160 }} />
-          </Form.Item>
-        </>
+        <Row gutter={16}>
+          <Col xs={24} md={18}>
+            <Form.Item
+              name='name'
+              label={t('costGroups.name')}
+              rules={[
+                { required: true, whitespace: true, message: t('fields.requiredMessage') },
+                { max: 100, message: t('fields.maxLength', { max: 100 }) }
+              ]}
+            >
+              <Input maxLength={100} />
+            </Form.Item>
+          </Col>
+          <Col xs={24} md={6}>
+            <Form.Item
+              name='order'
+              label={t('costGroups.order')}
+              rules={[{ required: true, type: 'integer', min: 1, message: t('costGroups.orderRule') }]}
+            >
+              <InputNumber min={1} precision={0} style={{ width: '100%' }} />
+            </Form.Item>
+          </Col>
+        </Row>
       )}
     />
   )

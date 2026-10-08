@@ -797,10 +797,20 @@
     box-shadow: var(--header-shadow-scrolled);
   }
 
-  /* The mobile header stays 64px tall even after the desktop compact state is
-     entered. Keep sticky page controls below that unchanged height as well. */
+  /* Mobile: keep the shared header pinned and visible while the page scrolls.
+     The component still tracks scroll direction for desktop, but mobile must
+     not translate the header away from the top of the viewport. */
   @media (max-width: 767px) {
-    :root:has(.site-header-shell):not(:has(.site-header-shell[data-hidden='true'])) {
+    .site-header-shell {
+      position: sticky;
+      top: 0;
+    }
+
+    .site-header-shell[data-hidden='true'] {
+      transform: translateY(0) !important;
+    }
+
+    :root:has(.site-header-shell) {
       --public-header-offset: 64px !important;
     }
   }
@@ -6363,7 +6373,7 @@ html[data-pricing-scrolling='true'] .supervision-journey-flow-dot {
   .supervision-journey-track {
     flex-direction: column;
     align-items: stretch;
-    gap: 0;
+    gap: 16px;
     overflow: hidden;
   }
   .supervision-journey-card {

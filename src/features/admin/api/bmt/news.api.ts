@@ -10,6 +10,10 @@ export type NewsArticleState = 'Draft' | 'Published' | 'Hidden'
 
 export interface BmtAdminArticleItem {
   id: string
+  /** Đường dẫn hiện tại; `null` với bài nháp chưa có đường dẫn hoặc bài cũ chưa được gán (BR-NEWS-004). */
+  slug?: string | null
+  /** Ngôn ngữ của bài: `vi` hoặc `en`. */
+  locale: string
   state: NewsArticleState
   title?: string | null
   readingTimeMinutes?: number | null
@@ -23,6 +27,10 @@ export interface BmtAdminArticleItem {
 
 export interface BmtAdminArticleDetail extends BmtAdminArticleItem {
   contentHtml?: string | null
+  /** Mã nhóm nối các bản dịch của cùng một bài. */
+  translationGroupId: string
+  /** Các đường dẫn cũ vẫn chuyển hướng về đường dẫn hiện tại. */
+  previousSlugs: string[]
 }
 
 /** Nội dung ghi của bài. Trường `null` nghĩa là xóa giá trị (PUT thay toàn bộ). */
@@ -32,6 +40,13 @@ export interface BmtArticleWrite {
   contentHtml: string | null
   coverImageUrl: string | null
   categoryIds: string[]
+  /**
+   * Đường dẫn mong muốn. Bỏ trống: bài mới tự sinh từ tiêu đề, bài đã có giữ nguyên — sửa tiêu đề không tự đổi
+   * đường dẫn (BR-NEWS-004 khoản 4).
+   */
+  slug?: string | null
+  /** Chỉ dùng khi tạo bài; bỏ trống là `vi`. */
+  locale?: string
 }
 
 export interface BmtArticleStateChanged {
@@ -49,6 +64,11 @@ export interface BmtNewsCategory {
   sortOrder: number
   hasChildren: boolean
   version: number
+  /** Bước của Cẩm nang; chỉ danh mục gốc mới có (BR-HB-001 khoản 4). */
+  stageId?: string | null
+  /** true là chủ đề hướng dẫn hiện trong một bước; false là nhãn tin tức. */
+  isInstruction?: boolean
+  iconKey?: string | null
 }
 
 export interface BmtNewsCategoryPosition {
@@ -61,6 +81,8 @@ export interface BmtNewsCategoryPosition {
 /** Giới hạn độ dài theo BR-NEWS-001 khoản 9 và BR-NEWS-002 khoản 1. */
 export const NEWS_LIMITS = {
   title: 200,
+  /** Đường dẫn: chỉ chữ thường, chữ số và dấu gạch ngang (BR-NEWS-004). */
+  slug: 200,
   /** Số phút đọc: số nguyên không âm, trần hợp lý cho ô nhập. */
   readingTimeMinutesMax: 999,
   contentHtml: 200_000,

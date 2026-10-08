@@ -2,7 +2,7 @@
 
 import { CheckCircleOutlined, HistoryOutlined } from '@ant-design/icons'
 import { useQuery } from '@tanstack/react-query'
-import { App, Alert, Form, Input, List, Modal, Select, Switch, Tag, Typography } from 'antd'
+import { App, Alert, Col, Form, Input, List, Modal, Row, Select, Switch, Tag, Typography } from 'antd'
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 
@@ -201,47 +201,66 @@ export function PaymentConnectionManager() {
               {locked ? (
                 <Alert type='warning' showIcon title={c('accountLockedNote')} style={{ marginBottom: 16 }} />
               ) : null}
-              <Form.Item name='environment' label={c('environment')} rules={[{ required: true }]}>
-                <Select
-                  disabled={!ctx.isNew}
-                  options={[
-                    { value: 'Test', label: 'Test' },
-                    { value: 'Live', label: 'Live' }
-                  ]}
-                />
-              </Form.Item>
-              <Form.Item
-                name='gateway'
-                label={c('gateway')}
-                extra={c('gatewayHint')}
-                rules={[{ required: true, whitespace: true, message: t('fields.requiredMessage') }]}
-              >
-                <Input disabled={locked} />
-              </Form.Item>
-              <Form.Item
-                name='accountNumber'
-                label={c('accountNumber')}
-                rules={[
-                  { required: true, whitespace: true, message: t('fields.requiredMessage') },
-                  { max: 64, transform: trimmed, message: t('fields.maxLength', { max: 64 }) }
-                ]}
-              >
-                <Input disabled={locked} />
-              </Form.Item>
-              <Form.Item name='subAccount' label={c('subAccount')} extra={c('subAccountHint')}>
-                <Input disabled={locked} />
-              </Form.Item>
-              <Form.Item
-                name='qrBankCode'
-                label={c('qrBankCode')}
-                extra={c('qrBankCodeHint')}
-                rules={[{ required: true, whitespace: true, message: t('fields.requiredMessage') }]}
-              >
-                <Input disabled={locked} />
-              </Form.Item>
-              <Form.Item name='enabled' label={c('enabled')} valuePropName='checked'>
-                <Switch />
-              </Form.Item>
+              {/* Ba hàng chia đôi: môi trường + ngân hàng, số tài khoản + tài khoản ảo, mã QR + bật/tắt. */}
+              <Row gutter={16}>
+                <Col xs={24} md={12}>
+                  <Form.Item name='environment' label={c('environment')} rules={[{ required: true }]}>
+                    <Select
+                      disabled={!ctx.isNew}
+                      options={[
+                        { value: 'Test', label: 'Test' },
+                        { value: 'Live', label: 'Live' }
+                      ]}
+                    />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={12}>
+                  <Form.Item
+                    name='gateway'
+                    label={c('gateway')}
+                    extra={c('gatewayHint')}
+                    rules={[{ required: true, whitespace: true, message: t('fields.requiredMessage') }]}
+                  >
+                    <Input disabled={locked} />
+                  </Form.Item>
+                </Col>
+              </Row>
+              <Row gutter={16}>
+                <Col xs={24} md={12}>
+                  <Form.Item
+                    name='accountNumber'
+                    label={c('accountNumber')}
+                    rules={[
+                      { required: true, whitespace: true, message: t('fields.requiredMessage') },
+                      { max: 64, transform: trimmed, message: t('fields.maxLength', { max: 64 }) }
+                    ]}
+                  >
+                    <Input disabled={locked} />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={12}>
+                  <Form.Item name='subAccount' label={c('subAccount')} extra={c('subAccountHint')}>
+                    <Input disabled={locked} />
+                  </Form.Item>
+                </Col>
+              </Row>
+              <Row gutter={16}>
+                <Col xs={24} md={12}>
+                  <Form.Item
+                    name='qrBankCode'
+                    label={c('qrBankCode')}
+                    extra={c('qrBankCodeHint')}
+                    rules={[{ required: true, whitespace: true, message: t('fields.requiredMessage') }]}
+                  >
+                    <Input disabled={locked} />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={12}>
+                  <Form.Item name='enabled' label={c('enabled')} valuePropName='checked'>
+                    <Switch />
+                  </Form.Item>
+                </Col>
+              </Row>
               {ctx.item ? (
                 // Hai thứ vận hành cần để hoàn tất kết nối: URL webhook dán vào SePay và khoá
                 // cấu hình secret đặt trên máy chủ. Thiếu secret thì chưa chọn đang dùng được.

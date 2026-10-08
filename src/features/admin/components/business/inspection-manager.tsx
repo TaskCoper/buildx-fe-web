@@ -283,7 +283,7 @@ export function InspectionManager() {
             type='warning'
             showIcon
             style={{ marginBottom: 16 }}
-            message={t('inspections.pendingUpload')}
+            title={t('inspections.pendingUpload')}
             description={t('inspections.pendingUploadBody')}
           />
         ) : null}

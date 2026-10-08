@@ -21,7 +21,7 @@ import { COMPARE_CRITERIA, MAX_INVITATIONS, MIN_COMPARE } from '../constants/con
 import { useBrief } from '../hooks/use-brief'
 import { useContractors } from '../hooks/use-contractors'
 import { useInvitations } from '../hooks/use-invitations'
-import { isInvited } from '../services/contractor-list.service'
+import { isInvited, isNotAccepting } from '../services/contractor-list.service'
 import { useContractorsStore } from '../store/contractors.store'
 import type { Contractor } from '../types/contractor.types'
 import { ContractorLogo } from './contractor-logo'
@@ -135,6 +135,9 @@ export function ContractorCompare({ projectId }: ContractorCompareProps) {
     setPicked((current) => {
       if (current.includes(contractorId)) return current.filter((id) => id !== contractorId)
       if (isInvited(invitations ?? [], contractorId)) return current
+      // Nhà thầu đã ngưng nhận dự án không chọn để mời được.
+      const candidate = (contractors ?? []).find((contractor) => contractor.id === contractorId)
+      if (candidate && isNotAccepting(candidate)) return current
       if (current.length >= room) {
         setExceedShakeId(contractorId)
         window.setTimeout(() => setExceedShakeId(null), 450)
@@ -168,7 +171,13 @@ export function ContractorCompare({ projectId }: ContractorCompareProps) {
       return
     }
     if (picked.length === 0) return
-    const eligible = picked.filter((id) => !isInvited(invitations ?? [], id)).slice(0, room)
+    const eligible = picked
+      .filter((id) => !isInvited(invitations ?? [], id))
+      .filter((id) => {
+        const candidate = rows.find((contractor) => contractor.id === id)
+        return !candidate || !isNotAccepting(candidate)
+      })
+      .slice(0, room)
     startInviteQueue(eligible, projectId)
     const first = eligible[0]
     if (first) router.push(contractorInviteRoute(projectId, first))
@@ -474,9 +483,13 @@ export function ContractorCompare({ projectId }: ContractorCompareProps) {
                                 variant={isPicked ? 'default' : 'outline'}
                                 className={cn('h-11 w-full', !isPicked && 'border-primary/50 text-primary-strong')}
                                 onClick={() => togglePick(contractor.id)}
-                                disabled={isInvited(invitations ?? [], contractor.id)}
+                                disabled={isInvited(invitations ?? [], contractor.id) || isNotAccepting(contractor)}
                                 title={
-                                  !isPicked && picked.length >= room ? t('exceedRoom', { count: room }) : undefined
+                                  isNotAccepting(contractor)
+                                    ? tCommon('notAccepting')
+                                    : !isPicked && picked.length >= room
+                                      ? t('exceedRoom', { count: room })
+                                      : undefined
                                 }
                               >
                                 {isPicked ? <SelectedCheckIcon /> : <Circle className='size-4' />}

@@ -298,7 +298,7 @@
       "GoogleSignInCancelled": "Bạn đã huỷ đăng nhập bằng Google.",
       "GoogleSignInUnavailable": "Đăng nhập bằng Google tạm thời chưa dùng được.",
       "PermissionCodeUnknown": "Mã quyền không có trong danh mục.",
-      "PermissionNotHeldByActor": "Bạn không thể cấp quyền mà chính mình không có.",
+      "PermissionNotHeldByActor": "Bạn không đủ quyền cho thao tác này, hoặc tài khoản không phải nhân viên đang hoạt động.",
       "SelfPrivilegeEscalation": "Bạn không thể tự nâng quyền cho chính mình.",
       "CannotLockSelf": "Bạn không thể khoá chính tài khoản của mình.",
       "LastAdminProtected": "Hệ thống phải còn ít nhất một quản trị viên đang hoạt động.",
@@ -325,7 +325,7 @@
       "SubscriptionVersionConflict": "Gói của bạn vừa thay đổi. Hãy tải lại trang rồi thử lại.",
       "QuotaUnavailable": "Bạn đã dùng hết lượt trong kỳ này. Vui lòng nâng cấp hoặc mua thêm gói.",
       "LocationDatasetChanged": "Danh sách tỉnh/phường vừa được cập nhật. Vui lòng chọn lại địa chỉ.",
-      "DependencyUnavailable": "Dịch vụ AI tạm thời chưa sẵn sàng. Vui lòng thử lại sau ít phút.",
+      "DependencyUnavailable": "Một dịch vụ của hệ thống tạm thời chưa sẵn sàng. Vui lòng thử lại sau ít phút.",
       "ExportNotFound": "Không tìm thấy hồ sơ xuất hoặc tệp kết quả.",
       "ExportNotReady": "Hồ sơ đang được tạo, chưa tải về được. Vui lòng chờ thêm.",
       "InvalidExportFormat": "Định dạng xuất không được hỗ trợ.",
@@ -433,7 +433,7 @@
       "InvalidRequest": "Yêu cầu chưa hợp lệ. Vui lòng kiểm tra lại thông tin.",
       "ConsultationContactRequired": "Vui lòng nhập số điện thoại liên lạc hợp lệ.",
       "ConsultationTimeNotFuture": "Thời gian mong muốn phải ở tương lai.",
-      "ConsultationInputInvalid": "Thông tin yêu cầu tư vấn chưa hợp lệ. Vui lòng kiểm tra lại.",
+      "ConsultationInputInvalid": "Thông tin kiến trúc sư hoặc yêu cầu tư vấn chưa hợp lệ. Vui lòng kiểm tra lại các trường.",
       "ConsultationIdempotencyConflict": "Yêu cầu tư vấn này đã được gửi với nội dung khác. Hãy tải lại trang rồi thử lại.",
       "ConsultationTemporarilyUnavailable": "Hệ thống tư vấn đang bận. Vui lòng thử lại sau ít phút.",
       "ConsultationRequestNotFound": "Không tìm thấy yêu cầu tư vấn.",
@@ -1110,7 +1110,8 @@
       "viewAll": "Xem tất cả bài viết",
       "newBadge": "Mới",
       "readTime": "{minutes} phút đọc",
-      "titleMobile": "Cẩm nang xây nhà"
+      "titleMobile": "Cẩm nang xây nhà",
+      "loadError": "Không tải được bài viết mới nhất. Thử tải lại trang."
     },
     "card": {
       "imageCount": "{count} ảnh 3D",
@@ -1133,7 +1134,7 @@
       },
       "filterLabels": {
         "buildingType": "Loại công trình",
-        "floors": "Quy mô (tầng)",
+        "floors": "Quy mô công trình",
         "tum": "Tum",
         "architecture": "Phong cách kiến trúc",
         "interior": "Phong cách nội thất"
@@ -1142,6 +1143,8 @@
       "allStyles": "Tất cả phong cách",
       "buildingTypePrefix": "Loại công trình: {value}",
       "floorOption": "{count} tầng",
+      "floorGround": "Trệt",
+      "floorUpper": "Trệt + {count} lầu",
       "searchPlaceholder2d": "Tìm mẫu theo tên, kích thước…",
       "searchPlaceholder3d": "Tìm mẫu theo tên, phong cách…",
       "resultCount": "Hiển thị {shown} / {total} mẫu",
@@ -1243,12 +1246,14 @@
       "articleCount": "({count} bài)",
       "readingTime": "{minutes} phút đọc",
       "topicEmpty": "Chủ đề này chưa có bài viết.",
-      "openStage": "Xem cẩm nang"
+      "openStage": "Xem cẩm nang",
+      "loadError": "Không tải được các bước của cẩm nang. Thử tải lại trang."
     },
     "newsletter": {
       "title": "Bản tin BuildX",
       "featured": "Bài viết nổi bật",
       "related": "Bài viết liên quan",
+      "loadError": "Không tải được bản tin. Thử tải lại trang.",
       "seeAllRelated": "Xem tất cả bài liên quan",
       "readingTime": "{minutes} phút đọc",
       "categories": {
@@ -1259,6 +1264,9 @@
       }
     },
     "articles": {
+      "uncategorized": "Chưa phân loại",
+      "loadError": "Không tải được danh sách bài viết. Thử tải lại trang.",
+
       "eyebrow": "Cẩm nang BuildX",
       "title": "Khám phá kiến thức xây dựng",
       "subtitle": "Thông tin hữu ích để bạn chủ động hơn trong từng bước xây nhà.",
@@ -1322,7 +1330,7 @@
         "p2": "Thiết kế & dự toán theo lô đất của bạn",
         "p3": "Nhận bản vẽ hoàn chỉnh → sẵn sàng triển khai",
         "valuePlan": "Dùng lượt trong gói {plan}",
-        "valueFree": "gói thiết kế từ 399.000đ",
+        "valueFree": "Gói thiết kế từ 399.000đ",
         "action": "Thiết kế ngay"
       },
       "consult": {
@@ -1418,7 +1426,7 @@
           "p1": "Chưa có bản vẽ → Thiết kế & dự toán",
           "p2": "Nhận bản vẽ / hồ sơ",
           "p3": "Dự án sẵn sàng triển khai",
-          "value": "gói thiết kế từ 399.000đ",
+          "value": "Gói thiết kế từ 399.000đ",
           "action": "Tạo dự án ngay"
         },
         "architect": {
@@ -1537,7 +1545,7 @@
           "p1": "Tải ảnh lô đất / chụp ảnh hiện trạng",
           "p2": "Hệ thống phân tích hiện trạng",
           "p3": "Thiết kế & dự toán → nhận bản vẽ",
-          "value": "gói thiết kế từ 399.000đ",
+          "value": "Gói thiết kế từ 399.000đ",
           "action": "Chụp ảnh & tạo dự án"
         },
         "browse": {
@@ -2839,6 +2847,9 @@
       "regionsHint": "Độ phủ của danh bạ — miền nào mỏng thì lời mời báo giá ở đó sẽ khó khớp."
     },
     "nav": {
+      "handbookNewsletter": "Bản tin Cẩm nang",
+      "handbookContent": "Nội dung trang Cẩm nang",
+
       "dashboard": "Việc cần xử lý",
       "templates": "Thư viện mẫu",
       "styles": "Phong cách",
@@ -2911,6 +2922,7 @@
       "created": "Đã thêm bản ghi mới.",
       "saved": "Đã lưu. Site công khai cập nhật ngay.",
       "deleted": "Đã xóa bản ghi.",
+      "recordNotFound": "Không tìm thấy bản ghi này. Có thể nó đã bị xóa hoặc không còn trong danh sách.",
       "apiError": "Máy chủ báo lỗi. Vui lòng thử lại."
     },
     "table": {
@@ -5155,7 +5167,16 @@
       "effectiveNote": "Người đang giữ vai trò nhận bộ quyền mới chậm nhất sau {minutes} phút, khi phiên đăng nhập của họ được cấp lại. Muốn có hiệu lực ngay, buộc họ đăng xuất ở màn Tài khoản nhân viên."
     },
     "newsArticles": {
-      "description": "Bài tin tức của Cẩm nang. Bài mới luôn là Nháp và được lưu dù thiếu thông tin; chỉ công bố được khi đủ tiêu đề, ảnh đại diện, nội dung và ít nhất một danh mục. Xóa là xóa hẳn, không khôi phục.",
+      "slug": "Đường dẫn",
+      "slugHint": "Để trống: hệ thống tự sinh từ tiêu đề. Sửa tiêu đề không tự đổi đường dẫn. Đổi đường dẫn thì đường dẫn cũ vẫn mở được và tự chuyển sang đường dẫn mới.",
+      "slugPlaceholder": "tự sinh từ tiêu đề",
+      "slugInvalid": "Chỉ gồm chữ thường không dấu, chữ số và dấu gạch ngang; không bắt đầu hoặc kết thúc bằng gạch ngang.",
+      "previousSlugs": "Đường dẫn cũ",
+      "locale": "Ngôn ngữ",
+      "localeLocked": "Ngôn ngữ chỉ chọn lúc tạo bài.",
+      "locales": { "vi": "Tiếng Việt", "en": "Tiếng Anh" },
+
+      "description": "Bài tin tức của Cẩm nang. Bài mới luôn là Nháp và được lưu dù thiếu thông tin; chỉ công bố được khi đủ tiêu đề, ảnh đại diện, số phút đọc, nội dung và đường dẫn; danh mục không bắt buộc. Xóa là xóa hẳn, không khôi phục.",
       "manageCategories": "Quản lý danh mục",
       "states": {
         "all": "Tất cả",
@@ -5168,7 +5189,7 @@
       "readingTimeMinutes": "Số phút đọc",
       "cover": "Ảnh đại diện",
       "categories": "Danh mục",
-      "categoriesHint": "Chọn một hoặc nhiều danh mục ở bất kỳ cấp nào — chọn danh mục con không cần chọn thêm cha.",
+      "categoriesHint": "Không bắt buộc. Chọn một hoặc nhiều danh mục ở bất kỳ cấp nào — chọn danh mục con không cần chọn thêm cha. Bài không gắn danh mục hiện nhãn “chưa phân loại” ở trang khách.",
       "categoryRequired": "Bài đang công bố phải có ít nhất một danh mục.",
       "pickCategories": "Chọn danh mục",
       "content": "Nội dung",
@@ -5178,7 +5199,7 @@
       "createdAt": "Tạo lúc",
       "modifiedAt": "Sửa lần cuối",
       "draftHint": "Lưu nháp được dù còn thiếu thông tin. Khách chưa đọc được bài cho tới khi bấm Công bố ở bảng.",
-      "publishedEditHint": "Bài đang công bố: lưu là khách thấy ngay nội dung mới, nên bản sửa phải đủ tiêu đề, ảnh đại diện, nội dung và ít nhất một danh mục.",
+      "publishedEditHint": "Bài đang công bố: lưu là khách thấy ngay nội dung mới, nên bản sửa phải đủ tiêu đề, ảnh đại diện, số phút đọc, nội dung và đường dẫn. Danh mục không bắt buộc.",
       "publish": "Công bố",
       "publishTitle": "Công bố “{name}”?",
       "publishBody": "Bài hiện ngay trên trang Tin tức. Ngày công bố lần đầu được giữ nguyên nếu bài từng công bố.",
@@ -5193,7 +5214,7 @@
       "parts": {
         "title": "tiêu đề",
         "cover": "ảnh đại diện",
-        "category": "danh mục"
+        "slug": "đường dẫn"
       },
       "editor": {
         "edit": "Soạn",
@@ -5205,9 +5226,9 @@
         "imageDropTitle": "Bấm để chọn ảnh hoặc kéo thả ảnh vào đây",
         "imageDropHint": "JPG, PNG hoặc WebP. Ảnh sẽ nằm đúng chỗ khung này.",
         "imageUploading": "Đang tải ảnh lên…",
+        "imageLoading": "Đang tải ảnh…",
         "imageRemove": "Bỏ khung ảnh",
         "imageDelete": "Xóa ảnh",
-        "imageLoading": "Đang tải ảnh…",
         "imageResize": "Kéo để đổi kích thước ảnh",
         "tools": {
           "bold": "In đậm",
@@ -5304,6 +5325,75 @@
       "reopenTitle": "Mở lại yêu cầu của {name}?",
       "reopenBody": "Yêu cầu quay về Chưa xử lý để liên hệ lại. Ghi chú nội bộ giữ nguyên."
     },
+    "handbookNewsletter": {
+      "description": "Chọn và sắp xếp các bài nổi bật của khối Bản tin trên trang Cẩm nang. Thứ tự do bạn quyết định, không theo ngày công bố. Nên xếp dư vài bài: bài đang ẩn hoặc nháp bị bỏ qua khi hiển thị và các bài sau dồn lên, nhưng vẫn giữ chỗ nên công bố lại là về đúng vị trí cũ. Bài liên quan bên cạnh khối do hệ thống tự lấy theo danh mục của bài đứng đầu.",
+      "listTitle": "Bài nổi bật — trang hiển thị {count} bài đầu đang công bố",
+      "title": "Bài viết nổi bật",
+      "addPlaceholder": "Tìm bài để thêm vào khối…",
+      "addButton": "Thêm bài viết",
+      "addTitle": "Thêm bài viết vào khối Bản tin",
+      "addNote": "Chỉ bài đã công bố mới hiển thị trên trang. Thêm xong, bấm Lưu để cập nhật trang.",
+      "addRow": "Thêm",
+      "added": "Đã thêm",
+      "addDone": "Xong",
+      "noResult": "Không có bài phù hợp",
+      "untitled": "(chưa có tiêu đề)",
+      "empty": "Chưa có bài nào trong khối",
+      "position": "Vị trí",
+      "article": "Bài viết",
+      "state": "Trạng thái",
+      "display": "Hiển thị trên trang",
+      "shownAs": "Số {number}",
+      "reserve": "Dự phòng",
+      "notShown": "Chưa hiển thị",
+      "hiddenHint": "Bài đang ẩn hoặc nháp nên bị bỏ qua. Công bố lại thì bài về đúng vị trí này.",
+      "moveUp": "Đưa lên",
+      "moveDown": "Đưa xuống",
+      "remove": "Gỡ khỏi khối",
+      "discard": "Hủy thay đổi",
+      "notShownEmpty": "Khối chưa có bài nào nên trang Cẩm nang đang ẩn cả dải Bản tin. Thêm bài đang công bố để dải này hiển thị.",
+      "notShownAllHidden": "Không có bài nào trong khối đang công bố nên trang Cẩm nang đang ẩn cả dải Bản tin. Công bố lại một bài đã xếp hoặc thêm bài khác.",
+      "states": { "Draft": "Nháp", "Published": "Đã công bố", "Hidden": "Đang ẩn" }
+    },
+    "handbookContent": {
+      "description": "Quản lý nội dung trang Cẩm nang theo hai tab Tin tức và Thư viện mẫu, xếp theo đúng thứ tự người đọc thấy trên trang. Các thẻ chữ sửa riêng từng ngôn ngữ: khối chưa sửa dùng bản dịch sẵn có nên form mở ra với đúng chữ đang hiển thị, và ngôn ngữ chưa sửa không mượn chữ của ngôn ngữ khác. Ba bước, chủ đề hướng dẫn và bài nổi bật dùng chung cho mọi ngôn ngữ.",
+      "locales": { "vi": "Tiếng Việt", "en": "Tiếng Anh" },
+      "groups": { "news": "Tin tức", "library": "Thư viện mẫu" },
+      "newsGroups": {
+        "top": {
+          "title": "Đầu trang và ba bước",
+          "hint": "Phần mở đầu và ba bước xây nhà ở đầu tab Tin tức. Ba bước và chủ đề hướng dẫn dùng chung cho mọi ngôn ngữ."
+        },
+        "newsletter": {
+          "title": "Bản tin BuildX",
+          "hint": "Khối Bản tin nằm ngay dưới ba bước: bài nổi bật và bài liên quan."
+        },
+        "articles": { "title": "Danh sách bài viết", "hint": "Khối bài viết nằm cuối tab Tin tức." }
+      },
+      "edited": "Đã biên tập",
+      "usingDefault": "Đang dùng bản mặc định",
+      "restore": "Khôi phục mặc định",
+      "restoreConfirm": "Xóa bản đã sửa của khối này? Trang sẽ quay lại dùng bản dịch sẵn có.",
+      "restored": "Đã khôi phục bản mặc định.",
+      "unchanged": "Chữ chưa khác bản mặc định nên chưa cần lưu.",
+      "sections": {
+        "hero": { "title": "Phần mở đầu" },
+        "stagesHeading": { "title": "Tiêu đề nhóm ba bước" },
+        "articlesHeading": { "title": "Khối bài viết" },
+        "newsletterHeading": { "title": "Khối Bản tin" },
+        "libraryBanner": { "title": "Banner tab Thư viện mẫu" },
+        "tabs": { "title": "Tên hai tab" }
+      },
+      "fields": {
+        "eyebrow": "Dòng nhãn phía trên",
+        "title": "Tiêu đề",
+        "description": "Mô tả",
+        "ctaLabel": "Chữ trên nút",
+        "backgroundImageUrl": "Ảnh nền (không bắt buộc — bỏ trống dùng ảnh mặc định)",
+        "newsLabel": "Tên tab Tin tức",
+        "libraryLabel": "Tên tab Thư viện mẫu"
+      }
+    },
     "handbookSteps": {
       "description": "Ba bước cố định của Cẩm nang: Phần thô, Phần hoàn thiện, Trang trí nội thất. Chỉ sửa ảnh, tên và mô tả — không thêm, xóa hay đổi thứ tự.",
       "step": "Số bước",
@@ -5328,7 +5418,9 @@
       "inUse": "Còn {count} bài viết — chuyển hoặc gỡ các bài khỏi nhóm trước khi xóa.",
       "deleteConfirm": "Xóa nhóm \"{name}\"?",
       "deletedToast": "Đã xóa nhóm {name}.",
-      "hint": "Đổi tên hoặc icon không làm thay đổi các bài viết trong nhóm. Không chuyển nhóm sang Bước khác."
+      "hint": "Đổi tên hoặc icon không làm thay đổi các bài viết trong nhóm. Không chuyển nhóm sang Bước khác.",
+      "moveUp": "Chuyển nhóm lên",
+      "moveDown": "Chuyển nhóm xuống"
     },
     "costGroups": {
       "description": "Kết quả dự toán trình bày theo các nhóm chi phí này; tổng dự toán bằng tổng các nhóm. Nhóm còn hạng mục thì không xóa được.",
@@ -5445,10 +5537,10 @@
       "resolveFailed": "Không lấy được toạ độ của địa chỉ này, thử chọn lại"
     },
     "imageUpload": {
-      "button": "Tải ảnh lên",
-      "done": "Đã tải ảnh lên",
       "dropHint": "Thả tệp vào đây để tải lên",
       "orDrop": "hoặc kéo thả ảnh vào đây",
+      "button": "Tải ảnh lên",
+      "done": "Đã tải ảnh lên",
       "errors": {
         "UnsupportedType": "Chỉ nhận ảnh JPG, PNG hoặc WebP.",
         "TooLarge": "Ảnh vượt quá dung lượng cho phép.",
@@ -5556,6 +5648,7 @@
       "surveyHours": "trong {hours}h",
       "acceptingLabel": "Đang nhận",
       "acceptingSuffix": "dự án",
+      "notAcceptingLabel": "Tạm ngưng nhận",
       "informationUnknown": "Chưa cập nhật",
       "ratingUnknown": "Chưa có đánh giá",
       "projectAvailability": "Trạng thái nhận dự án",
@@ -7175,10 +7268,10 @@
     }
   },
   "meta": {
-    "design": "Thiết kế & Dự toán",
-    "designInput": "Nhập thông tin dự án",
     "siteTitle": "NỀN TẢNG AI HỖ TRỢ LẬP KẾ HOẠCH & TRIỂN KHAI CÔNG TRÌNH | BuildX",
     "siteDescription": "Nền tảng hỗ trợ lập kế hoạch & triển khai công trình. tạo phương án thiết kế và dự toán, so sánh lựa chọn, tìm nhà thầu phù hợp và theo dõi quá trình triển khai trên cùng một nền tảng",
+    "design": "Thiết kế & Dự toán",
+    "designInput": "Nhập thông tin dự án",
     "designEstimate": "Kết quả dự toán",
     "designDossier": "Hồ sơ thi công",
     "contractors": "Tìm nhà thầu",
@@ -7198,9 +7291,9 @@
     "plansSupervision": "Gói giám sát thi công",
     "consult": "Tư vấn 1:1",
     "consultDetail": "Hồ sơ kiến trúc sư",
+    "consultantName": "Kiến trúc sư - {name}",
     "account": "Tài khoản của tôi",
     "accountProjects": "Dự án của tôi",
-    "consultantName": "Kiến trúc sư - {name}",
     "accountDossiers": "Hồ sơ của tôi",
     "accountPurchases": "Lịch sử mua hàng",
     "accountConsultations": "Lịch sử tư vấn 1:1",

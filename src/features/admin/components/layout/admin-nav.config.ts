@@ -7,11 +7,11 @@ import {
   BuildOutlined,
   CalendarOutlined,
   DollarOutlined,
+  EditOutlined,
   EnvironmentOutlined,
   FileTextOutlined,
   HistoryOutlined,
   GiftOutlined,
-  OrderedListOutlined,
   PlayCircleOutlined,
   SafetyCertificateOutlined,
   SendOutlined,
@@ -124,7 +124,8 @@ export const ADMIN_NAV = [
       { key: 'templates', href: ADMIN_ROUTES.TEMPLATES, icon: BookOutlined },
       // Đã ẩn "Lượt xem mẫu" (templateViews) khỏi menu theo yêu cầu; route và trang vẫn còn để bật lại.
       { key: 'articles', href: ADMIN_ROUTES.ARTICLES, icon: FileTextOutlined },
-      { key: 'handbookSteps', href: ADMIN_ROUTES.HANDBOOK_STEPS, icon: OrderedListOutlined },
+      // Các bước và Bản tin của Cẩm nang đã gộp vào màn Nội dung trang Cẩm nang (tab Tin tức).
+      { key: 'handbookContent', href: ADMIN_ROUTES.HANDBOOK_CONTENT, icon: EditOutlined },
       { key: 'guideVideos', href: ADMIN_ROUTES.GUIDE_VIDEOS, icon: PlayCircleOutlined }
       // Đã ẩn "Đánh giá khách hàng" (testimonials) khỏi menu theo yêu cầu; route và trang vẫn còn để bật lại.
     ]

@@ -10,6 +10,7 @@ import { Link } from '@/i18n/navigation'
 import { revealEase, RevealPhoto } from '@/shared/components/common'
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import { ROUTES, handbookArticleRoute } from '@/shared/constants/routes'
+import { useApiErrorText } from '@/shared/hooks'
 import { cn } from '@/shared/lib/utils'
 import { formatDisplayDate } from '@/shared/utils'
 import { ARTICLE_META_ICON, ARTICLE_META_TEXT } from '../constants/article-meta'
@@ -30,18 +31,25 @@ const NEW_BADGE_WINDOW_MS = 14 * 24 * 60 * 60 * 1000
  *
  * ★ Thẻ hiện lần lượt, ảnh hiện dần; rê thẻ: ảnh phóng nhẹ + phủ xanh mờ, tiêu
  * đề đổi xanh, lộ dòng "Đọc ~x phút →" trong khoảng đã chừa sẵn.
+ *
+ * Dữ liệu là bài đã công bố từ API, dùng chung lượt tải với danh sách bài của trang Cẩm nang. Chưa có bài nào thì cả
+ * khối ẩn đi (không để tiêu đề và nút "Xem tất cả" đứng trên một khoảng trống); lỗi tải thì hiện thông báo thay vì
+ * bài mẫu.
  */
 export function HandbookHighlights() {
   const t = useTranslations('handbook.home')
   const { nameOf: labelName } = useArticleLabels()
   const locale = useLocale() as Locale
+  const apiErrorText = useApiErrorText()
 
-  const { data: articles, isPending } = useHandbookArticles(undefined, undefined, { source: 'mock' })
+  const { data: articles, isPending, error } = useHandbookArticles()
   const latest = useMemo(() => sortByNewest(articles ?? []).slice(0, HOME_HANDBOOK_COUNT), [articles])
   // Chốt mốc "bây giờ" một lần khi mount thay vì gọi `Date.now()` ngay trong
   // JSX của mỗi lần render — nhãn "Mới" không cần cập nhật tức thời tới từng
   // mili-giây trong lúc khách đang xem trang.
   const [now] = useState(() => Date.now())
+
+  if (!isPending && !error && latest.length === 0) return null
 
   return (
     <section className='brand-band'>
@@ -62,68 +70,79 @@ export function HandbookHighlights() {
           </div>
         </header>
 
-        <ul className='mt-4 grid gap-5 lg:mt-8 sm:grid-cols-2 lg:grid-cols-3'>
-          {isPending
-            ? Array.from({ length: HOME_HANDBOOK_COUNT }, (_, index) => (
-                <li key={index}>
-                  <Skeleton className='h-64 w-full rounded-2xl' />
-                </li>
-              ))
-            : latest.map((article, index) => {
-                const isNew = now - new Date(article.publishedAt).getTime() < NEW_BADGE_WINDOW_MS
+        {error && !articles ? (
+          <p
+            role='alert'
+            className='border-primary-foreground/40 mt-4 rounded-2xl border border-dashed p-6 text-sm lg:mt-8'
+          >
+            {apiErrorText(error, t('loadError'))}
+          </p>
+        ) : (
+          <ul className='mt-4 grid gap-5 lg:mt-8 sm:grid-cols-2 lg:grid-cols-3'>
+            {isPending
+              ? Array.from({ length: HOME_HANDBOOK_COUNT }, (_, index) => (
+                  <li key={index}>
+                    <Skeleton className='h-64 w-full rounded-2xl' />
+                  </li>
+                ))
+              : latest.map((article, index) => {
+                  const isNew = now - new Date(article.publishedAt).getTime() < NEW_BADGE_WINDOW_MS
 
-                return (
-                  <motion.li
-                    key={article.id}
-                    initial={{ opacity: 0, y: 24 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, amount: 0.3 }}
-                    transition={{ duration: 0.5, delay: index * 0.1, ease: revealEase }}
-                  >
-                    <Link
-                      href={handbookArticleRoute(article.slug)}
-                      className='bg-card text-card-foreground group hover:border-primary/50 flex h-full flex-col overflow-hidden rounded-2xl border transition-colors'
+                  return (
+                    <motion.li
+                      key={article.id}
+                      initial={{ opacity: 0, y: 24 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, amount: 0.3 }}
+                      transition={{ duration: 0.5, delay: index * 0.1, ease: revealEase }}
                     >
-                      <div className='relative'>
-                        <RevealPhoto
-                          className='aspect-[16/9] w-full'
-                          src={article.imageUrl}
-                          alt={article.title}
-                          sizes='(max-width: 1024px) 50vw, 420px'
-                        />
-                        {/* Phủ xanh mờ khi rê — nằm ĐÈ LÊN ảnh, không thay ảnh. */}
-                        <div className='bg-primary/0 group-hover:bg-primary/20 pointer-events-none absolute inset-0 transition-colors duration-300' />
-                        {isNew ? (
-                          <span className='bg-primary text-primary-foreground absolute top-3 left-3 rounded-md px-2 py-0.5 max-md:text-xs text-[11px] font-semibold'>
-                            {t('newBadge')}
+                      <Link
+                        href={handbookArticleRoute(article.slug)}
+                        className='bg-card text-card-foreground group hover:border-primary/50 flex h-full flex-col overflow-hidden rounded-2xl border transition-colors'
+                      >
+                        <div className='relative'>
+                          <RevealPhoto
+                            className='aspect-[16/9] w-full'
+                            src={article.imageUrl}
+                            alt={article.title}
+                            sizes='(max-width: 1024px) 50vw, 420px'
+                          />
+                          {/* Phủ xanh mờ khi rê — nằm ĐÈ LÊN ảnh, không thay ảnh. */}
+                          <div className='bg-primary/0 group-hover:bg-primary/20 pointer-events-none absolute inset-0 transition-colors duration-300' />
+                          {isNew ? (
+                            <span className='bg-primary text-primary-foreground absolute top-3 left-3 rounded-md px-2 py-0.5 max-md:text-xs text-[11px] font-semibold'>
+                              {t('newBadge')}
+                            </span>
+                          ) : null}
+                        </div>
+                        <span className='flex flex-1 flex-col gap-2 p-4'>
+                          <span className='group-hover:text-brand-orange line-clamp-2 font-bold transition-colors'>
+                            {article.title}
                           </span>
-                        ) : null}
-                      </div>
-                      <span className='flex flex-1 flex-col gap-2 p-4'>
-                        <span className='group-hover:text-brand-orange line-clamp-2 font-bold transition-colors'>
-                          {article.title}
+                          <span
+                            className={cn(ARTICLE_META_TEXT, 'flex flex-wrap items-center gap-x-4 gap-y-1 text-xs')}
+                          >
+                            <span className='flex items-center gap-1.5'>
+                              <Tag className={cn(ARTICLE_META_ICON, 'size-3.5')} />
+                              {labelName(article.category)}
+                            </span>
+                            <span className='flex items-center gap-1.5 border-l pl-4 whitespace-nowrap'>
+                              <CalendarDays className={cn(ARTICLE_META_ICON, 'size-3.5')} />
+                              {formatDisplayDate(article.publishedAt, locale)}
+                            </span>
+                            {/* Thời gian đọc nằm cùng hàng ngày đăng (góp ý BuildX) — bớt một dòng dưới thẻ. */}
+                            <span className='flex items-center gap-1.5 border-l pl-4 whitespace-nowrap'>
+                              <Clock className={cn(ARTICLE_META_ICON, 'size-3.5')} />
+                              {t('readTime', { minutes: article.readingMinutes })}
+                            </span>
+                          </span>
                         </span>
-                        <span className={cn(ARTICLE_META_TEXT, 'flex flex-wrap items-center gap-x-4 gap-y-1 text-xs')}>
-                          <span className='flex items-center gap-1.5'>
-                            <Tag className={cn(ARTICLE_META_ICON, 'size-3.5')} />
-                            {labelName(article.category)}
-                          </span>
-                          <span className='flex items-center gap-1.5 border-l pl-4 whitespace-nowrap'>
-                            <CalendarDays className={cn(ARTICLE_META_ICON, 'size-3.5')} />
-                            {formatDisplayDate(article.publishedAt, locale)}
-                          </span>
-                          {/* Thời gian đọc nằm cùng hàng ngày đăng (góp ý BuildX) — bớt một dòng dưới thẻ. */}
-                          <span className='flex items-center gap-1.5 border-l pl-4 whitespace-nowrap'>
-                            <Clock className={cn(ARTICLE_META_ICON, 'size-3.5')} />
-                            {t('readTime', { minutes: article.readingMinutes })}
-                          </span>
-                        </span>
-                      </span>
-                    </Link>
-                  </motion.li>
-                )
-              })}
-        </ul>
+                      </Link>
+                    </motion.li>
+                  )
+                })}
+          </ul>
+        )}
       </div>
     </section>
   )

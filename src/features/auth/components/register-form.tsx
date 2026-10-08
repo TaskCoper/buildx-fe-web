@@ -162,7 +162,7 @@ export function RegisterForm({ embedded = false, onSwitchToLogin }: RegisterForm
                       ngang mới xuống dòng. */}
                   {/* Chữ nhỏ lại ở điện thoại và cho phép xuống dòng (`min-w-0 flex-1`) để câu đồng ý không
                       tràn ngang làm form bị kéo được. */}
-                  <FormLabel className='block min-w-0 flex-1 text-[11px] leading-snug font-normal sm:text-sm'>
+                  <FormLabel className='block min-w-0 flex-1 text-sm leading-snug font-normal'>
                     {t.rich('agree', {
                       terms: (chunks) => (
                         <Link
@@ -177,7 +177,7 @@ export function RegisterForm({ embedded = false, onSwitchToLogin }: RegisterForm
                         <Link
                           href={ROUTES.PRIVACY}
                           target='_blank'
-                          className='text-foreground font-medium whitespace-nowrap underline underline-offset-2'
+                          className='text-foreground font-medium underline underline-offset-2'
                         >
                           {chunks}
                         </Link>

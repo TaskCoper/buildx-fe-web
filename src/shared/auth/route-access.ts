@@ -26,7 +26,10 @@ export const ADMIN_ROUTE_ACCESS = {
   [ADMIN_ROUTES.ARTICLES]: { anyPermission: [P.NEWS_MANAGE] },
   [ADMIN_ROUTES.ARTICLE_LABELS]: { anyPermission: [P.NEWS_MANAGE] },
   [ADMIN_ROUTES.TESTIMONIALS]: { adminOnly: true },
-  [ADMIN_ROUTES.HANDBOOK_STEPS]: { adminOnly: true },
+  // Đọc và ghi qua API Cẩm nang nên theo quyền `news.manage`, cùng quyền với bài viết (TDD-HB-001).
+  [ADMIN_ROUTES.HANDBOOK_STEPS]: { anyPermission: [P.NEWS_MANAGE] },
+  [ADMIN_ROUTES.HANDBOOK_NEWSLETTER]: { anyPermission: [P.NEWS_MANAGE] },
+  [ADMIN_ROUTES.HANDBOOK_CONTENT]: { anyPermission: [P.NEWS_MANAGE] },
   [ADMIN_ROUTES.GUIDE_VIDEOS]: { anyPermission: [P.GUIDE_MANAGE] },
   [ADMIN_ROUTES.DISCOUNTS]: { adminOnly: true },
   [ADMIN_ROUTES.SUPERVISION_PACKAGES]: { adminOnly: true },
