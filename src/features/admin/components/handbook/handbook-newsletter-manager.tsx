@@ -1,8 +1,8 @@
 'use client'
 
-import { ArrowDownOutlined, ArrowUpOutlined, DeleteOutlined } from '@ant-design/icons'
+import { ArrowDownOutlined, ArrowUpOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Alert, App, Button, Card, Empty, Select, Skeleton, Space, Table, Tag, Tooltip, Typography } from 'antd'
+import { Alert, App, Button, Card, Empty, Input, Modal, Skeleton, Space, Table, Tag, Tooltip, Typography } from 'antd'
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 
@@ -10,7 +10,7 @@ import { useDebouncedValue } from '@/shared/hooks'
 import { isApiError } from '@/shared/lib/api'
 import { adminKeys } from '../../api/admin.keys'
 import { handbookAdminApi, type BmtSpotlightItem } from '../../api/bmt/handbook.api'
-import { newsAdminApi, type NewsArticleState } from '../../api/bmt/news.api'
+import { newsAdminApi, type BmtAdminArticleItem, type NewsArticleState } from '../../api/bmt/news.api'
 import { useUnsavedGuard } from '../../hooks/use-unsaved-guard'
 import {
   NEWSLETTER_DISPLAY_COUNT,
@@ -50,6 +50,7 @@ export function HandbookNewsletterManager() {
   const [draft, setDraft] = useState<BmtSpotlightItem[] | null>(null)
   const [saving, setSaving] = useState(false)
   const [term, setTerm] = useState('')
+  const [adding, setAdding] = useState(false)
   const debouncedTerm = useDebouncedValue(term.trim(), 300)
 
   const items = draft ?? data ?? []
@@ -62,40 +63,35 @@ export function HandbookNewsletterManager() {
   const search = useQuery({
     queryKey: adminKeys.bmt('handbook-newsletter-search', debouncedTerm),
     queryFn: () => newsAdminApi.listArticles({ pageIndex: 1, pageSize: 20, keyword: debouncedTerm || undefined }),
-    staleTime: 30_000
+    staleTime: 30_000,
+    // Chỉ tải danh sách bài khi người quản lý mở hộp thoại thêm bài.
+    enabled: adding
   })
 
   const stateLabel = (state: NewsArticleState) => tn(`states.${state}`)
 
   const taken = new Set(items.map((item) => item.articleId))
-  const options = (search.data?.items ?? [])
-    .filter((article) => !taken.has(article.id))
-    .map((article) => ({
-      value: article.id,
-      label: (
-        <Space size={8}>
-          <span>{article.title || tn('untitled')}</span>
-          <StatusTag tone={STATE_TONE[article.state]}>{stateLabel(article.state)}</StatusTag>
-        </Space>
-      ),
-      article
-    }))
 
   const update = (next: BmtSpotlightItem[]) => setDraft(next)
 
-  const add = (articleId: string) => {
-    const found = search.data?.items.find((article) => article.id === articleId)
-    if (!found) return
+  // Hộp thoại giữ nguyên sau khi thêm để người quản lý thêm tiếp nhiều bài; `items` luôn là bản mới nhất nên bài vừa
+  // thêm chuyển sang "Đã thêm" ngay.
+  const add = (article: BmtAdminArticleItem) => {
+    if (taken.has(article.id)) return
     update([
       ...items,
       {
-        articleId: found.id,
+        articleId: article.id,
         position: items.length + 1,
-        state: found.state,
-        title: found.title,
-        slug: found.slug
+        state: article.state,
+        title: article.title,
+        slug: article.slug
       }
     ])
+  }
+
+  const closeAdding = () => {
+    setAdding(false)
     setTerm('')
   }
 
@@ -147,23 +143,24 @@ export function HandbookNewsletterManager() {
       <Card
         title={tn('listTitle', { count: NEWSLETTER_DISPLAY_COUNT })}
         extra={
-          <Select
-            showSearch={{ filterOption: false, onSearch: setTerm }}
-            value={null}
-            placeholder={tn('addPlaceholder')}
-            style={{ width: 360, maxWidth: '100%' }}
-            loading={search.isFetching}
-            options={options}
-            onSelect={(value) => add(String(value))}
-            notFoundContent={search.isFetching ? <Skeleton.Input active size='small' /> : tn('noResult')}
-          />
+          <Button type='primary' icon={<PlusOutlined />} onClick={() => setAdding(true)}>
+            {tn('addButton')}
+          </Button>
         }
       >
         <Table<BmtSpotlightItem>
           rowKey='articleId'
           pagination={false}
           dataSource={items}
-          locale={{ emptyText: <Empty description={tn('empty')} image={Empty.PRESENTED_IMAGE_SIMPLE} /> }}
+          locale={{
+            emptyText: (
+              <Empty description={tn('empty')} image={Empty.PRESENTED_IMAGE_SIMPLE}>
+                <Button type='primary' icon={<PlusOutlined />} onClick={() => setAdding(true)}>
+                  {tn('addButton')}
+                </Button>
+              </Empty>
+            )
+          }}
           columns={[
             {
               title: tn('position'),
@@ -244,6 +241,77 @@ export function HandbookNewsletterManager() {
           ]}
         />
       </Card>
+
+      <Modal
+        open={adding}
+        title={tn('addTitle')}
+        onCancel={closeAdding}
+        footer={
+          <Button type='primary' onClick={closeAdding}>
+            {tn('addDone')}
+          </Button>
+        }
+        width={720}
+        destroyOnHidden
+      >
+        <Space orientation='vertical' size={12} style={{ width: '100%' }}>
+          <Text type='secondary'>{tn('addNote')}</Text>
+          <Input.Search
+            allowClear
+            autoFocus
+            value={term}
+            onChange={(event) => setTerm(event.target.value)}
+            placeholder={tn('addPlaceholder')}
+            loading={search.isFetching}
+          />
+          <Table<BmtAdminArticleItem>
+            rowKey='id'
+            size='small'
+            pagination={false}
+            loading={search.isPending && adding}
+            dataSource={search.data?.items ?? []}
+            scroll={{ y: 360 }}
+            locale={{ emptyText: <Empty description={tn('noResult')} image={Empty.PRESENTED_IMAGE_SIMPLE} /> }}
+            columns={[
+              {
+                title: tn('article'),
+                key: 'article',
+                render: (_, article) => (
+                  <div style={{ minWidth: 0 }}>
+                    <Text strong style={{ display: 'block' }}>
+                      {article.title || <Text type='secondary'>{tn('untitled')}</Text>}
+                    </Text>
+                    {article.slug ? (
+                      <Text type='secondary' style={{ fontSize: 12 }}>
+                        /{article.slug}
+                      </Text>
+                    ) : null}
+                  </div>
+                )
+              },
+              {
+                title: tn('state'),
+                dataIndex: 'state',
+                width: 130,
+                render: (state: NewsArticleState) => <StatusTag tone={STATE_TONE[state]}>{stateLabel(state)}</StatusTag>
+              },
+              {
+                title: t('table.actions'),
+                key: 'actions',
+                width: 110,
+                render: (_, article) =>
+                  taken.has(article.id) ? (
+                    <Text type='secondary'>{tn('added')}</Text>
+                  ) : (
+                    <Button size='small' type='primary' ghost onClick={() => add(article)}>
+                      {tn('addRow')}
+                    </Button>
+                  )
+              }
+            ]}
+          />
+        </Space>
+      </Modal>
     </AdminPage>
   )
 }
