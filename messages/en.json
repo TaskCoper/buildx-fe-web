@@ -5367,11 +5367,22 @@
       "restore": "Restore default",
       "restoreConfirm": "Delete the edited version of this block? The home page will go back to the built-in content.",
       "restored": "Default restored.",
-      "restoredBecauseSame": "The content now matches the default, so the edited version was removed.",
-      "unchanged": "Nothing differs from the default yet, so there is nothing to save.",
+      "saveAll": "Save all",
+      "pendingCount": "{count} blocks with unsaved changes",
+      "noPending": "No changes yet",
+      "changed": "Changed",
+      "savedAll": "Saved {count} blocks.",
+      "savePartial": "Saved {done} blocks, {failed} failed ({names}).",
+      "conflictReloaded": "Block {names} was just changed by someone else and has been reloaded. Review it, then save again.",
+      "fixErrors": "Some fields are invalid. Fix them before saving.",
+      "unsavedTitle": "Discard unsaved changes?",
+      "unsavedBody": "Switching language discards the unsaved changes in the current language.",
+      "discard": "Discard changes",
+      "keepEditing": "Keep editing",
       "iconHint": "A lucide-react icon name, for example Camera or pencil-ruler. Leave empty to use the default icon.",
       "iconInvalid": "An icon name contains only letters, digits and hyphens, up to 64 characters.",
       "iconNotFound": "This icon was not found; the home page will use the default icon.",
+      "iconPreviewFailed": "Could not preview the icon right now. You can still save; try typing it again later.",
       "pickTemplates": "Pick up to {max} templates",
       "pickGuides": "Pick up to {max} videos",
       "pickLoadError": "Could not load the list. Try reloading the page.",
@@ -5451,7 +5462,7 @@
         "journey": {
           "items": {
             "title": "Five journey steps",
-            "hint": "Exactly 5 steps in a fixed order. Leave the illustration empty to use the step default."
+            "hint": "Exactly 5 steps in a fixed order. Leave the icon empty to use the default step icon. Use a PNG or SVG with a transparent background; the home page recolors it to match the theme."
           }
         },
         "services": {
@@ -5523,7 +5534,7 @@
         "youDo": "What you do",
         "buildxDoes": "What BuildX does",
         "youGet": "What you get",
-        "iconUrl": "Step illustration (optional)",
+        "iconUrl": "Step icon (upload an icon file, optional)",
         "viewAll": "\"View all\" link text",
         "usedAtStep": "Used at step",
         "action": "Button text",

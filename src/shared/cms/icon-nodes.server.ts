@@ -1,4 +1,4 @@
-import { icons } from 'lucide-react'
+import * as lucide from 'lucide-react'
 
 import { lucideComponentName, lucideIconKey, type HomeIconNodes, type LucideIconNode } from './home-sections'
 
@@ -32,8 +32,20 @@ function isIconNode(value: unknown): value is LucideIconNode {
   )
 }
 
+/**
+ * Bảng `icons` của lucide chỉ có tên chuẩn (`House`); những tên quen thuộc nhưng là biệt danh như `Home`, `Edit`,
+ * `CheckCircle`, `HomeIcon` chỉ có ở dạng export có tên. Tra bảng trước, không có thì tra export có tên để admin gõ tên nào
+ * đang dùng trong lucide cũng ra icon.
+ */
+function componentOf(key: string): RenderableIcon | undefined {
+  const name = lucideComponentName(key)
+  const table = lucide.icons as unknown as Record<string, RenderableIcon | undefined>
+  const named = lucide as unknown as Record<string, RenderableIcon | undefined>
+  return table[name] ?? named[name]
+}
+
 function nodeOf(key: string): LucideIconNode | undefined {
-  const component = (icons as unknown as Record<string, RenderableIcon | undefined>)[lucideComponentName(key)]
+  const component = componentOf(key)
   try {
     const node = component?.render?.({}, null)?.props?.iconNode
     return isIconNode(node) ? node : undefined

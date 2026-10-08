@@ -5367,11 +5367,22 @@
       "restore": "Khôi phục mặc định",
       "restoreConfirm": "Xóa bản đã sửa của khối này? Trang chủ sẽ quay lại dùng nội dung có sẵn.",
       "restored": "Đã khôi phục bản mặc định.",
-      "restoredBecauseSame": "Nội dung đã trùng bản mặc định nên bản đã sửa được gỡ.",
-      "unchanged": "Chưa có gì khác bản mặc định nên chưa cần lưu.",
+      "saveAll": "Lưu tất cả",
+      "pendingCount": "{count} khối có thay đổi chưa lưu",
+      "noPending": "Chưa có thay đổi nào",
+      "changed": "Có thay đổi",
+      "savedAll": "Đã lưu {count} khối.",
+      "savePartial": "Đã lưu {done} khối, {failed} khối lỗi ({names}).",
+      "conflictReloaded": "Khối {names} vừa được người khác sửa, đã tải lại bản mới. Xem lại rồi lưu tiếp.",
+      "fixErrors": "Còn trường chưa hợp lệ, hãy sửa trước khi lưu.",
+      "unsavedTitle": "Bỏ các thay đổi chưa lưu?",
+      "unsavedBody": "Đổi ngôn ngữ sẽ làm mất các thay đổi chưa lưu ở ngôn ngữ hiện tại.",
+      "discard": "Bỏ thay đổi",
+      "keepEditing": "Tiếp tục sửa",
       "iconHint": "Tên icon thư viện lucide-react, ví dụ Camera hoặc pencil-ruler. Bỏ trống thì dùng icon mặc định.",
       "iconInvalid": "Tên icon chỉ gồm chữ, số và dấu gạch ngang, tối đa 64 ký tự.",
       "iconNotFound": "Không tìm thấy icon này; trang chủ sẽ dùng icon mặc định.",
+      "iconPreviewFailed": "Không xem trước được icon lúc này. Bạn vẫn lưu được; thử gõ lại sau.",
       "pickTemplates": "Chọn tối đa {max} mẫu",
       "pickGuides": "Chọn tối đa {max} video",
       "pickLoadError": "Không tải được danh sách. Thử tải lại trang.",
@@ -5451,7 +5462,7 @@
         "journey": {
           "items": {
             "title": "Năm bước của hành trình",
-            "hint": "Đúng 5 bước, thứ tự cố định. Ảnh minh họa bỏ trống thì dùng hình mặc định của bước."
+            "hint": "Đúng 5 bước, thứ tự cố định. Icon bỏ trống thì dùng icon mặc định của bước. Icon là tệp PNG hoặc SVG nền trong suốt; trang chủ tô lại theo màu giao diện."
           }
         },
         "services": {
@@ -5523,7 +5534,7 @@
         "youDo": "Bạn làm gì",
         "buildxDoes": "BuildX làm gì",
         "youGet": "Bạn nhận được gì",
-        "iconUrl": "Ảnh minh họa bước (không bắt buộc)",
+        "iconUrl": "Icon của bước (tải tệp icon lên, không bắt buộc)",
         "viewAll": "Chữ liên kết \"Xem tất cả\"",
         "usedAtStep": "Dùng ở bước",
         "action": "Chữ trên nút",

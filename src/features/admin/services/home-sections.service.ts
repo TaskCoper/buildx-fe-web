@@ -392,6 +392,42 @@ export function buildContent(section: HomeSectionDef, values: Record<string, unk
   return content
 }
 
+/**
+ * Giá trị ban đầu của form cả trang: mỗi khối theo mã khối. Dùng cho một form duy nhất chứa cả 11 khối, nên khối nào
+ * chưa được mở trên màn (các khối gập lại chưa dựng) vẫn có đủ giá trị để biết nó chưa đổi.
+ */
+export function formValuesForAll(
+  contents: Record<string, Record<string, unknown> | undefined>,
+  messages: unknown
+): Record<string, HomeFormValues> {
+  return Object.fromEntries(
+    HOME_SECTIONS.map((section) => [section.key, formValuesFor(section, contents[section.key], messages)])
+  )
+}
+
+/** Việc cần làm với một khối khi bấm Lưu tất cả. */
+export type HomeSavePlan = { action: 'none' } | { action: 'save'; content: PlainObject } | { action: 'delete' }
+
+/**
+ * Khối này cần làm gì so với bản đang lưu trên backend:
+ * - không có gì khác bản có sẵn: gỡ bản đã lưu nếu có (`delete`), không thì thôi (`none`);
+ * - khác bản đang lưu (hoặc chưa lưu mà đã sửa): ghi nội dung mới (`save`);
+ * - giống hệt bản đang lưu: không làm gì (`none`).
+ * Khối chưa có giá trị trong form (chưa từng dựng) coi như chưa đổi.
+ */
+export function planSectionSave(
+  section: HomeSectionDef,
+  values: Record<string, unknown> | undefined,
+  messages: unknown,
+  saved: { content: Record<string, unknown> } | null | undefined
+): HomeSavePlan {
+  if (!values) return { action: 'none' }
+  const content = buildContent(section, values, messages)
+  if (Object.keys(content).length === 0) return saved ? { action: 'delete' } : { action: 'none' }
+  if (saved && sameContent(content, saved.content)) return { action: 'none' }
+  return { action: 'save', content }
+}
+
 /** Số id đang chọn ở mọi danh sách id của khối (bỏ id trống và trùng trong từng danh sách). */
 export function idsUsed(section: HomeSectionDef, values: Record<string, unknown> | undefined): number {
   let used = 0

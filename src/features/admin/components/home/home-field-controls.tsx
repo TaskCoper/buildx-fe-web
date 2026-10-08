@@ -1,14 +1,12 @@
 'use client'
 
-import { QuestionCircleOutlined } from '@ant-design/icons'
 import { useQuery } from '@tanstack/react-query'
-import { Input, Select, Spin, Tooltip } from 'antd'
+import { Input, Select, Spin, theme } from 'antd'
 import { Icon } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { useEffect, useState, type ComponentProps } from 'react'
+import { useEffect, useState, type ComponentProps, type ReactNode } from 'react'
 
-import { previewIconNodes } from '@/shared/cms/icon-preview.action'
-import { lucideIconKey } from '@/shared/cms/home-sections'
+import { lucideIconKey, type LucideIconNode } from '@/shared/cms/home-sections'
 import { adminKeys } from '../../api/admin.keys'
 import { guidesAdminApi } from '../../api/bmt/guides.api'
 import { listAllLibraryTemplates } from '../../api/bmt/library.api'
@@ -22,48 +20,74 @@ interface ControlProps<T> {
   onChange?: (value: T) => void
 }
 
+/** Tra dữ liệu vẽ icon ở server (`/api/icon-preview`); `null` khi tên không phải icon lucide. */
+async function fetchIconNode(name: string): Promise<LucideIconNode | null> {
+  const response = await fetch(`/api/icon-preview?name=${encodeURIComponent(name)}`)
+  if (!response.ok) throw new Error(`icon-preview ${response.status}`)
+  const body = (await response.json()) as { node?: LucideIconNode | null }
+  return body.node ?? null
+}
+
 /**
- * Ô nhập tên icon lucide-react (`Camera` hoặc `pencil-ruler`) có xem trước ngay trong ô. Tra ở server vì bảng 1500+
- * icon quá nặng để đưa xuống trình duyệt admin; tên không tồn tại thì hiện dấu hỏi và trang chủ dùng icon mặc định.
+ * Ô nhập tên icon lucide-react (`Camera`, `pencil-ruler`, kể cả biệt danh như `Home`) có xem trước ngay trong ô. Tra ở
+ * server vì bảng 1500+ icon quá nặng để đưa xuống trình duyệt admin. Tên không tìm thấy hoặc không xem trước được thì
+ * báo bằng chữ dưới ô (trang chủ khi đó dùng icon mặc định), không để ô trống khó hiểu.
  */
 export function IconNameInput({ value, onChange }: ControlProps<string>) {
   const t = useTranslations('admin.homeContent')
-  const [settled, setSettled] = useState((value ?? '').trim())
+  const { token } = theme.useToken()
+  const typed = (value ?? '').trim()
+  const [settled, setSettled] = useState(typed)
 
   useEffect(() => {
-    const timer = setTimeout(() => setSettled((value ?? '').trim()), ICON_PREVIEW_DELAY_MS)
+    const timer = setTimeout(() => setSettled(typed), ICON_PREVIEW_DELAY_MS)
     return () => clearTimeout(timer)
-  }, [value])
+  }, [typed])
 
   const name = ICON_NAME_PATTERN.test(settled) ? settled : ''
-  const key = lucideIconKey(name) ?? ''
   const preview = useQuery({
-    queryKey: adminKeys.bmt('home-icon', key),
-    queryFn: () => previewIconNodes([key]),
-    enabled: key !== '',
-    staleTime: Infinity
+    queryKey: adminKeys.bmt('home-icon', lucideIconKey(name) ?? name),
+    queryFn: () => fetchIconNode(name),
+    enabled: name !== '',
+    staleTime: Infinity,
+    retry: 1
   })
-  const node = key ? preview.data?.[key] : undefined
 
-  let prefix = <span className='inline-block size-4' />
-  if (key && preview.isFetching) prefix = <Spin size='small' />
-  else if (node) prefix = <Icon iconNode={node as ComponentProps<typeof Icon>['iconNode']} size={16} />
-  else if (key && preview.isSuccess)
-    prefix = (
-      <Tooltip title={t('iconNotFound')}>
-        <QuestionCircleOutlined />
-      </Tooltip>
-    )
+  // Đang gõ dở hoặc đang tra thì hiện vòng quay, chưa kết luận gì.
+  const waiting = typed !== settled || (name !== '' && preview.isFetching)
+
+  let prefix: ReactNode = <span className='inline-block size-[18px]' />
+  if (waiting && ICON_NAME_PATTERN.test(typed)) prefix = <Spin size='small' />
+  else if (name && preview.data) {
+    prefix = <Icon iconNode={preview.data as ComponentProps<typeof Icon>['iconNode']} size={18} />
+  }
+
+  const problem =
+    waiting || name === ''
+      ? null
+      : preview.isError
+        ? 'iconPreviewFailed'
+        : preview.isSuccess && !preview.data
+          ? 'iconNotFound'
+          : null
 
   return (
-    <Input
-      value={value}
-      onChange={(event) => onChange?.(event.target.value)}
-      maxLength={64}
-      allowClear
-      placeholder='Camera'
-      prefix={prefix}
-    />
+    <>
+      <Input
+        value={value}
+        onChange={(event) => onChange?.(event.target.value)}
+        maxLength={64}
+        allowClear
+        placeholder='Camera'
+        prefix={prefix}
+        status={problem ? 'warning' : undefined}
+      />
+      {problem ? (
+        <div className='mt-1 text-xs' style={{ color: token.colorWarningText }}>
+          {t(problem)}
+        </div>
+      ) : null}
+    </>
   )
 }
 

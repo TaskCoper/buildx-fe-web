@@ -2,22 +2,38 @@
 
 import { ArrowDownOutlined, ArrowUpOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Alert, App, Button, Card, Collapse, Form, Input, Popconfirm, Segmented, Skeleton, Space, Tag } from 'antd'
+import {
+  Alert,
+  App,
+  Button,
+  Card,
+  Collapse,
+  Form,
+  Input,
+  Popconfirm,
+  Segmented,
+  Skeleton,
+  Space,
+  Tag,
+  theme
+} from 'antd'
 import { useTranslations } from 'next-intl'
-import { useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 
 import { isApiError } from '@/shared/lib/api'
 import { adminKeys } from '../../api/admin.keys'
 import type { BmtPageSectionAdmin } from '../../api/bmt/handbook.api'
 import { homeAdminApi } from '../../api/bmt/home.api'
+import { useUnsavedGuard } from '../../hooks/use-unsaved-guard'
 import {
   HOME_SECTIONS,
   HOME_TEXT_MAX_LENGTH,
   ICON_NAME_PATTERN,
-  buildContent,
   exceedsIdsTotal,
   formValuesFor,
+  formValuesForAll,
   idsUsed,
+  planSectionSave,
   rowDefaults,
   sameContent,
   type HomeField,
@@ -32,6 +48,12 @@ import { GuideIdsSelect, IconNameInput, TemplateIdsSelect } from './home-field-c
 
 type ContentLocale = 'vi' | 'en'
 
+/** Giá trị cả form: mỗi khối theo mã khối. */
+type PageValues = Record<string, Record<string, unknown>>
+
+/** Đường dẫn tên trường trong form cả trang: `[mã khối, tên trường, ...]`. */
+type FieldPath = (string | number)[]
+
 const sectionsKey = (locale: ContentLocale) => adminKeys.bmt('home-sections', locale)
 
 /**
@@ -45,20 +67,27 @@ const loadMessages = (locale: ContentLocale): Promise<unknown> =>
  * NỘI DUNG TRANG CHỦ. Một màn gom chữ, ảnh, icon, mẫu và video nổi bật của 11 khối trang chủ, xếp theo đúng thứ tự
  * người đọc thấy khi cuộn trang.
  *
- * Mỗi khối lưu riêng từng ngôn ngữ. Khối chưa sửa dùng nội dung có sẵn trong ứng dụng nên form mở ra với đúng chữ đang
- * hiển thị (sửa tại chỗ); chỉ những trường khác bản có sẵn mới được lưu, và ngôn ngữ chưa sửa không mượn nội dung của
- * ngôn ngữ khác.
+ * Cả trang là MỘT form và MỘT nút "Lưu tất cả": bấm thì chỉ các khối đang có thay đổi được gửi lên (khối nào đưa về đúng
+ * bản có sẵn thì gỡ bản đã lưu). Mỗi khối lưu riêng từng ngôn ngữ. Khối chưa sửa dùng nội dung có sẵn trong ứng dụng nên
+ * form mở ra với đúng chữ đang hiển thị (sửa tại chỗ); chỉ những trường khác bản có sẵn mới được lưu, và ngôn ngữ chưa
+ * sửa không mượn nội dung của ngôn ngữ khác.
  */
 export function HomeContentManager() {
   const t = useTranslations('admin')
   const tc = useTranslations('admin.homeContent')
+  const { modal } = App.useApp()
   const [locale, setLocale] = useState<ContentLocale>('vi')
+  const [pending, setPending] = useState(0)
 
   const saved = useQuery({
     queryKey: sectionsKey(locale),
     queryFn: () => homeAdminApi.listSections(locale),
     staleTime: 0,
-    retry: false
+    retry: false,
+    // Form giữ thứ người dùng đang sửa nên danh sách đã lưu chỉ đổi do chính thao tác lưu ở màn này; tự tải lại khi quay
+    // lại tab sẽ làm lệch phiên bản đang gửi lên.
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false
   })
   const defaults = useQuery({
     queryKey: adminKeys.bmt('home-sections-defaults', locale),
@@ -69,7 +98,24 @@ export function HomeContentManager() {
   // Backend chưa khai báo trang chủ (404): vẫn hiện form trên chữ có sẵn; bấm Lưu thì lỗi của BE hiện qua thông báo.
   const notDeclared = isApiError(saved.error) && saved.error.status === 404
   const loadFailed = saved.isError && !notDeclared
-  const byKey = new Map((saved.data ?? []).map((section) => [section.sectionKey, section]))
+
+  const changeLocale = (next: ContentLocale) => {
+    if (next === locale) return
+    if (pending === 0) {
+      setLocale(next)
+      return
+    }
+    modal.confirm({
+      title: tc('unsavedTitle'),
+      content: tc('unsavedBody'),
+      okText: tc('discard'),
+      cancelText: tc('keepEditing'),
+      onOk: () => {
+        setPending(0)
+        setLocale(next)
+      }
+    })
+  }
 
   let body: ReactNode
   if (saved.isPending || defaults.isPending) {
@@ -80,32 +126,13 @@ export function HomeContentManager() {
     )
   } else {
     body = (
-      <Collapse
-        defaultActiveKey={[HOME_SECTIONS[0]?.key ?? '']}
-        items={HOME_SECTIONS.map((section, index) => {
-          const current = byKey.get(section.key) ?? null
-          return {
-            key: section.key,
-            label: (
-              <Space>
-                <span className='font-semibold'>
-                  {index + 1}. {tc(`sections.${section.key}.title`)}
-                </span>
-                {current ? <Tag color='green'>{tc('edited')}</Tag> : <Tag>{tc('usingDefault')}</Tag>}
-              </Space>
-            ),
-            children: (
-              <SectionForm
-                // Đổi ngôn ngữ hoặc version thì dựng lại form để giá trị ban đầu khớp bản vừa tải.
-                key={`${locale}:${section.key}:${current?.version ?? 0}`}
-                section={section}
-                locale={locale}
-                saved={current}
-                messages={defaults.data}
-              />
-            )
-          }
-        })}
+      <HomeContentForm
+        // Đổi ngôn ngữ thì dựng lại cả form để giá trị ban đầu khớp bản của ngôn ngữ đó.
+        key={locale}
+        locale={locale}
+        saved={saved.data ?? []}
+        messages={defaults.data}
+        onPendingChange={setPending}
       />
     )
   }
@@ -117,7 +144,7 @@ export function HomeContentManager() {
       actions={
         <Segmented<ContentLocale>
           value={locale}
-          onChange={setLocale}
+          onChange={changeLocale}
           options={[
             { value: 'vi', label: tc('locales.vi') },
             { value: 'en', label: tc('locales.en') }
@@ -130,82 +157,156 @@ export function HomeContentManager() {
   )
 }
 
-function SectionForm({
-  section,
+function HomeContentForm({
   locale,
   saved,
-  messages
+  messages,
+  onPendingChange
 }: {
-  section: HomeSectionDef
   locale: ContentLocale
-  saved: BmtPageSectionAdmin | null
+  saved: BmtPageSectionAdmin[]
   messages: unknown
+  onPendingChange: (count: number) => void
 }) {
   const t = useTranslations('admin')
   const tc = useTranslations('admin.homeContent')
-  const texts = useHomeTexts()
   const { message } = App.useApp()
+  const { token } = theme.useToken()
   const queryClient = useQueryClient()
   const [form] = Form.useForm()
   const [busy, setBusy] = useState(false)
 
-  const initial = formValuesFor(section, saved?.content, messages)
+  const savedByKey = useMemo(() => new Map(saved.map((section) => [section.sectionKey, section])), [saved])
 
-  const fail = (err: unknown) => message.error(isApiError(err) ? err.message : t('feedback.apiError'))
+  // Giá trị ban đầu chỉ tính một lần lúc form dựng; sau khi lưu, form giữ nguyên thứ người dùng đã nhập.
+  const [initial] = useState<PageValues>(() =>
+    formValuesForAll(Object.fromEntries(saved.map((section) => [section.sectionKey, section.content])), messages)
+  )
+  const [snapshot, setSnapshot] = useState<PageValues>(initial)
+  // Mốc để biết người dùng đã đụng tới khối nào: giá trị lúc nạp, và được cập nhật mỗi khi một khối lưu xong, nạp lại
+  // hoặc khôi phục, để đưa nội dung về như trước khi lưu vẫn được tính là một thay đổi.
+  const [baseline, setBaseline] = useState<PageValues>(initial)
+
+  // Khối nào cần làm gì khi bấm Lưu tất cả. Khối người dùng chưa đụng tới thì không bao giờ tính là có thay đổi, kể cả
+  // khi bản đã lưu do công cụ khác ghi theo hình dạng hơi khác.
+  const plans = useMemo(
+    () =>
+      HOME_SECTIONS.map((section) => {
+        const touched = !sameContent(snapshot[section.key], baseline[section.key])
+        const plan = touched
+          ? planSectionSave(section, snapshot[section.key], messages, savedByKey.get(section.key))
+          : ({ action: 'none' } as const)
+        return { section, plan }
+      }),
+    [snapshot, baseline, messages, savedByKey]
+  )
+  const pending = plans.filter(({ plan }) => plan.action !== 'none')
+  const changedKeys = new Set(pending.map(({ section }) => section.key))
+
+  useUnsavedGuard(pending.length > 0)
+  useEffect(() => {
+    onPendingChange(pending.length)
+    return () => onPendingChange(0)
+  }, [pending.length, onPendingChange])
+
+  const readValues = () => form.getFieldsValue(true) as PageValues
   const refresh = () => queryClient.invalidateQueries({ queryKey: sectionsKey(locale) })
+  const errorText = (err: unknown) => (isApiError(err) ? err.message : t('feedback.apiError'))
+  const titleOf = (section: HomeSectionDef) => tc(`sections.${section.key}.title`)
 
-  const restore = async (notice = tc('restored')) => {
+  const saveAll = async () => {
+    const invalid = await form.validateFields().then(
+      () => null,
+      (error: { errorFields?: { name: FieldPath }[] }) => error
+    )
+    if (invalid) {
+      message.error(tc('fixErrors'))
+      const first = invalid.errorFields?.[0]?.name
+      if (first) form.scrollToField(first)
+      return
+    }
+
+    const values = readValues()
+    const over = HOME_SECTIONS.find((section) => exceedsIdsTotal(section, values[section.key]))
+    if (over) {
+      message.error(tc('idsTotalExceeded', { max: over.idsTotalMax ?? 0 }))
+      return
+    }
+
+    setBusy(true)
+    const failures: { section: HomeSectionDef; err: unknown }[] = []
+    const succeeded: HomeSectionDef[] = []
+
+    // Lần lượt từng khối: một khối lỗi (xung đột, sai hình dạng) không làm mất các khối còn lại.
+    for (const { section, plan } of plans) {
+      if (plan.action === 'none') continue
+      const current = savedByKey.get(section.key)
+      try {
+        if (plan.action === 'delete') {
+          await homeAdminApi.deleteSection(section.key, locale)
+        } else {
+          await homeAdminApi.saveSection(section.key, {
+            locale,
+            schemaVersion: current?.schemaVersion ?? 1,
+            content: plan.content,
+            expectedVersion: current?.version
+          })
+        }
+        succeeded.push(section)
+      } catch (err) {
+        failures.push({ section, err })
+      }
+    }
+    const done = succeeded.length
+
+    await refresh()
+    const fresh = queryClient.getQueryData<BmtPageSectionAdmin[]>(sectionsKey(locale)) ?? []
+
+    // Khối vừa bị người khác sửa: nạp lại bản mới của khối đó, để lần lưu sau không đè lên thay đổi của họ.
+    const conflicts = failures.filter(({ err }) => isApiError(err) && err.status === 409).map(({ section }) => section)
+    for (const section of conflicts) {
+      const latest = fresh.find((item) => item.sectionKey === section.key)
+      form.setFieldValue(section.key, formValuesFor(section, latest?.content, messages))
+    }
+    const after = readValues()
+    setSnapshot(after)
+    // Khối đã lưu xong hoặc vừa nạp lại từ backend trở thành mốc mới; khối lỗi giữ nguyên để vẫn tính là có thay đổi.
+    setBaseline((previous) => {
+      const next = { ...previous }
+      for (const section of [...succeeded, ...conflicts]) next[section.key] = after[section.key] ?? {}
+      return next
+    })
+
+    if (failures.length === 0) {
+      message.success(tc('savedAll', { count: done }))
+    } else {
+      const first = errorText(failures[0]?.err)
+      message.error({
+        content:
+          done === 0
+            ? first
+            : `${tc('savePartial', { done, failed: failures.length, names: failures.map(({ section }) => titleOf(section)).join(', ') })} ${first}`,
+        duration: 6
+      })
+    }
+    if (conflicts.length > 0) {
+      message.warning({ content: tc('conflictReloaded', { names: conflicts.map(titleOf).join(', ') }), duration: 6 })
+    }
+    setBusy(false)
+  }
+
+  const restoreSection = async (section: HomeSectionDef) => {
     setBusy(true)
     try {
       await homeAdminApi.deleteSection(section.key, locale)
       await refresh()
-      message.success(notice)
+      form.setFieldValue(section.key, formValuesFor(section, undefined, messages))
+      const after = readValues()
+      setSnapshot(after)
+      setBaseline((previous) => ({ ...previous, [section.key]: after[section.key] ?? {} }))
+      message.success(tc('restored'))
     } catch (err) {
-      fail(err)
-      await refresh()
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  const save = async () => {
-    const valid = await form.validateFields().then(
-      () => true,
-      () => false
-    )
-    if (!valid) return
-
-    const current = form.getFieldsValue(true) as Record<string, unknown>
-    if (exceedsIdsTotal(section, current)) {
-      message.error(tc('idsTotalExceeded', { max: section.idsTotalMax ?? 0 }))
-      return
-    }
-
-    const content = buildContent(section, current, messages)
-
-    // Mọi thứ đã về đúng bản có sẵn: không có gì để lưu, và bản đã lưu (nếu có) trở nên thừa.
-    if (Object.keys(content).length === 0) {
-      if (saved) await restore(tc('restoredBecauseSame'))
-      else message.info(tc('unchanged'))
-      return
-    }
-    if (saved && sameContent(content, saved.content)) {
-      message.info(tc('unchanged'))
-      return
-    }
-
-    setBusy(true)
-    try {
-      await homeAdminApi.saveSection(section.key, {
-        locale,
-        schemaVersion: saved?.schemaVersion ?? 1,
-        content,
-        expectedVersion: saved?.version
-      })
-      await refresh()
-      message.success(t('feedback.saved'))
-    } catch (err) {
-      fail(err)
+      message.error(errorText(err))
       await refresh()
     } finally {
       setBusy(false)
@@ -213,8 +314,88 @@ function SectionForm({
   }
 
   return (
-    <Form form={form} layout='vertical' initialValues={initial}>
-      <p className='text-muted-foreground mb-4 text-sm'>{tc(`sections.${section.key}.hint`)}</p>
+    <Form form={form} layout='vertical' initialValues={initial} onValuesChange={() => setSnapshot(readValues())}>
+      <Collapse
+        defaultActiveKey={[HOME_SECTIONS[0]?.key ?? '']}
+        items={HOME_SECTIONS.map((section, index) => {
+          const current = savedByKey.get(section.key) ?? null
+          return {
+            key: section.key,
+            label: (
+              <Space>
+                <span className='font-semibold'>
+                  {index + 1}. {titleOf(section)}
+                </span>
+                {current ? <Tag color='green'>{tc('edited')}</Tag> : <Tag>{tc('usingDefault')}</Tag>}
+                {changedKeys.has(section.key) ? <Tag color='orange'>{tc('changed')}</Tag> : null}
+              </Space>
+            ),
+            children: (
+              <SectionBody
+                section={section}
+                messages={messages}
+                hasSaved={current !== null}
+                busy={busy}
+                onRestore={() => restoreSection(section)}
+              />
+            )
+          }
+        })}
+      />
+
+      <div
+        className='sticky bottom-0 z-10 mt-4 flex flex-wrap items-center justify-between gap-3 px-4 py-3'
+        style={{
+          background: token.colorBgContainer,
+          borderTop: `1px solid ${token.colorBorderSecondary}`,
+          borderRadius: token.borderRadiusLG
+        }}
+      >
+        <span className='text-muted-foreground text-sm'>
+          {pending.length > 0 ? tc('pendingCount', { count: pending.length }) : tc('noPending')}
+        </span>
+        <Button type='primary' loading={busy} disabled={pending.length === 0} onClick={saveAll}>
+          {tc('saveAll')}
+        </Button>
+      </div>
+    </Form>
+  )
+}
+
+function SectionBody({
+  section,
+  messages,
+  hasSaved,
+  busy,
+  onRestore
+}: {
+  section: HomeSectionDef
+  messages: unknown
+  hasSaved: boolean
+  busy: boolean
+  onRestore: () => void
+}) {
+  const tc = useTranslations('admin.homeContent')
+  const t = useTranslations('admin')
+  const texts = useHomeTexts()
+
+  return (
+    <>
+      <div className='mb-4 flex items-start justify-between gap-4'>
+        <p className='text-muted-foreground text-sm'>{tc(`sections.${section.key}.hint`)}</p>
+        {hasSaved ? (
+          <Popconfirm
+            title={tc('restoreConfirm')}
+            okText={tc('restore')}
+            cancelText={t('actions.cancel')}
+            onConfirm={onRestore}
+          >
+            <Button size='small' disabled={busy}>
+              {tc('restore')}
+            </Button>
+          </Popconfirm>
+        ) : null}
+      </div>
 
       {section.fields.length > 0 ? (
         <div className='grid gap-x-4 md:grid-cols-2'>
@@ -222,7 +403,7 @@ function SectionForm({
             <FieldItem
               key={field.name}
               field={field}
-              name={field.name}
+              name={[section.key, field.name]}
               sectionKey={section.key}
               wide={field.kind === 'textarea' || field.kind === 'image'}
             />
@@ -243,23 +424,7 @@ function SectionForm({
           )}
         </div>
       ))}
-
-      <div className='flex justify-end gap-2 border-t pt-4'>
-        {saved ? (
-          <Popconfirm
-            title={tc('restoreConfirm')}
-            okText={tc('restore')}
-            cancelText={t('actions.cancel')}
-            onConfirm={() => restore()}
-          >
-            <Button disabled={busy}>{tc('restore')}</Button>
-          </Popconfirm>
-        ) : null}
-        <Button type='primary' loading={busy} onClick={save}>
-          {t('actions.save')}
-        </Button>
-      </div>
-    </Form>
+    </>
   )
 }
 
@@ -269,7 +434,7 @@ type LooseTranslator = ((key: string, values?: Record<string, string | number>) 
 
 /**
  * Bản dịch của màn này tra bằng khóa ghép từ mã khối và tên trường, nên không kiểm kiểu lúc biên dịch được như
- * `useTranslations` thường. Việc đó do `scripts/home-admin.test.mjs` đảm nhận: nó đối chiếu mọi khóa ghép được với
+ * `useTranslations` thường. Việc đó do `scripts/home-contract.test.mjs` đảm nhận: nó đối chiếu mọi khóa ghép được với
  * `vi.json` và `en.json`.
  */
 function useHomeTexts() {
@@ -290,7 +455,7 @@ function FieldItem({
   wide
 }: {
   field: HomeField
-  name: string | (string | number)[]
+  name: FieldPath
   sectionKey: string
   wide?: boolean
 }) {
@@ -343,7 +508,7 @@ function FixedRows({ list, section, messages }: { list: HomeFixedList; section: 
   const defaults = rowDefaults(list, messages)
 
   return (
-    <Form.List name={list.name}>
+    <Form.List name={[section.key, list.name]}>
       {(rows) => (
         <Space orientation='vertical' size={12} style={{ width: '100%' }}>
           {rows.map(({ key, name: index }) => {
@@ -385,7 +550,7 @@ function RepeatRows({ list, section }: { list: HomeRepeatList; section: HomeSect
   const tc = useTranslations('admin.homeContent')
 
   return (
-    <Form.List name={list.name}>
+    <Form.List name={[section.key, list.name]}>
       {(rows, { add, remove, move }) => (
         <Space orientation='vertical' size={12} style={{ width: '100%' }}>
           {rows.map(({ key, name: index }, position) => (
@@ -449,7 +614,7 @@ function RepeatRows({ list, section }: { list: HomeRepeatList; section: HomeSect
 function IdsField({ list, section }: { list: HomeIdList; section: HomeSectionDef }) {
   const tc = useTranslations('admin.homeContent')
   const form = Form.useFormInstance()
-  const values = Form.useWatch([], form) as Record<string, unknown> | undefined
+  const values = Form.useWatch(section.key, form) as Record<string, unknown> | undefined
 
   // Khối có giới hạn chung (2D + 3D): ô này chỉ chọn thêm được phần còn lại sau khi trừ số đã chọn ở các ô khác.
   const total = section.idsTotalMax
@@ -460,7 +625,7 @@ function IdsField({ list, section }: { list: HomeIdList; section: HomeSectionDef
 
   return (
     <Form.Item
-      name={list.name}
+      name={[section.key, list.name]}
       extra={total === undefined ? tc('idsHint', { max: list.max }) : tc('idsTotalHint', { max: total, used })}
     >
       {list.source === 'templates' ? <TemplateIdsSelect max={max} /> : <GuideIdsSelect max={max} />}

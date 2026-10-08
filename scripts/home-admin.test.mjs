@@ -210,3 +210,64 @@ test('dossiers: tổng id 2D + 3D tối đa 4, các khối khác không có gi�
   assert.equal(home.exceedsIdsTotal(def, { templateIds2d: ['a', 'b', 'c', 'd'], templateIds3d: [] }), false)
   assert.equal(home.exceedsIdsTotal(section('guides'), { guideIds: ['a', 'b', 'c', 'd', 'e'] }), false)
 })
+
+test('formValuesForAll dựng giá trị ban đầu cho đủ 11 khối, khối đã lưu lấy bản đã lưu', () => {
+  const all = home.formValuesForAll({ cta: { title: 'Tiêu đề đã sửa' } }, vi)
+  assert.deepEqual(
+    Object.keys(all),
+    home.HOME_SECTIONS.map((def) => def.key)
+  )
+  assert.equal(all.cta.title, 'Tiêu đề đã sửa')
+  assert.equal(all.cta.action, vi.landing.cta.action)
+  assert.equal(all.hero.primaryCta, vi.landing.hero.primaryCta)
+  assert.equal(all.stats.items.length, 5)
+})
+
+test('planSectionSave: chưa lưu và chưa sửa thì không làm gì', () => {
+  const def = section('cta')
+  const values = home.formValuesFor(def, null, vi)
+  assert.deepEqual(home.planSectionSave(def, values, vi, null), { action: 'none' })
+  assert.deepEqual(home.planSectionSave(def, values, vi, undefined), { action: 'none' })
+})
+
+test('planSectionSave: chưa lưu mà đã sửa thì ghi nội dung mới', () => {
+  const def = section('cta')
+  const values = home.formValuesFor(def, null, vi)
+  values.title = '  Bắt đầu ngay  '
+  assert.deepEqual(home.planSectionSave(def, values, vi, null), { action: 'save', content: { title: 'Bắt đầu ngay' } })
+})
+
+test('planSectionSave: giống hệt bản đang lưu thì không làm gì, khác thì ghi', () => {
+  const def = section('cta')
+  const saved = { content: { title: 'Tiêu đề cũ' } }
+  const values = home.formValuesFor(def, saved.content, vi)
+  assert.deepEqual(home.planSectionSave(def, values, vi, saved), { action: 'none' })
+
+  values.title = 'Tiêu đề mới'
+  assert.deepEqual(home.planSectionSave(def, values, vi, saved), { action: 'save', content: { title: 'Tiêu đề mới' } })
+})
+
+test('planSectionSave: đưa về đúng bản có sẵn thì gỡ bản đã lưu', () => {
+  const def = section('cta')
+  const saved = { content: { title: 'Tiêu đề cũ' } }
+  const values = home.formValuesFor(def, saved.content, vi)
+  values.title = vi.landing.cta.title
+  assert.deepEqual(home.planSectionSave(def, values, vi, saved), { action: 'delete' })
+})
+
+test('planSectionSave: khối chưa có giá trị trong form coi như chưa đổi, kể cả khi đã có bản lưu', () => {
+  const def = section('cta')
+  assert.deepEqual(home.planSectionSave(def, undefined, vi, { content: { title: 'x' } }), { action: 'none' })
+})
+
+test('planSectionSave: danh sách cố định chỉ ghi khi có thẻ đổi, và ghi đủ số thẻ', () => {
+  const def = section('stats')
+  const values = home.formValuesFor(def, null, vi)
+  assert.deepEqual(home.planSectionSave(def, values, vi, null), { action: 'none' })
+
+  values.items[4].value = '20 lượt'
+  const plan = home.planSectionSave(def, values, vi, null)
+  assert.equal(plan.action, 'save')
+  assert.equal(plan.content.items.length, 5)
+  assert.equal(plan.content.items[4].value, '20 lượt')
+})

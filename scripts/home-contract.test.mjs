@@ -42,9 +42,30 @@ test('khóa dịch: mọi khóa ghép được đều có chữ ở cả tiếng
 
     assert.equal(typeof pick(messages, 'admin.nav.homeContent'), 'string', `${lang}: thiếu admin.nav.homeContent`)
     for (const key of ['description', 'edited', 'usingDefault', 'restore', 'restoreConfirm', 'restored']) text(key)
-    for (const key of ['unchanged', 'restoredBecauseSame']) text(key)
-    for (const key of ['iconHint', 'iconInvalid', 'iconNotFound', 'rowTitle', 'idsHint']) text(key)
-    for (const key of ['pickTemplates', 'pickGuides', 'pickLoadError', 'idsTotalHint', 'idsTotalExceeded']) text(key)
+    for (const key of [
+      'saveAll',
+      'pendingCount',
+      'noPending',
+      'changed',
+      'savedAll',
+      'savePartial',
+      'conflictReloaded'
+    ])
+      text(key)
+    for (const key of ['iconHint', 'iconInvalid', 'iconNotFound', 'iconPreviewFailed', 'rowTitle', 'idsHint']) text(key)
+    for (const key of [
+      'pickTemplates',
+      'pickGuides',
+      'pickLoadError',
+      'idsTotalHint',
+      'idsTotalExceeded',
+      'fixErrors',
+      'unsavedTitle',
+      'unsavedBody',
+      'discard',
+      'keepEditing'
+    ])
+      text(key)
     for (const key of ['moveUp', 'moveDown', 'addRow', 'maxReached', 'locales.vi', 'locales.en']) text(key)
 
     for (const def of home.HOME_SECTIONS) {
