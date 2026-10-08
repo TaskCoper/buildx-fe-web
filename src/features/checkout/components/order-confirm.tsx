@@ -192,6 +192,8 @@ export function OrderConfirm({ productId, kind, projectId, projectName, offerKey
   // phải dẫn khách về đơn đó (góp ý case 5). Chỉ gói thiết kế từ API mới có đơn thật để kiểm.
   const pendingQuery = usePendingDesignOrder(kind === 'design' && isApiProduct)
   const pendingOrder = pendingQuery.data ?? null
+  // Chỉ chặn nút lúc ĐANG tải (`isLoading`). Truy vấn bị tắt (gói mock, gói giám sát) có `isPending` = true mãi mãi
+  // vì chưa có dữ liệu — dùng nó sẽ khoá nút thanh toán vĩnh viễn.
   const cancelPending = useCancelOrderInPlace()
   const [confirmingCancel, setConfirmingCancel] = useState(false)
   const [cancelling, setCancelling] = useState(false)
@@ -805,11 +807,11 @@ export function OrderConfirm({ productId, kind, projectId, projectName, offerKey
                 <Button
                   data-checkout-submit
                   data-ready={agreed ? 'true' : 'false'}
-                  aria-disabled={createOrder.isPending || pendingQuery.isPending || undefined}
+                  aria-disabled={createOrder.isPending || pendingQuery.isLoading || undefined}
                   className='relative mt-4 w-full overflow-hidden'
                   size='lg'
                   onClick={submit}
-                  disabled={createOrder.isPending || pendingQuery.isPending}
+                  disabled={createOrder.isPending || pendingQuery.isLoading}
                 >
                   {createOrder.isPending ? <LoaderCircle className='size-4 animate-spin' /> : null}
                   {createOrder.isPending ? t('processing') : t('submit')}
