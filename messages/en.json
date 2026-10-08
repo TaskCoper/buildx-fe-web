@@ -2723,7 +2723,12 @@
     },
     "rail": {
       "searchPlaceholder": "Search architects...",
-      "backToList": "Architect list"
+      "backToList": "Architect list",
+      "empty": "No matching architects in the loaded list.",
+      "loadError": "Unable to load architects. Please try again.",
+      "loadingMore": "Loading more architects…",
+      "loadMore": "Load more architects",
+      "retry": "Try again"
     },
     "profile": {
       "reviews": "({count} reviews)",
@@ -2737,7 +2742,10 @@
       "lightboxClose": "Close",
       "lightboxPrev": "Previous photo",
       "lightboxNext": "Next photo",
-      "viewLarger": "View larger: {label}"
+      "viewLarger": "View larger: {label}",
+      "designProjects": "Design projects",
+      "designImage": "{name} · Image {index}",
+      "moreDesignImages": "{count} more images"
     },
     "slots": {
       "title": "Choose a consultation slot",
@@ -5294,7 +5302,7 @@
       "name": "Full name",
       "title": "Job title",
       "avatar": "Avatar",
-      "avatarHint": "An https link to an image on the system image store (the same store as estimate images). Links on other domains are rejected.",
+      "avatarHint": "Choose a clear portrait for the architect’s card and profile.",
       "categories": "Expertise",
       "categoriesHint": "Pick at least one. Add new ones with the “Expertise categories” button.",
       "noCategories": "No expertise yet — create some with the “Expertise categories” button first.",
@@ -5311,7 +5319,48 @@
       "hideWarning": "Customers will not be able to send new requests to this architect; existing requests are kept.",
       "companyName": "Company",
       "rating": "Rating",
-      "reviewCount": "Review count"
+      "reviewCount": "Review count",
+      "designImagesUploading": "Design images are uploading. Please wait before saving.",
+      "shortDescription": "Short description",
+      "shortDescriptionHint": "Optional, up to 500 characters. Shown on cards and the public profile.",
+      "designProjects": "Design projects",
+      "designProjectsHint": "The list is optional. Each project needs a name and at least one image.",
+      "designProjectIndex": "Project {index}",
+      "designProjectName": "Design project name",
+      "addDesignProject": "Add design project",
+      "removeDesignProject": "Remove project",
+      "addDesignImage": "Add design image",
+      "removeDesignImage": "Remove image",
+      "designImageIndex": "Design image {index}",
+      "viewProjectImages": "View images of {name}",
+      "designImagesRequired": "Select at least one design image and wait for the upload to finish.",
+      "detailError": "Could not load the profile. Please reopen it to try again.",
+      "optional": "Optional",
+      "noDesignProjects": "No design projects yet",
+      "noDesignProjectsHint": "Add selected projects to help clients explore the architect’s design style and experience.",
+      "sections": {
+        "identity": "Basic information",
+        "identityHint": "The architect’s photo, title and areas of expertise.",
+        "about": "About the architect",
+        "aboutHint": "Describe design strengths and style to help clients choose.",
+        "experience": "Experience and visibility",
+        "experienceHint": "Update profile figures and choose whether to display the profile.",
+        "visibility": "Show on the consultation page",
+        "visibilityHint": "Visible profiles appear in the architect directory for clients."
+      },
+      "placeholders": {
+        "name": "Enter full name",
+        "title": "For example: Lead architect",
+        "company": "Enter company name",
+        "categories": "Select areas of expertise",
+        "shortDescription": "Summarize design strengths or style…",
+        "introduction": "Describe experience, working approach and design philosophy…",
+        "projectName": "For example: An Phu garden villa"
+      },
+      "tabs": {
+        "profile": "Profile information",
+        "projects": "Architect projects"
+      }
     },
     "architectCategories": {
       "title": "Expertise categories",

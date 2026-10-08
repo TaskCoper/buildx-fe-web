@@ -8,9 +8,10 @@ import { useTranslations } from 'next-intl'
 import { Link } from '@/i18n/navigation'
 import { ErrorState, revealEase } from '@/shared/components/common'
 import { ROUTES } from '@/shared/constants/routes'
+import { isApiError } from '@/shared/lib/api'
 import { useDocumentTitle } from '@/shared/hooks'
 import { Skeleton } from '@/shared/components/ui/skeleton'
-import { useAvailability, useConsultant, useConsultants } from '../hooks/use-consultation'
+import { useAvailability, useConsultant, useConsultantPages } from '../hooks/use-consultation'
 import { ConsultantProfile } from './consultant-profile'
 import { ConsultantRail } from './consultant-rail'
 import { useConsultTransitionState } from './consult-transition-state'
@@ -40,7 +41,8 @@ export function ConsultantDetail({ consultantId }: ConsultantDetailProps) {
   const selectedTime = timeChoice.consultantId === consultantId ? timeChoice.time : ''
   const setSelectedTime = (time: string) => setTimeChoice({ consultantId, time })
 
-  const { data: consultants, isPending: listPending } = useConsultants()
+  const list = useConsultantPages()
+  const consultants = list.data
   const { data: consultant, isPending, isError } = useConsultant(consultantId)
   const { data: days, isPending: daysPending } = useAvailability(consultantId)
   const visibleConsultant = consultant ?? consultants?.find((item) => item.id === consultantId)
@@ -65,7 +67,16 @@ export function ConsultantDetail({ consultantId }: ConsultantDetailProps) {
         <ConsultantRail
           consultants={consultants ?? []}
           activeId={consultantId}
-          isPending={listPending}
+          isPending={list.isPending}
+          hasNextPage={list.hasNextPage}
+          isLoadingMore={list.isFetchingNextPage}
+          isError={list.isError}
+          errorMessage={isApiError(list.error) ? list.error.message : null}
+          onLoadMore={() => {
+            if (list.isFetching) return
+            if (list.isError && !list.isFetchNextPageError) void list.refetch()
+            else void list.fetchNextPage({ cancelRefetch: false })
+          }}
           {...(visibleConsultant ? { activeConsultant: visibleConsultant } : {})}
         />
 

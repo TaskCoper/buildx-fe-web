@@ -2723,7 +2723,12 @@
     },
     "rail": {
       "searchPlaceholder": "Tìm kiến trúc sư...",
-      "backToList": "Danh sách kiến trúc sư"
+      "backToList": "Danh sách kiến trúc sư",
+      "empty": "Chưa có kiến trúc sư phù hợp trong danh sách đã tải.",
+      "loadError": "Không tải được danh sách kiến trúc sư. Vui lòng thử lại.",
+      "loadingMore": "Đang tải thêm kiến trúc sư…",
+      "loadMore": "Xem thêm kiến trúc sư",
+      "retry": "Thử lại"
     },
     "profile": {
       "reviews": "({count} đánh giá)",
@@ -2737,7 +2742,10 @@
       "lightboxClose": "Đóng",
       "lightboxPrev": "Ảnh trước",
       "lightboxNext": "Ảnh sau",
-      "viewLarger": "Xem ảnh lớn: {label}"
+      "viewLarger": "Xem ảnh lớn: {label}",
+      "designProjects": "Dự án thiết kế",
+      "designImage": "{name} · Ảnh {index}",
+      "moreDesignImages": "{count} ảnh khác"
     },
     "slots": {
       "title": "Chọn khung giờ tư vấn",
@@ -5294,7 +5302,7 @@
       "name": "Họ tên",
       "title": "Chức danh",
       "avatar": "Ảnh đại diện",
-      "avatarHint": "Link https của ảnh trên kho ảnh hệ thống (cùng kho với ảnh dự toán). Link ở tên miền khác sẽ bị từ chối.",
+      "avatarHint": "Chọn ảnh chân dung rõ nét để hiển thị trên thẻ và hồ sơ kiến trúc sư.",
       "categories": "Chuyên môn",
       "categoriesHint": "Chọn ít nhất một chuyên môn. Thêm chuyên môn mới ở nút “Danh mục chuyên môn”.",
       "noCategories": "Chưa có chuyên môn nào — tạo ở nút “Danh mục chuyên môn” trước.",
@@ -5311,7 +5319,48 @@
       "hideWarning": "Khách sẽ không gửi được yêu cầu mới cho KTS này; các yêu cầu đã gửi vẫn giữ để xử lý.",
       "companyName": "Công ty",
       "rating": "Điểm đánh giá",
-      "reviewCount": "Số lượt đánh giá"
+      "reviewCount": "Số lượt đánh giá",
+      "designImagesUploading": "Ảnh thiết kế đang tải lên. Vui lòng chờ tải xong rồi lưu.",
+      "shortDescription": "Mô tả ngắn",
+      "shortDescriptionHint": "Tùy chọn, tối đa 500 ký tự. Hiển thị trên thẻ và hồ sơ công khai.",
+      "designProjects": "Dự án thiết kế",
+      "designProjectsHint": "Có thể để trống danh sách. Mỗi dự án cần tên và ít nhất một ảnh.",
+      "designProjectIndex": "Dự án {index}",
+      "designProjectName": "Tên dự án thiết kế",
+      "addDesignProject": "Thêm dự án thiết kế",
+      "removeDesignProject": "Xóa dự án",
+      "addDesignImage": "Thêm ảnh thiết kế",
+      "removeDesignImage": "Xóa ảnh",
+      "designImageIndex": "Ảnh thiết kế {index}",
+      "viewProjectImages": "Xem ảnh dự án {name}",
+      "designImagesRequired": "Chọn ít nhất một ảnh thiết kế và chờ tải ảnh xong.",
+      "detailError": "Không tải được hồ sơ. Vui lòng mở lại để thử lại.",
+      "optional": "Tùy chọn",
+      "noDesignProjects": "Chưa có dự án thiết kế",
+      "noDesignProjectsHint": "Thêm các dự án tiêu biểu để khách hàng xem phong cách và năng lực thiết kế của kiến trúc sư.",
+      "sections": {
+        "identity": "Thông tin cơ bản",
+        "identityHint": "Ảnh đại diện, chức danh và chuyên môn của kiến trúc sư.",
+        "about": "Giới thiệu kiến trúc sư",
+        "aboutHint": "Viết rõ thế mạnh và phong cách thiết kế để khách hàng dễ lựa chọn.",
+        "experience": "Kinh nghiệm và hiển thị",
+        "experienceHint": "Cập nhật số liệu và chọn trạng thái hiển thị của hồ sơ.",
+        "visibility": "Hiển thị trên trang tư vấn",
+        "visibilityHint": "Hồ sơ đang hiển thị sẽ xuất hiện trong danh sách kiến trúc sư dành cho khách hàng."
+      },
+      "placeholders": {
+        "name": "Nhập họ và tên",
+        "title": "Ví dụ: Kiến trúc sư trưởng",
+        "company": "Nhập tên công ty",
+        "categories": "Chọn chuyên môn thiết kế",
+        "shortDescription": "Tóm tắt ngắn về thế mạnh hoặc phong cách thiết kế…",
+        "introduction": "Giới thiệu kinh nghiệm, cách làm việc và định hướng thiết kế…",
+        "projectName": "Ví dụ: Biệt thự sân vườn An Phú"
+      },
+      "tabs": {
+        "profile": "Thông tin hồ sơ",
+        "projects": "Dự án của kiến trúc sư"
+      }
     },
     "architectCategories": {
       "title": "Danh mục chuyên môn",

@@ -509,6 +509,7 @@ export interface Consultant {
   reviewCount: number
   /** 4 ảnh công trình tiêu biểu (Hình 15). */
   works: ConsultantWork[]
+  designProjects?: { name: string; imageUrls: string[] }[]
   /** Chỉ kiến trúc sư Đang hiển thị xuất hiện ở màn đặt lịch. KTS mới mặc định Ẩn. */
   visible: boolean
   /** Các phạm vi Không tư vấn admin đánh dấu (ArchitectManagement §5). */

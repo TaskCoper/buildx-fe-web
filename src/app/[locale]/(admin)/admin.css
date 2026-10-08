@@ -272,3 +272,56 @@
   color: var(--admin-muted);
   pointer-events: none;
 }
+
+.architect-editor .ant-form-item {
+  margin-bottom: 20px;
+}
+
+.architect-editor .ant-form-item-label > label {
+  font-weight: 500;
+}
+
+.architect-editor .ant-form-item-extra {
+  padding-top: 4px;
+  font-size: 12px;
+}
+
+.architect-editor .ant-input-textarea-show-count {
+  margin-bottom: 20px;
+}
+
+.architect-editor .architect-visibility-field {
+  flex-shrink: 0;
+  width: 200px;
+  margin-bottom: 0;
+}
+
+.architect-project-images {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr));
+}
+
+.architect-project-images .ant-form-item {
+  margin-bottom: 0;
+}
+
+.architect-image-preview > .ant-image {
+  position: absolute;
+  inset: 0;
+  display: block;
+  overflow: hidden;
+}
+
+.architect-image-preview .ant-image-img {
+  height: 100%;
+  object-fit: cover;
+}
+
+.architect-avatar .architect-image-preview {
+  aspect-ratio: 1;
+}
+
+@media (max-width: 575px) {
+  .architect-editor .architect-visibility-field {
+    width: 100%;
+  }
+}
