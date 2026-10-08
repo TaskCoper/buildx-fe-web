@@ -1330,7 +1330,7 @@
         "p2": "Thiết kế & dự toán theo lô đất của bạn",
         "p3": "Nhận bản vẽ hoàn chỉnh → sẵn sàng triển khai",
         "valuePlan": "Dùng lượt trong gói {plan}",
-        "valueFree": "gói thiết kế từ 399.000đ",
+        "valueFree": "Gói thiết kế từ 399.000đ",
         "action": "Thiết kế ngay"
       },
       "consult": {
@@ -1426,7 +1426,7 @@
           "p1": "Chưa có bản vẽ → Thiết kế & dự toán",
           "p2": "Nhận bản vẽ / hồ sơ",
           "p3": "Dự án sẵn sàng triển khai",
-          "value": "gói thiết kế từ 399.000đ",
+          "value": "Gói thiết kế từ 399.000đ",
           "action": "Tạo dự án ngay"
         },
         "architect": {
@@ -1545,7 +1545,7 @@
           "p1": "Tải ảnh lô đất / chụp ảnh hiện trạng",
           "p2": "Hệ thống phân tích hiện trạng",
           "p3": "Thiết kế & dự toán → nhận bản vẽ",
-          "value": "gói thiết kế từ 399.000đ",
+          "value": "Gói thiết kế từ 399.000đ",
           "action": "Chụp ảnh & tạo dự án"
         },
         "browse": {
