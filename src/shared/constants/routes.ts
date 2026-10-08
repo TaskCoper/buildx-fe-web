@@ -91,6 +91,8 @@ export const ADMIN_ROUTES = {
   HANDBOOK_CONTENT: '/admin/handbook-content',
   /** Nội dung trang chủ: chữ, ảnh, icon, mẫu và video nổi bật của 12 khối. */
   HOME_CONTENT: '/admin/home-content',
+  /** Chân trang & Về BuildX: liên hệ, mạng xã hội và nội dung năm trang pháp lý (rich text). */
+  FOOTER_CONTENT: '/admin/footer-content',
   /** Video hướng dẫn của trang Hướng dẫn. */
   GUIDE_VIDEOS: '/admin/guide-videos',
   /** Mã giảm giá của ô nhập mã ở S03. */

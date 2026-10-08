@@ -115,16 +115,21 @@ const TOOLS: Tool[] = [
  * chọn tệp hoặc kéo thả ảnh vào khung là tải thẳng lên kho qua MEDIA (presign),
  * khung tự thành ảnh — không còn dán link.
  *
+ * `allowImages={false}` cho nơi backend không nhận ảnh (trang pháp lý ở chân trang): bỏ nút ảnh và cả khả năng nhận ảnh
+ * khi dán hay kéo thả, để HTML xuất ra luôn lưu được.
+ *
  * Dùng như control của `Form.Item` (nhận `value` / `onChange`).
  */
 export function HtmlContentEditor({
   value,
   onChange,
-  maxLength
+  maxLength,
+  allowImages = true
 }: {
   value?: string
   onChange?: (value: string) => void
   maxLength: number
+  allowImages?: boolean
 }) {
   const t = useTranslations('admin.newsArticles.editor')
   const [mode, setMode] = useState<'edit' | 'preview'>('edit')
@@ -146,8 +151,7 @@ export function HtmlContentEditor({
         }
       }),
       TableKit.configure({ table: { resizable: true, renderWrapper: true, cellMinWidth: 60 } }),
-      ResizableImage.configure({ inline: false }),
-      ImagePlaceholder
+      ...(allowImages ? [ResizableImage.configure({ inline: false }), ImagePlaceholder] : [])
     ],
     content: value ?? '',
     editorProps: { attributes: { class: 'admin-richtext' } },
@@ -234,14 +238,16 @@ export function HtmlContentEditor({
                 icon={<LinkOutlined />}
               />
             </Popover>
-            <Tooltip title={t('tools.image')}>
-              <Button
-                size='small'
-                aria-label={t('tools.image')}
-                icon={<PictureOutlined />}
-                onClick={insertImagePlaceholder}
-              />
-            </Tooltip>
+            {allowImages ? (
+              <Tooltip title={t('tools.image')}>
+                <Button
+                  size='small'
+                  aria-label={t('tools.image')}
+                  icon={<PictureOutlined />}
+                  onClick={insertImagePlaceholder}
+                />
+              </Tooltip>
+            ) : null}
             <TableToolbar editor={editor} />
           </>
         ) : null}

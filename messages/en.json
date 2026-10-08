@@ -2849,6 +2849,7 @@
     "nav": {
       "handbookNewsletter": "Handbook newsletter",
       "homeContent": "Home page content",
+      "footerContent": "Footer & About BuildX",
       "handbookContent": "Handbook page content",
 
       "dashboard": "To-do",
@@ -5377,6 +5378,7 @@
       "states": { "Draft": "Draft", "Published": "Published", "Hidden": "Hidden" }
     },
     "homeContent": {
+      "footerDescription": "Footer contact details, social media links and the content of the five About BuildX pages (Terms of Use, Privacy, AI Terms, E-commerce & Partners, Payment & Refunds). Each language is saved separately: a block you have not edited uses the built-in content, so the form opens with exactly what visitors see, and only what differs from the built-in text is saved.",
       "description": "Text, images, icons, templates and featured videos of the home page, split into 12 blocks in scroll order. Each language is saved separately: a block you have not edited uses the built-in content, so the form opens with the text visitors currently see, and only what differs from the built-in content is saved. Button links are kept by the app and cannot be edited here.",
       "locales": {
         "vi": "Vietnamese",
@@ -5460,6 +5462,34 @@
         "cta": {
           "title": "Closing call to action",
           "hint": "The call to create a project at the end of the home page."
+        },
+        "contact": {
+          "title": "Contact details",
+          "hint": "Hotline, email and address in the Contact column of the footer. A field left as the built-in value keeps using the built-in details."
+        },
+        "social": {
+          "title": "Social media",
+          "hint": "Links behind the social media icons in the footer brand column. Only http or https addresses are accepted; one typed without a scheme (for example zalo.me/abc) gets https:// added."
+        },
+        "terms": {
+          "title": "Terms of Use page",
+          "hint": "The /terms page in the About BuildX column of the footer. It opens with exactly what visitors read; edit in place, then press Save all. The title only appears on the browser tab, the large heading of the page is part of the content. Only text, lists, tables and links are accepted; images are not supported."
+        },
+        "privacy": {
+          "title": "Privacy page",
+          "hint": "The /privacy page in the About BuildX column of the footer. It opens with exactly what visitors read; edit in place, then press Save all. The title only appears on the browser tab, the large heading of the page is part of the content. Only text, lists, tables and links are accepted; images are not supported."
+        },
+        "aiTerms": {
+          "title": "AI Terms of Use page",
+          "hint": "The /ai-terms page in the About BuildX column of the footer. It opens with exactly what visitors read; edit in place, then press Save all. The title only appears on the browser tab, the large heading of the page is part of the content. Only text, lists, tables and links are accepted; images are not supported."
+        },
+        "ecommerce": {
+          "title": "E-commerce & Partners page",
+          "hint": "The /ecommerce-partners page in the About BuildX column of the footer. It opens with exactly what visitors read; edit in place, then press Save all. The title only appears on the browser tab, the large heading of the page is part of the content. Only text, lists, tables and links are accepted; images are not supported."
+        },
+        "payment": {
+          "title": "Payment & Refunds page",
+          "hint": "The /payment-policy page in the About BuildX column of the footer. It opens with exactly what visitors read; edit in place, then press Save all. The title only appears on the browser tab, the large heading of the page is part of the content. Only text, lists, tables and links are accepted; images are not supported."
         }
       },
       "lists": {
@@ -5581,7 +5611,16 @@
         "name": "Name",
         "meta": "Extra information",
         "quote": "Quote",
-        "avatarUrl": "Avatar (optional)"
+        "avatarUrl": "Avatar (optional)",
+        "hotline": "Hotline",
+        "email": "Email",
+        "address": "Address",
+        "facebookUrl": "Facebook",
+        "zaloUrl": "Zalo",
+        "youtubeUrl": "YouTube",
+        "tiktokUrl": "TikTok",
+        "instagramUrl": "Instagram",
+        "body": "Page content"
       },
       "fieldsBySection": {
         "hero": {
@@ -5597,6 +5636,21 @@
         "testimonials": {
           "name": "Customer name",
           "meta": "House type · area · location"
+        },
+        "terms": {
+          "title": "Browser tab title"
+        },
+        "privacy": {
+          "title": "Browser tab title"
+        },
+        "aiTerms": {
+          "title": "Browser tab title"
+        },
+        "ecommerce": {
+          "title": "Browser tab title"
+        },
+        "payment": {
+          "title": "Browser tab title"
         }
       },
       "floors": "{count} floors",

@@ -1,6 +1,7 @@
 /**
- * Đọc hình dạng các khối trang chủ từ `PageSectionCatalog.cs` của backend — nguồn sự thật về trường, kiểu và số mục
- * của từng khối. Dùng cho test hợp đồng (`home-contract.test.mjs`) và cho server giả khi chạy thử toàn luồng.
+ * Đọc hình dạng các khối của một trang (trang chủ, chân trang) từ `PageSectionCatalog.cs` của backend — nguồn sự thật
+ * về trường, kiểu và số mục của từng khối. Dùng cho các test hợp đồng (`home-contract.test.mjs`,
+ * `footer-contract.test.mjs`) và cho server giả khi chạy thử toàn luồng.
  *
  * Chỉ đọc đúng cú pháp catalog đang dùng (`new(PageKeys.Home, HomeSectionKeys.X, OptionalText: [...], Fields: [Items(...)])`);
  * catalog đổi cú pháp thì test hợp đồng sẽ hỏng trước, không âm thầm đọc sai.
@@ -14,7 +15,7 @@ export const CATALOG_URL = new URL(
 
 /** Phần nằm giữa cặp ngoặc bắt đầu tại `open` (chỉ số ký tự mở), tính cả ngoặc lồng nhau và chuỗi trong nháy kép. */
 export function balanced(text, open) {
-  const pairs = { '(': ')', '[': ']' }
+  const pairs = { '(': ')', '[': ']', '{': '}' }
   const stack = []
   for (let i = open; i < text.length; i++) {
     const char = text[i]
@@ -37,8 +38,9 @@ function namedList(args, name) {
 }
 
 function parseStructuredField(call) {
-  const kind = call.match(/^(Items|Ids)\(/)[1]
+  const kind = call.match(/^(Items|Ids|Html)\(/)[1]
   const args = balanced(call, call.indexOf('('))
+  if (kind === 'Html') return { kind, name: args.match(/^\s*"([^"]+)"/)[1] }
   if (kind === 'Ids') {
     const [, name, max] = args.match(/^\s*"([^"]+)"\s*,\s*(\d+)/)
     return { kind, name, max: Number(max) }
@@ -52,21 +54,31 @@ function parseStructuredField(call) {
 }
 
 /**
- * Các khối của trang chủ theo mã khối: `{ required, optional, images, structured }`, với `structured` là danh sách
- * trường có cấu trúc (`Items` có min/max và trường của mục, `Ids` có max).
+ * Các hằng chuỗi của một lớp tĩnh, theo tên hằng (`Contact` → `"contact"`). Đọc theo từng lớp vì tên hằng của các trang
+ * khác nhau có thể trùng nhau.
  */
-export function parseHomeCatalog(text) {
-  const constants = Object.fromEntries(
-    [...text.matchAll(/public const string (\w+) = "(\w+)";/g)].map((match) => [match[1], match[2]])
-  )
+function constantsOf(text, className) {
+  const at = text.search(new RegExp(`static class ${className}\\b`))
+  if (at < 0) throw new Error(`Không thấy lớp ${className} trong catalog`)
+  const body = balanced(text, text.indexOf('{', at))
+  return Object.fromEntries([...body.matchAll(/public const string (\w+) = "(\w+)";/g)].map((m) => [m[1], m[2]]))
+}
+
+/**
+ * Các khối của một trang theo mã khối: `{ required, optional, images, structured }`, với `structured` là danh sách
+ * trường có cấu trúc (`Items` có min/max và trường của mục, `Ids` có max, `Html` chỉ có tên).
+ */
+export function parsePageCatalog(text, pageConstant, sectionKeysClass) {
+  const constants = constantsOf(text, sectionKeysClass)
   const sections = new Map()
-  for (const match of text.matchAll(/new\(PageKeys\.Home,\s*HomeSectionKeys\.(\w+),/g)) {
+  const start = new RegExp(`new\\(PageKeys\\.${pageConstant},\\s*${sectionKeysClass}\\.(\\w+),`, 'g')
+  for (const match of text.matchAll(start)) {
     const args = balanced(text, match.index + 3)
     const fieldsAt = args.search(/Fields:\s*\[/)
     const structured = []
     if (fieldsAt >= 0) {
       const body = balanced(args, args.indexOf('[', fieldsAt))
-      for (const call of body.matchAll(/\b(Items|Ids)\(/g))
+      for (const call of body.matchAll(/\b(Items|Ids|Html)\(/g))
         structured.push(parseStructuredField(body.slice(call.index)))
     }
     sections.set(constants[match[1]], {
@@ -78,3 +90,9 @@ export function parseHomeCatalog(text) {
   }
   return sections
 }
+
+/** Các khối của trang chủ (xem {@link parsePageCatalog}). */
+export const parseHomeCatalog = (text) => parsePageCatalog(text, 'Home', 'HomeSectionKeys')
+
+/** Các khối của chân trang (xem {@link parsePageCatalog}). */
+export const parseFooterCatalog = (text) => parsePageCatalog(text, 'Footer', 'FooterSectionKeys')

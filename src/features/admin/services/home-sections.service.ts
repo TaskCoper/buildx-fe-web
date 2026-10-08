@@ -1,13 +1,14 @@
 /**
- * Logic THUẦN cho màn sửa nội dung trang chủ. Hình dạng từng khối khớp những gì các section của trang chủ đọc
- * (xem `docs/BE_API_GAPS.md` mục 8); không import alias để kiểm được bằng `scripts/home-admin.test.mjs`.
+ * Logic THUẦN cho các màn sửa nội dung trang theo khối: trang chủ (`HOME_SECTIONS`) và chân trang (`FOOTER_SECTIONS`).
+ * Hình dạng từng khối khớp những gì các section của trang đọc (xem `docs/BE_API_GAPS.md` mục 8 và 9); không import alias
+ * để kiểm được bằng `scripts/home-admin.test.mjs`.
  *
  * Quy tắc xuyên suốt giống phía hiển thị: trường nào không lưu thì trang dùng nội dung có sẵn trong ứng dụng. Vì vậy
  * form mở ra với đúng chữ đang hiển thị (sửa tại chỗ), và khi lưu chỉ những trường khác bản có sẵn mới được ghi —
  * gõ lại đúng chữ gốc nghĩa là bỏ sửa đổi, và chữ gốc đổi sau này vẫn tự lan sang trang.
  */
 
-export type HomeFieldKind = 'text' | 'textarea' | 'image' | 'icon'
+export type HomeFieldKind = 'text' | 'textarea' | 'image' | 'icon' | 'html'
 
 export interface HomeField {
   /** Tên trường trong nội dung lưu; cũng là phần cuối của khóa dịch `admin.homeContent.fields.<name>`. */
@@ -49,28 +50,18 @@ export interface HomeIdList {
 
 export type HomeList = HomeFixedList | HomeRepeatList | HomeIdList
 
-export type HomeSectionKey =
-  | 'hero'
-  | 'stats'
-  | 'painPoints'
-  | 'journey'
-  | 'services'
-  | 'dossiers'
-  | 'articles'
-  | 'guides'
-  | 'consult'
-  | 'brands'
-  | 'testimonials'
-  | 'cta'
-
 export interface HomeSectionDef {
-  key: HomeSectionKey
+  /** Mã khối trên backend; cũng là phần của khóa dịch `admin.homeContent.sections.<key>`. */
+  key: string
   fields: readonly HomeField[]
   lists: readonly HomeList[]
 }
 
 /** Giới hạn độ dài mỗi trường chữ. */
 export const HOME_TEXT_MAX_LENGTH = 1000
+
+/** Giới hạn độ dài trường rich text (HTML), cùng giá trị `PageSectionLimits.HtmlMaxLength` của backend. */
+export const HOME_HTML_MAX_LENGTH = 200_000
 
 /** Tên icon lucide: chữ, số, gạch ngang, tối đa 64 ký tự (cùng quy tắc `lucideIconKey` phía trang chủ). */
 export const ICON_NAME_PATTERN = /^[A-Za-z0-9-]{1,64}$/
@@ -79,6 +70,7 @@ const text = (name: string, path?: readonly string[]): HomeField => ({ name, kin
 const area = (name: string, path?: readonly string[]): HomeField => ({ name, kind: 'textarea', defaultPath: path })
 const image = (name: string): HomeField => ({ name, kind: 'image' })
 const icon = (name: string): HomeField => ({ name, kind: 'icon' })
+const html = (name: string, path?: readonly string[]): HomeField => ({ name, kind: 'html', defaultPath: path })
 
 const landing = (...rest: string[]) => ['landing', ...rest] as const
 
@@ -264,6 +256,47 @@ export const HOME_SECTIONS: readonly HomeSectionDef[] = [
   }
 ]
 
+/**
+ * Chữ có sẵn của chân trang không nằm hết trong `messages`, nên màn nạp một bản gộp gồm toàn bộ `messages` cùng hai
+ * nhánh riêng: `siteDefaults` (hotline, email, địa chỉ, mạng xã hội lấy từ cấu hình ứng dụng) và `legalHtml` (năm trang
+ * pháp lý có sẵn đổi sang HTML để sửa tại chỗ). Xem `loadFooterDefaults`.
+ */
+const siteDefault = (name: string) => ['siteDefaults', name] as const
+
+/** Năm trang "Về BuildX", theo thứ tự ở chân trang; mã khối trùng khóa tài liệu pháp lý có sẵn. */
+export const FOOTER_LEGAL_KEYS = ['terms', 'privacy', 'aiTerms', 'ecommerce', 'payment'] as const
+
+const legalSection = (key: string): HomeSectionDef => ({
+  key,
+  fields: [text('title', ['legal', key, 'title']), html('body', ['legalHtml', key])],
+  lists: []
+})
+
+/** Bảy khối của chân trang: liên hệ, mạng xã hội và năm trang "Về BuildX". */
+export const FOOTER_SECTIONS: readonly HomeSectionDef[] = [
+  {
+    key: 'contact',
+    fields: [
+      text('hotline', siteDefault('hotline')),
+      text('email', siteDefault('email')),
+      area('address', siteDefault('address'))
+    ],
+    lists: []
+  },
+  {
+    key: 'social',
+    fields: [
+      text('facebookUrl', siteDefault('facebookUrl')),
+      text('zaloUrl', siteDefault('zaloUrl')),
+      text('youtubeUrl', siteDefault('youtubeUrl')),
+      text('tiktokUrl', siteDefault('tiktokUrl')),
+      text('instagramUrl', siteDefault('instagramUrl'))
+    ],
+    lists: []
+  },
+  ...FOOTER_LEGAL_KEYS.map(legalSection)
+]
+
 type PlainObject = Record<string, unknown>
 
 /** Một dòng của danh sách: giá trị chữ theo tên trường. */
@@ -278,6 +311,35 @@ function isPlainObject(value: unknown): value is PlainObject {
 
 function clean(value: unknown): string {
   return typeof value === 'string' ? value.trim() : ''
+}
+
+/** HTML không còn chữ nào (trình soạn trả `<p></p>` khi rỗng) coi như trống. */
+function cleanHtml(value: unknown): string {
+  const text = clean(value)
+  return text
+    .replace(/<[^>]*>/g, '')
+    .replace(/&nbsp;|\u00a0/g, ' ')
+    .trim() === ''
+    ? ''
+    : text
+}
+
+const cleanField = (field: HomeField, value: unknown): string =>
+  field.kind === 'html' ? cleanHtml(value) : clean(value)
+
+/**
+ * Hai giá trị của một trường có giống nhau không. HTML được so sau khi bỏ khác biệt chỉ do trình soạn ghi lại: `&nbsp;`
+ * thành ký tự cách không ngắt, khoảng trắng thừa giữa các thẻ. Nhờ vậy trang pháp lý mở ra rồi lưu mà chưa sửa chữ nào
+ * không bị coi là đã sửa.
+ */
+const sameFieldValue = (field: HomeField, a: string, b: string): boolean => {
+  if (field.kind !== 'html') return a === b
+  const canonical = (html: string) =>
+    html
+      .replace(/&nbsp;/g, '\u00a0')
+      .replace(/>\s+</g, '><')
+      .trim()
+  return canonical(a) === canonical(b)
 }
 
 /** Chữ có sẵn tại một khóa của `messages`; khóa thiếu hoặc không phải chuỗi cho chuỗi rỗng. */
@@ -326,7 +388,9 @@ export function formValuesFor(
 ): HomeFormValues {
   const values: HomeFormValues = {}
   const defaults = scalarDefaults(section, messages)
-  for (const field of section.fields) values[field.name] = clean(saved?.[field.name]) || (defaults[field.name] ?? '')
+  for (const field of section.fields) {
+    values[field.name] = cleanField(field, saved?.[field.name]) || (defaults[field.name] ?? '')
+  }
 
   for (const list of section.lists) {
     const stored = saved?.[list.name]
@@ -368,8 +432,8 @@ export function buildContent(section: HomeSectionDef, values: Record<string, unk
   const defaults = scalarDefaults(section, messages)
 
   for (const field of section.fields) {
-    const value = clean(values[field.name])
-    if (value && value !== clean(defaults[field.name])) content[field.name] = value
+    const value = cleanField(field, values[field.name])
+    if (value && !sameFieldValue(field, value, clean(defaults[field.name]))) content[field.name] = value
   }
 
   for (const list of section.lists) {
@@ -400,15 +464,16 @@ export function buildContent(section: HomeSectionDef, values: Record<string, unk
 }
 
 /**
- * Giá trị ban đầu của form cả trang: mỗi khối theo mã khối. Dùng cho một form duy nhất chứa cả 12 khối, nên khối nào
- * chưa được mở trên màn (các khối gập lại chưa dựng) vẫn có đủ giá trị để biết nó chưa đổi.
+ * Giá trị ban đầu của form cả trang: mỗi khối theo mã khối. Dùng cho một form duy nhất chứa mọi khối của trang, nên
+ * khối nào chưa được mở trên màn (các khối gập lại chưa dựng) vẫn có đủ giá trị để biết nó chưa đổi.
  */
 export function formValuesForAll(
+  sections: readonly HomeSectionDef[],
   contents: Record<string, Record<string, unknown> | undefined>,
   messages: unknown
 ): Record<string, HomeFormValues> {
   return Object.fromEntries(
-    HOME_SECTIONS.map((section) => [section.key, formValuesFor(section, contents[section.key], messages)])
+    sections.map((section) => [section.key, formValuesFor(section, contents[section.key], messages)])
   )
 }
 

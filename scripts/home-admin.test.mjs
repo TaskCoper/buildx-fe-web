@@ -212,7 +212,7 @@ test('danh sách id: mỗi tab mẫu tối đa 4, video 3, kiến trúc sư 3, v
 })
 
 test('formValuesForAll dựng giá trị ban đầu cho đủ 12 khối, khối đã lưu lấy bản đã lưu', () => {
-  const all = home.formValuesForAll({ cta: { title: 'Tiêu đề đã sửa' } }, vi)
+  const all = home.formValuesForAll(home.HOME_SECTIONS, { cta: { title: 'Tiêu đề đã sửa' } }, vi)
   assert.deepEqual(
     Object.keys(all),
     home.HOME_SECTIONS.map((def) => def.key)

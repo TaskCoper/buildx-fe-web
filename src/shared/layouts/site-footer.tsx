@@ -7,6 +7,7 @@ import { useId, useState, type CSSProperties, type ReactNode } from 'react'
 
 import { Link } from '@/i18n/navigation'
 import { cmsText, useCmsDocument } from '@/shared/cms'
+import { EMPTY_FOOTER_CONTENT, type FooterContent } from '@/shared/cms/footer-sections'
 import { HotlineLink, TikTokIcon, Logo, TurnkeyRequestDialog, ZaloIcon } from '@/shared/components/common'
 import { siteConfig } from '@/shared/config/site'
 import { cn } from '@/shared/lib/utils'
@@ -226,35 +227,47 @@ function FooterAccordion({ sections }: { sections: { key: string; title: string;
  * dong "Hotline / Email / Dia chi" xep nhu mot cot chu, cung nhip voi ba cot
  * lien ket ben canh.
  */
-export function SiteFooter() {
+export function SiteFooter({ content = EMPTY_FOOTER_CONTENT }: { content?: FooterContent }) {
   const t = useTranslations('footer')
   const tNav = useTranslations('nav')
   const year = new Date().getFullYear()
   const { contact, social } = siteConfig
-  // Noi dung lien he / mang xa hoi do admin sua (muc X). Chua sua thi roi ve
-  // hang so trong `shared/config/site.ts` va ban dich i18n.
+  // Nội dung liên hệ / mạng xã hội do admin sửa (màn "Chân trang & Về BuildX", lưu ở backend, truyền vào qua `content`).
+  // Chưa sửa thì rơi về tài liệu `settings` cũ (lưu cục bộ), rồi về hằng số trong `shared/config/site.ts` và bản dịch.
   const settings = useCmsDocument('settings')
   const [turnkeyOpen, setTurnkeyOpen] = useState(false)
 
-  const hotline = cmsText(settings.hotline, contact.hotline)
-  const email = cmsText(settings.email, contact.email)
-  const address = cmsText(settings.address, t('address'))
+  const hotline = content.contact.hotline ?? cmsText(settings.hotline, contact.hotline)
+  const email = content.contact.email ?? cmsText(settings.email, contact.email)
+  const address = content.contact.address ?? cmsText(settings.address, t('address'))
   const wardStart = address.toLocaleLowerCase('vi').indexOf('phường ')
 
   const socialLinks = [
     {
-      href: cmsText(settings.facebookUrl, social.facebookUrl),
+      href: content.social.facebook ?? cmsText(settings.facebookUrl, social.facebookUrl),
       label: t('social.facebook'),
       icon: <Facebook className='size-4' />
     },
     {
-      href: cmsText(settings.youtubeUrl, social.youtubeUrl),
+      href: content.social.youtube ?? cmsText(settings.youtubeUrl, social.youtubeUrl),
       label: t('social.youtube'),
       icon: <Youtube className='size-4' />
     },
-    { href: cmsText(settings.tiktokUrl, social.tiktokUrl), label: t('social.tiktok'), icon: <TikTokIcon /> },
-    { href: cmsText(settings.zaloUrl, social.zaloOaUrl), label: t('social.zaloOa'), icon: <ZaloIcon /> },
-    { href: social.instagramUrl, label: t('social.instagram'), icon: <Instagram className='size-4' /> }
+    {
+      href: content.social.tiktok ?? cmsText(settings.tiktokUrl, social.tiktokUrl),
+      label: t('social.tiktok'),
+      icon: <TikTokIcon />
+    },
+    {
+      href: content.social.zalo ?? cmsText(settings.zaloUrl, social.zaloOaUrl),
+      label: t('social.zaloOa'),
+      icon: <ZaloIcon />
+    },
+    {
+      href: content.social.instagram ?? social.instagramUrl,
+      label: t('social.instagram'),
+      icon: <Instagram className='size-4' />
+    }
   ]
 
   const pendingLabel = t('comingSoon')

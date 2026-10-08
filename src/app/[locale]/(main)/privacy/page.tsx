@@ -1,8 +1,7 @@
 import type { Metadata } from 'next'
-import { getTranslations, setRequestLocale } from 'next-intl/server'
 
 import type { Locale } from '@/i18n/routing'
-import { LegalPage } from '@/features/landing'
+import { LegalRoute, legalMetadata } from '../legal-route'
 
 interface PageProps {
   params: Promise<{ locale: Locale }>
@@ -10,13 +9,11 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale } = await params
-  const t = await getTranslations({ locale, namespace: 'legal.privacy' })
-  return { title: t('title') }
+  return legalMetadata(locale, 'privacy')
 }
 
 export default async function PrivacyPage({ params }: PageProps) {
   const { locale } = await params
-  setRequestLocale(locale)
 
-  return <LegalPage doc='privacy' />
+  return <LegalRoute locale={locale} doc='privacy' />
 }

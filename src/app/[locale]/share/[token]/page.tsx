@@ -2,7 +2,7 @@ import { setRequestLocale } from 'next-intl/server'
 
 import { SharedDossierView } from '@/features/design'
 import type { Locale } from '@/i18n/routing'
-import { SiteFooter } from '@/shared/layouts'
+import { SiteFooterWithContent } from '@/shared/layouts/site-footer.server'
 import { pageMetadata } from '@/shared/lib/page-metadata'
 
 export const generateMetadata = pageMetadata('share')
@@ -21,7 +21,7 @@ export default async function SharePage({ params }: PageProps) {
       <main className='flex-1'>
         <SharedDossierView token={token} />
       </main>
-      <SiteFooter />
+      <SiteFooterWithContent locale={locale} />
     </div>
   )
 }

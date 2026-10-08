@@ -20,6 +20,9 @@ Cập nhật: 29/09/2026 (đối soát lại toàn bộ — xem **mục 7**). Đ
 4. Admin: Tin tức, KTS, Yêu cầu tư vấn
 5. Admin: Danh mục dự toán và Thư viện mẫu
 6. Admin: Gói, Đơn, Giao dịch
+7. Đối soát lại Swagger (29/09/2026)
+8. Nội dung trang chủ do admin biên tập
+9. Chân trang và các trang Về BuildX do admin biên tập
 
 ---
 
@@ -536,3 +539,43 @@ Source BE (`bmt-be/src/bmt-be.contract/services/handbook/PageSectionCatalog.cs`,
 - `templateIds2d/3d` và `guideIds` chỉ là danh sách id. Mẫu hoặc video đã ẩn/xóa thì bị bỏ qua, không bù thêm mục khác; nếu admin chưa chọn gì thì trang chủ tự chọn như trước.
 - `stats`, `painPoints`, `journey` phải đủ đúng 5 mục và `services` đúng 4 mục (BE bắt số mục cố định, gắn theo thứ tự thẻ trên giao diện); trường nào của mục để trống thì thẻ đó dùng chữ có sẵn. Vì vậy màn admin ghi cả danh sách khi có thẻ nào đổi.
 - Màn admin làm theo mẫu "Nội dung trang Cẩm nang": lưu từng khối, gửi `expectedVersion`, mỗi ngôn ngữ một bản. Khi trang `home` chưa có trên BE, màn vẫn hiện form trên nội dung có sẵn; bấm Lưu thì lỗi 404 của BE hiện qua thông báo.
+
+## 9. Chân trang và các trang "Về BuildX" do admin biên tập — chờ BE deploy trang `footer` (08/10/2026)
+
+Chân trang và năm trang pháp lý đã đọc nội dung biên tập từ `GET /api/v1/pages/footer/sections?locale={vi|en}`, cùng cơ chế "khối chữ" của trang chủ và Cẩm nang (`PUT /admin/pages/footer/sections/{sectionKey}`, quyền `news.manage`). Khác trang chủ ở một điểm: có loại trường mới **`Html`** (rich text) cho nội dung dài.
+
+### 1. Đã làm phía site khách
+
+- `SiteFooterWithContent` (server) gọi API để HTML đầu tiên đã có hotline, email, địa chỉ và liên kết mạng xã hội đúng. Làm mới tối đa 60 giây, quá 4 giây thì bỏ qua.
+- Trường nào chưa lưu thì chân trang giữ cách làm cũ: tài liệu `settings` cũ, rồi hằng số trong `shared/config/site.ts` và `messages/*.json`.
+- Liên kết mạng xã hội chỉ dùng khi là `http`/`https` (nhập thiếu giao thức như `zalo.me/abc` thì tự thêm `https://`). Giá trị khác, ví dụ `javascript:`, bị bỏ và chân trang dùng liên kết có sẵn. BE chỉ lưu chuỗi, nên đây là chốt chặn cuối ở giao diện.
+- Năm trang `/terms`, `/privacy`, `/ai-terms`, `/ecommerce-partners`, `/payment-policy` hiện `body` do admin soạn trong "tờ giấy" trắng (`.legal-html`). Trang nào chưa soạn thì vẫn hiện bản có sẵn (`LegalPage`), nên không bao giờ trống vì CMS. `title` tùy chọn thay tiêu đề tab trình duyệt.
+- Chế độ `NEXT_PUBLIC_USE_MOCK_API=true` không gọi API.
+
+### 2. Chưa nối vì API thiếu (báo BE)
+
+Source BE (`bmt-be/src/bmt-be.contract/services/handbook/PageSectionCatalog.cs`, kèm `FooterPageSectionTests.cs`) **đã khai báo trang `footer` với 7 khối** như bảng dưới, nhưng đây là thay đổi mới trên nhánh `feature/footer-content`, chưa có trên môi trường `bmt-api.vnzdna.com` cho tới khi merge và deploy. Khi chưa có, `GET /pages/footer/sections` trả 404 và site khách dùng nội dung có sẵn.
+
+| `sectionKey` | Trường chữ                                                          | Trường `Html` |
+| ------------ | ------------------------------------------------------------------- | ------------- |
+| `contact`    | `hotline`, `email`, `address`                                       | —             |
+| `social`     | `facebookUrl`, `zaloUrl`, `youtubeUrl`, `tiktokUrl`, `instagramUrl` | —             |
+| `terms`      | `title`                                                             | `body`        |
+| `privacy`    | `title`                                                             | `body`        |
+| `aiTerms`    | `title`                                                             | `body`        |
+| `ecommerce`  | `title`                                                             | `body`        |
+| `payment`    | `title`                                                             | `body`        |
+
+Quy tắc của loại trường `Html` (đã làm ở BE):
+
+- Chuỗi HTML tối đa **200000 ký tự**, kiểm cả trước và sau khi làm sạch. Trường chữ thường vẫn tối đa 1000 ký tự.
+- Được làm sạch bằng `INewsHtmlSanitizer` của tin tức rồi lưu **bản đã làm sạch**; thẻ giữ lại gồm `p`, `h2`–`h6`, `ul`/`ol`/`li`, `blockquote`, `strong`, `em`, `u`, `a`, bảng.
+- **Không nhận ảnh**: có `<img>` thì trả 422 `InvalidPageSection` ("Nội dung trang này chưa hỗ trợ ảnh."). Ô soạn của admin cũng không có nút ảnh và không nhận ảnh dán vào.
+- Nội dung rỗng, hoặc không còn chữ nào sau khi làm sạch, được lưu thành chuỗi rỗng; giao diện coi như chưa soạn.
+
+### 3. Lưu ý
+
+- Các trường `hotline`, `email`, `address`, `*Url` là chuỗi tự do, không kiểm định dạng ở BE.
+- `terms`... `payment` dùng `h2` đầu tiên làm tiêu đề lớn của trang (canh giữa) và `h3` làm tiêu đề từng điều; trình soạn của admin chỉ có H2 và H3 nên khớp với quy ước này.
+- Lần đầu mở màn, nội dung năm trang là bản có sẵn đã đổi sang HTML (`legalDocToHtml`) để admin sửa tại chỗ; chữ đậm, nghiêng, danh sách và khung ghi chú được giữ, còn màu chữ và cỡ chữ do CSS dựng lại. Chỉ khi admin sửa khác bản có sẵn thì mới ghi lên BE.
+- Tài liệu nghiệp vụ của nhóm Cẩm nang (BR/TDD-HB-003) không có trong bản `bmt-documentation` dùng chung, nên phần hợp đồng ở mục này là nơi ghi tạm cho tới khi BE cập nhật tài liệu.

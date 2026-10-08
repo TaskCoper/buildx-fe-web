@@ -2849,6 +2849,7 @@
     "nav": {
       "handbookNewsletter": "Bản tin Cẩm nang",
       "homeContent": "Nội dung trang chủ",
+      "footerContent": "Chân trang & Về BuildX",
       "handbookContent": "Nội dung trang Cẩm nang",
 
       "dashboard": "Việc cần xử lý",
@@ -5377,6 +5378,7 @@
       "states": { "Draft": "Nháp", "Published": "Đã công bố", "Hidden": "Đang ẩn" }
     },
     "homeContent": {
+      "footerDescription": "Thông tin liên hệ, liên kết mạng xã hội ở chân trang và nội dung năm trang Về BuildX (Điều khoản sử dụng, Quyền riêng tư, Điều khoản AI, TMĐT & Đối tác, Thanh toán & Hoàn tiền). Mỗi ngôn ngữ lưu riêng: khối chưa sửa dùng nội dung có sẵn nên form mở ra với đúng nội dung khách đang thấy, và chỉ phần khác bản có sẵn mới được lưu.",
       "description": "Chữ, ảnh, icon, mẫu và video nổi bật của trang chủ, chia 12 khối theo đúng thứ tự khi cuộn trang. Mỗi ngôn ngữ lưu riêng: khối chưa sửa dùng nội dung có sẵn nên form mở ra với đúng chữ đang hiển thị, và chỉ phần khác bản có sẵn mới được lưu. Đường dẫn của các nút do ứng dụng giữ, không sửa ở đây.",
       "locales": {
         "vi": "Tiếng Việt",
@@ -5460,6 +5462,34 @@
         "cta": {
           "title": "Lời kêu gọi cuối trang",
           "hint": "Khối kêu gọi tạo dự án ở cuối trang chủ."
+        },
+        "contact": {
+          "title": "Thông tin liên hệ",
+          "hint": "Hotline, email và địa chỉ ở cột Liên hệ của chân trang. Ô nào để nguyên như có sẵn thì chân trang tiếp tục dùng thông tin có sẵn."
+        },
+        "social": {
+          "title": "Mạng xã hội",
+          "hint": "Liên kết của các biểu tượng mạng xã hội ở cột thương hiệu của chân trang. Chỉ nhận đường dẫn http hoặc https; nhập thiếu giao thức (ví dụ zalo.me/abc) thì tự thêm https://."
+        },
+        "terms": {
+          "title": "Trang Điều khoản sử dụng",
+          "hint": "Trang /terms trong cột Về BuildX ở chân trang. Mở ra là đúng nội dung khách đang đọc; sửa tại chỗ rồi bấm Lưu tất cả. Tiêu đề chỉ hiện trên tab trình duyệt, tiêu đề lớn của bài nằm trong nội dung. Chỉ nhận chữ, danh sách, bảng và liên kết, chưa hỗ trợ ảnh."
+        },
+        "privacy": {
+          "title": "Trang Quyền riêng tư",
+          "hint": "Trang /privacy trong cột Về BuildX ở chân trang. Mở ra là đúng nội dung khách đang đọc; sửa tại chỗ rồi bấm Lưu tất cả. Tiêu đề chỉ hiện trên tab trình duyệt, tiêu đề lớn của bài nằm trong nội dung. Chỉ nhận chữ, danh sách, bảng và liên kết, chưa hỗ trợ ảnh."
+        },
+        "aiTerms": {
+          "title": "Trang Điều khoản sử dụng AI",
+          "hint": "Trang /ai-terms trong cột Về BuildX ở chân trang. Mở ra là đúng nội dung khách đang đọc; sửa tại chỗ rồi bấm Lưu tất cả. Tiêu đề chỉ hiện trên tab trình duyệt, tiêu đề lớn của bài nằm trong nội dung. Chỉ nhận chữ, danh sách, bảng và liên kết, chưa hỗ trợ ảnh."
+        },
+        "ecommerce": {
+          "title": "Trang TMĐT & Đối tác",
+          "hint": "Trang /ecommerce-partners trong cột Về BuildX ở chân trang. Mở ra là đúng nội dung khách đang đọc; sửa tại chỗ rồi bấm Lưu tất cả. Tiêu đề chỉ hiện trên tab trình duyệt, tiêu đề lớn của bài nằm trong nội dung. Chỉ nhận chữ, danh sách, bảng và liên kết, chưa hỗ trợ ảnh."
+        },
+        "payment": {
+          "title": "Trang Thanh toán & Hoàn tiền",
+          "hint": "Trang /payment-policy trong cột Về BuildX ở chân trang. Mở ra là đúng nội dung khách đang đọc; sửa tại chỗ rồi bấm Lưu tất cả. Tiêu đề chỉ hiện trên tab trình duyệt, tiêu đề lớn của bài nằm trong nội dung. Chỉ nhận chữ, danh sách, bảng và liên kết, chưa hỗ trợ ảnh."
         }
       },
       "lists": {
@@ -5581,7 +5611,16 @@
         "name": "Tên",
         "meta": "Thông tin thêm",
         "quote": "Lời nhận xét",
-        "avatarUrl": "Ảnh đại diện (không bắt buộc)"
+        "avatarUrl": "Ảnh đại diện (không bắt buộc)",
+        "hotline": "Hotline",
+        "email": "Email",
+        "address": "Địa chỉ",
+        "facebookUrl": "Facebook",
+        "zaloUrl": "Zalo",
+        "youtubeUrl": "YouTube",
+        "tiktokUrl": "TikTok",
+        "instagramUrl": "Instagram",
+        "body": "Nội dung trang"
       },
       "fieldsBySection": {
         "hero": {
@@ -5597,6 +5636,21 @@
         "testimonials": {
           "name": "Tên khách hàng",
           "meta": "Loại nhà · diện tích · nơi ở"
+        },
+        "terms": {
+          "title": "Tiêu đề tab trình duyệt"
+        },
+        "privacy": {
+          "title": "Tiêu đề tab trình duyệt"
+        },
+        "aiTerms": {
+          "title": "Tiêu đề tab trình duyệt"
+        },
+        "ecommerce": {
+          "title": "Tiêu đề tab trình duyệt"
+        },
+        "payment": {
+          "title": "Tiêu đề tab trình duyệt"
         }
       },
       "floors": "{count} tầng",
