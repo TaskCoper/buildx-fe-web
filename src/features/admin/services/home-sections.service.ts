@@ -106,7 +106,11 @@ export const HOME_SECTIONS: readonly HomeSectionDef[] = [
       text('cardTotalValue', landing('hero', 'card', 'totalValue')),
       text('cardCta', landing('hero', 'card', 'cta'))
     ],
-    lists: [{ type: 'repeat', name: 'slides', max: 8, fields: [image('imageUrl')] }]
+    lists: [
+      { type: 'repeat', name: 'slides', max: 8, fields: [image('imageUrl')] },
+      // Video mở khi bấm nút phụ ("Xem hướng dẫn 1 phút"): chọn đúng 1 video từ danh sách hướng dẫn công khai.
+      { type: 'ids', name: 'guideIds', max: 1, source: 'guides' }
+    ]
   },
   {
     key: 'stats',
@@ -167,7 +171,7 @@ export const HOME_SECTIONS: readonly HomeSectionDef[] = [
           area('youDo', landing('journey', 'items', '{row}', 'youDo')),
           area('buildxDoes', landing('journey', 'items', '{row}', 'savicoDoes')),
           area('youGet', landing('journey', 'items', '{row}', 'youGet')),
-          image('iconUrl')
+          icon('icon')
         ]
       }
     ]

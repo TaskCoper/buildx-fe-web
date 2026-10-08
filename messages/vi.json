@@ -5415,7 +5415,7 @@
       "sections": {
         "hero": {
           "title": "Phần đầu trang",
-          "hint": "Tiêu đề lớn, hai nút, thẻ \"Hồ sơ dự án\" mẫu bên phải và ảnh nền xoay vòng."
+          "hint": "Tiêu đề lớn, hai nút (nút phụ mở video hướng dẫn), thẻ \"Hồ sơ dự án\" mẫu bên phải và ảnh nền xoay vòng."
         },
         "stats": {
           "title": "Dải số liệu",
@@ -5467,6 +5467,10 @@
           "slides": {
             "title": "Ảnh nền xoay vòng",
             "hint": "Bỏ trống thì trang dùng bộ ảnh mặc định. Có ít nhất một ảnh thì thay hoàn toàn bộ mặc định. Tối đa 8 ảnh."
+          },
+          "guideIds": {
+            "title": "Video của nút \"Xem hướng dẫn\"",
+            "hint": "Chọn 1 video hướng dẫn công khai để mở khi khách bấm nút phụ. Để trống thì dùng video nổi bật (hoặc video đầu danh sách)."
           }
         },
         "stats": {
@@ -5484,7 +5488,7 @@
         "journey": {
           "items": {
             "title": "Năm bước của hành trình",
-            "hint": "Đúng 5 bước, thứ tự cố định. Icon bỏ trống thì dùng icon mặc định của bước. Icon là tệp PNG hoặc SVG nền trong suốt; trang chủ tô lại theo màu giao diện."
+            "hint": "Đúng 5 bước, thứ tự cố định. Icon bỏ trống thì dùng icon mặc định của bước."
           }
         },
         "services": {
@@ -5568,7 +5572,6 @@
         "youDo": "Bạn làm gì",
         "buildxDoes": "BuildX làm gì",
         "youGet": "Bạn nhận được gì",
-        "iconUrl": "Icon của bước (tải tệp icon lên, không bắt buộc)",
         "viewAll": "Chữ liên kết \"Xem tất cả\"",
         "usedAtStep": "Dùng ở bước",
         "action": "Chữ trên nút",

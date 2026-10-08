@@ -1,14 +1,13 @@
 'use client'
 
-import { ArrowRight, ChevronDown } from 'lucide-react'
+import { ArrowRight, ChevronDown, Icon } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import { getImageProps } from 'next/image'
 import { useTranslations } from 'next-intl'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ComponentProps } from 'react'
 
 import { Link } from '@/i18n/navigation'
-import { useHomeSections } from '@/shared/cms/home-content'
-import { itemText, sectionItems, sectionText } from '@/shared/cms/home-sections'
+import { useHomeIconNodes, useHomeSections } from '@/shared/cms/home-content'
+import { itemText, lucideIconKey, sectionItems, sectionText } from '@/shared/cms/home-sections'
 import { revealEase } from '@/shared/components/common'
 import { Button } from '@/shared/components/ui/button'
 import { cn } from '@/shared/lib/utils'
@@ -45,16 +44,6 @@ const SAVED_DETAIL_LABEL: Record<DetailField, string> = {
   youGet: 'labelYouGet'
 }
 
-/**
- * Địa chỉ dùng cho `mask-image`. Trình duyệt chỉ cho làm mặt nạ bằng ảnh từ tên miền khác khi máy chủ ảnh trả header
- * CORS, mà kho ảnh có thể không trả; nên ảnh admin tải lên đi qua bộ tối ưu ảnh của Next (cùng tên miền với trang)
- * rồi mới làm mặt nạ. Ảnh mặc định nằm trong `public/` đã cùng tên miền nên giữ nguyên.
- */
-function maskSource(url: string): string {
-  if (!/^https?:\/\//i.test(url)) return url
-  return getImageProps({ src: url, alt: '', width: 96, height: 96 }).props.src
-}
-
 interface HomeJourneyProps {
   onCreateProject?: () => void
   /** Dự án dở gần nhất — bước hiện tại tự sáng, các bước trước có dấu ✓. */
@@ -77,6 +66,7 @@ export function HomeJourney({ onCreateProject, activeProject }: HomeJourneyProps
   const t = useTranslations('landing.journey')
   // Nội dung admin đã lưu (khối `journey`, 5 mục theo đúng thứ tự HOME_JOURNEY_STEPS); trường trống thì dùng bản có sẵn.
   const sections = useHomeSections()
+  const iconNodes = useHomeIconNodes()
   const saved = sectionItems(sections, 'journey', 'items')
   const stepText = (step: HomeJourneyStep, field: 'title' | 'description') =>
     itemText(saved?.[HOME_JOURNEY_STEPS.indexOf(step)], field) ?? t(`items.${step}.${field}`)
@@ -148,8 +138,9 @@ export function HomeJourney({ onCreateProject, activeProject }: HomeJourneyProps
         className='mt-4 grid gap-4 lg:mt-8 sm:grid-cols-2 lg:grid-cols-[repeat(4,minmax(0,1fr)_auto)_minmax(0,1fr)] lg:gap-3'
       >
         {HOME_JOURNEY_STEPS.map((step, index) => {
-          const savedIcon = itemText(saved?.[index], 'iconUrl')
-          const iconSrc = savedIcon ? maskSource(savedIcon) : STEP_ICON[step]
+          // Admin nhập tên icon lucide thì vẽ icon đó; để trống (hoặc tên không tra được) thì dùng ảnh icon mặc định của bước.
+          const iconKey = lucideIconKey(itemText(saved?.[index], 'icon'))
+          const iconNode = iconKey ? iconNodes[iconKey] : undefined
           const isCurrent = index === activeIndex
           const isHovered = hovered === index
           const isSweptPassed = sweepIndex !== null && index < sweepIndex
@@ -157,6 +148,11 @@ export function HomeJourney({ onCreateProject, activeProject }: HomeJourneyProps
           const isHoverPassed = hoverReached !== null && index < hoverReached
           const isPastCard = isPastResume || isHoverPassed || isSweptPassed
           const isOpen = expanded === step
+          const stepIconColor = isOpen
+            ? 'text-brand-orange max-sm:text-brand-orange-foreground'
+            : isHovered
+              ? 'text-brand-orange'
+              : 'sm:text-primary'
           const isSwept = sweepIndex === index
           const shouldBounce = isHovered || isCurrent || isSwept || revealed.has(index)
 
@@ -217,27 +213,34 @@ export function HomeJourney({ onCreateProject, activeProject }: HomeJourneyProps
                       isOpen ? 'bg-brand-orange text-brand-orange-foreground' : 'bg-muted text-muted-foreground'
                     )}
                   >
-                    <span
-                      aria-hidden
-                      className={cn(
-                        'block size-6 bg-current transition-colors duration-500 ease-in-out sm:size-8',
-                        isOpen
-                          ? 'text-brand-orange max-sm:text-brand-orange-foreground'
-                          : isHovered
-                            ? 'text-brand-orange'
-                            : 'sm:text-primary'
-                      )}
-                      style={{
-                        maskImage: `url("${iconSrc}")`,
-                        WebkitMaskImage: `url("${iconSrc}")`,
-                        maskSize: 'contain',
-                        WebkitMaskSize: 'contain',
-                        maskRepeat: 'no-repeat',
-                        WebkitMaskRepeat: 'no-repeat',
-                        maskPosition: 'center',
-                        WebkitMaskPosition: 'center'
-                      }}
-                    />
+                    {iconNode ? (
+                      <Icon
+                        aria-hidden
+                        iconNode={iconNode as ComponentProps<typeof Icon>['iconNode']}
+                        className={cn(
+                          'block size-6 transition-colors duration-500 ease-in-out sm:size-8',
+                          stepIconColor
+                        )}
+                      />
+                    ) : (
+                      <span
+                        aria-hidden
+                        className={cn(
+                          'block size-6 bg-current transition-colors duration-500 ease-in-out sm:size-8',
+                          stepIconColor
+                        )}
+                        style={{
+                          maskImage: `url("${STEP_ICON[step]}")`,
+                          WebkitMaskImage: `url("${STEP_ICON[step]}")`,
+                          maskSize: 'contain',
+                          WebkitMaskSize: 'contain',
+                          maskRepeat: 'no-repeat',
+                          WebkitMaskRepeat: 'no-repeat',
+                          maskPosition: 'center',
+                          WebkitMaskPosition: 'center'
+                        }}
+                      />
+                    )}
                   </span>
                   <div className='min-w-0 flex-1 space-y-0.5 sm:contents sm:space-y-0'>
                     <h3

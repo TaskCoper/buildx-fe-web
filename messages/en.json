@@ -5415,7 +5415,7 @@
       "sections": {
         "hero": {
           "title": "Top of the page",
-          "hint": "The big headline, two buttons, the sample \"Project file\" card on the right and the rotating background images."
+          "hint": "The big headline, two buttons (the secondary one opens a guide video), the sample \"Project file\" card on the right and the rotating background images."
         },
         "stats": {
           "title": "Figures strip",
@@ -5467,6 +5467,10 @@
           "slides": {
             "title": "Rotating background images",
             "hint": "Leave empty to use the default image set. One or more images replace the default set entirely. Up to 8 images."
+          },
+          "guideIds": {
+            "title": "Video for the \"Watch the tour\" button",
+            "hint": "Pick 1 public guide video to open when a visitor clicks the secondary button. Leave empty to use the featured video (or the first one in the list)."
           }
         },
         "stats": {
@@ -5484,7 +5488,7 @@
         "journey": {
           "items": {
             "title": "Five journey steps",
-            "hint": "Exactly 5 steps in a fixed order. Leave the icon empty to use the default step icon. Use a PNG or SVG with a transparent background; the home page recolors it to match the theme."
+            "hint": "Exactly 5 steps in a fixed order. Leave the icon empty to use the default step icon."
           }
         },
         "services": {
@@ -5568,7 +5572,6 @@
         "youDo": "What you do",
         "buildxDoes": "What BuildX does",
         "youGet": "What you get",
-        "iconUrl": "Step icon (upload an icon file, optional)",
         "viewAll": "\"View all\" link text",
         "usedAtStep": "Used at step",
         "action": "Button text",
