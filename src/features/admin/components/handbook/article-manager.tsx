@@ -60,6 +60,7 @@ const CATEGORIES_KEY = adminKeys.bmt('news-categories', 'all')
 interface ArticleFormValues {
   expectedVersion?: number
   title?: string
+  summary?: string
   readingTimeMinutes?: number | null
   coverImageUrl?: string
   contentHtml?: string
@@ -77,6 +78,7 @@ const textOrNull = (value?: string | null) => {
 function toWrite(values: ArticleFormValues, { withLocale }: { withLocale: boolean }): BmtArticleWrite {
   return {
     title: textOrNull(values.title),
+    summary: textOrNull(values.summary),
     readingTimeMinutes: values.readingTimeMinutes ?? null,
     coverImageUrl: textOrNull(values.coverImageUrl),
     contentHtml: textOrNull(values.contentHtml),
@@ -212,6 +214,7 @@ export function ArticleManager() {
         ]}
         createValues={() => ({
           title: '',
+          summary: '',
           readingTimeMinutes: null,
           coverImageUrl: '',
           contentHtml: '',
@@ -225,6 +228,7 @@ export function ArticleManager() {
           return {
             expectedVersion: detail.version,
             title: detail.title ?? '',
+            summary: detail.summary ?? '',
             readingTimeMinutes: detail.readingTimeMinutes ?? null,
             coverImageUrl: detail.coverImageUrl ?? '',
             contentHtml: detail.contentHtml ?? '',
@@ -415,6 +419,29 @@ function ArticleFields({
         </Col>
       </Row>
       <Form.Item
+        name='summary'
+        label={tn('summary')}
+        extra={tn('summaryHint')}
+        rules={[
+          {
+            validator: (_, value?: string) =>
+              Array.from(value?.trim() ?? '').length <= NEWS_LIMITS.summary
+                ? Promise.resolve()
+                : Promise.reject(new Error(t('fields.maxLength', { max: NEWS_LIMITS.summary })))
+          }
+        ]}
+      >
+        <Input.TextArea
+          autoSize={{ minRows: 2, maxRows: 5 }}
+          allowClear
+          count={{
+            show: true,
+            max: NEWS_LIMITS.summary,
+            strategy: (value) => Array.from(value.trim()).length
+          }}
+        />
+      </Form.Item>
+      <Form.Item
         name='contentHtml'
         label={tn('content')}
         rules={[
@@ -471,6 +498,7 @@ function ArticleView({
           bordered
           items={[
             { key: 'title', label: tn('title'), children: data.title || '-' },
+            { key: 'summary', label: tn('summary'), children: data.summary || '-' },
             { key: 'slug', label: tn('slug'), children: data.slug ? `/${data.slug}` : '-' },
             ...(data.previousSlugs.length
               ? [

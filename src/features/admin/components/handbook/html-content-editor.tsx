@@ -10,6 +10,7 @@ import {
   UnorderedListOutlined
 } from '@ant-design/icons'
 import { EditorContent, useEditor, type Editor } from '@tiptap/react'
+import { TableKit } from '@tiptap/extension-table'
 import StarterKit from '@tiptap/starter-kit'
 import { Button, Input, Popover, Segmented, Space, Tooltip, Typography } from 'antd'
 import { useTranslations } from 'next-intl'
@@ -17,11 +18,12 @@ import { useEffect, useState, type ReactNode } from 'react'
 
 import { IMAGE_PLACEHOLDER, ImagePlaceholder, stripImagePlaceholders } from './image-placeholder'
 import { ResizableImage } from './resizable-image'
+import { TableToolbar } from './table-toolbar'
 
 const { Text } = Typography
 
 const PREVIEW_STYLE =
-  'body{font:15px/1.6 system-ui,sans-serif;color:#1f1f1f;margin:16px}img{max-width:100%;height:auto;border-radius:6px}blockquote{border-left:3px solid #ccc;margin:0;padding-left:12px;color:#555}'
+  'body{font:15px/1.6 system-ui,sans-serif;color:#1f1f1f;margin:16px}img{max-width:100%;height:auto;border-radius:6px}blockquote{border-left:3px solid #ccc;margin:0;padding-left:12px;color:#555}.tableWrapper{overflow-x:auto;max-width:100%;margin:12px 0}table{border-collapse:collapse;table-layout:fixed;width:100%}td,th{border:1px solid #bfbfbf;padding:8px;min-width:60px;vertical-align:top;overflow-wrap:anywhere}th{background:#f5f5f5;font-weight:600;text-align:start}td>p,th>p{margin:0}'
 
 /**
  * Giá trị của editor xuất cho form: bỏ khung ảnh đang chờ (chỉ có lúc soạn), và vì TipTap coi tài
@@ -107,9 +109,9 @@ const TOOLS: Tool[] = [
 
 /**
  * Ô nội dung bài viết dạng RICH TEXT (WYSIWYG) — soạn trực tiếp trên bản render,
- * không cho gõ HTML thô. Vẫn xuất `contentHtml` giới hạn đúng allowlist backend
- * (đậm, nghiêng, gạch chân, H2/H3, đoạn, danh sách, trích dẫn, liên kết, ảnh);
- * backend làm sạch lại khi lưu. Nút ảnh chèn một KHUNG ẢNH vào chỗ con trỏ; bấm
+ * không cho gõ HTML thô. Xuất `contentHtml` gồm định dạng, ảnh và bảng;
+ * backend làm sạch lại khi lưu, giữ cấu trúc bảng và độ rộng hợp lệ.
+ * Nút ảnh chèn một KHUNG ẢNH vào chỗ con trỏ; bấm
  * chọn tệp hoặc kéo thả ảnh vào khung là tải thẳng lên kho qua MEDIA (presign),
  * khung tự thành ảnh — không còn dán link.
  *
@@ -143,6 +145,7 @@ export function HtmlContentEditor({
           HTMLAttributes: { rel: 'noopener noreferrer', target: '_blank' }
         }
       }),
+      TableKit.configure({ table: { resizable: true, renderWrapper: true, cellMinWidth: 60 } }),
       ResizableImage.configure({ inline: false }),
       ImagePlaceholder
     ],
@@ -239,6 +242,7 @@ export function HtmlContentEditor({
                 onClick={insertImagePlaceholder}
               />
             </Tooltip>
+            <TableToolbar editor={editor} />
           </>
         ) : null}
       </div>

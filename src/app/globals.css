@@ -2042,6 +2042,34 @@
   }
 
   /* --- Rich-text article body (CMS HTML → blog typography) ----------------- */
+  .article-richtext,
+  .article-richtext .tableWrapper {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+  .article-richtext table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+  .article-richtext td,
+  .article-richtext th {
+    min-width: 60px;
+    padding: 0.5rem;
+    border: 1px solid var(--border);
+    vertical-align: top;
+    overflow-wrap: anywhere;
+  }
+  .article-richtext th {
+    background: var(--muted);
+    text-align: start;
+    font-weight: 600;
+  }
+  .article-richtext td > p,
+  .article-richtext th > p {
+    margin: 0;
+  }
+
   .prose-content {
     color: var(--foreground);
     line-height: 1.75;

@@ -209,6 +209,61 @@
   text-decoration: underline;
 }
 
+.admin-richtext .tableWrapper {
+  max-width: 100%;
+  overflow-x: auto;
+  margin-block: 12px;
+}
+
+.admin-richtext table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: 100%;
+}
+
+.admin-richtext td,
+.admin-richtext th {
+  position: relative;
+  min-width: 60px;
+  padding: 8px;
+  border: 1px solid var(--ant-color-border);
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+.admin-richtext th {
+  background: var(--admin-tint);
+  font-weight: 600;
+  text-align: start;
+}
+
+.admin-richtext td > p,
+.admin-richtext th > p {
+  margin: 0;
+}
+
+.admin-richtext .selectedCell::after {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: var(--admin-tint);
+  content: '';
+  pointer-events: none;
+}
+
+.admin-richtext .column-resize-handle {
+  position: absolute;
+  inset-block: 0;
+  right: -2px;
+  width: 4px;
+  background: var(--ant-color-primary);
+  pointer-events: none;
+}
+
+.admin-richtext.resize-cursor {
+  cursor: col-resize;
+}
+
 /* Gợi ý rỗng: hiện chữ mờ khi đoạn đầu chưa có nội dung. */
 .admin-richtext p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
