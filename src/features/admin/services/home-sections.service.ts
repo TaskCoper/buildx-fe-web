@@ -51,8 +51,13 @@ export interface HomeIdList {
 export type HomeList = HomeFixedList | HomeRepeatList | HomeIdList
 
 export interface HomeSectionDef {
-  /** Mã khối trên backend; cũng là phần của khóa dịch `admin.homeContent.sections.<key>`. */
+  /** Mã khối trên backend; mặc định cũng là phần của khóa dịch `admin.homeContent.sections.<key>`. */
   key: string
+  /**
+   * Khóa dịch của khối, khi khác `key`. Cần khi hai trang cùng có khối trùng mã (trang chủ và trang Tìm nhà thầu đều có
+   * `hero` và `cta`) mà tiêu đề, gợi ý và nhãn trường khác nhau.
+   */
+  textKey?: string
   fields: readonly HomeField[]
   lists: readonly HomeList[]
 }
@@ -263,6 +268,86 @@ export const HOME_SECTIONS: readonly HomeSectionDef[] = [
  */
 const siteDefault = (name: string) => ['siteDefaults', name] as const
 
+const contractorsText = (...rest: string[]) => ['contractors', 'landing', ...rest] as const
+
+/**
+ * Năm khối của trang "Tìm nhà thầu", theo thứ tự xuất hiện trên trang. Bốn cam kết, ba thẻ an toàn và bảy câu hỏi có số
+ * mục cố định (khớp backend), mỗi mục có chữ có sẵn riêng. Mã `hero` và `cta` trùng trang chủ nên dùng `textKey` riêng
+ * cho bản dịch. Chữ có sẵn của câu trả lời không còn thẻ `<mark>`: xem `loadContractorsDefaults`.
+ */
+export const CONTRACTORS_SECTIONS: readonly HomeSectionDef[] = [
+  {
+    key: 'hero',
+    textKey: 'contractorsHero',
+    fields: [
+      image('imageUrl'),
+      text('titleLine1', contractorsText('hero', 'titleLine1')),
+      text('titleLine2', contractorsText('hero', 'titleLine2')),
+      area('subtitle', contractorsText('hero', 'subtitle')),
+      text('createBrief', contractorsText('hero', 'createBrief')),
+      text('viewContractors', contractorsText('hero', 'viewContractors'))
+    ],
+    lists: []
+  },
+  {
+    key: 'promises',
+    textKey: 'contractorsPromises',
+    fields: [],
+    lists: [
+      {
+        type: 'rows',
+        name: 'items',
+        rows: ['free', 'verified', 'transparent', 'privacy'],
+        fields: [icon('icon'), text('title', contractorsText('promises', '{row}'))]
+      }
+    ]
+  },
+  {
+    key: 'safety',
+    textKey: 'contractorsSafety',
+    fields: [text('title', contractorsText('safety', 'title'))],
+    lists: [
+      {
+        type: 'rows',
+        name: 'items',
+        rows: ['privacy', 'record', 'review'],
+        fields: [
+          icon('icon'),
+          text('title', contractorsText('safety', '{row}Title')),
+          area('body', contractorsText('safety', '{row}Body'))
+        ]
+      }
+    ]
+  },
+  {
+    key: 'faq',
+    textKey: 'contractorsFaq',
+    fields: [text('title', contractorsText('faq', 'title'))],
+    lists: [
+      {
+        type: 'rows',
+        name: 'items',
+        rows: ['1', '2', '3', '4', '5', '6', '7'],
+        fields: [text('question', contractorsText('faq', 'q{row}')), area('answer', contractorsText('faq', 'a{row}'))]
+      }
+    ]
+  },
+  {
+    key: 'cta',
+    textKey: 'contractorsCta',
+    fields: [
+      area('title', contractorsText('cta', 'title')),
+      text('action', contractorsText('cta', 'action')),
+      area('partnerText', contractorsText('partner', 'text')),
+      text('partnerAction', contractorsText('partner', 'action'))
+    ],
+    lists: []
+  }
+]
+
+/** Khóa dịch của khối: `textKey` nếu có, không thì mã khối. */
+export const sectionTextKey = (section: HomeSectionDef): string => section.textKey ?? section.key
+
 /** Năm trang "Về BuildX", theo thứ tự ở chân trang; mã khối trùng khóa tài liệu pháp lý có sẵn. */
 export const FOOTER_LEGAL_KEYS = ['terms', 'privacy', 'aiTerms', 'ecommerce', 'payment'] as const
 
@@ -347,7 +432,8 @@ export function defaultText(messages: unknown, path: readonly string[] | undefin
   if (!path) return ''
   let cursor: unknown = messages
   for (const segment of path) {
-    const key = segment === '{row}' && row !== undefined ? row : segment
+    // `{row}` đứng riêng hoặc nằm trong đoạn (`{row}Title` → `privacyTitle`, `q{row}` → `q3`).
+    const key = row !== undefined ? segment.replace('{row}', row) : segment
     cursor = isPlainObject(cursor) ? cursor[key] : undefined
   }
   return typeof cursor === 'string' ? cursor : ''

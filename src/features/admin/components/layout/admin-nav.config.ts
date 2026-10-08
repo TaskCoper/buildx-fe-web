@@ -18,6 +18,7 @@ import {
   SafetyCertificateOutlined,
   SendOutlined,
   SkinOutlined,
+  SolutionOutlined,
   TeamOutlined,
   UserOutlined
 } from '@ant-design/icons'
@@ -129,6 +130,7 @@ export const ADMIN_NAV = [
       // Các bước và Bản tin của Cẩm nang đã gộp vào màn Nội dung trang Cẩm nang (tab Tin tức).
       { key: 'homeContent', href: ADMIN_ROUTES.HOME_CONTENT, icon: HomeOutlined },
       { key: 'footerContent', href: ADMIN_ROUTES.FOOTER_CONTENT, icon: ProfileOutlined },
+      { key: 'contractorsContent', href: ADMIN_ROUTES.CONTRACTORS_CONTENT, icon: SolutionOutlined },
       { key: 'handbookContent', href: ADMIN_ROUTES.HANDBOOK_CONTENT, icon: EditOutlined },
       { key: 'guideVideos', href: ADMIN_ROUTES.GUIDE_VIDEOS, icon: PlayCircleOutlined }
       // Đã ẩn "Đánh giá khách hàng" (testimonials) khỏi menu theo yêu cầu; route và trang vẫn còn để bật lại.

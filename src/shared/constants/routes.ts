@@ -93,6 +93,8 @@ export const ADMIN_ROUTES = {
   HOME_CONTENT: '/admin/home-content',
   /** Chân trang & Về BuildX: liên hệ, mạng xã hội và nội dung năm trang pháp lý (rich text). */
   FOOTER_CONTENT: '/admin/footer-content',
+  /** Nội dung trang Tìm nhà thầu: đầu trang, bốn cam kết, thẻ an toàn, câu hỏi thường gặp và dải kêu gọi. */
+  CONTRACTORS_CONTENT: '/admin/contractors-content',
   /** Video hướng dẫn của trang Hướng dẫn. */
   GUIDE_VIDEOS: '/admin/guide-videos',
   /** Mã giảm giá của ô nhập mã ở S03. */

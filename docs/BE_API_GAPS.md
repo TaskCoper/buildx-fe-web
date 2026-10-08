@@ -23,6 +23,7 @@ Cập nhật: 29/09/2026 (đối soát lại toàn bộ — xem **mục 7**). Đ
 7. Đối soát lại Swagger (29/09/2026)
 8. Nội dung trang chủ do admin biên tập
 9. Chân trang và các trang Về BuildX do admin biên tập
+10. Trang Tìm nhà thầu do admin biên tập
 
 ---
 
@@ -579,3 +580,35 @@ Quy tắc của loại trường `Html` (đã làm ở BE):
 - `terms`... `payment` dùng `h2` đầu tiên làm tiêu đề lớn của trang (canh giữa) và `h3` làm tiêu đề từng điều; trình soạn của admin chỉ có H2 và H3 nên khớp với quy ước này.
 - Lần đầu mở màn, nội dung năm trang là bản có sẵn đã đổi sang HTML (`legalDocToHtml`) để admin sửa tại chỗ; chữ đậm, nghiêng, danh sách và khung ghi chú được giữ, còn màu chữ và cỡ chữ do CSS dựng lại. Chỉ khi admin sửa khác bản có sẵn thì mới ghi lên BE.
 - Tài liệu nghiệp vụ của nhóm Cẩm nang (BR/TDD-HB-003) không có trong bản `bmt-documentation` dùng chung, nên phần hợp đồng ở mục này là nơi ghi tạm cho tới khi BE cập nhật tài liệu.
+
+## 10. Trang Tìm nhà thầu do admin biên tập — chờ BE deploy trang `contractors` (08/10/2026)
+
+Trang `/contractors` đã đọc nội dung biên tập từ `GET /api/v1/pages/contractors/sections?locale={vi|en}`, cùng cơ chế "khối chữ" của trang chủ (`PUT /admin/pages/contractors/sections/{sectionKey}`, quyền `news.manage`). Không liên quan tới API quản lý nhà thầu (`/admin/contractors`).
+
+### 1. Đã làm phía site khách
+
+- `page.tsx` gọi API ở **server** (làm mới tối đa 60 giây, quá 4 giây thì bỏ qua) rồi đưa xuống qua cùng ngữ cảnh khối chữ của trang chủ, để HTML đầu tiên đã có chữ, ảnh và icon admin đã sửa.
+- Khối nào chưa lưu, hoặc trường nào để trống, thì trang dùng nội dung có sẵn trong `messages/*.json`, ảnh `map.contractors` và icon mặc định. Lỗi API cũng rơi về nội dung có sẵn.
+- Ảnh đầu trang: có `hero.imageUrl` thì dùng, không thì dùng ảnh `map.contractors` như trước (màn "Hình ảnh site" vẫn đặt được).
+- Ba thẻ "An toàn & minh bạch" mặc định vẽ hình ghép (khiên + ổ khoá, tài liệu có khoá, sao + nhóm người). Admin đặt `icon` và tra được thì vẽ icon lucide đó thay cho hình ghép.
+- Chế độ `NEXT_PUBLIC_USE_MOCK_API=true` không gọi API.
+
+### 2. Chưa nối vì API thiếu (báo BE)
+
+Source BE (`PageSectionCatalog.cs`, kèm `ContractorsPageSectionTests.cs`) khai báo trang `contractors` với 5 khối như bảng dưới, trên nhánh `feature/contractors-content`; chưa có trên môi trường `bmt-api.vnzdna.com` cho tới khi merge và deploy. Khi chưa có, `GET /pages/contractors/sections` trả 404 và site khách dùng nội dung có sẵn.
+
+| `sectionKey` | Trường chữ / ảnh                                                                         | Danh sách `items` (số mục cố định)                                                                              |
+| ------------ | ---------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `hero`       | `titleLine1`, `titleLine2`, `subtitle`, `createBrief`, `viewContractors`, ảnh `imageUrl` | —                                                                                                               |
+| `promises`   | —                                                                                        | 4 mục: `title`, `icon` (thứ tự: miễn phí, đã xác minh, so sánh minh bạch, liên hệ được bảo vệ)                  |
+| `safety`     | `title`                                                                                  | 3 mục: `title`, `body`, `icon` (thứ tự: liên hệ được bảo vệ, báo cáo lưu trên nền tảng, đánh giá từ dự án thật) |
+| `faq`        | `title`                                                                                  | 7 mục: `question`, `answer`                                                                                     |
+| `cta`        | `title`, `action`, `partnerText`, `partnerAction`                                        | —                                                                                                               |
+
+### 3. Lưu ý
+
+- Mọi trường đều tùy chọn; ảnh `imageUrl` phải thuộc tên miền kho ảnh như các khối khác.
+- Đường dẫn của các nút (tạo hồ sơ, xem danh sách, trở thành đối tác) **không** nằm trong CMS, chỉ có chữ.
+- Danh sách có số mục cố định vì gắn với giao diện theo thứ tự (và liên kết `#faq-N`), nên chỉ sửa nội dung, không thêm bớt mục. Cần thêm bớt câu hỏi thì phải đổi cả BE lẫn giao diện.
+- Câu trả lời là chữ thuần. Câu trả lời số 3 có sẵn dùng thẻ `<mark>` quanh "3 nhà thầu" nhưng thẻ này không có hiệu ứng nhìn thấy, nên màn admin bỏ thẻ khi hiện chữ có sẵn.
+- Màn admin `/admin/contractors-content` dùng chung `PageContentManager` với trang chủ và chân trang: lưu từng khối, gửi `expectedVersion`, mỗi ngôn ngữ một bản.

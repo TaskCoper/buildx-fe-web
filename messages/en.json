@@ -2850,6 +2850,7 @@
       "handbookNewsletter": "Handbook newsletter",
       "homeContent": "Home page content",
       "footerContent": "Footer & About BuildX",
+      "contractorsContent": "Find contractors page",
       "handbookContent": "Handbook page content",
 
       "dashboard": "To-do",
@@ -5378,6 +5379,7 @@
       "states": { "Draft": "Draft", "Published": "Published", "Hidden": "Hidden" }
     },
     "homeContent": {
+      "contractorsDescription": "Text, hero image and icons of the Find contractors page, in 5 blocks in scroll order: hero, the four promises, Safe & transparent, FAQ and the closing call to action. Each language is saved separately: a block you have not edited uses the built-in content, so the form opens with exactly what visitors see, and only what differs from the built-in text is saved. Button links are kept by the app and cannot be edited here.",
       "footerDescription": "Footer contact details, social media links and the content of the five About BuildX pages (Terms of Use, Privacy, AI Terms, E-commerce & Partners, Payment & Refunds). Each language is saved separately: a block you have not edited uses the built-in content, so the form opens with exactly what visitors see, and only what differs from the built-in text is saved.",
       "description": "Text, images, icons, templates and featured videos of the home page, split into 12 blocks in scroll order. Each language is saved separately: a block you have not edited uses the built-in content, so the form opens with the text visitors currently see, and only what differs from the built-in content is saved. Button links are kept by the app and cannot be edited here.",
       "locales": {
@@ -5490,6 +5492,26 @@
         "payment": {
           "title": "Payment & Refunds page",
           "hint": "The /payment-policy page in the About BuildX column of the footer. It opens with exactly what visitors read; edit in place, then press Save all. The title only appears on the browser tab, the large heading of the page is part of the content. Only text, lists, tables and links are accepted; images are not supported."
+        },
+        "contractorsHero": {
+          "title": "Hero",
+          "hint": "Two-line title, lead sentence, two buttons and background image at the top of the page. An empty image keeps the built-in one."
+        },
+        "contractorsPromises": {
+          "title": "Four promises",
+          "hint": "The strip of four promises right under the hero: text and icon of each promise."
+        },
+        "contractorsSafety": {
+          "title": "Safe & transparent",
+          "hint": "Three cards under the heading. An empty icon keeps the built-in illustration of the card."
+        },
+        "contractorsFaq": {
+          "title": "FAQ",
+          "hint": "The heading and seven questions with their answers."
+        },
+        "contractorsCta": {
+          "title": "Closing call to action",
+          "hint": "The green strip inviting visitors to create a project, and the line inviting contractors to become partners."
         }
       },
       "lists": {
@@ -5566,6 +5588,24 @@
             "title": "Customer reviews",
             "hint": "Leave empty to use the default reviews. One or more reviews replace them entirely. Up to 12 reviews."
           }
+        },
+        "contractorsPromises": {
+          "items": {
+            "title": "Four promises",
+            "hint": "Exactly 4 items in a fixed order. Leave an icon empty to use the item default."
+          }
+        },
+        "contractorsSafety": {
+          "items": {
+            "title": "Three cards",
+            "hint": "Exactly 3 cards in a fixed order. Leave an icon empty to keep the built-in illustration."
+          }
+        },
+        "contractorsFaq": {
+          "items": {
+            "title": "Seven questions",
+            "hint": "Exactly 7 questions in a fixed order. Answers are plain text without formatting."
+          }
         }
       },
       "fields": {
@@ -5620,7 +5660,15 @@
         "youtubeUrl": "YouTube",
         "tiktokUrl": "TikTok",
         "instagramUrl": "Instagram",
-        "body": "Page content"
+        "body": "Page content",
+        "titleLine1": "Title, line 1",
+        "titleLine2": "Title, line 2",
+        "createBrief": "Create project button text",
+        "viewContractors": "View contractors button text",
+        "question": "Question",
+        "answer": "Answer",
+        "partnerText": "Contractor invitation",
+        "partnerAction": "Become a partner link text"
       },
       "fieldsBySection": {
         "hero": {
@@ -5651,6 +5699,17 @@
         },
         "payment": {
           "title": "Browser tab title"
+        },
+        "contractorsHero": {
+          "imageUrl": "Hero image",
+          "subtitle": "Lead sentence"
+        },
+        "contractorsSafety": {
+          "body": "Short description"
+        },
+        "contractorsCta": {
+          "title": "Create project invitation",
+          "action": "Create project button text"
         }
       },
       "floors": "{count} floors",

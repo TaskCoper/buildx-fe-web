@@ -33,6 +33,7 @@ import {
   planSectionSave,
   rowDefaults,
   sameContent,
+  sectionTextKey,
   type HomeField,
   type HomeFixedList,
   type HomeIdList,
@@ -252,7 +253,7 @@ function PageContentForm({
   const readValues = () => form.getFieldsValue(true) as PageValues
   const refresh = () => queryClient.invalidateQueries({ queryKey: sectionsKeyOf(pageKey, locale) })
   const errorText = (err: unknown) => (isApiError(err) ? err.message : t('feedback.apiError'))
-  const titleOf = (section: HomeSectionDef) => texts(`sections.${section.key}.title`)
+  const titleOf = (section: HomeSectionDef) => texts(`sections.${sectionTextKey(section)}.title`)
 
   const saveAll = async () => {
     const invalid = await form.validateFields().then(
@@ -415,7 +416,7 @@ function SectionBody({
   return (
     <>
       <div className='mb-4 flex items-start justify-between gap-4'>
-        <p className='text-muted-foreground text-sm'>{texts(`sections.${section.key}.hint`)}</p>
+        <p className='text-muted-foreground text-sm'>{texts(`sections.${sectionTextKey(section)}.hint`)}</p>
         {hasSaved ? (
           <Popconfirm
             title={tc('restoreConfirm')}
@@ -437,7 +438,7 @@ function SectionBody({
               key={field.name}
               field={field}
               name={[section.key, field.name]}
-              sectionKey={section.key}
+              sectionKey={sectionTextKey(section)}
               wide={isWide(field)}
             />
           ))}
@@ -446,8 +447,10 @@ function SectionBody({
 
       {section.lists.map((list) => (
         <div key={list.name} className='mb-2'>
-          <div className='mb-2 font-semibold'>{texts(`lists.${section.key}.${list.name}.title`)}</div>
-          <p className='text-muted-foreground mb-3 text-sm'>{texts(`lists.${section.key}.${list.name}.hint`)}</p>
+          <div className='mb-2 font-semibold'>{texts(`lists.${sectionTextKey(section)}.${list.name}.title`)}</div>
+          <p className='text-muted-foreground mb-3 text-sm'>
+            {texts(`lists.${sectionTextKey(section)}.${list.name}.hint`)}
+          </p>
           {list.type === 'rows' ? (
             <FixedRows list={list} section={section} messages={messages} />
           ) : list.type === 'repeat' ? (
@@ -562,7 +565,7 @@ function FixedRows({ list, section, messages }: { list: HomeFixedList; section: 
       {(rows) => (
         <Space orientation='vertical' size={12} style={{ width: '100%' }}>
           {rows.map(({ key, name: index }) => {
-            const hint = defaults[index]?.title ?? defaults[index]?.value
+            const hint = defaults[index]?.title ?? defaults[index]?.question ?? defaults[index]?.value
             return (
               <Card
                 key={key}
@@ -580,7 +583,7 @@ function FixedRows({ list, section, messages }: { list: HomeFixedList; section: 
                       key={field.name}
                       field={field}
                       name={[index, field.name]}
-                      sectionKey={section.key}
+                      sectionKey={sectionTextKey(section)}
                       wide={isWide(field)}
                     />
                   ))}
@@ -640,7 +643,7 @@ function RepeatRows({ list, section }: { list: HomeRepeatList; section: HomeSect
                     key={field.name}
                     field={field}
                     name={[index, field.name]}
-                    sectionKey={section.key}
+                    sectionKey={sectionTextKey(section)}
                     wide={isWide(field)}
                   />
                 ))}

@@ -34,6 +34,8 @@ export const ADMIN_ROUTE_ACCESS = {
   [ADMIN_ROUTES.HOME_CONTENT]: { anyPermission: [P.NEWS_MANAGE] },
   // Chân trang cũng là khối chữ của một trang (`footer`) nên cùng quyền `news.manage`.
   [ADMIN_ROUTES.FOOTER_CONTENT]: { anyPermission: [P.NEWS_MANAGE] },
+  // Trang Tìm nhà thầu cũng là khối chữ của một trang (`contractors`) nên cùng quyền `news.manage`.
+  [ADMIN_ROUTES.CONTRACTORS_CONTENT]: { anyPermission: [P.NEWS_MANAGE] },
   [ADMIN_ROUTES.GUIDE_VIDEOS]: { anyPermission: [P.GUIDE_MANAGE] },
   [ADMIN_ROUTES.DISCOUNTS]: { adminOnly: true },
   [ADMIN_ROUTES.SUPERVISION_PACKAGES]: { adminOnly: true },

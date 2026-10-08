@@ -2850,6 +2850,7 @@
       "handbookNewsletter": "Bản tin Cẩm nang",
       "homeContent": "Nội dung trang chủ",
       "footerContent": "Chân trang & Về BuildX",
+      "contractorsContent": "Trang Tìm nhà thầu",
       "handbookContent": "Nội dung trang Cẩm nang",
 
       "dashboard": "Việc cần xử lý",
@@ -5378,6 +5379,7 @@
       "states": { "Draft": "Nháp", "Published": "Đã công bố", "Hidden": "Đang ẩn" }
     },
     "homeContent": {
+      "contractorsDescription": "Chữ, ảnh đầu trang và icon của trang Tìm nhà thầu, chia 5 khối theo đúng thứ tự khi cuộn trang: đầu trang, bốn cam kết, An toàn & minh bạch, câu hỏi thường gặp và dải kêu gọi cuối trang. Mỗi ngôn ngữ lưu riêng: khối chưa sửa dùng nội dung có sẵn nên form mở ra với đúng chữ đang hiển thị, và chỉ phần khác bản có sẵn mới được lưu. Đường dẫn của các nút do ứng dụng giữ, không sửa ở đây.",
       "footerDescription": "Thông tin liên hệ, liên kết mạng xã hội ở chân trang và nội dung năm trang Về BuildX (Điều khoản sử dụng, Quyền riêng tư, Điều khoản AI, TMĐT & Đối tác, Thanh toán & Hoàn tiền). Mỗi ngôn ngữ lưu riêng: khối chưa sửa dùng nội dung có sẵn nên form mở ra với đúng nội dung khách đang thấy, và chỉ phần khác bản có sẵn mới được lưu.",
       "description": "Chữ, ảnh, icon, mẫu và video nổi bật của trang chủ, chia 12 khối theo đúng thứ tự khi cuộn trang. Mỗi ngôn ngữ lưu riêng: khối chưa sửa dùng nội dung có sẵn nên form mở ra với đúng chữ đang hiển thị, và chỉ phần khác bản có sẵn mới được lưu. Đường dẫn của các nút do ứng dụng giữ, không sửa ở đây.",
       "locales": {
@@ -5490,6 +5492,26 @@
         "payment": {
           "title": "Trang Thanh toán & Hoàn tiền",
           "hint": "Trang /payment-policy trong cột Về BuildX ở chân trang. Mở ra là đúng nội dung khách đang đọc; sửa tại chỗ rồi bấm Lưu tất cả. Tiêu đề chỉ hiện trên tab trình duyệt, tiêu đề lớn của bài nằm trong nội dung. Chỉ nhận chữ, danh sách, bảng và liên kết, chưa hỗ trợ ảnh."
+        },
+        "contractorsHero": {
+          "title": "Đầu trang",
+          "hint": "Tiêu đề (hai dòng), câu dẫn, hai nút và ảnh nền ở đầu trang. Ảnh để trống thì dùng ảnh có sẵn của trang."
+        },
+        "contractorsPromises": {
+          "title": "Bốn cam kết",
+          "hint": "Dải bốn cam kết ngay dưới đầu trang: chữ và icon của từng cam kết."
+        },
+        "contractorsSafety": {
+          "title": "An toàn & minh bạch",
+          "hint": "Ba thẻ dưới tiêu đề. Icon bỏ trống thì giữ hình minh họa có sẵn của thẻ."
+        },
+        "contractorsFaq": {
+          "title": "Câu hỏi thường gặp",
+          "hint": "Tiêu đề và bảy câu hỏi kèm câu trả lời."
+        },
+        "contractorsCta": {
+          "title": "Dải kêu gọi cuối trang",
+          "hint": "Dải xanh mời tạo hồ sơ dự án và dòng mời nhà thầu trở thành đối tác ở cuối trang."
         }
       },
       "lists": {
@@ -5566,6 +5588,24 @@
             "title": "Ý kiến khách hàng",
             "hint": "Bỏ trống thì trang dùng các ý kiến mặc định. Có ít nhất một ý kiến thì thay hoàn toàn. Tối đa 12 ý kiến."
           }
+        },
+        "contractorsPromises": {
+          "items": {
+            "title": "Bốn cam kết",
+            "hint": "Đúng 4 mục, thứ tự cố định. Icon bỏ trống thì dùng icon mặc định của mục."
+          }
+        },
+        "contractorsSafety": {
+          "items": {
+            "title": "Ba thẻ",
+            "hint": "Đúng 3 thẻ, thứ tự cố định. Icon bỏ trống thì giữ hình minh họa có sẵn."
+          }
+        },
+        "contractorsFaq": {
+          "items": {
+            "title": "Bảy câu hỏi",
+            "hint": "Đúng 7 câu hỏi, thứ tự cố định. Câu trả lời là chữ thường, không có định dạng."
+          }
         }
       },
       "fields": {
@@ -5620,7 +5660,15 @@
         "youtubeUrl": "YouTube",
         "tiktokUrl": "TikTok",
         "instagramUrl": "Instagram",
-        "body": "Nội dung trang"
+        "body": "Nội dung trang",
+        "titleLine1": "Tiêu đề, dòng 1",
+        "titleLine2": "Tiêu đề, dòng 2",
+        "createBrief": "Chữ nút tạo hồ sơ",
+        "viewContractors": "Chữ nút xem danh sách nhà thầu",
+        "question": "Câu hỏi",
+        "answer": "Câu trả lời",
+        "partnerText": "Lời mời nhà thầu",
+        "partnerAction": "Chữ liên kết trở thành đối tác"
       },
       "fieldsBySection": {
         "hero": {
@@ -5651,6 +5699,17 @@
         },
         "payment": {
           "title": "Tiêu đề tab trình duyệt"
+        },
+        "contractorsHero": {
+          "imageUrl": "Ảnh đầu trang",
+          "subtitle": "Câu dẫn"
+        },
+        "contractorsSafety": {
+          "body": "Mô tả ngắn"
+        },
+        "contractorsCta": {
+          "title": "Lời mời tạo hồ sơ",
+          "action": "Chữ nút tạo hồ sơ"
         }
       },
       "floors": "{count} tầng",
