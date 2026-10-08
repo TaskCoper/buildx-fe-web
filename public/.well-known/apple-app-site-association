@@ -1,0 +1,21 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": [
+          "84K7YPU7UD.vn.savico.buildx"
+        ],
+        "components": [
+          {
+            "/": "/vi/estimates/shared/*",
+            "comment": "Link chia sẻ hồ sơ dự toán"
+          },
+          {
+            "/": "/en/estimates/shared/*",
+            "comment": "Link chia sẻ hồ sơ dự toán"
+          }
+        ]
+      }
+    ]
+  }
+}
