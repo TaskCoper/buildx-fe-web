@@ -1263,6 +1263,8 @@
       }
     },
     "articles": {
+      "uncategorized": "Uncategorized",
+
       "eyebrow": "BuildX handbook",
       "title": "Explore building knowledge",
       "subtitle": "Useful insights to stay in control at every step of building your home.",
@@ -2843,6 +2845,9 @@
       "regionsHint": "Directory coverage — a thin region makes quote invitations there hard to match."
     },
     "nav": {
+      "handbookNewsletter": "Handbook newsletter",
+      "handbookContent": "Handbook page content",
+
       "dashboard": "To-do",
       "templates": "Template library",
       "styles": "Styles",
@@ -5160,7 +5165,16 @@
       "effectiveNote": "People holding this role get the new permissions within {minutes} minutes at the latest, when their session is reissued. To apply it now, force them to log out on the Staff accounts screen."
     },
     "newsArticles": {
-      "description": "Handbook news articles. New articles always start as Draft and can be saved incomplete; publishing requires a title, cover image, content and at least one category. Deleting is permanent.",
+      "slug": "URL slug",
+      "slugHint": "Leave empty to generate it from the title. Editing the title does not change the slug. After you change the slug, the old one keeps working and redirects to the new one.",
+      "slugPlaceholder": "generated from the title",
+      "slugInvalid": "Lowercase letters without accents, digits and hyphens only; it cannot start or end with a hyphen.",
+      "previousSlugs": "Previous slugs",
+      "locale": "Language",
+      "localeLocked": "The language can only be chosen when the article is created.",
+      "locales": { "vi": "Vietnamese", "en": "English" },
+
+      "description": "Handbook news articles. New articles always start as Draft and can be saved incomplete; publishing requires a title, cover image, reading time, content and a slug; categories are optional. Deleting is permanent.",
       "manageCategories": "Manage categories",
       "states": {
         "all": "All",
@@ -5173,7 +5187,7 @@
       "readingTimeMinutes": "Reading time (min)",
       "cover": "Cover image",
       "categories": "Categories",
-      "categoriesHint": "Pick one or more categories at any level — picking a child does not require its parent.",
+      "categoriesHint": "Optional. Pick one or more categories at any level — picking a child does not require its parent. An article with no category shows an “uncategorized” label on the public site.",
       "categoryRequired": "A published article needs at least one category.",
       "pickCategories": "Pick categories",
       "content": "Content",
@@ -5183,7 +5197,7 @@
       "createdAt": "Created",
       "modifiedAt": "Last edited",
       "draftHint": "Drafts can be saved incomplete. Readers cannot see the article until you press Publish in the table.",
-      "publishedEditHint": "This article is live: saving shows the new content to readers immediately, so the edit must keep a title, cover image, content and at least one category.",
+      "publishedEditHint": "This article is live: saving shows the new content to readers immediately, so the edit must keep a title, cover image, reading time, content and a slug. Categories are optional.",
       "publish": "Publish",
       "publishTitle": "Publish “{name}”?",
       "publishBody": "The article appears on the News page right away. The first-published date is kept if it was published before.",
@@ -5198,7 +5212,7 @@
       "parts": {
         "title": "title",
         "cover": "cover image",
-        "category": "category"
+        "slug": "slug"
       },
       "editor": {
         "edit": "Compose",
@@ -5308,6 +5322,52 @@
       "resolveBody": "The internal note is kept. No email is sent to the customer.",
       "reopenTitle": "Reopen {name}'s request?",
       "reopenBody": "The request goes back to Pending for follow-up. The internal note is kept."
+    },
+    "handbookNewsletter": {
+      "description": "Choose and order the featured articles of the newsletter block on the handbook page. You decide the order, not the publication date. Add a few spare articles: hidden or draft articles are skipped on the page and the ones after them move up, but they keep their place, so republishing puts them back where they were. The related articles next to the block are picked automatically from the category of the first one.",
+      "listTitle": "Featured articles — the page shows the first {count} published",
+      "addPlaceholder": "Search for an article to add…",
+      "noResult": "No matching article",
+      "untitled": "(untitled)",
+      "empty": "No article in the block yet",
+      "position": "Position",
+      "article": "Article",
+      "state": "Status",
+      "display": "Shown on the page",
+      "shownAs": "No. {number}",
+      "reserve": "Spare",
+      "notShown": "Not shown",
+      "hiddenHint": "The article is hidden or a draft, so it is skipped. Republish it and it returns to this position.",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "remove": "Remove from block",
+      "discard": "Discard changes",
+      "notShownEmpty": "The block has no articles, so the handbook page is hiding the whole newsletter strip. Add a published article to show it.",
+      "notShownAllHidden": "None of the articles in the block is published, so the handbook page is hiding the whole newsletter strip. Republish one of them or add another article.",
+      "states": { "Draft": "Draft", "Published": "Published", "Hidden": "Hidden" }
+    },
+    "handbookContent": {
+      "description": "Edit the fixed text of the handbook page per language: the opening, the heading of the three steps, the heading of the articles block and the heading of the newsletter block. A block you have not edited uses the page's built-in translation, so the form opens with the text currently shown. Each language is edited on its own; an unedited language never borrows another language's text.",
+      "locales": { "vi": "Vietnamese", "en": "English" },
+      "edited": "Edited",
+      "usingDefault": "Using the default",
+      "restore": "Restore default",
+      "restoreConfirm": "Delete this block's edited version? The page will go back to its built-in translation.",
+      "restored": "Default restored.",
+      "unchanged": "The text is the same as the default, so there is nothing to save.",
+      "sections": {
+        "hero": { "title": "Opening" },
+        "stagesHeading": { "title": "Heading of the three steps" },
+        "articlesHeading": { "title": "Articles block" },
+        "newsletterHeading": { "title": "Newsletter block" }
+      },
+      "fields": {
+        "eyebrow": "Line above the title",
+        "title": "Title",
+        "description": "Description",
+        "ctaLabel": "Button label",
+        "backgroundImageUrl": "Background image (optional — leave empty to use the default image)"
+      }
     },
     "handbookSteps": {
       "description": "The three fixed Handbook steps: Structure, Finishing, Interior. Only the image, name and description can change — no adding, deleting or reordering.",

@@ -85,6 +85,10 @@ export const ADMIN_ROUTES = {
   TESTIMONIALS: '/admin/testimonials',
   /** Các bước trong Cẩm nang + Nhóm cẩm nang (epic HandbookStepManagement). */
   HANDBOOK_STEPS: '/admin/handbook-steps',
+  /** Chọn và sắp xếp bài nổi bật của khối Bản tin (STORY-HB-003). */
+  HANDBOOK_NEWSLETTER: '/admin/handbook-newsletter',
+  /** Chữ cố định của trang Cẩm nang theo từng ngôn ngữ (STORY-HB-004). */
+  HANDBOOK_CONTENT: '/admin/handbook-content',
   /** Video hướng dẫn của trang Hướng dẫn. */
   GUIDE_VIDEOS: '/admin/guide-videos',
   /** Mã giảm giá của ô nhập mã ở S03. */

@@ -22,6 +22,8 @@ export { LibraryTemplateManager } from './components/handbook/library-template-m
 export { ArticleManager } from './components/handbook/article-manager'
 export { ArticleLabelManager } from './components/handbook/article-label-manager'
 export { HandbookStepManager } from './components/handbook/handbook-step-manager'
+export { HandbookNewsletterManager } from './components/handbook/handbook-newsletter-manager'
+export { HandbookContentManager } from './components/handbook/handbook-content-manager'
 export { TestimonialManager } from './components/site/testimonial-manager'
 export { GuideVideoManager } from './components/guide/guide-manager'
 
