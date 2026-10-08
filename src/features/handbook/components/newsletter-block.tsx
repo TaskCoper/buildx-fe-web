@@ -406,7 +406,11 @@ export function NewsletterBlock() {
                   </span>
                 </div>
                 <Link data-newsletter-lead-part href={handbookArticleRoute(displayedLead.slug)} className='block'>
-                  <h4 data-newsletter-lead-title className='text-xl leading-snug font-semibold text-balance'>
+                  <h4
+                    data-newsletter-lead-title
+                    title={displayedLead.title}
+                    className='line-clamp-2 text-xl leading-snug font-semibold text-balance'
+                  >
                     {displayedLead.title}
                   </h4>
                 </Link>
@@ -450,7 +454,9 @@ export function NewsletterBlock() {
                     <Photo className='size-14 rounded-lg' src={article.imageUrl} alt={article.title} sizes='56px' />
                   </div>
                   <span className='min-w-0 space-y-1'>
-                    <span className='line-clamp-3 block text-sm font-medium'>{article.title}</span>
+                    <span title={article.title} className='line-clamp-2 text-sm font-medium'>
+                      {article.title}
+                    </span>
                     <span className={cn(ARTICLE_META_TEXT, 'flex items-center gap-1 text-xs whitespace-nowrap')}>
                       <Clock className={cn(ARTICLE_META_ICON, 'size-3')} />
                       {t('readingTime', { minutes: article.readingMinutes })}
@@ -516,7 +522,11 @@ function RelatedRow({ article }: { article: HandbookArticle }) {
         <Photo className='size-16 rounded-lg' src={article.imageUrl} alt={article.title} sizes='64px' />
       </div>
       <span className='min-w-0 flex-1 space-y-1'>
-        <span data-newsletter-related-title className='line-clamp-2 block text-sm font-medium transition-colors'>
+        <span
+          data-newsletter-related-title
+          title={article.title}
+          className='line-clamp-2 text-sm font-medium transition-colors'
+        >
           {article.title}
         </span>
         <span className='block text-xs'>
