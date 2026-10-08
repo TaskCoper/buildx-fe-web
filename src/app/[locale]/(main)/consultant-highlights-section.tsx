@@ -2,7 +2,7 @@
 
 import { ConsultantHighlights } from '@/features/consultation'
 import { useHomeSections } from '@/shared/cms/home-content'
-import { sectionText } from '@/shared/cms/home-sections'
+import { sectionIds, sectionText } from '@/shared/cms/home-sections'
 import { useActiveProject } from './use-active-project'
 
 /**
@@ -24,6 +24,7 @@ export function ConsultantHighlightsSection() {
       title={sectionText(sections, 'consult', 'title')}
       description={sectionText(sections, 'consult', 'description')}
       viewAllLabel={sectionText(sections, 'consult', 'viewAll')}
+      consultantIds={sectionIds(sections, 'consult', 'architectIds')}
     />
   )
 }

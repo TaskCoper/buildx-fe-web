@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl'
 
 import { Link } from '@/i18n/navigation'
 import { useAuth } from '@/shared/auth'
+import { pickByIds } from '@/shared/cms/home-sections'
 import { revealEase } from '@/shared/components/common'
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/components/ui/avatar'
 import { Button } from '@/shared/components/ui/button'
@@ -27,6 +28,11 @@ interface ConsultantHighlightsProps {
   title?: string
   description?: string
   viewAllLabel?: string
+  /**
+   * Kiến trúc sư do admin chọn cho trang chủ (tối đa `HOME_CONSULTANT_COUNT`), giữ đúng thứ tự đã chọn; người đã ẩn
+   * hoặc không còn công khai tự bị bỏ qua. Không chọn gì (hoặc không còn ai hiện được) thì tự chọn như trước.
+   */
+  consultantIds?: readonly string[]
 }
 
 /** Lịch còn hiệu lực (chưa diễn ra / chưa hủy) — chỉ những lịch này mới tính là "Đã đặt lịch". */
@@ -52,7 +58,8 @@ export function ConsultantHighlights({
   preferredSpecialtyId,
   title,
   description,
-  viewAllLabel
+  viewAllLabel,
+  consultantIds
 }: ConsultantHighlightsProps) {
   const t = useTranslations('consult.home')
   const { data: consultants, isPending } = useConsultants()
@@ -64,7 +71,11 @@ export function ConsultantHighlights({
       .map((booking) => booking.consultantId)
   )
 
-  const ordered = sortConsultants(consultants ?? [], preferredSpecialtyId).slice(0, HOME_CONSULTANT_COUNT)
+  const chosen = pickByIds(consultants ?? [], consultantIds, (consultant) => consultant.id, HOME_CONSULTANT_COUNT)
+  const ordered =
+    chosen && chosen.length > 0
+      ? chosen
+      : sortConsultants(consultants ?? [], preferredSpecialtyId).slice(0, HOME_CONSULTANT_COUNT)
 
   return (
     <section className='brand-band'>

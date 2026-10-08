@@ -5357,7 +5357,7 @@
       "states": { "Draft": "Nháp", "Published": "Đã công bố", "Hidden": "Đang ẩn" }
     },
     "homeContent": {
-      "description": "Chữ, ảnh, icon, mẫu và video nổi bật của trang chủ, chia 11 khối theo đúng thứ tự khi cuộn trang. Mỗi ngôn ngữ lưu riêng: khối chưa sửa dùng nội dung có sẵn nên form mở ra với đúng chữ đang hiển thị, và chỉ phần khác bản có sẵn mới được lưu. Đường dẫn của các nút do ứng dụng giữ, không sửa ở đây.",
+      "description": "Chữ, ảnh, icon, mẫu và video nổi bật của trang chủ, chia 12 khối theo đúng thứ tự khi cuộn trang. Mỗi ngôn ngữ lưu riêng: khối chưa sửa dùng nội dung có sẵn nên form mở ra với đúng chữ đang hiển thị, và chỉ phần khác bản có sẵn mới được lưu. Đường dẫn của các nút do ứng dụng giữ, không sửa ở đây.",
       "locales": {
         "vi": "Tiếng Việt",
         "en": "Tiếng Anh"
@@ -5386,8 +5386,6 @@
       "pickTemplates": "Chọn tối đa {max} mẫu",
       "pickGuides": "Chọn tối đa {max} video",
       "pickLoadError": "Không tải được danh sách. Thử tải lại trang.",
-      "idsTotalHint": "Tổng cả hai ô 2D và 3D chọn tối đa {max} mẫu (đang chọn {used}). Hiện theo đúng thứ tự bạn chọn; ô nào để trống thì tab đó tự lấy các mẫu mới nhất.",
-      "idsTotalExceeded": "Cả hai tab cộng lại chỉ chọn tối đa {max} mẫu. Bỏ bớt mẫu rồi lưu lại.",
       "idsHint": "Tối đa {max}. Hiện theo đúng thứ tự bạn chọn; để trống thì trang chủ tự chọn như trước.",
       "rowTitle": "Mục {index}",
       "moveUp": "Chuyển lên",
@@ -5419,13 +5417,17 @@
           "title": "Thư viện mẫu",
           "hint": "Dải \"Danh sách thư viện mẫu\" chia hai tab bản vẽ 2D và 3D."
         },
+        "articles": {
+          "title": "Bài viết Cẩm nang",
+          "hint": "Dải \"Cẩm nang xây nhà\" với ba bài viết: sửa tiêu đề và chọn bài."
+        },
         "guides": {
           "title": "Hướng dẫn sử dụng",
           "hint": "Dải video hướng dẫn, hiện tối đa ba video."
         },
         "consult": {
           "title": "Tư vấn 1:1",
-          "hint": "Khối đặt lịch với kiến trúc sư. Chỉ sửa chữ; danh sách kiến trúc sư lấy từ màn Kiến trúc sư."
+          "hint": "Khối đặt lịch với kiến trúc sư: sửa chữ và chọn tối đa 3 kiến trúc sư nổi bật."
         },
         "brands": {
           "title": "Thương hiệu đối tác",
@@ -5474,17 +5476,29 @@
         "dossiers": {
           "templateIds2d": {
             "title": "Mẫu bản vẽ 2D nổi bật",
-            "hint": "Cùng ô 3D, tổng chọn tối đa 4 mẫu. Để trống thì tab này lấy các mẫu mới nhất. Mẫu không phải loại 2D sẽ bị bỏ qua."
+            "hint": "Chọn tối đa 4 mẫu 2D (cả hai tab tối đa 8). Chỉ liệt kê mẫu đã công khai. Để trống thì tab này lấy các mẫu mới nhất."
           },
           "templateIds3d": {
             "title": "Mẫu bản vẽ 3D nổi bật",
-            "hint": "Cùng ô 2D, tổng chọn tối đa 4 mẫu. Để trống thì tab này lấy các mẫu mới nhất. Mẫu không phải loại 3D sẽ bị bỏ qua."
+            "hint": "Chọn tối đa 4 mẫu 3D (cả hai tab tối đa 8). Chỉ liệt kê mẫu đã công khai. Để trống thì tab này lấy các mẫu mới nhất."
+          }
+        },
+        "articles": {
+          "articleIds": {
+            "title": "Bài viết nổi bật",
+            "hint": "Chọn tối đa 3 bài, hiện theo đúng thứ tự chọn. Chỉ liệt kê bài đã công khai; bài bị ẩn sau đó sẽ tự bị bỏ qua. Để trống thì trang chủ lấy 3 bài mới nhất."
           }
         },
         "guides": {
           "guideIds": {
             "title": "Video nổi bật",
-            "hint": "Chọn tối đa 3 video đã đăng. Video bị ẩn sau đó sẽ tự bị bỏ qua."
+            "hint": "Chọn tối đa 3 video. Chỉ liệt kê video đã công khai; video bị ẩn sau đó sẽ tự bị bỏ qua. Để trống thì trang chủ tự chọn như trước."
+          }
+        },
+        "consult": {
+          "architectIds": {
+            "title": "Kiến trúc sư nổi bật",
+            "hint": "Chọn tối đa 3 kiến trúc sư, hiện theo đúng thứ tự chọn. Chỉ liệt kê kiến trúc sư đang hiển thị công khai. Để trống thì trang chủ tự chọn như trước (ưu tiên đúng chuyên môn của dự án đang làm)."
           }
         },
         "brands": {
@@ -5561,7 +5575,11 @@
           "name": "Tên khách hàng",
           "meta": "Loại nhà · diện tích · nơi ở"
         }
-      }
+      },
+      "floors": "{count} tầng",
+      "pickMissing": "Đã ẩn hoặc không còn công khai",
+      "pickArchitects": "Chọn tối đa {max} kiến trúc sư",
+      "pickArticles": "Chọn tối đa {max} bài viết"
     },
     "handbookContent": {
       "description": "Quản lý nội dung trang Cẩm nang theo hai tab Tin tức và Thư viện mẫu, xếp theo đúng thứ tự người đọc thấy trên trang. Các thẻ chữ sửa riêng từng ngôn ngữ: khối chưa sửa dùng bản dịch sẵn có nên form mở ra với đúng chữ đang hiển thị, và ngôn ngữ chưa sửa không mượn chữ của ngôn ngữ khác. Ba bước, chủ đề hướng dẫn và bài nổi bật dùng chung cho mọi ngôn ngữ.",

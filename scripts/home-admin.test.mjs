@@ -20,7 +20,7 @@ const en = await readJson('en')
 
 const section = (key) => home.HOME_SECTIONS.find((item) => item.key === key)
 
-test('mười một khối, mã không trùng và đúng thứ tự trang', () => {
+test('mười hai khối, mã không trùng và đúng thứ tự trang', () => {
   assert.deepEqual(
     home.HOME_SECTIONS.map((item) => item.key),
     [
@@ -30,6 +30,7 @@ test('mười một khối, mã không trùng và đúng thứ tự trang', () =
       'journey',
       'services',
       'dossiers',
+      'articles',
       'guides',
       'consult',
       'brands',
@@ -194,24 +195,23 @@ test('tên icon hợp lệ: chữ, số, gạch ngang, tối đa 64 ký tự', (
   for (const bad of ['', 'a b', '<svg>', 'a'.repeat(65)]) assert.equal(home.ICON_NAME_PATTERN.test(bad), false, bad)
 })
 
-test('dossiers: tổng id 2D + 3D tối đa 4, các khối khác không có giới hạn chung', () => {
-  const def = section('dossiers')
-  assert.equal(def.idsTotalMax, 4)
-  for (const other of home.HOME_SECTIONS.filter((item) => item.key !== 'dossiers')) {
-    assert.equal(other.idsTotalMax, undefined, other.key)
-  }
-
-  assert.equal(home.idsUsed(def, { templateIds2d: ['a', 'b'], templateIds3d: ['c'] }), 3)
-  assert.equal(home.idsUsed(def, { templateIds2d: ['a', 'a', ' '], templateIds3d: [] }), 1)
-  assert.equal(home.idsUsed(def, undefined), 0)
-
-  assert.equal(home.exceedsIdsTotal(def, { templateIds2d: ['a', 'b'], templateIds3d: ['c', 'd'] }), false)
-  assert.equal(home.exceedsIdsTotal(def, { templateIds2d: ['a', 'b', 'c'], templateIds3d: ['d', 'e'] }), true)
-  assert.equal(home.exceedsIdsTotal(def, { templateIds2d: ['a', 'b', 'c', 'd'], templateIds3d: [] }), false)
-  assert.equal(home.exceedsIdsTotal(section('guides'), { guideIds: ['a', 'b', 'c', 'd', 'e'] }), false)
+test('danh sách id: mỗi tab mẫu tối đa 4, video 3, kiến trúc sư 3, và chỉ chọn từ kho công khai đúng loại', () => {
+  const lists = (key) => section(key).lists.map((list) => [list.name, list.max, list.source, list.drawingKind ?? null])
+  assert.deepEqual(lists('dossiers'), [
+    ['templateIds2d', 4, 'templates', '2D'],
+    ['templateIds3d', 4, 'templates', '3D']
+  ])
+  assert.deepEqual(lists('articles'), [['articleIds', 3, 'articles', null]])
+  assert.deepEqual(lists('guides'), [['guideIds', 3, 'guides', null]])
+  assert.deepEqual(lists('consult'), [['architectIds', 3, 'architects', null]])
+  assert.equal(
+    home.HOME_SECTIONS.some((def) => 'idsTotalMax' in def),
+    false,
+    'không còn giới hạn chung cho tổng số mẫu'
+  )
 })
 
-test('formValuesForAll dựng giá trị ban đầu cho đủ 11 khối, khối đã lưu lấy bản đã lưu', () => {
+test('formValuesForAll dựng giá trị ban đầu cho đủ 12 khối, khối đã lưu lấy bản đã lưu', () => {
   const all = home.formValuesForAll({ cta: { title: 'Tiêu đề đã sửa' } }, vi)
   assert.deepEqual(
     Object.keys(all),

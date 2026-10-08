@@ -41,7 +41,10 @@ export interface HomeIdList {
   type: 'ids'
   name: string
   max: number
-  source: 'templates' | 'guides'
+  /** Kho để chọn: mẫu thư viện, bài viết, video hướng dẫn hoặc kiến trúc sư (đều chỉ liệt kê mục công khai). */
+  source: 'templates' | 'articles' | 'guides' | 'architects'
+  /** Với mẫu thư viện: chỉ liệt kê mẫu loại này. */
+  drawingKind?: '2D' | '3D'
 }
 
 export type HomeList = HomeFixedList | HomeRepeatList | HomeIdList
@@ -53,6 +56,7 @@ export type HomeSectionKey =
   | 'journey'
   | 'services'
   | 'dossiers'
+  | 'articles'
   | 'guides'
   | 'consult'
   | 'brands'
@@ -63,11 +67,6 @@ export interface HomeSectionDef {
   key: HomeSectionKey
   fields: readonly HomeField[]
   lists: readonly HomeList[]
-  /**
-   * Giới hạn CHUNG cho tổng số id của mọi danh sách id trong khối (mẫu 2D và 3D cộng lại). Backend chỉ giới hạn từng
-   * danh sách, nên giới hạn chung này do màn admin giữ.
-   */
-  idsTotalMax?: number
 }
 
 /** Giới hạn độ dài mỗi trường chữ. */
@@ -83,7 +82,7 @@ const icon = (name: string): HomeField => ({ name, kind: 'icon' })
 
 const landing = (...rest: string[]) => ['landing', ...rest] as const
 
-/** Mười một khối của trang chủ, theo thứ tự xuất hiện trên trang. */
+/** Mười hai khối của trang chủ, theo thứ tự xuất hiện trên trang. */
 export const HOME_SECTIONS: readonly HomeSectionDef[] = [
   {
     key: 'hero',
@@ -204,12 +203,16 @@ export const HOME_SECTIONS: readonly HomeSectionDef[] = [
       text('viewAll', landing('dossiers', 'viewAll')),
       text('viewOne', landing('dossiers', 'viewOne'))
     ],
+    // Mỗi tab tối đa 4 mẫu (cả hai tab tối đa 8).
     lists: [
-      { type: 'ids', name: 'templateIds2d', max: 4, source: 'templates' },
-      { type: 'ids', name: 'templateIds3d', max: 4, source: 'templates' }
-    ],
-    // Cả hai tab cộng lại chỉ chọn tối đa 4 mẫu.
-    idsTotalMax: 4
+      { type: 'ids', name: 'templateIds2d', max: 4, source: 'templates', drawingKind: '2D' },
+      { type: 'ids', name: 'templateIds3d', max: 4, source: 'templates', drawingKind: '3D' }
+    ]
+  },
+  {
+    key: 'articles',
+    fields: [text('title', ['handbook', 'home', 'title']), text('viewAll', ['handbook', 'home', 'viewAll'])],
+    lists: [{ type: 'ids', name: 'articleIds', max: 3, source: 'articles' }]
   },
   {
     key: 'guides',
@@ -227,7 +230,7 @@ export const HOME_SECTIONS: readonly HomeSectionDef[] = [
       area('description', ['consult', 'home', 'subtitle']),
       text('viewAll', ['consult', 'home', 'viewAll'])
     ],
-    lists: []
+    lists: [{ type: 'ids', name: 'architectIds', max: 3, source: 'architects' }]
   },
   {
     key: 'brands',
@@ -393,7 +396,7 @@ export function buildContent(section: HomeSectionDef, values: Record<string, unk
 }
 
 /**
- * Giá trị ban đầu của form cả trang: mỗi khối theo mã khối. Dùng cho một form duy nhất chứa cả 11 khối, nên khối nào
+ * Giá trị ban đầu của form cả trang: mỗi khối theo mã khối. Dùng cho một form duy nhất chứa cả 12 khối, nên khối nào
  * chưa được mở trên màn (các khối gập lại chưa dựng) vẫn có đủ giá trị để biết nó chưa đổi.
  */
 export function formValuesForAll(
@@ -426,23 +429,6 @@ export function planSectionSave(
   if (Object.keys(content).length === 0) return saved ? { action: 'delete' } : { action: 'none' }
   if (saved && sameContent(content, saved.content)) return { action: 'none' }
   return { action: 'save', content }
-}
-
-/** Số id đang chọn ở mọi danh sách id của khối (bỏ id trống và trùng trong từng danh sách). */
-export function idsUsed(section: HomeSectionDef, values: Record<string, unknown> | undefined): number {
-  let used = 0
-  for (const list of section.lists) {
-    if (list.type !== 'ids') continue
-    const raw = values?.[list.name]
-    const ids = Array.isArray(raw) ? raw.map(clean).filter(Boolean) : []
-    used += new Set(ids).size
-  }
-  return used
-}
-
-/** Khối có giới hạn chung về số id mà đang chọn vượt quá. */
-export function exceedsIdsTotal(section: HomeSectionDef, values: Record<string, unknown> | undefined): boolean {
-  return section.idsTotalMax !== undefined && idsUsed(section, values) > section.idsTotalMax
 }
 
 /** Hai nội dung có giống nhau không (so sâu, bỏ qua thứ tự khóa của đối tượng). */

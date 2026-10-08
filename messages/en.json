@@ -5357,7 +5357,7 @@
       "states": { "Draft": "Draft", "Published": "Published", "Hidden": "Hidden" }
     },
     "homeContent": {
-      "description": "Text, images, icons, templates and featured videos of the home page, split into 11 blocks in scroll order. Each language is saved separately: a block you have not edited uses the built-in content, so the form opens with the text visitors currently see, and only what differs from the built-in content is saved. Button links are kept by the app and cannot be edited here.",
+      "description": "Text, images, icons, templates and featured videos of the home page, split into 12 blocks in scroll order. Each language is saved separately: a block you have not edited uses the built-in content, so the form opens with the text visitors currently see, and only what differs from the built-in content is saved. Button links are kept by the app and cannot be edited here.",
       "locales": {
         "vi": "Vietnamese",
         "en": "English"
@@ -5386,8 +5386,6 @@
       "pickTemplates": "Pick up to {max} templates",
       "pickGuides": "Pick up to {max} videos",
       "pickLoadError": "Could not load the list. Try reloading the page.",
-      "idsTotalHint": "Across the 2D and 3D boxes together, pick up to {max} templates ({used} selected). Shown in the order you pick them; a box left empty lets that tab show the newest templates.",
-      "idsTotalExceeded": "Both tabs together can hold at most {max} templates. Remove some and save again.",
       "idsHint": "Up to {max}. Shown in the order you pick them; leave empty to let the home page choose as before.",
       "rowTitle": "Item {index}",
       "moveUp": "Move up",
@@ -5419,13 +5417,17 @@
           "title": "Template library",
           "hint": "The \"Template library list\" strip with 2D and 3D drawing tabs."
         },
+        "articles": {
+          "title": "Handbook articles",
+          "hint": "The \"Home building handbook\" strip with three articles: edit the title and pick the articles."
+        },
         "guides": {
           "title": "User guides",
           "hint": "The guide video strip, up to three videos."
         },
         "consult": {
           "title": "1:1 consultation",
-          "hint": "The booking block with an architect. Text only; the architect list comes from the Architects screen."
+          "hint": "The booking block with an architect: edit the text and pick up to 3 featured architects."
         },
         "brands": {
           "title": "Partner brands",
@@ -5474,17 +5476,29 @@
         "dossiers": {
           "templateIds2d": {
             "title": "Featured 2D drawing templates",
-            "hint": "Together with the 3D box, pick up to 4 in total. Leave empty and this tab shows the newest templates. Templates that are not 2D are ignored."
+            "hint": "Pick up to 4 2D templates (up to 8 across both tabs). Only public templates are listed. Leave empty and this tab shows the newest templates."
           },
           "templateIds3d": {
             "title": "Featured 3D drawing templates",
-            "hint": "Together with the 2D box, pick up to 4 in total. Leave empty and this tab shows the newest templates. Templates that are not 3D are ignored."
+            "hint": "Pick up to 4 3D templates (up to 8 across both tabs). Only public templates are listed. Leave empty and this tab shows the newest templates."
+          }
+        },
+        "articles": {
+          "articleIds": {
+            "title": "Featured articles",
+            "hint": "Pick up to 3 articles, shown in the order you pick them. Only public articles are listed; an article hidden later is skipped automatically. Leave empty and the home page shows the 3 newest."
           }
         },
         "guides": {
           "guideIds": {
             "title": "Featured videos",
-            "hint": "Pick up to 3 published videos. A video hidden later is skipped automatically."
+            "hint": "Pick up to 3 videos. Only public videos are listed; a video hidden later is skipped automatically. Leave empty to let the home page choose as before."
+          }
+        },
+        "consult": {
+          "architectIds": {
+            "title": "Featured architects",
+            "hint": "Pick up to 3 architects, shown in the order you pick them. Only publicly visible architects are listed. Leave empty to let the home page choose as before (preferring the specialty of the project in progress)."
           }
         },
         "brands": {
@@ -5561,7 +5575,11 @@
           "name": "Customer name",
           "meta": "House type · area · location"
         }
-      }
+      },
+      "floors": "{count} floors",
+      "pickMissing": "Hidden or no longer public",
+      "pickArchitects": "Pick up to {max} architects",
+      "pickArticles": "Pick up to {max} articles"
     },
     "handbookContent": {
       "description": "Manage the handbook page content in two tabs, News and Template library, in the order readers see it on the page. The text cards are edited per language: a block you have not edited uses the page's built-in translation, so the form opens with the text currently shown, and an unedited language never borrows another language's text. The three steps, topics and featured articles are shared by every language.",

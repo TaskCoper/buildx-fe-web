@@ -57,8 +57,10 @@ test('khóa dịch: mọi khóa ghép được đều có chữ ở cả tiếng
       'pickTemplates',
       'pickGuides',
       'pickLoadError',
-      'idsTotalHint',
-      'idsTotalExceeded',
+      'pickArchitects',
+      'pickArticles',
+      'pickMissing',
+      'floors',
       'fixErrors',
       'unsavedTitle',
       'unsavedBody',
@@ -86,9 +88,9 @@ const skip = catalogSource ? false : 'không có thư mục bmt-be cạnh fronte
 
 const WIRE_KIND = { text: 'Text', textarea: 'Text', image: 'Image', icon: 'Icon' }
 
-test('hợp đồng BE: đọc đủ 11 khối trang chủ từ catalog', { skip }, () => {
+test('hợp đồng BE: đọc đủ 12 khối trang chủ từ catalog', { skip }, () => {
   const catalog = parseHomeCatalog(catalogSource)
-  assert.equal(catalog.size, 11)
+  assert.equal(catalog.size, 12)
   assert.deepEqual(catalog.get('stats').structured[0], {
     kind: 'Items',
     name: 'items',

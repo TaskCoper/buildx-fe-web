@@ -89,7 +89,7 @@ export const ADMIN_ROUTES = {
   HANDBOOK_NEWSLETTER: '/admin/handbook-newsletter',
   /** Nội dung trang Cẩm nang: chữ cố định, ba bước, chủ đề, bài nổi bật và banner thư viện (STORY-HB-001 đến 004). */
   HANDBOOK_CONTENT: '/admin/handbook-content',
-  /** Nội dung trang chủ: chữ, ảnh, icon, mẫu và video nổi bật của 11 khối. */
+  /** Nội dung trang chủ: chữ, ảnh, icon, mẫu và video nổi bật của 12 khối. */
   HOME_CONTENT: '/admin/home-content',
   /** Video hướng dẫn của trang Hướng dẫn. */
   GUIDE_VIDEOS: '/admin/guide-videos',

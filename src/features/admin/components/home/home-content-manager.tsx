@@ -29,10 +29,8 @@ import {
   HOME_SECTIONS,
   HOME_TEXT_MAX_LENGTH,
   ICON_NAME_PATTERN,
-  exceedsIdsTotal,
   formValuesFor,
   formValuesForAll,
-  idsUsed,
   planSectionSave,
   rowDefaults,
   sameContent,
@@ -44,7 +42,13 @@ import {
 } from '../../services/home-sections.service'
 import { AdminPage } from '../common/admin-page'
 import { ImageUrlField } from '../common/field-kit'
-import { GuideIdsSelect, IconNameInput, TemplateIdsSelect } from './home-field-controls'
+import {
+  ArchitectIdsSelect,
+  ArticleIdsSelect,
+  GuideIdsSelect,
+  IconNameInput,
+  TemplateIdsSelect
+} from './home-field-controls'
 
 type ContentLocale = 'vi' | 'en'
 
@@ -64,7 +68,7 @@ const loadMessages = (locale: ContentLocale): Promise<unknown> =>
   import(`../../../../../messages/${locale}.json`).then((module) => module.default as unknown)
 
 /**
- * NỘI DUNG TRANG CHỦ. Một màn gom chữ, ảnh, icon, mẫu và video nổi bật của 11 khối trang chủ, xếp theo đúng thứ tự
+ * NỘI DUNG TRANG CHỦ. Một màn gom chữ, ảnh, icon, mẫu và video nổi bật của 12 khối trang chủ, xếp theo đúng thứ tự
  * người đọc thấy khi cuộn trang.
  *
  * Cả trang là MỘT form và MỘT nút "Lưu tất cả": bấm thì chỉ các khối đang có thay đổi được gửi lên (khối nào đưa về đúng
@@ -223,13 +227,6 @@ function HomeContentForm({
       message.error(tc('fixErrors'))
       const first = invalid.errorFields?.[0]?.name
       if (first) form.scrollToField(first)
-      return
-    }
-
-    const values = readValues()
-    const over = HOME_SECTIONS.find((section) => exceedsIdsTotal(section, values[section.key]))
-    if (over) {
-      message.error(tc('idsTotalExceeded', { max: over.idsTotalMax ?? 0 }))
       return
     }
 
@@ -610,25 +607,21 @@ function RepeatRows({ list, section }: { list: HomeRepeatList; section: HomeSect
   )
 }
 
-/** Chọn mẫu hoặc video từ kho; thứ tự chọn là thứ tự trên trang. */
+/** Chọn mẫu, bài viết, video hoặc kiến trúc sư từ kho công khai; thứ tự chọn là thứ tự trên trang. */
 function IdsField({ list, section }: { list: HomeIdList; section: HomeSectionDef }) {
   const tc = useTranslations('admin.homeContent')
-  const form = Form.useFormInstance()
-  const values = Form.useWatch(section.key, form) as Record<string, unknown> | undefined
-
-  // Khối có giới hạn chung (2D + 3D): ô này chỉ chọn thêm được phần còn lại sau khi trừ số đã chọn ở các ô khác.
-  const total = section.idsTotalMax
-  const used = idsUsed(section, values)
-  const raw = values?.[list.name]
-  const own = Array.isArray(raw) ? raw.length : 0
-  const max = total === undefined ? list.max : Math.max(0, Math.min(list.max, total - (used - own)))
 
   return (
-    <Form.Item
-      name={[section.key, list.name]}
-      extra={total === undefined ? tc('idsHint', { max: list.max }) : tc('idsTotalHint', { max: total, used })}
-    >
-      {list.source === 'templates' ? <TemplateIdsSelect max={max} /> : <GuideIdsSelect max={max} />}
+    <Form.Item name={[section.key, list.name]} extra={tc('idsHint', { max: list.max })}>
+      {list.source === 'templates' ? (
+        <TemplateIdsSelect kind={list.drawingKind ?? '2D'} max={list.max} />
+      ) : list.source === 'articles' ? (
+        <ArticleIdsSelect max={list.max} />
+      ) : list.source === 'guides' ? (
+        <GuideIdsSelect max={list.max} />
+      ) : (
+        <ArchitectIdsSelect max={list.max} />
+      )}
     </Form.Item>
   )
 }
