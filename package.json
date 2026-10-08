@@ -15,6 +15,7 @@
     "test:handbook": "node --test scripts/handbook-cms.test.mjs scripts/handbook-admin.test.mjs",
     "test:home": "node --test scripts/home-cms.test.mjs scripts/home-admin.test.mjs scripts/home-contract.test.mjs",
     "test:contractors": "node --test scripts/contractors-content.test.mjs",
+    "test:rendering": "node --test scripts/isr-csr.test.mjs",
     "test:footer": "node --test scripts/footer-cms.test.mjs scripts/footer-admin.test.mjs scripts/footer-contract.test.mjs scripts/legal-html.test.mjs",
     "format": "prettier --write \"src/**/*.{ts,tsx,css,json}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,css,json}\"",

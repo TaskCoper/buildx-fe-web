@@ -1,6 +1,7 @@
 'use client'
 
 import { Plus } from 'lucide-react'
+import { useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { useEffect, useRef } from 'react'
 
@@ -15,8 +16,10 @@ import { usePageEntrance } from '@/shared/hooks'
  * nút góc phải và ô viền đứt cuối lưới để khách tập trung vào một chỗ). Lịch sử
  * dự án do `ProjectBoard` dựng bên dưới (thẻ đếm, bộ lọc, lưới, phân trang).
  */
-export function DesignEntry({ openCreateProject = false }: { openCreateProject?: boolean }) {
+export function DesignEntry() {
   const t = useTranslations('design.entry')
+  // `?createProject=1` (từ nút "Tạo dự án" ở thanh công cụ) mở sẵn cửa sổ tạo dự án. Đọc ở client để trang vẫn ISR được.
+  const openCreateProject = useSearchParams().get('createProject') === '1'
   const openCreateDialog = useDesignStore((s) => s.openCreateDialog)
   const queryHandledRef = useRef(false)
   const { rootRef, entranceState, entranceStyle } = usePageEntrance('design.m01.header')

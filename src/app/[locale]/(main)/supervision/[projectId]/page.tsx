@@ -1,34 +1,38 @@
 import { setRequestLocale } from 'next-intl/server'
 
-import { SupervisionDashboard } from '@/features/supervision'
 import type { Locale } from '@/i18n/routing'
 import { ProtectedRoute } from '@/shared/auth'
 import { pageMetadata } from '@/shared/lib/page-metadata'
+import { SupervisionView } from './supervision-view'
 
 export const generateMetadata = pageMetadata('supervision')
 
+/**
+ * ISR theo yêu cầu: không dựng sẵn trang nào lúc build; trang đầu tiên khách mở được dựng rồi lưu đệm và làm mới nền.
+ * Nội dung theo người dùng nằm ở client nên mọi mã trong đường dẫn dùng chung một khung trang.
+ */
+export function generateStaticParams() {
+  return []
+}
+
 interface PageProps {
   params: Promise<{ locale: Locale; projectId: string }>
-  searchParams: Promise<{ stage?: string }>
 }
 
 /**
  * S20–S23 — Bảng điều khiển giám sát.
  *
  * MỘT trang, bốn trạng thái giai đoạn. `?stage=` chọn giai đoạn đang mở nên
- * banner "Đến giai đoạn 4" và thẻ ở cột trái đều là link chia sẻ được.
+ * banner "Đến giai đoạn 4" và thẻ ở cột trái đều là link chia sẻ được. Tham số đọc ở client (`SupervisionView`),
+ * không phải `searchParams` của server, để trang vẫn ISR được.
  */
-export default async function SupervisionPage({ params, searchParams }: PageProps) {
+export default async function SupervisionPage({ params }: PageProps) {
   const { locale, projectId } = await params
-  const { stage } = await searchParams
   setRequestLocale(locale)
-
-  const parsed = Number(stage)
-  const stageIndex = Number.isInteger(parsed) && parsed >= 1 && parsed <= 6 ? parsed : undefined
 
   return (
     <ProtectedRoute>
-      <SupervisionDashboard projectId={projectId} stageIndex={stageIndex} />
+      <SupervisionView projectId={projectId} />
     </ProtectedRoute>
   )
 }

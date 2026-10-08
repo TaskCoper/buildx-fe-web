@@ -18,6 +18,11 @@ x-buildx-fe-base: &buildx-fe-base
     HOSTNAME: 0.0.0.0
     PORT: 3000
     VIETMAP_API_KEY: ${VIETMAP_API_KEY:-}
+    # Server của web tự gọi API khi dựng và làm mới trang (ISR) nên cần địa chỉ API lúc chạy, không chỉ lúc build.
+    BMT_API_ORIGIN: ${BMT_API_ORIGIN:-https://bmt-api.vnzdna.com}
+    # Khóa webhook làm mới trang theo yêu cầu (POST /api/revalidate); phải giống FRONTEND_REVALIDATE_SECRET của backend.
+    # Để trống thì webhook tắt (503), trang vẫn tự làm mới mỗi 60 giây.
+    REVALIDATE_SECRET: ${REVALIDATE_SECRET:-}
   expose: [3000]
   networks: [buildx-network]
   healthcheck:

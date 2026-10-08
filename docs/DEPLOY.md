@@ -33,17 +33,18 @@ Các file chính:
 Tạo GitHub Environments **dev** và **prod**. Mỗi environment dùng các secret
 cùng tên với biến ứng dụng, kể cả giá trị công khai, để giữ cách cấu hình của repo mẫu.
 
-| Secret                        | Giá trị / mục đích                                                                      | Thời điểm đọc  |
-| ----------------------------- | --------------------------------------------------------------------------------------- | -------------- |
-| `BMT_API_ORIGIN`              | Dev: `http://bmt-api-dev:8080`; prod: `http://bmt-api-prod:8080`                        | Build          |
-| `NEXT_PUBLIC_API_BASE_URL`    | Giữ `/api/v1` để cookie auth đi qua cùng domain                                         | Build          |
-| `NEXT_PUBLIC_API_TIMEOUT`     | Mặc định `30000` ms                                                                     | Build          |
-| `NEXT_PUBLIC_APP_NAME`        | Mặc định `BuildX AI`                                                                    | Build          |
-| `NEXT_PUBLIC_APP_URL`         | **Bắt buộc:** URL frontend thực tế của môi trường, ví dụ `https://frontend.example.com` | Build          |
-| `NEXT_PUBLIC_USE_MOCK_AUTH`   | Mặc định `false`, dùng backend thật                                                     | Build          |
-| `NEXT_PUBLIC_USE_MOCK_API`    | Mặc định `false`, dùng backend thật                                                     | Build          |
-| `NEXT_PUBLIC_VIETMAP_API_KEY` | Khóa công khai để hiển thị bản đồ; có thể để trống                                      | Build          |
-| `VIETMAP_API_KEY`             | Khóa riêng để server gọi geocode; có thể để trống nếu chưa cấu hình geocode             | Container chạy |
+| Secret                        | Giá trị / mục đích                                                                                                                 | Thời điểm đọc  |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | -------------- |
+| `BMT_API_ORIGIN`              | Dev: `http://bmt-api-dev:8080`; prod: `http://bmt-api-prod:8080`                                                                   | Build          |
+| `NEXT_PUBLIC_API_BASE_URL`    | Giữ `/api/v1` để cookie auth đi qua cùng domain                                                                                    | Build          |
+| `NEXT_PUBLIC_API_TIMEOUT`     | Mặc định `30000` ms                                                                                                                | Build          |
+| `NEXT_PUBLIC_APP_NAME`        | Mặc định `BuildX AI`                                                                                                               | Build          |
+| `NEXT_PUBLIC_APP_URL`         | **Bắt buộc:** URL frontend thực tế của môi trường, ví dụ `https://frontend.example.com`                                            | Build          |
+| `NEXT_PUBLIC_USE_MOCK_AUTH`   | Mặc định `false`, dùng backend thật                                                                                                | Build          |
+| `NEXT_PUBLIC_USE_MOCK_API`    | Mặc định `false`, dùng backend thật                                                                                                | Build          |
+| `NEXT_PUBLIC_VIETMAP_API_KEY` | Khóa công khai để hiển thị bản đồ; có thể để trống                                                                                 | Build          |
+| `VIETMAP_API_KEY`             | Khóa riêng để server gọi geocode; có thể để trống nếu chưa cấu hình geocode                                                        | Container chạy |
+| `REVALIDATE_SECRET`           | Khóa webhook làm mới trang (`POST /api/revalidate`), phải giống `FRONTEND_REVALIDATE_SECRET` của backend; để trống thì tắt webhook | Container chạy |
 
 Đổi `NEXT_PUBLIC_*` hoặc `BMT_API_ORIGIN` thì phải build image mới. Next.js nhúng
 biến công khai vào bundle và lưu đích rewrite lúc build. Không truyền

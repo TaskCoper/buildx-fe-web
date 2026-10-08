@@ -1,4 +1,5 @@
 import { indexHomeSections, type BmtPageSection, type HomeSections } from './home-sections'
+import { pageSectionsTag } from './revalidation'
 
 /**
  * Lấy các khối chữ công khai của một trang (`GET /pages/{pageKey}/sections`), chạy ở SERVER. Dùng chung cho trang chủ,
@@ -30,7 +31,8 @@ export async function fetchPageSections(pageKey: string, locale: string): Promis
       `${API_ORIGIN}/api/v1/pages/${encodeURIComponent(pageKey)}/sections?locale=${encodeURIComponent(locale)}`,
       {
         headers: { Accept: 'application/json' },
-        next: { revalidate: REVALIDATE_SECONDS },
+        // Thẻ để backend làm mới ngay qua webhook `/api/revalidate` khi admin lưu, không phải chờ hết chu kỳ.
+        next: { revalidate: REVALIDATE_SECONDS, tags: [pageSectionsTag(pageKey)] },
         signal: AbortSignal.timeout(TIMEOUT_MS)
       }
     )
