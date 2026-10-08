@@ -96,7 +96,7 @@
       "title": "Welcome back",
       "subtitle": "Sign in to your account to continue",
       "emailLabel": "Email",
-      "emailPlaceholder": "you@company.com",
+      "emailPlaceholder": "Enter your email",
       "passwordLabel": "Password",
       "passwordPlaceholder": "Enter your password",
       "rememberMe": "Remember me",
@@ -130,7 +130,7 @@
       "nameLabel": "Full name",
       "namePlaceholder": "John Doe",
       "emailLabel": "Email",
-      "emailPlaceholder": "you@company.com",
+      "emailPlaceholder": "Enter your email",
       "passwordLabel": "Password",
       "passwordPlaceholder": "At least 8 characters",
       "confirmPasswordLabel": "Confirm password",
@@ -146,7 +146,7 @@
       "title": "Forgot password",
       "subtitle": "Enter your email to receive a reset code",
       "emailLabel": "Email",
-      "emailPlaceholder": "you@company.com",
+      "emailPlaceholder": "Enter your email",
       "submit": "Send reset code",
       "backToLogin": "Back to sign in",
       "requestError": "Couldn't send the reset code. Please try again.",
@@ -251,7 +251,8 @@
       "AccessForbidden": "Only customer accounts can buy plans. Admin accounts cannot be used to purchase.",
       "IdempotencyConflict": "Duplicate request. Reload the page and try again.",
       "PaymentInputInvalid": "The plan or billing cycle is invalid. Reload the page and pick the plan again.",
-      "viewPurchases": "View plan history"
+      "viewPurchases": "View plan history",
+      "continuePending": "Continue payment"
     }
   },
   "apiErrors": {
@@ -2379,17 +2380,57 @@
       "filter": {
         "all": "All",
         "paid": "Paid",
-        "pending": "Verifying",
+        "pending": "Awaiting payment",
         "refunded": "Refunded"
       },
       "table": {
         "code": "Order",
+        "order": "Order",
         "project": "Project",
         "date": "Date",
         "plan": "Plan",
         "amount": "Amount",
         "status": "Status",
-        "receipt": "Receipt"
+        "receipt": "Receipt",
+        "actions": "Actions"
+      },
+      "projectLine": "Project: {project}",
+      "orderCode": "Order #{code}",
+      "phase": {
+        "awaiting": "Awaiting payment",
+        "partial": "Partial payment received",
+        "paid": "Paid",
+        "expired": "Expired",
+        "canceled": "Canceled",
+        "failed": "Payment failed",
+        "refunded": "Refunded"
+      },
+      "phaseReason": {
+        "awaiting": "This order is waiting for your transfer. Choose Continue payment to reopen the QR code.",
+        "partial": "BuildX has received part of the payment. Transfer the remaining amount before the order expires.",
+        "expired": "This order ran out of time to be paid. You can create a new order.",
+        "canceled": "This order was canceled. You can create a new order.",
+        "failed": "The payment did not go through. You can create a new order.",
+        "refunded": "This order was refunded."
+      },
+      "actions": {
+        "viewDetail": "Order details",
+        "receipt": "Payment receipt",
+        "cancel": "Cancel order",
+        "confirmCancel": "Confirm cancel",
+        "keep": "Keep order",
+        "cancelling": "Canceling…",
+        "cancelled": "Order canceled. You can create a new order.",
+        "partialNote": "Part of the payment was received, so it can't be canceled yet.",
+        "cancelFailed": "Could not cancel the order. Please try again."
+      },
+      "detailDialog": {
+        "title": "Order details",
+        "titleWithCode": "Order #{code} details",
+        "heading": "Order details · #{code}",
+        "description": "Order information and payment status.",
+        "state": "Status",
+        "note": "Need help with this order? Contact BuildX support and include order #{code}."
       },
       "tier": {
         "basic": "BASIC plan",
@@ -2401,8 +2442,8 @@
       },
       "status": {
         "paid": "Paid",
-        "pending": "Verifying",
-        "failed": "Failed",
+        "pending": "Awaiting payment",
+        "failed": "Payment failed",
         "refunded": "Refunded"
       },
       "receipt": "Receipt",
@@ -4031,8 +4072,7 @@
       "buildingTypes": "Building types",
       "scopes": "Construction scopes",
       "foundedYear": "Founded year",
-      "architectCount": "Architects",
-      "engineerCount": "Engineers",
+      "teamCount": "Architects & engineers",
       "surveyHours": "Survey within (hours)",
       "warrantyMonths": "Warranty (months)",
       "acceptingProjects": "Accepting projects",
@@ -6059,9 +6099,11 @@
       "similarSuffix": "completed",
       "distanceShort": "{km} km",
       "distanceSuffix": "from the site",
+      "distanceFromPlace": "from {place}",
       "surveyEarly": "Can survey early",
       "readyToStart": "Ready to start",
       "surveyLabel": "Can survey",
+      "surveyOnSite": "in person on site",
       "surveyHours": "within {hours}h",
       "acceptingLabel": "Accepting",
       "acceptingSuffix": "projects",
@@ -6540,6 +6582,7 @@
       },
       "introTitle": "About the company",
       "founded": "Founded in {year}",
+      "legalEntity": "Legal entity: {name}",
       "team": "{count} architects & engineers",
       "office": "Office in {address}",
       "serviceAreaCount": "{count} areas",
@@ -6632,8 +6675,8 @@
         "sortOldest": "Oldest",
         "filterLabel": "Filter by project type",
         "filters": {
-          "all": "All {count}",
-          "type": "{label} {count}"
+          "all": "All",
+          "type": "{label}"
         },
         "verifiedBadge": "Verified",
         "featuredBadge": "Featured",
@@ -6736,7 +6779,7 @@
         "warranty": "Warranty",
         "accepting": "Accepting projects"
       },
-      "legalVerified": "Verified",
+      "legalVerified": "Verified by BuildX",
       "select": "Select contractor",
       "selected": "Contractor selected",
       "footerHint": "Pick up to {max} of {total} contractors to invite",
@@ -7175,6 +7218,21 @@
       "submit": "Proceed to payment",
       "processing": "Creating order...",
       "readyHint": "You will be taken to the QR payment page.",
+      "pending": {
+        "title": "You have a design order waiting for payment",
+        "body": "Each account can have only one pending design order. Continue paying or cancel it before creating a new one.",
+        "partialBody": "BuildX has received part of the payment for this order, so it can't be canceled yet. Transfer the remaining amount or wait for it to expire.",
+        "plan": "Plan",
+        "amount": "Amount",
+        "received": "Received",
+        "expires": "Expires at {time}",
+        "continue": "Continue paying the current order",
+        "cancel": "Cancel current order",
+        "confirmCancel": "Confirm cancel",
+        "keep": "Keep order",
+        "cancelling": "Canceling…",
+        "cancelled": "The old order was canceled. You can pay for the new order now."
+      },
       "refund": "Full refund within {hours} hours if you have not used any credits.",
       "noCardNote": "BuildX never collects or stores your payment details.",
       "terms": "I have read and agree to the <terms>Terms of Use</terms> and <payment>Payment Policy</payment> of BuildX.",
@@ -7256,6 +7314,18 @@
       "reasonContent": "The transfer reference was wrong",
       "reasonIncomplete": "The transfer was not completed",
       "reasonBank": "The bank is processing slowly",
+      "causeTitle": "Cause",
+      "newOrder": "Create a new order",
+      "expired": {
+        "title": "This order has expired",
+        "subtitle": "The order ran out of payment time (15 minutes) and is no longer valid. You can create a new order.",
+        "cause": "Expired: the order was not fully paid within 15 minutes."
+      },
+      "canceled": {
+        "title": "This order was canceled",
+        "subtitle": "This order was canceled and no longer accepts payment. You can create a new order.",
+        "cause": "Canceled: the order was canceled before full payment arrived."
+      },
       "retry": "Try paying again",
       "support": "Contact support",
       "holdNote": "Order {code} stays on the system for {hours} hours."

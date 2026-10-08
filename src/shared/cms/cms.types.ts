@@ -956,6 +956,14 @@ export interface CmsTransaction {
   method: CmsTransactionMethod
   /** Đơn hàng sinh ra giao dịch này (`SVC-YYNNN`), nếu có. */
   orderId?: string
+  /**
+   * Trạng thái THẬT của đơn (`GET /payment-orders`). `status` phía dưới gộp "chờ thanh toán" và "nhận một phần
+   * tiền", gộp "hết hạn" và "đã hủy"; trường này giữ nguyên để lịch sử mua gói gọi đúng tên từng trạng thái.
+   * Giao dịch mock để trống.
+   */
+  orderState?: 'Pending' | 'PartiallyPaid' | 'Paid' | 'Expired' | 'Canceled'
+  /** Số tiền đơn đã ghi nhận (VND) — đơn nhận một phần tiền thì nhỏ hơn `amount`. */
+  receivedAmount?: number
   status: CmsTransactionStatus
   /** ISO datetime. */
   createdAt: string

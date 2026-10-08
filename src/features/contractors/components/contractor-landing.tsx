@@ -4,7 +4,6 @@ import Image from 'next/image'
 import {
   ArrowLeftRight,
   ArrowRight,
-  BadgeCheck,
   Building2,
   CalendarClock,
   ClipboardCheck,
@@ -900,12 +899,6 @@ export function ContractorLanding() {
                         {contractor.reviewCountKnown !== false
                           ? tCommon('reviewCount', { count: contractor.reviewCount })
                           : null}
-                      </span>
-                      <span className='flex items-center gap-1.5'>
-                        <BadgeCheck className='text-primary size-3.5 shrink-0' />
-                        {tCommon('similarProjects', {
-                          count: contractor.completedProjects ?? contractor.similarProjects
-                        })}
                       </span>
                     </span>
                   </div>

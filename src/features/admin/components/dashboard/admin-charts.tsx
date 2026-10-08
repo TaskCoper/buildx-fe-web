@@ -8,7 +8,7 @@ import { useState, type ReactNode } from 'react'
 import { useTheme } from 'next-themes'
 
 import type { Locale } from '@/i18n/routing'
-import { formatCurrency } from '@/shared/utils'
+import { formatCurrency, formatNumber } from '@/shared/utils'
 import { useAdminCollection } from '../../hooks/use-admin-data'
 
 const { Text } = Typography
@@ -171,7 +171,6 @@ export function AdminCharts() {
       .filter((row) => monthKey(new Date(row.createdAt)) === month.key)
       .reduce((sum, row) => sum + row.amount, 0)
   }))
-  const compact = new Intl.NumberFormat(locale, { notation: 'compact', maximumFractionDigits: 1 })
 
   /* --- Dự án thiết kế theo bước ----------------------------------------- */
   const projectRows = projects.data ?? []
@@ -230,7 +229,7 @@ export function AdminCharts() {
             style={columnStyle}
             axis={{
               ...axis,
-              y: { ...axis.y, labelFormatter: (value: number) => compact.format(value) }
+              y: { ...axis.y, labelFormatter: (value: number) => formatNumber(value, locale) }
             }}
             tooltip={{
               title: 'label',

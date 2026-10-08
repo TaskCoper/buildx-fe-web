@@ -64,7 +64,7 @@ import {
   type SurveyFormValues
 } from '../schemas/survey.schema'
 import { fullAddress } from '../services/brief.service'
-import { isNotAccepting, remainingInvites, withDistanceFrom } from '../services/contractor-list.service'
+import { remainingInvites, withDistanceFrom } from '../services/contractor-list.service'
 import { useContractorsStore } from '../store/contractors.store'
 import type { SurveyBooking } from '../types/contractor.types'
 import { ContractorLogo } from './contractor-logo'
@@ -124,9 +124,6 @@ export function SurveyScheduler({ projectId, contractorId }: SurveySchedulerProp
 
   const { data: brief, error: briefError } = useBrief(projectId)
   const { data: contractor, error: contractorError } = useContractor(contractorId)
-  // Vào thẳng đường dẫn mời một nhà thầu đã ngưng nhận dự án cũng không gửi được lời mời.
-  const tFirm = useTranslations('contractors.firm')
-  const stoppedAccepting = contractor ? isNotAccepting(contractor) : false
   const { data: invitations, limit, remaining, error: invitationError } = useInvitations(projectId)
   const send = useSendInvitations(projectId, {
     navigateDelayMs: reduceMotion ? 0 : 1200,
@@ -1048,7 +1045,6 @@ export function SurveyScheduler({ projectId, contractorId }: SurveySchedulerProp
                         setFlightOrigin({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 })
                       }}
                       disabled={
-                        stoppedAccepting ||
                         ((room <= 0 || invitations?.some((item) => item.contractorId === contractorId)) &&
                           !uncertain) ||
                         (real && (!brief?.constructionSiteId || Boolean(invitationError))) ||
@@ -1072,7 +1068,6 @@ export function SurveyScheduler({ projectId, contractorId }: SurveySchedulerProp
                     </Button>
                   </motion.span>
                 </div>
-                {stoppedAccepting ? <p className='text-destructive text-xs'>{tFirm('notAcceptingNotice')}</p> : null}
                 <p className='text-muted-foreground flex items-center gap-2 text-xs'>
                   <Lock className='size-3.5' />
                   {real ? rfq('privacy') : t('privacy')}

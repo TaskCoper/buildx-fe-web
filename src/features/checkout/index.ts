@@ -11,6 +11,6 @@ export { PaymentFailed } from './components/payment-failed'
 export { QrPayment } from './components/qr-payment'
 export { VerifyingTransfer } from './components/verifying-transfer'
 
-export { useOrder } from './hooks/use-checkout'
+export { useCancelOrderInPlace, useOrder } from './hooks/use-checkout'
 export { isApiOrderId } from './constants/checkout.constants'
 export type { OfferKey, Order, OrderKind, OrderStatus } from './types/checkout.types'

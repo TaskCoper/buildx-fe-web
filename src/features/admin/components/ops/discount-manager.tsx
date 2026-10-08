@@ -26,6 +26,7 @@ import { useMemo, useState } from 'react'
 import type { Locale } from '@/i18n/routing'
 import { discountUsage, normalizeDiscountCode, type CmsDiscountCode } from '@/shared/cms'
 import { formatCurrency } from '@/shared/utils'
+import { MoneyInput } from '../common/money-input'
 import { useAdminCollection, useSaveAdminItem } from '../../hooks/use-admin-data'
 import { newAdminId, todayKey } from '../../services/admin.service'
 import { ResourceManager } from '../common/resource-manager'
@@ -408,13 +409,12 @@ export function DiscountManager() {
                       label={t('discounts.value')}
                       rules={[{ required: true, message: t('fields.requiredMessage') }]}
                     >
-                      <InputNumber
-                        min={isPercent ? 0.01 : 1}
-                        max={isPercent ? 100 : 100_000_000}
-                        step={isPercent ? 1 : 50_000}
-                        suffix={isPercent ? '%' : '₫'}
-                        style={{ width: '100%' }}
-                      />
+                      {/* Phần trăm có thể lẻ nên giữ ô số thường; số tiền thì nhóm theo hàng nghìn (góp ý case 17). */}
+                      {isPercent ? (
+                        <InputNumber min={0.01} max={100} step={1} suffix='%' style={{ width: '100%' }} />
+                      ) : (
+                        <MoneyInput min={1} max={100_000_000} step={50_000} />
+                      )}
                     </Form.Item>
                   </Col>
                   {isPercent ? (
@@ -424,7 +424,7 @@ export function DiscountManager() {
                         label={t('discounts.maxDiscount')}
                         extra={t('discounts.emptyUnlimited')}
                       >
-                        <InputNumber min={1} step={50_000} suffix='₫' style={{ width: '100%' }} />
+                        <MoneyInput min={1} step={50_000} />
                       </Form.Item>
                     </Col>
                   ) : null}
@@ -440,7 +440,7 @@ export function DiscountManager() {
           <Row gutter={16}>
             <Col xs={24} sm={12}>
               <Form.Item name='minOrder' label={t('discounts.minOrder')} extra={t('discounts.emptyUnlimited')}>
-                <InputNumber min={1} step={100_000} suffix='₫' style={{ width: '100%' }} />
+                <MoneyInput min={1} step={100_000} />
               </Form.Item>
             </Col>
             <Col xs={24} sm={12}>

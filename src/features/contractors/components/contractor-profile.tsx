@@ -1,28 +1,19 @@
 'use client'
 
 import {
-  BadgeCheck,
-  Briefcase,
-  CalendarCheck,
+  Building2,
   CalendarDays,
   Check,
   ChevronLeft,
   ChevronRight,
   CircleCheck,
   Clock,
-  Download,
   Eye,
-  FileCheck2,
-  FileText,
   ImageIcon,
   Loader2,
-  Map as MapIcon,
   MapPin,
-  Maximize2,
-  Minus,
   Plus,
   Scale,
-  Search,
   Send,
   ShieldCheck,
   Star,
@@ -39,7 +30,6 @@ import type { Locale } from '@/i18n/routing'
 import { useCmsCollection } from '@/shared/cms'
 import { Photo, revealContainerVariants, revealEase, revealItemVariants, RevealPhoto } from '@/shared/components/common'
 import { Button } from '@/shared/components/ui/button'
-import { Checkbox } from '@/shared/components/ui/checkbox'
 import {
   Dialog,
   DialogClose,
@@ -50,9 +40,7 @@ import {
   DialogTitle
 } from '@/shared/components/ui/dialog'
 import { Skeleton } from '@/shared/components/ui/skeleton'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select'
 import { Tabs, TabsList, TabsTrigger } from '@/shared/components/ui/tabs'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/components/ui/tooltip'
 import {
   CONTRACTOR_PREVIEW_ID,
   contractorCompareRoute,
@@ -69,7 +57,7 @@ import { CONTRACTOR_TABS, MAX_INVITATIONS, type ContractorTab } from '../constan
 import { useBrief } from '../hooks/use-brief'
 import { useContractor, useContractorProject } from '../hooks/use-contractors'
 import { useInvitations } from '../hooks/use-invitations'
-import { isInvited, isNotAccepting, withDistanceFrom } from '../services/contractor-list.service'
+import { isInvited, withDistanceFrom } from '../services/contractor-list.service'
 import { useContractorsStore } from '../store/contractors.store'
 import type { Contractor, ContractorPhoto, ContractorProject } from '../types/contractor.types'
 import { MATCHES_LAST_VIEWED_KEY } from './contractor-matches'
@@ -154,7 +142,6 @@ function TabPanel({ direction, children }: { direction: number; children: React.
 function InviteButton({
   projectId,
   contractorId,
-  contractor,
   preview,
   invited,
   inviteLocked,
@@ -165,7 +152,6 @@ function InviteButton({
 }: {
   projectId: string
   contractorId: string
-  contractor: Contractor
   preview: boolean
   invited: boolean
   inviteLocked: boolean
@@ -179,15 +165,6 @@ function InviteButton({
 
   const { limit } = useInvitations(projectId)
   const rfq = useTranslations('contractors.rfq')
-
-  if (isNotAccepting(contractor)) {
-    return (
-      <Button size={size} className='w-full opacity-50' disabled title={tCommon('notAccepting')}>
-        <Send className='size-4' />
-        {tCommon('invite')}
-      </Button>
-    )
-  }
 
   if (preview) {
     return (
@@ -340,7 +317,6 @@ export function ContractorProfile({ projectId, contractorId, tab }: ContractorPr
     )
   }
 
-  const areas = contractor.serviceAreas.slice(0, 3).join(', ')
   // API chi tiết nhà thầu không trả khoảng cách (chỉ API danh sách kèm công trình mới trả), nên tự tính từ toạ độ
   // công trình của dự án tới trụ sở nhà thầu. Thiếu toạ độ một bên thì vẫn là "chưa tính", không đoán.
   const site = brief?.constructionSite
@@ -348,49 +324,33 @@ export function ContractorProfile({ projectId, contractorId, tab }: ContractorPr
     contractor,
     site ? { latitude: site.latitude, longitude: site.longitude } : undefined
   )
+  // Số km ghi kèm xã/phường của công trình ("từ Phường Tân An"); thiếu tên thì quay về "từ công trình".
+  const siteWard = (site?.wardName || brief?.address.wardName)?.trim()
 
-  /** Dải chỉ số trong thẻ nhận diện — xem thử chưa chọn dự án nên ẩn khoảng cách. */
+  /**
+   * Dải chỉ số trong thẻ nhận diện (góp ý case 20–21): bỏ số dự án và phạm vi phục vụ; khoảng cách chỉ hiện
+   * khi đã tính được — xem thử chưa chọn dự án nên cũng không có.
+   */
   const headerFacts = [
-    {
-      key: 'similar',
-      icon: CalendarCheck,
-      value: (
-        <CountedMetric
-          value={contractor.similarProjects}
-          format={(value) => tCommon('similarShort', { count: value })}
-        />
-      ),
-      hint: tCommon('similarSuffix')
-    },
-    {
-      key: 'distance',
-      icon: MapPin,
-      value:
-        withDistance.distanceKnown === false ? (
-          tCommon('distanceUnknown')
-        ) : (
-          <CountedMetric
-            value={Math.round(withDistance.distanceKm * 10)}
-            format={(value) =>
-              tCommon('distanceShort', {
-                km: formatNumber(value / 10, locale, { minimumFractionDigits: 1 })
-              })
-            }
-          />
-        ),
-      hint: tCommon('distanceSuffix')
-    },
-    {
-      key: 'areas',
-      icon: MapIcon,
-      value: (
-        <CountedMetric
-          value={contractor.serviceAreas.length}
-          format={(value) => t('serviceAreaCount', { count: value })}
-        />
-      ),
-      hint: areas
-    },
+    ...(withDistance.distanceKnown === false || preview
+      ? []
+      : [
+          {
+            key: 'distance',
+            icon: MapPin,
+            value: (
+              <CountedMetric
+                value={Math.round(withDistance.distanceKm * 10)}
+                format={(value) =>
+                  tCommon('distanceShort', {
+                    km: formatNumber(value / 10, locale, { minimumFractionDigits: 1 })
+                  })
+                }
+              />
+            ),
+            hint: siteWard ? tCommon('distanceFromPlace', { place: siteWard }) : tCommon('distanceSuffix')
+          }
+        ]),
     {
       key: 'survey',
       icon: Clock,
@@ -400,31 +360,17 @@ export function ContractorProfile({ projectId, contractorId, tab }: ContractorPr
           format={(value) => tCommon('surveyHours', { hours: value })}
         />
       ),
-      hint: tCommon('surveyLabel')
+      hint: tCommon('surveyOnSite')
     }
-  ].filter((fact) => fact.key !== 'distance' || !preview)
+  ]
 
-  /** Ba dòng "Thông tin hoạt động" ở cột phải — nhãn nhỏ ở trên, giá trị ở dưới. */
+  /** Dòng "Thông tin hoạt động" ở cột phải — nhãn nhỏ ở trên, giá trị ở dưới. Chỉ còn khảo sát. */
   const activityRows = [
     {
       key: 'survey',
       icon: Clock,
-      label: tCommon('surveyLabel'),
+      label: tCommon('surveyOnSite'),
       value: tCommon('surveyHours', { hours: contractor.surveyWithinHours })
-    },
-    {
-      key: 'accepting',
-      icon: Briefcase,
-      label: contractor.acceptingProjects ? tCommon('acceptingLabel') : tCommon('notAcceptingLabel'),
-      value: tCommon('acceptingSuffix')
-    },
-    // `value` chỉ in 3 nơi đầu cho gọn; `fullValue` là cả danh sách, hiện ở tooltip khi hover (dòng bị cắt "…").
-    {
-      key: 'areas',
-      icon: MapIcon,
-      label: tCommon('serviceAreas'),
-      value: areas,
-      fullValue: contractor.serviceAreas.join(', ')
     }
   ]
 
@@ -491,20 +437,6 @@ export function ContractorProfile({ projectId, contractorId, tab }: ContractorPr
                       </span>
                     ) : null}
                   </div>
-                  {/* Dấu xác minh đứng cùng hàng với loại nhà thầu, không rơi xuống hàng riêng khi tên dài. */}
-                  <p className='text-muted-foreground mt-1 flex min-w-0 items-center gap-1.5 text-sm whitespace-nowrap'>
-                    {contractor.verified ? (
-                      <motion.span
-                        initial={{ scale: 0, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        transition={{ type: 'spring', bounce: 0.6, duration: 0.4, delay: 0.3 }}
-                        className='flex shrink-0'
-                      >
-                        <BadgeCheck className='text-primary size-4 shrink-0 animate-[firm-check-draw_.5s_ease-out_backwards] overflow-visible motion-reduce:animate-none' />
-                      </motion.span>
-                    ) : null}
-                    <span className='truncate'>{contractor.kind}</span>
-                  </p>
                 </div>
 
                 <motion.div
@@ -559,7 +491,6 @@ export function ContractorProfile({ projectId, contractorId, tab }: ContractorPr
                     <InviteButton
                       projectId={projectId}
                       contractorId={contractorId}
-                      contractor={contractor}
                       preview={preview}
                       invited={invited}
                       inviteLocked={inviteLocked}
@@ -571,23 +502,12 @@ export function ContractorProfile({ projectId, contractorId, tab }: ContractorPr
                   }
                 />
               ) : null}
-              {tab === 'legal' ? (
-                <div className='px-4 pt-4 pb-5 sm:px-5 sm:pt-5 sm:pb-6'>
-                  <LegalChecks contractor={contractor} detailed />
-                </div>
-              ) : null}
             </motion.div>
 
             <motion.div layout className='overflow-hidden' transition={{ duration: 0.3, ease: revealEase }}>
               <AnimatePresence mode='wait'>
                 <TabPanel key={tab} direction={tabDirection}>
-                  {tab === 'overview' ? (
-                    <>
-                      <IntroCard contractor={contractor} onOpenPhoto={setActivePhotoIndex} />
-                      <LegalChecks contractor={contractor} />
-                    </>
-                  ) : null}
-                  {tab === 'partnership' ? <PartnershipTab contractor={contractor} /> : null}
+                  {tab === 'overview' ? <IntroCard contractor={contractor} onOpenPhoto={setActivePhotoIndex} /> : null}
                 </TabPanel>
               </AnimatePresence>
             </motion.div>
@@ -614,34 +534,14 @@ export function ContractorProfile({ projectId, contractorId, tab }: ContractorPr
                 <motion.li
                   variants={revealItemVariants}
                   key={row.key}
-                  className={cn(
-                    'flex items-center gap-3 rounded-xl border px-3 py-2.5',
-                    row.key === 'accepting' && !contractor.acceptingProjects && 'bg-muted/60 text-muted-foreground'
-                  )}
+                  className='flex items-center gap-3 rounded-xl border px-3 py-2.5'
                 >
-                  <row.icon
-                    aria-hidden
-                    className={cn(
-                      'text-primary size-4 shrink-0',
-                      row.key === 'accepting' && !contractor.acceptingProjects && 'text-muted-foreground'
-                    )}
-                  />
+                  <row.icon aria-hidden className='text-primary size-4 shrink-0' />
                   <div className='min-w-0'>
-                    <p className='text-muted-foreground max-md:text-xs text-[11px] leading-tight'>{row.label}</p>
-                    {'fullValue' in row && row.fullValue ? (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <p className='mt-0.5 truncate text-sm font-semibold' tabIndex={0}>
-                            {row.value}
-                          </p>
-                        </TooltipTrigger>
-                        <TooltipContent side='top' className='max-w-xs'>
-                          {row.fullValue}
-                        </TooltipContent>
-                      </Tooltip>
-                    ) : (
-                      <p className='mt-0.5 truncate text-sm font-semibold'>{row.value}</p>
-                    )}
+                    <p className='text-muted-foreground max-md:text-xs text-[11px] leading-tight first-letter:uppercase'>
+                      {row.label}
+                    </p>
+                    <p className='mt-0.5 truncate text-sm font-semibold'>{row.value}</p>
                   </div>
                 </motion.li>
               ))}
@@ -653,13 +553,12 @@ export function ContractorProfile({ projectId, contractorId, tab }: ContractorPr
                 nút mờ + dẫn hướng sang nhà thầu khác (mục 10). */}
             <motion.div
               className='h-11 [&>*]:h-11'
-              animate={{ scale: inviteBreathe && contractor.acceptingProjects ? [1, 1.02, 1] : 1 }}
+              animate={{ scale: inviteBreathe ? [1, 1.02, 1] : 1 }}
               transition={{ duration: 0.5 }}
             >
               <InviteButton
                 projectId={projectId}
                 contractorId={contractorId}
-                contractor={contractor}
                 preview={preview}
                 invited={invited}
                 inviteLocked={inviteLocked}
@@ -668,15 +567,6 @@ export function ContractorProfile({ projectId, contractorId, tab }: ContractorPr
                 onOpenPicker={openPicker}
               />
             </motion.div>
-            {!contractor.acceptingProjects ? (
-              <>
-                <p className='text-muted-foreground text-xs text-pretty'>{t('notAcceptingNotice')}</p>
-                <Button asChild variant='outline' className='h-11 w-full'>
-                  <Link href={contractorMatchesRoute(projectId)}>{t('viewSimilar')}</Link>
-                </Button>
-              </>
-            ) : null}
-
             <Button
               ref={compareButtonRef}
               variant='outline'
@@ -747,7 +637,11 @@ export function ContractorProfile({ projectId, contractorId, tab }: ContractorPr
 function IntroCard({ contractor, onOpenPhoto }: { contractor: Contractor; onOpenPhoto: (index: number) => void }) {
   const t = useTranslations('contractors.firm')
 
+  // Tên pháp nhân (góp ý case 22) — API chi tiết trả `legal.legalName`; dữ liệu mock lấy ở `legalProfile`.
+  const legalName = (contractor.legalName ?? contractor.legalProfile?.legalName)?.trim()
+
   const facts = [
+    ...(legalName ? [{ key: 'legalName', icon: Building2, text: t('legalEntity', { name: legalName }) }] : []),
     { key: 'founded', icon: CalendarDays, text: t('founded', { year: contractor.foundedYear }) },
     { key: 'team', icon: Users, text: t('team', { count: contractor.teamSize }) },
     { key: 'office', icon: MapPin, text: t('office', { address: contractor.officeAddress }) }
@@ -830,16 +724,18 @@ function IntroCard({ contractor, onOpenPhoto }: { contractor: Contractor; onOpen
           variants={revealContainerVariants}
           initial='hidden'
           animate='show'
-          className='grid min-h-52 min-w-0 gap-[1.8%] sm:grid-cols-[58.6%_minmax(0,1fr)]'
+          className='grid min-w-0 gap-2 sm:min-h-80 sm:grid-cols-[58.6%_minmax(0,1fr)] sm:gap-[1.8%]'
         >
-          <CollagePhoto photo={lead} index={0} onOpen={() => onOpenPhoto(0)} />
+          {/* Ô lớn (ảnh bìa) cần chiều cao riêng khi bố cục xếp một cột: ảnh `fill` không tự tạo chiều cao nên
+              trước đây ô này co về 0 trên mobile và mất ảnh bìa (góp ý case 26). Từ `sm` ô giãn theo cột phải. */}
+          <CollagePhoto photo={lead} index={0} className='aspect-4/3 sm:aspect-auto' onOpen={() => onOpenPhoto(0)} />
           <div className='flex flex-col gap-2'>
             {rest.slice(0, 2).map((photo, index) => (
               <CollagePhoto
                 key={photo.url ?? index}
                 photo={photo}
                 index={index + 1}
-                className='min-h-24 flex-1'
+                className='aspect-4/3 sm:aspect-auto sm:min-h-36 sm:flex-1'
                 onOpen={() => onOpenPhoto(index + 1)}
               />
             ))}
@@ -909,7 +805,14 @@ function CollagePhoto({
       {/* `alt` để trống: chú thích ngay bên dưới đã mô tả ảnh, đặt cả hai thì
           trình đọc màn hình đọc trùng hai lần. `RevealPhoto` đã tự lo hiện
           mờ→nét lúc tải và phóng nhẹ khi rê (mục 6). */}
-      <RevealPhoto src={photo.url} alt='' className='size-full' sizes='(max-width: 768px) 100vw, 360px' />
+      <RevealPhoto
+        src={photo.url}
+        alt=''
+        className='size-full'
+        // Hiện trọn ảnh, không cắt (góp ý case 26).
+        imageClassName='object-contain'
+        sizes='(max-width: 768px) 100vw, 360px'
+      />
       {/* Lớp tối + biểu tượng xem khi rê (mục 6). */}
       <span className='absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-[background-color,opacity] duration-200 group-hover:bg-black/30 group-hover:opacity-100'>
         <Eye className='size-6 text-white' />
@@ -1045,9 +948,7 @@ function FeaturedProjects({ contractor, inviteAction }: { contractor: Contractor
   const reduceMotion = useReducedMotion()
   const { typeLabel, scopeLabel, scaleOf } = useProjectLabels(contractor.featuredProjects)
   const [selectedProject, setSelectedProject] = useState<ContractorProject | null>(null)
-  const [verifiedOnly, setVerifiedOnly] = useState(false)
   const [typeFilter, setTypeFilter] = useState<string>('all')
-  const [projectSort, setProjectSort] = useState<'latest' | 'oldest'>('latest')
   const [showAllProjects, setShowAllProjects] = useState(false)
   // Mở dự án → nạp chi tiết từ `GET /contractors/{id}/projects/{projectId}` rồi phủ lên dữ liệu thẻ
   // (field API có thì lấy, không có thì giữ). Dự án mock không có gì để nạp nên hook trả `null`.
@@ -1056,26 +957,22 @@ function FeaturedProjects({ contractor, inviteAction }: { contractor: Contractor
     ? mergeProjectDetail(selectedProject, projectDetail, (count) => t('projects.detail.floors', { count }))
     : null
   const allProjects = contractor.featuredProjects
+  // Mới nhất lên trước. Thanh "N dự án · xác minh" cùng ô lọc đã xác minh và ô sắp xếp đã bỏ (góp ý case 24).
   const projects = [...allProjects]
-    .filter((project) => !verifiedOnly || project.verified)
     .filter((project) => typeFilter === 'all' || project.buildingTypeId === typeFilter)
-    .sort((left, right) => (projectSort === 'latest' ? right.year - left.year : left.year - right.year))
+    .sort((left, right) => right.year - left.year)
 
-  const typeCounts = new Map<string, number>()
-  for (const project of allProjects) {
-    if (project.buildingTypeId)
-      typeCounts.set(project.buildingTypeId, (typeCounts.get(project.buildingTypeId) ?? 0) + 1)
-  }
+  // Chip lọc chỉ ghi tên loại công trình, không kèm số lượng (góp ý case 24).
+  const typeKeys = [
+    ...new Set(allProjects.map((project) => project.buildingTypeId).filter((id): id is string => Boolean(id)))
+  ]
   const projectFilters = [
-    { key: 'all', label: t('projects.filters.all', { count: allProjects.length }) },
-    ...[...typeCounts].map(([key, count]) => ({
-      key,
-      label: t('projects.filters.type', { label: typeLabel(key), count })
-    }))
+    { key: 'all', label: t('projects.filters.all') },
+    ...typeKeys.map((key) => ({ key, label: t('projects.filters.type', { label: typeLabel(key) }) }))
   ]
   const visibleProjects = showAllProjects ? projects : projects.slice(0, 6)
   const moreCount = Math.max(0, projects.length - visibleProjects.length)
-  const resultsKey = `${verifiedOnly}-${typeFilter}-${projectSort}`
+  const resultsKey = typeFilter
 
   return (
     <>
@@ -1085,37 +982,7 @@ function FeaturedProjects({ contractor, inviteAction }: { contractor: Contractor
         transition={{ duration: reduceMotion ? 0 : 0.32, ease: revealEase }}
         className='border-t px-4 py-5 sm:px-5 sm:py-6'
       >
-        <div className='flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between'>
-          <p className='text-sm'>
-            <strong className='font-semibold'>{t('projects.projectCount', { count: allProjects.length })}</strong>
-            <span className='text-muted-foreground'>
-              {' '}
-              · {t('projects.verifiedSummary', { count: allProjects.filter((project) => project.verified).length })}
-            </span>
-          </p>
-
-          <div className='flex flex-wrap items-center gap-3'>
-            <label className='hover:bg-muted/40 flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors'>
-              <Checkbox
-                checked={verifiedOnly}
-                onCheckedChange={(checked) => setVerifiedOnly(checked === true)}
-                aria-label={t('projects.verifiedOnly')}
-              />
-              <span>{t('projects.verifiedOnly')}</span>
-            </label>
-            <Select value={projectSort} onValueChange={(value) => setProjectSort(value as 'latest' | 'oldest')}>
-              <SelectTrigger className='w-36' aria-label={t('projects.sortLabel')}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value='latest'>{t('projects.sortLatest')}</SelectItem>
-                <SelectItem value='oldest'>{t('projects.sortOldest')}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        <div className='mt-4 flex gap-2 overflow-x-auto pb-1' role='group' aria-label={t('projects.filterLabel')}>
+        <div className='flex gap-2 overflow-x-auto pb-1' role='group' aria-label={t('projects.filterLabel')}>
           {projectFilters.map((item) => (
             <button
               key={item.key}
@@ -1215,9 +1082,6 @@ function FeaturedProjects({ contractor, inviteAction }: { contractor: Contractor
                         ) : null}
                         {scaleOf(project) ? <span className='border-l px-2'>{scaleOf(project)}</span> : null}
                       </div>
-                      <p className='text-muted-foreground mt-2 text-xs'>
-                        {t('projects.completed', { year: project.year })}
-                      </p>
                       {project.location ? (
                         <p className='text-muted-foreground mt-2 flex items-start gap-1.5 text-xs'>
                           <MapPin className='mt-0.5 size-3.5 shrink-0' />
@@ -1323,10 +1187,8 @@ function ProjectDetailModal({
     setActiveIndex(0)
   }
 
-  const { typeLabel, scopeLabel, scaleOf } = useProjectLabels(project ? [project] : [])
+  const { typeLabel, scaleOf } = useProjectLabels(project ? [project] : [])
   const projectType = project?.buildingTypeId ? typeLabel(project.buildingTypeId) : t('notUpdated')
-  const constructionScope = project ? scopeLabel(project) : t('notUpdated')
-  const contractorRole = project?.contractorRole ? t(`roles.${project.contractorRole}`) : t('roles.contractor')
   const dimensions = [
     project?.dimensions,
     project?.areaM2 ? t('area', { area: project.areaM2 }) : null,
@@ -1396,6 +1258,8 @@ function ProjectDetailModal({
                           src={activeImage}
                           alt={t('imageAlt', { project: project.name, index: safeIndex + 1 })}
                           className='size-full'
+                          // Ảnh đang chọn hiện trọn khung, không cắt (góp ý case 25).
+                          imageClassName='object-contain'
                           sizes='(max-width: 1024px) 92vw, 560px'
                         />
                       </motion.div>
@@ -1478,7 +1342,6 @@ function ProjectDetailModal({
                 <div className='min-h-0 flex-1 px-5 py-4 lg:overflow-y-auto'>
                   <div className='flex flex-wrap gap-2'>
                     <span className='bg-muted rounded-md px-2.5 py-1 text-xs'>{projectType}</span>
-                    <span className='bg-muted rounded-md px-2.5 py-1 text-xs'>{constructionScope}</span>
                     {project.verified ? (
                       <span className='bg-primary/10 text-primary-strong inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium'>
                         <CircleCheck className='size-3.5' />
@@ -1501,16 +1364,10 @@ function ProjectDetailModal({
                       <dd className='font-medium'>{projectType}</dd>
                       <dt className='text-muted-foreground'>{t('scale')}</dt>
                       <dd className='font-medium'>{dimensions || t('notUpdated')}</dd>
-                      <dt className='text-muted-foreground'>{t('constructionScope')}</dt>
-                      <dd className='font-medium'>{constructionScope}</dd>
-                      <dt className='text-muted-foreground'>{t('role')}</dt>
-                      <dd className='font-medium'>{contractorRole}</dd>
                       <dt className='text-muted-foreground'>{t('constructionPeriod')}</dt>
                       <dd className='font-medium'>{constructionPeriod}</dd>
                       <dt className='text-muted-foreground'>{t('location')}</dt>
                       <dd className='font-medium'>{project.location ?? t('notUpdated')}</dd>
-                      <dt className='text-muted-foreground'>{t('mainItems')}</dt>
-                      <dd className='font-medium text-pretty'>{project.mainItems ?? t('mainItemsFallback')}</dd>
                     </dl>
                   </motion.section>
 
@@ -1538,23 +1395,8 @@ function ProjectDetailModal({
               </div>
             </div>
 
-            {/* `sm:justify-between` để đè `sm:justify-end` mặc định của DialogFooter
-                — nếu không, ở desktop cả nhận diện lẫn hai nút bị dồn về bên phải,
-                nửa trái trống. Cần dàn hai mép: nhận diện trái, nút phải. */}
-            <DialogFooter className='flex-row items-center justify-between gap-3 border-t bg-background px-5 py-3 sm:justify-between'>
-              {/* Nhận diện nhà thầu ở đầu thanh (bên trái): logo + tên + dòng nhỏ
-                  loại hình (`contractor.kind` = "Nhà thầu xây dựng"). Tên co lại
-                  khi hẹp để không đẩy hai nút ra ngoài. */}
-              <div className='flex min-w-0 items-center gap-2.5'>
-                <ContractorLogo
-                  contractor={contractor}
-                  className='size-9 shrink-0 rounded-lg max-md:text-xs text-[10px]'
-                />
-                <div className='min-w-0'>
-                  <p className='truncate text-sm font-semibold'>{contractor.name}</p>
-                  <p className='text-muted-foreground truncate text-xs'>{contractor.kind}</p>
-                </div>
-              </div>
+            {/* Chân popup chỉ còn hai nút, dồn về bên phải. Khối nhận diện nhà thầu (logo + tên) đã bỏ theo góp ý case 25. */}
+            <DialogFooter className='flex-row items-center justify-end gap-3 border-t bg-background px-5 py-3'>
               <div className='flex shrink-0 items-center gap-2'>
                 <DialogClose asChild>
                   <Button type='button' variant='outline' size='sm' className='hover:bg-muted/80'>
@@ -1572,316 +1414,5 @@ function ProjectDetailModal({
         ) : null}
       </DialogContent>
     </Dialog>
-  )
-}
-
-/** Khối "Năng lực & xác minh" — bốn mục đã được SAVICO đối chiếu. */
-function LegalChecks({ contractor, detailed = false }: { contractor: Contractor; detailed?: boolean }) {
-  const t = useTranslations('contractors.firm')
-  const tLegal = useTranslations('contractors.firm.legal')
-  const locale = useLocale() as Locale
-  const reduceMotion = useReducedMotion()
-  const [hasEnteredViewport, setHasEnteredViewport] = useState(false)
-  const checks = [...contractor.legalChecks]
-  const fallbackChecks = [
-    t('team', { count: contractor.teamSize }),
-    t('warranty', { months: contractor.warrantyMonths })
-  ]
-
-  for (const fallback of fallbackChecks) {
-    if (checks.length >= 4) break
-    if (!checks.includes(fallback)) checks.push(fallback)
-  }
-
-  if (detailed) {
-    const legal = contractor.legalProfile
-    const verified = legal?.registrationStatus !== 'pending'
-    const rows = [
-      { key: 'legalName', label: tLegal('fields.legalName'), value: legal?.legalName ?? contractor.name },
-      {
-        key: 'taxCode',
-        label: tLegal('fields.taxCode'),
-        value: (
-          <span className='inline-flex flex-wrap items-baseline gap-x-2 gap-y-0.5'>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className='decoration-primary/45 cursor-help underline decoration-dotted underline-offset-4'>
-                  {legal?.taxCodeMasked ?? tLegal('updating')}
-                </span>
-              </TooltipTrigger>
-              <TooltipContent side='top' sideOffset={7} className='max-w-64'>
-                {tLegal('fields.taxCodeHint')}
-              </TooltipContent>
-            </Tooltip>
-            <span className='text-muted-foreground max-md:text-xs text-[11px] font-normal'>
-              {tLegal('fields.taxCodeHint')}
-            </span>
-          </span>
-        )
-      },
-      {
-        key: 'establishedAt',
-        label: tLegal('fields.establishedAt'),
-        value: legal
-          ? tLegal('establishedValue', {
-              date: formatDisplayDate(legal.establishedAt, locale),
-              years: legal.operationYears
-            })
-          : tLegal('updating')
-      },
-      {
-        key: 'representative',
-        label: tLegal('fields.representative'),
-        value: legal ? `${legal.representative} · ${legal.representativeTitle}` : tLegal('updating')
-      },
-      {
-        key: 'address',
-        label: tLegal('fields.registeredAddress'),
-        value: legal?.registeredAddress ?? contractor.officeAddress
-      },
-      { key: 'business', label: tLegal('fields.primaryBusiness'), value: legal?.primaryBusiness ?? contractor.kind },
-      {
-        key: 'workforce',
-        label: tLegal('fields.capacity'),
-        value: legal?.workforce ?? t('team', { count: contractor.teamSize })
-      }
-    ]
-
-    return (
-      <div className='space-y-5'>
-        <motion.section
-          initial={reduceMotion ? false : { opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: reduceMotion ? 0 : 0.32, delay: reduceMotion ? 0 : 0.1, ease: revealEase }}
-        >
-          <div className='mb-3 flex flex-wrap items-center gap-2'>
-            <h2 className='text-base font-semibold'>{tLegal('identity.title')}</h2>
-            <span className='bg-primary/10 text-primary-strong inline-flex items-center gap-1 rounded-md px-2 py-1 max-md:text-xs text-[11px] font-medium'>
-              <CircleCheck className='size-3.5' />
-              {verified ? tLegal('identity.active') : tLegal('identity.pending')}
-            </span>
-          </div>
-          <dl className='bg-card grid gap-x-6 gap-y-3 rounded-2xl border p-4 text-sm sm:grid-cols-[8.5rem_minmax(0,1fr)] sm:p-5'>
-            {rows.map((row) => (
-              <div key={row.key} className='contents'>
-                <dt className='text-muted-foreground text-xs sm:py-0.5'>{row.label}</dt>
-                <dd className='font-medium text-pretty'>{row.value}</dd>
-              </div>
-            ))}
-          </dl>
-        </motion.section>
-
-        <motion.section
-          initial={reduceMotion ? false : { opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: reduceMotion ? 0 : 0.32, delay: reduceMotion ? 0 : 0.2, ease: revealEase }}
-        >
-          <div className='mb-3 flex flex-wrap items-center gap-2'>
-            <h2 className='text-base font-semibold'>{tLegal('license.title')}</h2>
-            <span className='bg-primary/10 text-primary-strong inline-flex items-center gap-1 rounded-md px-2 py-1 max-md:text-xs text-[11px] font-medium'>
-              <CircleCheck className='size-3.5' />
-              {verified ? tLegal('license.verified') : tLegal('identity.pending')}
-            </span>
-          </div>
-          <div className='bg-card hover:bg-primary/[0.035] flex flex-col gap-4 rounded-2xl border p-4 transition-colors duration-200 sm:flex-row sm:items-center'>
-            <div className='bg-primary/10 text-primary flex size-10 shrink-0 items-center justify-center rounded-lg'>
-              <FileText className='size-5' />
-            </div>
-            <div className='min-w-0 flex-1'>
-              <h3 className='text-sm font-semibold'>{tLegal('license.documentTitle')}</h3>
-              <p className='text-muted-foreground mt-1 text-xs leading-relaxed'>
-                <span className='block'>{tLegal('license.documentMatch')}</span>
-                <span className='block'>{tLegal('license.issuer')}</span>
-              </p>
-            </div>
-            <dl className='grid shrink-0 grid-cols-2 gap-x-8 text-xs sm:min-w-64'>
-              <div>
-                <dt className='text-muted-foreground'>{tLegal('license.number')}</dt>
-                <dd className='mt-1 font-medium'>{legal?.registrationNumberMasked ?? tLegal('updating')}</dd>
-              </div>
-              <div>
-                <dt className='text-muted-foreground'>{tLegal('license.issuedAt')}</dt>
-                <dd className='mt-1 font-medium whitespace-nowrap'>
-                  {legal
-                    ? tLegal('license.effectiveValue', {
-                        date: formatDisplayDate(legal.registrationIssuedAt, locale)
-                      })
-                    : tLegal('updating')}
-                </dd>
-              </div>
-            </dl>
-          </div>
-        </motion.section>
-      </div>
-    )
-  }
-
-  return (
-    <motion.section
-      variants={revealItemVariants}
-      initial='hidden'
-      whileInView='show'
-      viewport={{ once: true, amount: 0.3 }}
-      onViewportEnter={() => setHasEnteredViewport(true)}
-      className='bg-card rounded-2xl border p-4'
-    >
-      <h2 className='text-base font-semibold'>{t('legalTitle')}</h2>
-      <motion.ul
-        variants={revealContainerVariants}
-        className='mt-3 grid gap-x-[3%] gap-y-3 sm:grid-cols-2 lg:grid-cols-4'
-      >
-        {checks.map((check, index) => (
-          <motion.li
-            variants={revealItemVariants}
-            key={check}
-            transition={{ type: 'spring', bounce: 0.5, duration: 0.4 }}
-            className='flex items-start gap-2.5 text-sm'
-          >
-            <DrawnCircleCheck className='mt-0.5' delay={index * 0.12} active={hasEnteredViewport} />
-            <span className='text-muted-foreground text-pretty'>{check}</span>
-          </motion.li>
-        ))}
-      </motion.ul>
-    </motion.section>
-  )
-}
-
-/**
- * Tab Hợp tác SAVICO (S14).
- *
- * Hình S14 vẽ một khung xem tài liệu đầy đủ: dải thumbnail từng trang bên
- * trái, khung trang ở giữa với thanh công cụ (số trang, thu/phóng, toàn màn
- * hình) ở đáy, cột siêu dữ liệu bên phải. Tỉ lệ ba cột 10,3% / 57,8% / 27,9%
- * đo từ ảnh đó.
- *
- * CHỖ CHỜ ASSET: bản scan thật do đội vận hành tải lên (`partnership.scanUrl`).
- * Chưa có thì khung xem và dải thumbnail để NÉT ĐỨT, thanh công cụ và hai nút
- * thao tác khóa lại — dựng khung sẵn để khi có tệp là hiện, chứ không vẽ một
- * trang hợp đồng giả cho đẹp ảnh chụp màn hình.
- *
- * Lưu ý nội dung: hợp đồng nguyên bản có chữ ký và con dấu của hai pháp nhân,
- * nên thứ hiển thị ở đây phải là bản ĐÃ CHE các nội dung bảo mật.
- */
-function PartnershipTab({ contractor }: { contractor: Contractor }) {
-  const t = useTranslations('contractors.firm.partnership')
-  const locale = useLocale() as Locale
-  const { partnership } = contractor
-
-  const hasScan = Boolean(partnership.scanUrl)
-  const pages = Array.from({ length: partnership.pageCount }, (_, index) => index + 1)
-
-  const rows = [
-    { key: 'code', icon: FileText, label: t('code'), value: partnership.contractCode },
-    {
-      key: 'signedAt',
-      icon: CalendarDays,
-      label: t('signedAt'),
-      // Nhà thầu chưa ký hợp tác thì ngày ký rỗng — `Intl` ném RangeError nếu định dạng.
-      value: partnership.signedAt ? formatDisplayDate(partnership.signedAt, locale) : '—'
-    },
-    { key: 'pages', icon: FileText, label: t('pages'), value: String(partnership.pageCount) },
-    { key: 'state', icon: CircleCheck, label: t('state'), value: t('stateVerified'), highlight: true }
-  ]
-
-  return (
-    <div className='space-y-5'>
-      <section className='bg-card rounded-2xl border p-4'>
-        <h3 className='text-base font-semibold'>{t('scanTitle')}</h3>
-
-        <div className='mt-3 grid gap-x-[2%] gap-y-4 lg:grid-cols-[10.3%_57.8%_minmax(0,1fr)]'>
-          {/* Dải thumbnail: ô trang bên trái, số trang bên phải. */}
-          <ol className='bg-muted/40 flex gap-2 overflow-x-auto rounded-xl p-2 lg:flex-col lg:self-start lg:overflow-x-visible'>
-            {pages.map((page) => (
-              <li key={page} className='flex shrink-0 items-center gap-2 lg:shrink'>
-                <button
-                  type='button'
-                  disabled={!hasScan}
-                  aria-label={t('goToPage', { page })}
-                  className={cn(
-                    'bg-card aspect-3/4 w-12 rounded-md border lg:w-[57%]',
-                    page === 1 ? 'border-primary' : 'border-dashed',
-                    hasScan ? 'hover:border-primary' : 'cursor-default'
-                  )}
-                />
-                <span className='text-muted-foreground text-xs'>{page}</span>
-              </li>
-            ))}
-          </ol>
-
-          {/* Khung xem: vùng trang + thanh công cụ dưới đáy. */}
-          <div className='bg-muted/40 flex aspect-315/268 min-h-64 flex-col overflow-hidden rounded-xl'>
-            <div className='flex min-h-0 flex-1 items-center justify-center p-4'>
-              <div className='bg-card flex aspect-3/4 h-full max-w-full flex-col items-center justify-center gap-2 rounded-md border border-dashed p-6 text-center'>
-                <FileCheck2 className='text-muted-foreground/60 size-9' strokeWidth={1.25} />
-                <p className='text-muted-foreground max-w-xs text-xs text-pretty'>
-                  {hasScan ? t('privacyNote') : t('unavailable')}
-                </p>
-              </div>
-            </div>
-
-            <div className='text-muted-foreground flex items-center justify-between gap-3 border-t px-3 py-2 text-xs'>
-              <span>{t('page', { current: 1, total: partnership.pageCount })}</span>
-              <div className='flex items-center gap-1'>
-                <ViewerControl icon={Minus} label={t('zoomOut')} disabled={!hasScan} />
-                <ViewerControl icon={Search} label={t('zoomFit')} disabled={!hasScan} />
-                <ViewerControl icon={Plus} label={t('zoomIn')} disabled={!hasScan} />
-                <ViewerControl icon={Maximize2} label={t('fullscreen')} disabled={!hasScan} />
-              </div>
-            </div>
-          </div>
-
-          {/* Cột siêu dữ liệu đã xác minh. */}
-          <div className='min-w-0'>
-            <p className='text-muted-foreground text-sm'>{t('agreement')}</p>
-            <p className='mt-1 text-base font-semibold text-pretty'>{t('parties', { name: contractor.name })}</p>
-
-            <dl className='mt-4 space-y-3 text-sm'>
-              {rows.map((row) => (
-                <div key={row.key} className='flex items-center gap-3'>
-                  <dt className='text-muted-foreground flex min-w-0 flex-1 items-center gap-2'>
-                    <row.icon
-                      aria-hidden
-                      className={cn('size-4 shrink-0', row.highlight ? 'text-primary' : 'text-muted-foreground')}
-                    />
-                    <span className='truncate'>{row.label}</span>
-                  </dt>
-                  <dd className={cn('shrink-0 font-medium', row.highlight && 'text-primary-strong')}>{row.value}</dd>
-                </div>
-              ))}
-            </dl>
-
-            <div className='mt-4 space-y-2.5'>
-              <Button className='h-11 w-full' disabled={!hasScan}>
-                <Maximize2 className='size-4' />
-                {t('fullscreen')}
-              </Button>
-              <Button
-                variant='outline'
-                className='border-primary/50 text-primary-strong h-11 w-full'
-                disabled={!hasScan}
-              >
-                <Download className='size-4' />
-                {t('download')}
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
-  )
-}
-
-/** Một nút nhỏ trên thanh công cụ của khung xem. */
-function ViewerControl({ icon: Icon, label, disabled }: { icon: typeof Plus; label: string; disabled: boolean }) {
-  return (
-    <button
-      type='button'
-      disabled={disabled}
-      aria-label={label}
-      title={label}
-      className='hover:bg-card flex size-7 items-center justify-center rounded-md disabled:pointer-events-none disabled:opacity-50'
-    >
-      <Icon className='size-3.5' />
-    </button>
   )
 }

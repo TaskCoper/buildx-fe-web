@@ -1,12 +1,13 @@
 'use client'
 
 import { SwapOutlined } from '@ant-design/icons'
-import { App, Descriptions, Form, Input, InputNumber, Select, Tag, Typography } from 'antd'
+import { App, Descriptions, Form, Input, Select, Tag, Typography } from 'antd'
 import { useLocale, useTranslations } from 'next-intl'
 
 import type { Locale } from '@/i18n/routing'
 import type { CmsGift } from '@/shared/cms'
 import { formatCurrency } from '@/shared/utils'
+import { MoneyInput } from '../common/money-input'
 import { useAdminCollection, useSaveAdminItem } from '../../hooks/use-admin-data'
 import { newAdminId } from '../../services/admin.service'
 import { ImageUrlField } from '../common/field-kit'
@@ -221,7 +222,7 @@ export function GiftManager() {
             label={t('gifts.value')}
             rules={[{ required: true, type: 'integer', min: 1, message: t('gifts.valueRule') }]}
           >
-            <InputNumber min={1} precision={0} step={1_000_000} suffix='₫' style={{ width: '100%' }} />
+            <MoneyInput min={1} step={1_000_000} />
           </Form.Item>
           <ImageUrlField name='imageUrl' label={t('gifts.image')} required />
           <Form.Item

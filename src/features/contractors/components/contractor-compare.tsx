@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowRight, BadgeCheck, Check, Circle, CircleCheck, FileText, Info, Minus, Star, X } from 'lucide-react'
+import { ArrowRight, BadgeCheck, Check, Circle, FileText, Info, Star, X } from 'lucide-react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { useLocale, useTranslations } from 'next-intl'
 import { useEffect, useRef, useState } from 'react'
@@ -21,7 +21,7 @@ import { COMPARE_CRITERIA, MAX_INVITATIONS, MIN_COMPARE } from '../constants/con
 import { useBrief } from '../hooks/use-brief'
 import { useContractors } from '../hooks/use-contractors'
 import { useInvitations } from '../hooks/use-invitations'
-import { isInvited, isNotAccepting } from '../services/contractor-list.service'
+import { isInvited } from '../services/contractor-list.service'
 import { useContractorsStore } from '../store/contractors.store'
 import type { Contractor } from '../types/contractor.types'
 import { ContractorLogo } from './contractor-logo'
@@ -135,9 +135,6 @@ export function ContractorCompare({ projectId }: ContractorCompareProps) {
     setPicked((current) => {
       if (current.includes(contractorId)) return current.filter((id) => id !== contractorId)
       if (isInvited(invitations ?? [], contractorId)) return current
-      // Nhà thầu đã ngưng nhận dự án không chọn để mời được.
-      const candidate = (contractors ?? []).find((contractor) => contractor.id === contractorId)
-      if (candidate && isNotAccepting(candidate)) return current
       if (current.length >= room) {
         setExceedShakeId(contractorId)
         window.setTimeout(() => setExceedShakeId(null), 450)
@@ -171,13 +168,7 @@ export function ContractorCompare({ projectId }: ContractorCompareProps) {
       return
     }
     if (picked.length === 0) return
-    const eligible = picked
-      .filter((id) => !isInvited(invitations ?? [], id))
-      .filter((id) => {
-        const candidate = rows.find((contractor) => contractor.id === id)
-        return !candidate || !isNotAccepting(candidate)
-      })
-      .slice(0, room)
+    const eligible = picked.filter((id) => !isInvited(invitations ?? [], id)).slice(0, room)
     startInviteQueue(eligible, projectId)
     const first = eligible[0]
     if (first) router.push(contractorInviteRoute(projectId, first))
@@ -483,13 +474,9 @@ export function ContractorCompare({ projectId }: ContractorCompareProps) {
                                 variant={isPicked ? 'default' : 'outline'}
                                 className={cn('h-11 w-full', !isPicked && 'border-primary/50 text-primary-strong')}
                                 onClick={() => togglePick(contractor.id)}
-                                disabled={isInvited(invitations ?? [], contractor.id) || isNotAccepting(contractor)}
+                                disabled={isInvited(invitations ?? [], contractor.id)}
                                 title={
-                                  isNotAccepting(contractor)
-                                    ? tCommon('notAccepting')
-                                    : !isPicked && picked.length >= room
-                                      ? t('exceedRoom', { count: room })
-                                      : undefined
+                                  !isPicked && picked.length >= room ? t('exceedRoom', { count: room }) : undefined
                                 }
                               >
                                 {isPicked ? <SelectedCheckIcon /> : <Circle className='size-4' />}
@@ -592,7 +579,7 @@ export function ContractorCompare({ projectId }: ContractorCompareProps) {
                       <span className='truncate'>{profileContractor.name}</span>
                       {profileContractor.verified ? <BadgeCheck className='text-primary size-4 shrink-0' /> : null}
                     </SheetTitle>
-                    <SheetDescription>{profileContractor.kind}</SheetDescription>
+                    <SheetDescription className='sr-only'>{profileContractor.name}</SheetDescription>
                   </div>
                 </div>
               </SheetHeader>
@@ -639,18 +626,6 @@ export function ContractorCompare({ projectId }: ContractorCompareProps) {
                     ))}
                   </ul>
                 </section>
-
-                <section>
-                  <h3 className='font-semibold'>{tFirm('legalTitle')}</h3>
-                  <ul className='mt-2 space-y-2'>
-                    {profileContractor.legalChecks.map((check) => (
-                      <li key={check} className='flex items-start gap-2 text-sm'>
-                        <CircleCheck className='text-primary mt-0.5 size-4 shrink-0' />
-                        <span className='text-muted-foreground text-pretty'>{check}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </section>
               </div>
             </>
           ) : null}
@@ -688,18 +663,10 @@ function CriterionValue({
       )
     case 'surveyTime':
       return <span>{t('surveyValue', { hours: contractor.surveyWithinHours })}</span>
-    case 'serviceAreas':
-      return <span>{contractor.serviceAreas.join(', ')}</span>
     case 'legal':
       return <span>{t('legalVerified')}</span>
     case 'warranty':
       return <span>{t('warrantyValue', { months: contractor.warrantyMonths })}</span>
-    case 'accepting':
-      return contractor.acceptingProjects ? (
-        <CircleCheck className='text-primary mx-auto size-4' />
-      ) : (
-        <Minus className='text-muted-foreground mx-auto size-4' />
-      )
   }
 }
 
