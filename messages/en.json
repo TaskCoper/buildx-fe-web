@@ -5349,7 +5349,7 @@
       "states": { "Draft": "Draft", "Published": "Published", "Hidden": "Hidden" }
     },
     "handbookContent": {
-      "description": "Edit the fixed text of the handbook page per language: the opening, the heading of the three steps, the heading of the articles block and the heading of the newsletter block. A block you have not edited uses the page's built-in translation, so the form opens with the text currently shown. Each language is edited on its own; an unedited language never borrows another language's text.",
+      "description": "Edit the fixed text of the handbook page per language: the two tab names, the opening and the blocks of the News tab, and the banner of the Template library tab. A block you have not edited uses the page's built-in translation, so the form opens with the text currently shown. Each language is edited on its own; an unedited language never borrows another language's text.",
       "locales": { "vi": "Vietnamese", "en": "English" },
       "edited": "Edited",
       "usingDefault": "Using the default",
@@ -5361,14 +5361,18 @@
         "hero": { "title": "Opening" },
         "stagesHeading": { "title": "Heading of the three steps" },
         "articlesHeading": { "title": "Articles block" },
-        "newsletterHeading": { "title": "Newsletter block" }
+        "newsletterHeading": { "title": "Newsletter block" },
+        "libraryBanner": { "title": "Template library tab banner" },
+        "tabs": { "title": "The two tab names" }
       },
       "fields": {
         "eyebrow": "Line above the title",
         "title": "Title",
         "description": "Description",
         "ctaLabel": "Button label",
-        "backgroundImageUrl": "Background image (optional — leave empty to use the default image)"
+        "backgroundImageUrl": "Background image (optional — leave empty to use the default image)",
+        "newsLabel": "News tab name",
+        "libraryLabel": "Template library tab name"
       }
     },
     "handbookSteps": {

@@ -194,6 +194,66 @@ test('formValuesFor ưu tiên bản đã lưu, thiếu thì dùng chữ mặc đ
   assert.equal(values.eyebrow, 'Kicker mặc định')
 })
 
+const viMessages = JSON.parse(await readFile(new URL('../messages/vi.json', import.meta.url), 'utf8'))
+const enMessages = JSON.parse(await readFile(new URL('../messages/en.json', import.meta.url), 'utf8'))
+const sectionOf = (key) => sections.HANDBOOK_SECTIONS.find((section) => section.key === key)
+
+test('có đủ sáu khối chữ của trang Cẩm nang, tên hai tab đứng đầu và banner Thư viện mẫu đứng cuối', () => {
+  assert.deepEqual(
+    sections.HANDBOOK_SECTIONS.map((section) => section.key),
+    ['tabs', 'hero', 'stagesHeading', 'articlesHeading', 'newsletterHeading', 'libraryBanner']
+  )
+})
+
+test('banner Thư viện mẫu: tiêu đề và mô tả bắt buộc, ảnh nền tùy chọn, không có trường của hero', () => {
+  const banner = sectionOf('libraryBanner')
+  assert.deepEqual(
+    banner.fields.map((field) => [field.name, field.kind, field.required]),
+    [
+      ['title', 'textarea', true],
+      ['description', 'textarea', true],
+      ['backgroundImageUrl', 'image', false]
+    ]
+  )
+})
+
+test('tên hai tab: hai nhãn chữ bắt buộc và không có ảnh', () => {
+  const tabs = sectionOf('tabs')
+  assert.deepEqual(
+    tabs.fields.map((field) => [field.name, field.kind, field.required]),
+    [
+      ['newsLabel', 'text', true],
+      ['libraryLabel', 'text', true]
+    ]
+  )
+})
+
+test('chữ mặc định của banner Thư viện mẫu và hai tab đọc đúng từ messages, ở cả hai ngôn ngữ', () => {
+  for (const [name, messages] of [
+    ['vi', viMessages],
+    ['en', enMessages]
+  ]) {
+    const banner = sections.defaultsFor(sectionOf('libraryBanner').fields, messages)
+    assert.ok(banner.title, `${name}: thiếu tiêu đề mặc định của banner`)
+    assert.ok(banner.description, `${name}: thiếu mô tả mặc định của banner`)
+    assert.equal(banner.backgroundImageUrl, '')
+    assert.ok(banner.title.includes('\n'), `${name}: tiêu đề mặc định phải giữ chỗ xuống dòng`)
+
+    const tabs = sections.defaultsFor(sectionOf('tabs').fields, messages)
+    assert.ok(tabs.newsLabel, `${name}: thiếu tên tab Tin tức`)
+    assert.ok(tabs.libraryLabel, `${name}: thiếu tên tab Thư viện mẫu`)
+  }
+})
+
+test('buildContent giữ nguyên ký tự xuống dòng bên trong tiêu đề banner', () => {
+  const content = sections.buildContent(sectionOf('libraryBanner').fields, {
+    title: '  Khám phá các mẫu bản vẽ\nphù hợp cho ngôi nhà của bạn ',
+    description: 'Mô tả',
+    backgroundImageUrl: ''
+  })
+  assert.equal(content.title, 'Khám phá các mẫu bản vẽ\nphù hợp cho ngôi nhà của bạn')
+})
+
 test('sortedRoots chỉ lấy danh mục gốc theo thứ tự rồi định danh', () => {
   const list = [category('b', null, { sortOrder: 1 }), category('child', 'b'), category('a', null, { sortOrder: 0 })]
   assert.deepEqual(

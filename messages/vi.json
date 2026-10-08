@@ -5349,7 +5349,7 @@
       "states": { "Draft": "Nháp", "Published": "Đã công bố", "Hidden": "Đang ẩn" }
     },
     "handbookContent": {
-      "description": "Sửa các dòng chữ cố định của trang Cẩm nang theo từng ngôn ngữ: phần mở đầu, tiêu đề nhóm ba bước, tiêu đề khối bài viết và tiêu đề khối Bản tin. Khối chưa sửa dùng bản dịch sẵn có của trang, nên form mở ra với đúng chữ đang hiển thị. Mỗi ngôn ngữ sửa riêng; ngôn ngữ chưa sửa không mượn chữ của ngôn ngữ khác.",
+      "description": "Sửa các dòng chữ cố định của trang Cẩm nang theo từng ngôn ngữ: tên hai tab, phần mở đầu và các khối của tab Tin tức, banner của tab Thư viện mẫu. Khối chưa sửa dùng bản dịch sẵn có của trang, nên form mở ra với đúng chữ đang hiển thị. Mỗi ngôn ngữ sửa riêng; ngôn ngữ chưa sửa không mượn chữ của ngôn ngữ khác.",
       "locales": { "vi": "Tiếng Việt", "en": "Tiếng Anh" },
       "edited": "Đã biên tập",
       "usingDefault": "Đang dùng bản mặc định",
@@ -5361,14 +5361,18 @@
         "hero": { "title": "Phần mở đầu" },
         "stagesHeading": { "title": "Tiêu đề nhóm ba bước" },
         "articlesHeading": { "title": "Khối bài viết" },
-        "newsletterHeading": { "title": "Khối Bản tin" }
+        "newsletterHeading": { "title": "Khối Bản tin" },
+        "libraryBanner": { "title": "Banner tab Thư viện mẫu" },
+        "tabs": { "title": "Tên hai tab" }
       },
       "fields": {
         "eyebrow": "Dòng nhãn phía trên",
         "title": "Tiêu đề",
         "description": "Mô tả",
         "ctaLabel": "Chữ trên nút",
-        "backgroundImageUrl": "Ảnh nền (không bắt buộc — bỏ trống dùng ảnh mặc định)"
+        "backgroundImageUrl": "Ảnh nền (không bắt buộc — bỏ trống dùng ảnh mặc định)",
+        "newsLabel": "Tên tab Tin tức",
+        "libraryLabel": "Tên tab Thư viện mẫu"
       }
     },
     "handbookSteps": {

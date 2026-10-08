@@ -27,9 +27,11 @@ import {
   HANDBOOK_TEMPLATE_RETURN_SESSION_KEY,
   LIBRARY_PAGE_SIZE
 } from '../constants/handbook.constants'
+import { sectionText } from '../api/handbook.cms.logic'
 import {
   useHandbookLibraryFilters,
   useHandbookLookupQuota,
+  useHandbookPageSections,
   useHandbookTemplateIdsByFilters,
   useHandbookTemplateStyles,
   useHandbookTemplates
@@ -77,7 +79,10 @@ interface PillStyle {
 
 export function TemplateLibrary() {
   const t = useTranslations('handbook.library')
-  const bannerImage = useSiteImage('handbook.libraryBanner')
+  // Chữ và ảnh banner do admin biên tập (BR-HB-003); chưa biên tập thì dùng bản dịch và ảnh mặc định.
+  const pageSections = useHandbookPageSections()
+  const defaultBannerImage = useSiteImage('handbook.libraryBanner')
+  const bannerImage = sectionText(pageSections, 'libraryBanner', 'backgroundImageUrl') ?? defaultBannerImage
   const bannerRef = useRef<HTMLElement>(null)
 
   // Mở banner giống tab Tin tức (foundation-block): viền hiện dần, ảnh phóng nhẹ rồi
@@ -1015,13 +1020,13 @@ export function TemplateLibrary() {
                 data-library-banner-sequence
                 className='text-primary-strong text-2xl leading-[1.2] font-bold tracking-tight whitespace-pre-line sm:text-3xl lg:text-4xl'
               >
-                {t('bannerTitle')}
+                {sectionText(pageSections, 'libraryBanner', 'title') ?? t('bannerTitle')}
               </h2>
               <p
                 data-library-banner-sequence
                 className='text-foreground/75 max-w-md text-sm leading-relaxed sm:text-base'
               >
-                {t('bannerDescription')}
+                {sectionText(pageSections, 'libraryBanner', 'description') ?? t('bannerDescription')}
               </p>
             </div>
           </div>

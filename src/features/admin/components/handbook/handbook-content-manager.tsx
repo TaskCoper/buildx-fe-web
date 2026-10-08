@@ -35,8 +35,8 @@ const loadMessages = (locale: ContentLocale): Promise<unknown> =>
 /**
  * NỘI DUNG CHỮ CỦA TRANG CẨM NANG (STORY-HB-004, BR-HB-003).
  *
- * Bốn khối chữ cố định — phần mở đầu, tiêu đề nhóm ba bước, tiêu đề khối bài viết, tiêu đề khối Bản tin — theo từng
- * ngôn ngữ. Khối chưa biên tập thì trang dùng bản dịch sẵn có, nên form mở ra với chính chữ đang hiển thị để sửa từ
+ * Sáu khối chữ cố định — tên hai tab, phần mở đầu, tiêu đề nhóm ba bước, tiêu đề khối bài viết, tiêu đề khối Bản tin
+ * và banner của tab Thư viện mẫu — theo từng ngôn ngữ. Khối chưa biên tập thì trang dùng bản dịch sẵn có, nên form mở ra với chính chữ đang hiển thị để sửa từ
  * đó. Một ngôn ngữ chưa có bản riêng không mượn bản của ngôn ngữ khác.
  */
 export function HandbookContentManager() {

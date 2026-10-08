@@ -6,10 +6,17 @@
 export type SectionFieldKind = 'text' | 'textarea' | 'image'
 
 /** Tên các trường của khối chữ; cũng là phần cuối của khóa dịch `admin.handbookContent.fields.<name>`. */
-export type SectionFieldName = 'eyebrow' | 'title' | 'description' | 'ctaLabel' | 'backgroundImageUrl'
+export type SectionFieldName =
+  | 'eyebrow'
+  | 'title'
+  | 'description'
+  | 'ctaLabel'
+  | 'backgroundImageUrl'
+  | 'newsLabel'
+  | 'libraryLabel'
 
 /** Mã các khối chữ của trang Cẩm nang; cũng là khóa dịch `admin.handbookContent.sections.<key>`. */
-export type SectionKey = 'hero' | 'stagesHeading' | 'articlesHeading' | 'newsletterHeading'
+export type SectionKey = 'tabs' | 'hero' | 'stagesHeading' | 'articlesHeading' | 'newsletterHeading' | 'libraryBanner'
 
 export interface SectionField {
   name: SectionFieldName
@@ -35,8 +42,15 @@ const text = (name: SectionFieldName, path: readonly string[], required = true):
   required
 })
 
-/** Bốn khối chữ của trang Cẩm nang (BR-HB-003 khoản 2), theo thứ tự xuất hiện trên trang. */
+/** Sáu khối chữ của trang Cẩm nang (BR-HB-003 khoản 2), theo thứ tự xuất hiện trên trang. */
 export const HANDBOOK_SECTIONS: readonly SectionDef[] = [
+  {
+    key: 'tabs',
+    fields: [
+      text('newsLabel', ['handbook', 'page', 'tabs', 'news']),
+      text('libraryLabel', ['handbook', 'page', 'tabs', 'library'])
+    ]
+  },
   {
     key: 'hero',
     fields: [
@@ -55,7 +69,21 @@ export const HANDBOOK_SECTIONS: readonly SectionDef[] = [
       { name: 'description', kind: 'textarea', defaultPath: ['handbook', 'articles', 'subtitle'], required: true }
     ]
   },
-  { key: 'newsletterHeading', fields: [text('title', ['handbook', 'newsletter', 'title'])] }
+  { key: 'newsletterHeading', fields: [text('title', ['handbook', 'newsletter', 'title'])] },
+  {
+    key: 'libraryBanner',
+    fields: [
+      // Tiêu đề banner ngắt dòng bằng ký tự xuống dòng nên dùng ô nhiều dòng.
+      { name: 'title', kind: 'textarea', defaultPath: ['handbook', 'library', 'bannerTitle'], required: true },
+      {
+        name: 'description',
+        kind: 'textarea',
+        defaultPath: ['handbook', 'library', 'bannerDescription'],
+        required: true
+      },
+      { name: 'backgroundImageUrl', kind: 'image', defaultPath: [], required: false }
+    ]
+  }
 ]
 
 /** Chữ mặc định của các trường trong `messages` của một ngôn ngữ. Trường ảnh và khóa thiếu cho chuỗi rỗng. */
