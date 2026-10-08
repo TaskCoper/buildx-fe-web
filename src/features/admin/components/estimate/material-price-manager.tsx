@@ -154,19 +154,25 @@ function PriceFields({ form }: { form: FormInstance }) {
 
   return (
     <>
-      <Form.Item
-        name='itemId'
-        label={t('materialPrices.item')}
-        rules={[{ required: true, message: t('fields.requiredMessage') }]}
-      >
-        <Select
-          showSearch={{ optionFilterProp: 'label' }}
-          onChange={() => form.setFieldValue('subItemId', undefined)}
-          options={items.map((entry) => ({ value: entry.id, label: `${groupName(entry.groupId)} · ${entry.name}` }))}
-        />
-      </Form.Item>
+      {/* Hai hàng, mỗi hàng chia đều: hạng mục + hạng mục con, rồi khu vực + ba mức giá. */}
       <Row gutter={16}>
-        <Col xs={24} md={16}>
+        <Col xs={24} md={12}>
+          <Form.Item
+            name='itemId'
+            label={t('materialPrices.item')}
+            rules={[{ required: true, message: t('fields.requiredMessage') }]}
+          >
+            <Select
+              showSearch={{ optionFilterProp: 'label' }}
+              onChange={() => form.setFieldValue('subItemId', undefined)}
+              options={items.map((entry) => ({
+                value: entry.id,
+                label: `${groupName(entry.groupId)} · ${entry.name}`
+              }))}
+            />
+          </Form.Item>
+        </Col>
+        <Col xs={24} md={12}>
           <Form.Item
             name='subItemId'
             label={t('materialPrices.subItem')}
@@ -178,7 +184,9 @@ function PriceFields({ form }: { form: FormInstance }) {
             />
           </Form.Item>
         </Col>
-        <Col xs={24} md={8}>
+      </Row>
+      <Row gutter={16}>
+        <Col xs={24} md={6}>
           <Form.Item
             name='region'
             label={t('materialPrices.region')}
@@ -187,10 +195,8 @@ function PriceFields({ form }: { form: FormInstance }) {
             <Select options={REGIONS.map((value) => ({ value, label: t(`contractors.regions.${value}`) }))} />
           </Form.Item>
         </Col>
-      </Row>
-      <Row gutter={16}>
         {TIERS.map((tier) => (
-          <Col key={tier} xs={24} md={8}>
+          <Col key={tier} xs={24} md={6}>
             {money(tier)}
           </Col>
         ))}

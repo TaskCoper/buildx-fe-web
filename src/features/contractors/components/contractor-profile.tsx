@@ -65,12 +65,11 @@ import { useCountUp, useDocumentTitle } from '@/shared/hooks'
 import { cn } from '@/shared/lib/utils'
 import { formatDate, formatDisplayDate, formatNumber } from '@/shared/utils'
 import { mergeProjectDetail } from '../api/contractors.logic'
-import { env } from '@/shared/config/env'
 import { CONTRACTOR_TABS, MAX_INVITATIONS, type ContractorTab } from '../constants/contractors.constants'
 import { useBrief } from '../hooks/use-brief'
 import { useContractor, useContractorProject } from '../hooks/use-contractors'
 import { useInvitations } from '../hooks/use-invitations'
-import { isInvited } from '../services/contractor-list.service'
+import { isInvited, isNotAccepting, withDistanceFrom } from '../services/contractor-list.service'
 import { useContractorsStore } from '../store/contractors.store'
 import type { Contractor, ContractorPhoto, ContractorProject } from '../types/contractor.types'
 import { MATCHES_LAST_VIEWED_KEY } from './contractor-matches'
@@ -181,9 +180,9 @@ function InviteButton({
   const { limit } = useInvitations(projectId)
   const rfq = useTranslations('contractors.rfq')
 
-  if (env.NEXT_PUBLIC_USE_MOCK_API && !contractor.acceptingProjects) {
+  if (isNotAccepting(contractor)) {
     return (
-      <Button size={size} className='w-full opacity-50' disabled>
+      <Button size={size} className='w-full opacity-50' disabled title={tCommon('notAccepting')}>
         <Send className='size-4' />
         {tCommon('invite')}
       </Button>
@@ -342,6 +341,13 @@ export function ContractorProfile({ projectId, contractorId, tab }: ContractorPr
   }
 
   const areas = contractor.serviceAreas.slice(0, 3).join(', ')
+  // API chi tiết nhà thầu không trả khoảng cách (chỉ API danh sách kèm công trình mới trả), nên tự tính từ toạ độ
+  // công trình của dự án tới trụ sở nhà thầu. Thiếu toạ độ một bên thì vẫn là "chưa tính", không đoán.
+  const site = brief?.constructionSite
+  const withDistance = withDistanceFrom(
+    contractor,
+    site ? { latitude: site.latitude, longitude: site.longitude } : undefined
+  )
 
   /** Dải chỉ số trong thẻ nhận diện — xem thử chưa chọn dự án nên ẩn khoảng cách. */
   const headerFacts = [
@@ -360,11 +366,11 @@ export function ContractorProfile({ projectId, contractorId, tab }: ContractorPr
       key: 'distance',
       icon: MapPin,
       value:
-        contractor.distanceKnown === false ? (
+        withDistance.distanceKnown === false ? (
           tCommon('distanceUnknown')
         ) : (
           <CountedMetric
-            value={Math.round(contractor.distanceKm * 10)}
+            value={Math.round(withDistance.distanceKm * 10)}
             format={(value) =>
               tCommon('distanceShort', {
                 km: formatNumber(value / 10, locale, { minimumFractionDigits: 1 })
@@ -409,10 +415,17 @@ export function ContractorProfile({ projectId, contractorId, tab }: ContractorPr
     {
       key: 'accepting',
       icon: Briefcase,
-      label: contractor.acceptingProjects ? tCommon('acceptingLabel') : tCommon('notAccepting'),
+      label: contractor.acceptingProjects ? tCommon('acceptingLabel') : tCommon('notAcceptingLabel'),
       value: tCommon('acceptingSuffix')
     },
-    { key: 'areas', icon: MapIcon, label: tCommon('serviceAreas'), value: areas }
+    // `value` chỉ in 3 nơi đầu cho gọn; `fullValue` là cả danh sách, hiện ở tooltip khi hover (dòng bị cắt "…").
+    {
+      key: 'areas',
+      icon: MapIcon,
+      label: tCommon('serviceAreas'),
+      value: areas,
+      fullValue: contractor.serviceAreas.join(', ')
+    }
   ]
 
   return (
@@ -615,7 +628,20 @@ export function ContractorProfile({ projectId, contractorId, tab }: ContractorPr
                   />
                   <div className='min-w-0'>
                     <p className='text-muted-foreground max-md:text-xs text-[11px] leading-tight'>{row.label}</p>
-                    <p className='mt-0.5 truncate text-sm font-semibold'>{row.value}</p>
+                    {'fullValue' in row && row.fullValue ? (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <p className='mt-0.5 truncate text-sm font-semibold' tabIndex={0}>
+                            {row.value}
+                          </p>
+                        </TooltipTrigger>
+                        <TooltipContent side='top' className='max-w-xs'>
+                          {row.fullValue}
+                        </TooltipContent>
+                      </Tooltip>
+                    ) : (
+                      <p className='mt-0.5 truncate text-sm font-semibold'>{row.value}</p>
+                    )}
                   </div>
                 </motion.li>
               ))}

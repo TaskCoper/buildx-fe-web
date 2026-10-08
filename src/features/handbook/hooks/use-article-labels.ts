@@ -2,6 +2,8 @@
 
 import { useMemo } from 'react'
 
+import { useTranslations } from 'next-intl'
+
 import { useCmsCollection } from '@/shared/cms'
 
 /**
@@ -9,6 +11,7 @@ import { useCmsCollection } from '@/shared/cms'
  * tự admin sắp; tên nhãn đọc từ bảng nhãn nên đổi tên là mọi khu vực đổi theo.
  */
 export function useArticleLabels() {
+  const t = useTranslations('handbook.articles')
   const labels = useCmsCollection('articleLabels')
   const options = useMemo(
     () =>
@@ -18,6 +21,8 @@ export function useArticleLabels() {
         .map((label) => label.id),
     [labels]
   )
-  const nameOf = (id: string) => labels.find((label) => label.id === id)?.name ?? id
+  // Bài không gắn danh mục nào mang `category` rỗng và hiện nhãn "Chưa phân loại" (BR-NEWS-003 khoản 8).
+  const nameOf = (id: string) =>
+    id === '' ? t('uncategorized') : (labels.find((label) => label.id === id)?.name ?? id)
   return { options, nameOf }
 }

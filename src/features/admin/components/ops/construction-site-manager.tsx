@@ -171,14 +171,14 @@ function SiteDetail({ item }: { item: AdminConstructionSite }) {
     <div className='flex flex-col gap-4'>
       <Descriptions
         size='small'
-        column={1}
+        column={{ xs: 1, md: 2 }}
         bordered
         items={[
           { key: 'name', label: c('site'), children: site.name || '—' },
           { key: 'code', label: c('code'), children: site.code ? <Text copyable>{site.code}</Text> : '—' },
           { key: 'province', label: c('province'), children: site.provinceName || '—' },
           { key: 'ward', label: c('ward'), children: site.wardName || '—' },
-          { key: 'street', label: c('street'), children: site.profile.addressDetail || '—' },
+          { key: 'street', label: c('street'), span: 2, children: site.profile.addressDetail || '—' },
           { key: 'area', label: c('area'), children: `${formatSiteDecimal(site.profile.areaM2, locale)} m²` },
           { key: 'condition', label: c('condition'), children: site.conditionName || '—' },
           { key: 'budget', label: c('budget'), children: `${formatSiteDecimal(site.budgetVnd, locale)} ₫` },
@@ -207,25 +207,11 @@ function SiteDetail({ item }: { item: AdminConstructionSite }) {
             label: c('interior'),
             children: site.profile.interiorStyleId === null ? c('notApplicable') : site.interiorStyleName || '—'
           },
-          {
-            key: 'source',
-            label: c('source'),
-            children: site.sourceEstimateId ? (
-              <div className='flex min-w-0 flex-col gap-1'>
-                <Text>{c('fromEstimate')}</Text>
-                <Text copyable style={{ wordBreak: 'break-all' }}>
-                  {site.sourceEstimateId}
-                </Text>
-                <Text type='secondary'>{c('sourceNote')}</Text>
-              </div>
-            ) : (
-              c('independent')
-            )
-          },
           { key: 'owner', label: c('owner'), children: site.owner?.fullName || '—' },
           {
             key: 'email',
             label: c('email'),
+            span: coordinates ? 1 : 'filled',
             children: site.owner?.email ? <Text copyable>{site.owner.email}</Text> : '—'
           },
           ...(coordinates
@@ -243,9 +229,25 @@ function SiteDetail({ item }: { item: AdminConstructionSite }) {
                 }
               ]
             : []),
+          {
+            key: 'source',
+            label: c('source'),
+            span: 2,
+            children: site.sourceEstimateId ? (
+              <div className='flex min-w-0 flex-col gap-1'>
+                <Text>{c('fromEstimate')}</Text>
+                <Text copyable style={{ wordBreak: 'break-all' }}>
+                  {site.sourceEstimateId}
+                </Text>
+                <Text type='secondary'>{c('sourceNote')}</Text>
+              </div>
+            ) : (
+              c('independent')
+            )
+          },
           { key: 'activeGrants', label: c('activeGrants'), children: activeGrantCount(site) },
           { key: 'createdAt', label: c('createdAt'), children: dateTime(site.createdAtUtc) },
-          { key: 'updatedAt', label: c('updatedAt'), children: dateTime(site.updatedAtUtc) }
+          { key: 'updatedAt', label: c('updatedAt'), span: 'filled', children: dateTime(site.updatedAtUtc) }
         ]}
       />
 

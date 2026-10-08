@@ -9,12 +9,14 @@ import { Link } from '@/i18n/navigation'
 import type { Locale } from '@/i18n/routing'
 import { Button } from '@/shared/components/ui/button'
 import { Checkbox } from '@/shared/components/ui/checkbox'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/components/ui/tooltip'
 import { contractorFirmRoute, contractorInvitationsRoute, contractorInviteRoute } from '@/shared/constants/routes'
 import { useCountUp } from '@/shared/hooks/use-count-up'
 import { cn } from '@/shared/lib/utils'
 import { formatNumber } from '@/shared/utils'
 import { useInvitations } from '../hooks/use-invitations'
 import { MAX_INVITATIONS } from '../constants/contractors.constants'
+import { isNotAccepting } from '../services/contractor-list.service'
 import type { Contractor } from '../types/contractor.types'
 import { ContractorLogo } from './contractor-logo'
 
@@ -67,6 +69,9 @@ export function ContractorCard({
   const { limit, isError, siteRequired } = useInvitations(projectId)
   const locale = useLocale() as Locale
   const reduceMotion = useReducedMotion()
+
+  // Nhà thầu đã ngưng nhận dự án thì khóa nút mời (khóa chứ không ẩn, để biết vì sao không bấm được).
+  const notAccepting = isNotAccepting(contractor)
 
   const [navigatingProfile, setNavigatingProfile] = useState(false)
   const [navigatingInvite, setNavigatingInvite] = useState(false)
@@ -123,7 +128,9 @@ export function ContractorCard({
       key: 'areas',
       icon: MapIcon,
       value: t('serviceAreas'),
-      hint: contractor.serviceAreas.slice(0, 3).join(', ') || t('informationUnknown')
+      hint: contractor.serviceAreas.slice(0, 3).join(', ') || t('informationUnknown'),
+      // Cả danh sách, hiện ở tooltip khi hover (dòng hint chỉ chừa 2 dòng nên dài là bị cắt "…").
+      hintFull: contractor.serviceAreas.join(', ')
     }
   ]
 
@@ -223,7 +230,14 @@ export function ContractorCard({
         <div className='divide-border mt-3 grid grid-cols-[minmax(0,1fr)] divide-y sm:grid-cols-2 lg:grid-cols-4'>
           <div className='divide-border grid grid-cols-[minmax(0,1fr)] divide-y sm:col-span-2 sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:col-span-4 lg:grid-cols-4'>
             {facts.map((fact) => (
-              <Fact key={fact.key} icon={fact.icon} iconClass={fact.iconClass} value={fact.value} hint={fact.hint} />
+              <Fact
+                key={fact.key}
+                icon={fact.icon}
+                iconClass={fact.iconClass}
+                value={fact.value}
+                hint={fact.hint}
+                hintFull={'hintFull' in fact ? fact.hintFull : undefined}
+              />
             ))}
           </div>
 
@@ -274,6 +288,11 @@ export function ContractorCard({
               {tMatches('viewInvites')}
             </Link>
           </Button>
+        ) : notAccepting ? (
+          <Button disabled title={t('notAccepting')}>
+            <Send className='size-4' />
+            {t('invite')}
+          </Button>
         ) : inviteLocked ? (
           <Button
             disabled
@@ -308,12 +327,15 @@ function Fact({
   icon: Icon,
   iconClass,
   value,
-  hint
+  hint,
+  hintFull
 }: {
   icon: typeof Star
   iconClass?: string
   value: ReactNode
   hint: string
+  /** Nội dung đầy đủ của `hint` — có thì hover vào dòng hint sẽ hiện tooltip. */
+  hintFull?: string
 }) {
   return (
     // Cột chỉ số hẹp (4 ô trên một hàng) nên chữ phải nhỏ lại, và dòng nhãn
@@ -322,9 +344,25 @@ function Fact({
     <div className='grid min-w-0 grid-cols-[1rem_minmax(0,1fr)] gap-x-1.5 rounded-lg px-2.5 py-2'>
       <Icon aria-hidden className={cn('mt-0.5 size-3.5 shrink-0', iconClass ?? 'text-primary')} />
       <p className='min-w-0 truncate text-[13px] leading-snug font-semibold'>{value}</p>
-      <p className='text-muted-foreground col-start-2 mt-0.5 line-clamp-2 max-md:text-xs text-[11px] leading-snug text-pretty'>
-        {hint}
-      </p>
+      {hintFull ? (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <p
+              className='text-muted-foreground col-start-2 mt-0.5 line-clamp-2 max-md:text-xs text-[11px] leading-snug text-pretty'
+              tabIndex={0}
+            >
+              {hint}
+            </p>
+          </TooltipTrigger>
+          <TooltipContent side='top' className='max-w-xs'>
+            {hintFull}
+          </TooltipContent>
+        </Tooltip>
+      ) : (
+        <p className='text-muted-foreground col-start-2 mt-0.5 line-clamp-2 max-md:text-xs text-[11px] leading-snug text-pretty'>
+          {hint}
+        </p>
+      )}
     </div>
   )
 }

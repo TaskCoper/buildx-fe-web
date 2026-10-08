@@ -76,43 +76,47 @@ export function DocumentEditor<K extends CmsDocument>({
     message.success(t('feedback.saved'))
   }
 
+  // Cùng bề rộng và vị trí với trang form của `FormPage` (căn giữa, 768px): tài liệu chỉ có vài ô nên
+  // kéo hết bề ngang chỉ để lại một mảng trống bên phải.
   return (
-    <AdminPage
-      title={title}
-      description={description}
-      sticky
-      actions={
-        <Space>
-          {extraActions}
-          <Popconfirm
-            title={t('actions.revertConfirmTitle')}
-            description={t('actions.revertConfirmBody')}
-            okText={t('actions.revert')}
-            cancelText={t('actions.cancel')}
-            disabled={!dirty}
-            onConfirm={reset}
-          >
-            <Button disabled={!dirty}>{t('actions.revert')}</Button>
-          </Popconfirm>
-          <Badge dot={dirty} offset={[-2, 4]}>
-            <Button type='primary' loading={save.isPending} onClick={submit}>
-              {dirty ? t('actions.saveDirty') : t('actions.save')}
-            </Button>
-          </Badge>
-        </Space>
-      }
-    >
-      {isLocalizedDocument(document) ? <ContentLocaleBanner /> : null}
-      <MockApiNotice />
-      <Card>
-        {isPending ? (
-          <Skeleton active paragraph={{ rows: 8 }} />
-        ) : (
-          <Form form={form} layout='vertical' initialValues={data} onValuesChange={() => setDirty(true)}>
-            {children(form)}
-          </Form>
-        )}
-      </Card>
-    </AdminPage>
+    <div className='mx-auto w-full max-w-3xl'>
+      <AdminPage
+        title={title}
+        description={description}
+        sticky
+        actions={
+          <Space>
+            {extraActions}
+            <Popconfirm
+              title={t('actions.revertConfirmTitle')}
+              description={t('actions.revertConfirmBody')}
+              okText={t('actions.revert')}
+              cancelText={t('actions.cancel')}
+              disabled={!dirty}
+              onConfirm={reset}
+            >
+              <Button disabled={!dirty}>{t('actions.revert')}</Button>
+            </Popconfirm>
+            <Badge dot={dirty} offset={[-2, 4]}>
+              <Button type='primary' loading={save.isPending} onClick={submit}>
+                {dirty ? t('actions.saveDirty') : t('actions.save')}
+              </Button>
+            </Badge>
+          </Space>
+        }
+      >
+        {isLocalizedDocument(document) ? <ContentLocaleBanner /> : null}
+        <MockApiNotice />
+        <Card>
+          {isPending ? (
+            <Skeleton active paragraph={{ rows: 8 }} />
+          ) : (
+            <Form form={form} layout='vertical' initialValues={data} onValuesChange={() => setDirty(true)}>
+              {children(form)}
+            </Form>
+          )}
+        </Card>
+      </AdminPage>
+    </div>
   )
 }

@@ -20,5 +20,7 @@ export const handbookKeys = {
   newsCategoryTree: () => [...handbookKeys.all, 'news-category-tree'] as const,
 
   stages: () => [...handbookKeys.all, 'stages'] as const,
+  newsletter: () => [...handbookKeys.all, 'newsletter'] as const,
+  pageSections: (locale: string) => [...handbookKeys.all, 'page-sections', locale] as const,
   quota: () => [...handbookKeys.all, 'quota'] as const
 } as const

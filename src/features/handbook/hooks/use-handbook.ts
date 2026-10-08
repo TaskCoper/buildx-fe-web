@@ -1,13 +1,14 @@
 'use client'
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useLocale } from 'next-intl'
 import { useCallback, useEffect, useMemo } from 'react'
 
 import { useAuthStore } from '@/shared/auth'
 import { useCmsCollection } from '@/shared/cms'
 import { env } from '@/shared/config/env'
 import { handbookApi } from '../api/handbook.api'
-import { mockHandbookApi } from '../api/handbook.mock'
+import { withTopicIds } from '../api/handbook.cms.logic'
 import { LibraryAccessDeniedError, type ArticleListQuery } from '../api/handbook.bmt'
 import { handbookKeys } from '../api/handbook.keys'
 import type { TemplateStyleQuery } from '../api/handbook.library'
@@ -51,22 +52,17 @@ export function useHandbookTemplate(id: string, options?: { enabled?: boolean })
 }
 
 /**
- * Bài viết (`source: 'mock'` cho các khối trang Cẩm nang chưa lấy API: chỉ danh sách bài viết dưới cùng dùng API). `query` lọc ở phía BE (`categoryId` gồm cả danh mục con, `keyword`); bỏ trống thì lấy
- * bài mới nhất như trước và để giao diện tự lọc trên danh sách đã tải.
+ * Bài viết công khai. `query` lọc ở phía BE (`categoryId` gồm cả danh mục con, `keyword`); bỏ trống thì lấy bài mới
+ * nhất và để giao diện tự lọc trên danh sách đã tải. Có `topic` là panel tư vấn, không có API nên dùng mock.
  */
-export function useHandbookArticles(
-  topic?: 'architecture' | 'interior',
-  query?: ArticleListQuery,
-  options?: { source?: 'api' | 'mock' }
-) {
-  const mock = options?.source === 'mock'
-  const base =
+export function useHandbookArticles(topic?: 'architecture' | 'interior', query?: ArticleListQuery) {
+  const key =
     query?.categoryId || query?.keyword
       ? `${topic ?? 'all'}:${query?.categoryId ?? ''}:${query?.keyword ?? ''}`
       : (topic ?? 'all')
   return useQuery({
-    queryKey: handbookKeys.articleList(mock ? `mock:${base}` : base),
-    queryFn: () => (mock ? mockHandbookApi.listArticles(topic) : handbookApi.listArticles(topic, query)),
+    queryKey: handbookKeys.articleList(key),
+    queryFn: () => handbookApi.listArticles(topic, query),
     staleTime: STATIC_CONTENT_STALE_TIME
   })
 }
@@ -160,6 +156,54 @@ export function useHandbookStages() {
     queryFn: () => handbookApi.listStages(),
     staleTime: STATIC_CONTENT_STALE_TIME
   })
+}
+
+/**
+ * Bài viết kèm `topicIds`: các chủ đề hướng dẫn mà mỗi bài thuộc về, suy từ danh mục của bài và cây danh mục
+ * (BR-HB-001 khoản 7). Một bài gắn danh mục của nhiều chủ đề thì thuộc nhiều chủ đề. Dùng một lần tải danh sách bài
+ * chung với khối "Tất cả bài viết", nên số bài theo chủ đề và danh sách bài của chủ đề luôn khớp nhau.
+ */
+export function useHandbookTopicArticles() {
+  const articles = useHandbookArticles()
+  const stages = useHandbookStages()
+  const tree = useHandbookNewsCategoryTree()
+
+  const data = useMemo(
+    () => (articles.data ? withTopicIds(articles.data, stages.data ?? [], tree.data ?? []) : undefined),
+    [articles.data, stages.data, tree.data]
+  )
+
+  return {
+    data,
+    isPending: articles.isPending || stages.isPending,
+    error: stages.error ?? articles.error
+  }
+}
+
+/**
+ * Khối Bản tin: bài nổi bật theo thứ tự biên tập và bài liên quan suy từ danh mục của bài đứng đầu. `featured` rỗng
+ * nghĩa là không còn bài nổi bật nào đang công bố và khối không hiển thị (BR-HB-002 khoản 9).
+ */
+export function useHandbookNewsletter() {
+  return useQuery({
+    queryKey: handbookKeys.newsletter(),
+    queryFn: () => handbookApi.getNewsletter(),
+    staleTime: STATIC_CONTENT_STALE_TIME
+  })
+}
+
+/**
+ * Chữ cố định của trang Cẩm nang do admin biên tập. Chưa biên tập hoặc tải lỗi thì trả bảng rỗng và giao diện dùng
+ * bản dịch sẵn có (BR-HB-003 khoản 6): đó là nội dung mặc định được thiết kế, không phải dữ liệu giả.
+ */
+export function useHandbookPageSections() {
+  const locale = useLocale()
+  const query = useQuery({
+    queryKey: handbookKeys.pageSections(locale),
+    queryFn: () => handbookApi.listPageSections(locale),
+    staleTime: STATIC_CONTENT_STALE_TIME
+  })
+  return query.data
 }
 
 /**

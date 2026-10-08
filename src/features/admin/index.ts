@@ -21,7 +21,7 @@ export { QuotaEditor } from './components/business/quota-editor'
 export { LibraryTemplateManager } from './components/handbook/library-template-manager'
 export { ArticleManager } from './components/handbook/article-manager'
 export { ArticleLabelManager } from './components/handbook/article-label-manager'
-export { HandbookStepManager } from './components/handbook/handbook-step-manager'
+export { HandbookContentManager } from './components/handbook/handbook-content-manager'
 export { TestimonialManager } from './components/site/testimonial-manager'
 export { GuideVideoManager } from './components/guide/guide-manager'
 

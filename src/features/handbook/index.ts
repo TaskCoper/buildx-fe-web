@@ -3,6 +3,7 @@
  * viết) và bảng "Cẩm nang cá nhân hóa" dùng ở màn chờ Bước 2 / Bước 3.
  */
 export { HandbookBrowser } from './components/handbook-browser'
+export { resolveCurrentArticleSlug } from './api/handbook.slug.server'
 export { TemplateLibrary } from './components/template-library'
 export { TemplateDetail } from './components/template-detail'
 export { ArticleList } from './components/article-list'

@@ -5,12 +5,15 @@ import { useQuery } from '@tanstack/react-query'
 import {
   App,
   Button,
+  Col,
   Descriptions,
   Form,
   Image,
   Input,
   InputNumber,
+  Row,
   Segmented,
+  Select,
   Space,
   Spin,
   Tag,
@@ -61,6 +64,8 @@ interface ArticleFormValues {
   coverImageUrl?: string
   contentHtml?: string
   categoryIds?: string[]
+  slug?: string
+  locale?: string
 }
 
 /** Chuỗi rỗng / toàn khoảng trắng → `null` (API hiểu là "chưa nhập"). */
@@ -69,22 +74,30 @@ const textOrNull = (value?: string | null) => {
   return trimmed ? trimmed : null
 }
 
-function toWrite(values: ArticleFormValues): BmtArticleWrite {
+function toWrite(values: ArticleFormValues, { withLocale }: { withLocale: boolean }): BmtArticleWrite {
   return {
     title: textOrNull(values.title),
     readingTimeMinutes: values.readingTimeMinutes ?? null,
     coverImageUrl: textOrNull(values.coverImageUrl),
     contentHtml: textOrNull(values.contentHtml),
-    categoryIds: values.categoryIds ?? []
+    categoryIds: values.categoryIds ?? [],
+    // Bỏ trống đường dẫn: bài mới tự sinh từ tiêu đề, bài đã có giữ nguyên (BR-NEWS-004 khoản 1, 4).
+    slug: textOrNull(values.slug),
+    // Ngôn ngữ chỉ chọn lúc tạo bài; sửa bài không đổi ngôn ngữ.
+    ...(withLocale && values.locale ? { locale: values.locale } : {})
   }
 }
 
-/** Các thành phần còn thiếu để công bố mà danh sách đã biết (nội dung chỉ backend kiểm). */
-function missingForPublish(item: BmtAdminArticleItem): ('title' | 'cover' | 'category')[] {
-  const missing: ('title' | 'cover' | 'category')[] = []
+/**
+ * Các thành phần còn thiếu để công bố mà danh sách đã biết (nội dung chỉ backend kiểm). Danh mục KHÔNG còn là điều
+ * kiện: bài không gắn danh mục vẫn công bố được và mang nhãn chưa phân loại (BR-NEWS-001 khoản 2); thay vào đó là
+ * đường dẫn (BR-NEWS-004 khoản 8).
+ */
+function missingForPublish(item: BmtAdminArticleItem): ('title' | 'cover' | 'slug')[] {
+  const missing: ('title' | 'cover' | 'slug')[] = []
   if (!item.title?.trim()) missing.push('title')
   if (!item.coverImageUrl) missing.push('cover')
-  if (!item.categoryIds.length) missing.push('category')
+  if (!item.slug) missing.push('slug')
   return missing
 }
 
@@ -93,8 +106,8 @@ function missingForPublish(item: BmtAdminArticleItem): ('title' | 'cover' | 'cat
  *
  * Vòng đời Nháp → Công bố ⇄ Ẩn; xóa được ở mọi trạng thái (không khôi phục).
  * Bài mới luôn là Nháp và được thiếu mọi trường; chỉ công bố khi đủ năm thành
- * phần: tiêu đề, ảnh đại diện, mô tả ngắn, nội dung, ít nhất một danh mục. Sửa
- * bài đang công bố cũng phải giữ đủ năm thành phần. Mỗi thao tác ghi gửi kèm
+ * phần: tiêu đề, ảnh đại diện, số phút đọc, nội dung, đường dẫn. Sửa
+ * bài đang công bố cũng phải giữ đủ năm thành phần (danh mục không bắt buộc, đường dẫn thì có). Mỗi thao tác ghi gửi kèm
  * `version` đã đọc; bản cũ thì backend trả lỗi xung đột và màn hiện nguyên thông báo.
  */
 export function ArticleManager() {
@@ -148,6 +161,11 @@ export function ArticleManager() {
                   <Text strong style={{ display: 'block' }}>
                     {record.title || <Text type='secondary'>{tn('untitled')}</Text>}
                   </Text>
+                  {record.slug ? (
+                    <Text type='secondary' style={{ fontSize: 12 }}>
+                      /{record.slug}
+                    </Text>
+                  ) : null}
                 </div>
               </Space>
             )
@@ -197,9 +215,11 @@ export function ArticleManager() {
           readingTimeMinutes: null,
           coverImageUrl: '',
           contentHtml: '',
-          categoryIds: []
+          categoryIds: [],
+          slug: '',
+          locale: 'vi'
         })}
-        onCreate={(values) => newsAdminApi.createArticle(toWrite(values as ArticleFormValues))}
+        onCreate={(values) => newsAdminApi.createArticle(toWrite(values as ArticleFormValues, { withLocale: true }))}
         toFormValues={async (item) => {
           const detail = await newsAdminApi.getArticle(item.id)
           return {
@@ -208,18 +228,20 @@ export function ArticleManager() {
             readingTimeMinutes: detail.readingTimeMinutes ?? null,
             coverImageUrl: detail.coverImageUrl ?? '',
             contentHtml: detail.contentHtml ?? '',
-            categoryIds: detail.categoryIds
+            categoryIds: detail.categoryIds,
+            slug: detail.slug ?? '',
+            locale: detail.locale
           }
         }}
         onUpdate={(values, item) => {
           const form = values as ArticleFormValues
           return newsAdminApi.updateArticle(item.id, {
-            ...toWrite(form),
+            ...toWrite(form, { withLocale: false }),
             expectedVersion: form.expectedVersion ?? item.version
           })
         }}
-        renderForm={(_form, { item }) => (
-          <ArticleFields categories={categories} published={item?.state === 'Published'} />
+        renderForm={(_form, { item, isNew }) => (
+          <ArticleFields categories={categories} published={item?.state === 'Published'} isNew={isNew} />
         )}
         rowActions={(item, ctx) => {
           // Công bố / Ẩn / Xóa — mỗi thao tác gửi `version` đang có của dòng.
@@ -301,10 +323,12 @@ export function ArticleManager() {
 
 function ArticleFields({
   categories,
-  published
+  published,
+  isNew
 }: {
   categories: Awaited<ReturnType<typeof newsAdminApi.listAllCategories>>
   published: boolean
+  isNew: boolean
 }) {
   const t = useTranslations('admin')
   const tn = useTranslations('admin.newsArticles')
@@ -325,32 +349,71 @@ function ArticleFields({
           {tn('draftHint')}
         </Paragraph>
       )}
-      <ImageUrlField name='coverImageUrl' label={tn('cover')} required={published} />
-      <Form.Item
-        name='title'
-        label={tn('title')}
-        rules={[...required, { max: NEWS_LIMITS.title, message: t('fields.maxLength', { max: NEWS_LIMITS.title }) }]}
-      >
-        <Input maxLength={NEWS_LIMITS.title} showCount />
-      </Form.Item>
-      <Form.Item name='readingTimeMinutes' label={tn('readingTimeMinutes')}>
-        <InputNumber min={0} max={NEWS_LIMITS.readingTimeMinutesMax} precision={0} style={{ width: '100%' }} />
-      </Form.Item>
-      <Form.Item
-        name='categoryIds'
-        label={tn('categories')}
-        extra={tn('categoriesHint')}
-        rules={published ? [{ required: true, type: 'array', min: 1, message: tn('categoryRequired') }] : []}
-      >
-        <TreeSelect
-          multiple
-          allowClear
-          treeDefaultExpandAll
-          showSearch={{ treeNodeFilterProp: 'title' }}
-          treeData={buildCategoryTree(categories)}
-          placeholder={tn('pickCategories')}
-        />
-      </Form.Item>
+      {/* Hai hàng hai cột: tiêu đề + số phút đọc, rồi ảnh đại diện + danh mục — các ô cao gần bằng nhau
+          thay vì xếp một cột dài với ô số kéo hết bề ngang. */}
+      <Row gutter={16}>
+        <Col xs={24} md={16}>
+          <Form.Item
+            name='title'
+            label={tn('title')}
+            rules={[
+              ...required,
+              { max: NEWS_LIMITS.title, message: t('fields.maxLength', { max: NEWS_LIMITS.title }) }
+            ]}
+          >
+            <Input maxLength={NEWS_LIMITS.title} showCount />
+          </Form.Item>
+        </Col>
+        <Col xs={24} md={8}>
+          <Form.Item name='readingTimeMinutes' label={tn('readingTimeMinutes')}>
+            <InputNumber min={0} max={NEWS_LIMITS.readingTimeMinutesMax} precision={0} style={{ width: '100%' }} />
+          </Form.Item>
+        </Col>
+      </Row>
+      <Row gutter={16}>
+        <Col xs={24} md={8}>
+          <ImageUrlField name='coverImageUrl' label={tn('cover')} required={published} />
+        </Col>
+        <Col xs={24} md={16}>
+          <Form.Item name='categoryIds' label={tn('categories')} extra={tn('categoriesHint')}>
+            <TreeSelect
+              multiple
+              allowClear
+              treeDefaultExpandAll
+              showSearch={{ treeNodeFilterProp: 'title' }}
+              treeData={buildCategoryTree(categories)}
+              placeholder={tn('pickCategories')}
+            />
+          </Form.Item>
+        </Col>
+      </Row>
+      <Row gutter={16}>
+        <Col xs={24} md={16}>
+          <Form.Item
+            name='slug'
+            label={tn('slug')}
+            extra={tn('slugHint')}
+            rules={[
+              { max: NEWS_LIMITS.slug, message: t('fields.maxLength', { max: NEWS_LIMITS.slug }) },
+              { pattern: /^[a-z0-9]+(-[a-z0-9]+)*$/, message: tn('slugInvalid') }
+            ]}
+          >
+            <Input maxLength={NEWS_LIMITS.slug} placeholder={tn('slugPlaceholder')} allowClear />
+          </Form.Item>
+        </Col>
+        <Col xs={24} md={8}>
+          <Form.Item name='locale' label={tn('locale')} extra={isNew ? undefined : tn('localeLocked')}>
+            {/* Ngôn ngữ chỉ chọn lúc tạo bài (BR-NEWS-004 khoản 9). */}
+            <Select
+              disabled={!isNew}
+              options={[
+                { value: 'vi', label: tn('locales.vi') },
+                { value: 'en', label: tn('locales.en') }
+              ]}
+            />
+          </Form.Item>
+        </Col>
+      </Row>
       <Form.Item
         name='contentHtml'
         label={tn('content')}
@@ -392,35 +455,58 @@ function ArticleView({
 
   return (
     <Space orientation='vertical' size={16} style={{ width: '100%' }}>
-      {data.coverImageUrl ? <Image src={data.coverImageUrl} alt='' style={{ borderRadius: 8 }} /> : null}
-      <Descriptions
-        size='small'
-        column={1}
-        bordered
-        items={[
-          { key: 'title', label: tn('title'), children: data.title || '-' },
-          {
-            key: 'readingTimeMinutes',
-            label: tn('readingTimeMinutes'),
-            children: data.readingTimeMinutes ?? '-'
-          },
-          {
-            key: 'categories',
-            label: tn('categories'),
-            children: data.categoryIds.length
-              ? data.categoryIds.map((categoryId) => <Tag key={categoryId}>{categoryPath(categories, categoryId)}</Tag>)
-              : '-'
-          },
-          {
-            key: 'state',
-            label: tn('state'),
-            children: <StatusTag tone={STATE_TONE[data.state]}>{tn(`states.${data.state}`)}</StatusTag>
-          },
-          { key: 'firstPublished', label: tn('firstPublishedAt'), children: date(data.firstPublishedAtUtc) },
-          { key: 'created', label: tn('createdAt'), children: date(data.createdAtUtc) },
-          { key: 'modified', label: tn('modifiedAt'), children: date(data.modifiedAtUtc) }
-        ]}
-      />
+      {/* Ảnh đại diện thu nhỏ bên trái, thông tin bên phải — ảnh full-width cao gần nửa màn hình đẩy thông tin xuống. */}
+      <div className={data.coverImageUrl ? 'grid items-start gap-4 md:grid-cols-[280px_1fr]' : undefined}>
+        {data.coverImageUrl ? (
+          <Image
+            src={data.coverImageUrl}
+            alt=''
+            width='100%'
+            style={{ borderRadius: 8, aspectRatio: '16 / 10', objectFit: 'cover' }}
+          />
+        ) : null}
+        <Descriptions
+          size='small'
+          column={1}
+          bordered
+          items={[
+            { key: 'title', label: tn('title'), children: data.title || '-' },
+            { key: 'slug', label: tn('slug'), children: data.slug ? `/${data.slug}` : '-' },
+            ...(data.previousSlugs.length
+              ? [
+                  {
+                    key: 'previousSlugs',
+                    label: tn('previousSlugs'),
+                    children: data.previousSlugs.map((slug) => <Tag key={slug}>/{slug}</Tag>)
+                  }
+                ]
+              : []),
+            { key: 'locale', label: tn('locale'), children: tn(`locales.${data.locale === 'en' ? 'en' : 'vi'}`) },
+            {
+              key: 'readingTimeMinutes',
+              label: tn('readingTimeMinutes'),
+              children: data.readingTimeMinutes ?? '-'
+            },
+            {
+              key: 'categories',
+              label: tn('categories'),
+              children: data.categoryIds.length
+                ? data.categoryIds.map((categoryId) => (
+                    <Tag key={categoryId}>{categoryPath(categories, categoryId)}</Tag>
+                  ))
+                : '-'
+            },
+            {
+              key: 'state',
+              label: tn('state'),
+              children: <StatusTag tone={STATE_TONE[data.state]}>{tn(`states.${data.state}`)}</StatusTag>
+            },
+            { key: 'firstPublished', label: tn('firstPublishedAt'), children: date(data.firstPublishedAtUtc) },
+            { key: 'created', label: tn('createdAt'), children: date(data.createdAtUtc) },
+            { key: 'modified', label: tn('modifiedAt'), children: date(data.modifiedAtUtc) }
+          ]}
+        />
+      </div>
       {data.contentHtml ? (
         <HtmlPreview html={data.contentHtml} title={tn('content')} height={520} />
       ) : (
