@@ -30,6 +30,8 @@ export const ADMIN_ROUTE_ACCESS = {
   [ADMIN_ROUTES.HANDBOOK_STEPS]: { anyPermission: [P.NEWS_MANAGE] },
   [ADMIN_ROUTES.HANDBOOK_NEWSLETTER]: { anyPermission: [P.NEWS_MANAGE] },
   [ADMIN_ROUTES.HANDBOOK_CONTENT]: { anyPermission: [P.NEWS_MANAGE] },
+  // Khối chữ của trang chủ dùng cùng API khối chữ với Cẩm nang nên cùng quyền `news.manage`.
+  [ADMIN_ROUTES.HOME_CONTENT]: { anyPermission: [P.NEWS_MANAGE] },
   [ADMIN_ROUTES.GUIDE_VIDEOS]: { anyPermission: [P.GUIDE_MANAGE] },
   [ADMIN_ROUTES.DISCOUNTS]: { adminOnly: true },
   [ADMIN_ROUTES.SUPERVISION_PACKAGES]: { adminOnly: true },

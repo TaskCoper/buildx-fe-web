@@ -13,6 +13,7 @@
     "test:auth": "node --test scripts/route-access.test.mjs",
     "test:api-error": "node --test scripts/api-error.test.mjs",
     "test:handbook": "node --test scripts/handbook-cms.test.mjs scripts/handbook-admin.test.mjs",
+    "test:home": "node --test scripts/home-cms.test.mjs scripts/home-admin.test.mjs scripts/home-contract.test.mjs",
     "format": "prettier --write \"src/**/*.{ts,tsx,css,json}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,css,json}\"",
     "knip": "knip",
