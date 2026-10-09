@@ -2235,8 +2235,6 @@
   "account": {
     "title": "My account",
     "consultationRequests": {
-      "note": "One-to-one consultation requests are free. The time shown below is the time you asked for; the architect or BuildX will call the contact number to agree on a schedule.",
-      "bookNew": "Send a new consultation request",
       "total": "{count} requests sent",
       "desired": "Preferred time",
       "contactPhone": "Contact number",

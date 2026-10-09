@@ -1,6 +1,6 @@
 'use client'
 
-import { CalendarDays, Clock3, Phone } from 'lucide-react'
+import { CalendarDays, Phone } from 'lucide-react'
 import { useLocale, useTranslations } from 'next-intl'
 
 import { Link } from '@/i18n/navigation'
@@ -69,19 +69,6 @@ export function MyConsultationRequests() {
 
   return (
     <div className='space-y-4'>
-      <section className='border-primary/30 bg-primary/5 rounded-xl border p-4'>
-        <p className='text-sm leading-relaxed text-pretty'>
-          <Clock3 className='text-primary mr-1.5 inline size-4 -translate-y-px' />
-          {t('note')}
-        </p>
-        <Button asChild size='sm' className='mt-3 h-8 text-xs'>
-          <Link href={ROUTES.CONSULT}>
-            <CalendarDays className='size-3.5' />
-            {t('bookNew')}
-          </Link>
-        </Button>
-      </section>
-
       {items.length === 0 ? (
         <EmptyState
           icon={CalendarDays}

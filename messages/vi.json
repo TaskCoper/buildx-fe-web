@@ -2235,8 +2235,6 @@
   "account": {
     "title": "Tài khoản của tôi",
     "consultationRequests": {
-      "note": "Yêu cầu tư vấn 1:1 là miễn phí. Giờ ghi dưới đây là giờ bạn mong muốn; kiến trúc sư hoặc BuildX sẽ gọi lại vào số liên lạc để thống nhất lịch.",
-      "bookNew": "Gửi yêu cầu tư vấn mới",
       "total": "{count} yêu cầu đã gửi",
       "desired": "Giờ mong muốn",
       "contactPhone": "Số liên lạc",
