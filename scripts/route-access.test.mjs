@@ -88,6 +88,13 @@ test('read permission never grants mutation permissions', () => {
     assert.equal(hasPermission(staff(['commerce.read']), code), false)
   }
 })
+
+test('pricing copy follows the CMS permission independently of plan configuration', () => {
+  assert.equal(canAccessAdminRoute(staff(['news.manage']), '/admin/plans-content'), true)
+  assert.equal(canAccessAdminRoute(staff(['plan.manage']), '/admin/plans-content'), false)
+  assert.equal(canAccessAdminRoute(staff(['news.manage']), '/admin/plans'), false)
+  assert.equal(canAccessAdminRoute(customer, '/admin/plans-content'), false)
+})
 test('restricted sessions and unavailable account types cannot open admin', () => {
   for (const overrides of [{ mustChangePassword: true }, { emailVerified: false }, { accountKind: null }]) {
     assert.equal(canAccessAdminRoute({ ...staff(['role.manage']), ...overrides }, '/admin/roles'), false)

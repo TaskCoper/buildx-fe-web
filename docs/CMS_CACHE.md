@@ -13,13 +13,15 @@ Content-Type: application/json
 {"pageKey":"home","locale":"vi"}
 ```
 
-`pageKey`: `home`, `footer`, `contractors`, `handbook` hoặc `all`. `locale`: `vi`, `en` hoặc `all`. Hai trường đều bắt buộc; không nhận đường dẫn, tag hay trường khác từ caller.
+`pageKey`: `home`, `footer`, `contractors`, `handbook`, `plans`, `supervision` hoặc `all`. `locale`: `vi`, `en` hoặc `all`. Hai trường đều bắt buộc; không nhận đường dẫn, tag hay trường khác từ caller.
 
 ```json
 { "revalidated": true, "pageKey": "home", "locale": "vi", "tags": ["cms:home:vi"] }
 ```
 
-`{"pageKey":"all","locale":"all"}` xoá cache cả bốn trang ở cả hai ngôn ngữ. Footer dùng tag riêng và làm mới layout của ngôn ngữ tương ứng, vì chân trang xuất hiện trên nhiều trang, kể cả trang pháp lý.
+`{"pageKey":"all","locale":"all"}` xoá cache cả sáu trang ở cả hai ngôn ngữ. Footer dùng tag riêng và làm mới layout của ngôn ngữ tương ứng, vì chân trang xuất hiện trên nhiều trang, kể cả trang pháp lý.
+
+Trang CMS `supervision` dùng tag `cms:supervision:{locale}` và cập nhật đường dẫn `/{locale}/plans/supervision`, theo STORY-CMS-003. Không dùng đường dẫn `/{locale}/supervision`.
 
 ## Xác thực
 
@@ -43,7 +45,7 @@ Chỉ dùng hợp đồng `/api/cms/revalidate` và tag `cms:{pageKey}:{locale}`
 
 Admin chỉ gọi API sau khi ít nhất một khối lưu thành công, kể cả khi một số khối khác lỗi. Khôi phục mặc định cũng làm mới cache. Lỗi xoá cache được báo riêng: nội dung đã lưu vẫn giữ nguyên, chu kỳ 60 giây còn làm cơ chế dự phòng.
 
-Trang Cẩm nang lấy khối nội dung bằng TanStack Query trong trình duyệt. Admin đồng thời hết hạn query công khai của cùng ngôn ngữ trong phiên hiện tại, nên quay lại Cẩm nang sẽ tải bản mới. API không đẩy nội dung tới tab của người đọc đang mở; tab đó cần tải lại. API cũng không xoá cache CDN ngoài Next.js. Nếu chạy nhiều instance Next.js, cần cache dùng chung hoặc gọi tới mọi instance.
+Trang Cẩm nang lấy khối nội dung bằng TanStack Query trong trình duyệt. Trang Bảng giá lấy nội dung từ server cho HTML đầu tiên, rồi dùng TanStack Query để cập nhật trong trình duyệt. Admin đồng thời hết hạn query công khai của trang và ngôn ngữ vừa sửa trong phiên hiện tại. Với `plans`, cache dùng tag `cms:plans:{locale}` và đường dẫn `/{locale}/plans`. API không đẩy nội dung tới tab của người đọc đang mở; tab đó cần tải lại. API cũng không xoá cache CDN ngoài Next.js. Nếu chạy nhiều instance Next.js, cần cache dùng chung hoặc gọi tới mọi instance.
 
 ## Kiểm chứng
 

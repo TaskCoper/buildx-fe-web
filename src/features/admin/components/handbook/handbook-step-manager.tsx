@@ -20,6 +20,7 @@ import {
   Skeleton,
   Space,
   Table,
+  Tag,
   Tooltip,
   Typography
 } from 'antd'
@@ -88,6 +89,15 @@ async function loadSnapshot(): Promise<HandbookSnapshot> {
 }
 
 type StageRow = BmtHandbookStageAdmin & { topics: TopicCategory[]; counts: Record<string, number> }
+
+/** Cùng snapshot với bảng nhóm; trạng thái này dùng chung cho mọi ngôn ngữ. */
+export function HandbookStepsStatus() {
+  const t = useTranslations('admin.handbookContent')
+  const { data } = useQuery({ queryKey: SNAPSHOT_KEY, queryFn: loadSnapshot, staleTime: 0 })
+  if (!data) return null
+  const edited = data.stages.some((stage) => stage.version > 1) || data.topics.length > 0
+  return <Tag color={edited ? 'green' : undefined}>{t(edited ? 'edited' : 'usingDefault')}</Tag>
+}
 
 /**
  * CÁC BƯỚC TRONG CẨM NANG (STORY-HB-001, BR-HB-001) — dữ liệu trên BMT API.
@@ -207,9 +217,12 @@ export function HandbookStepManager() {
             dataIndex: 'title',
             render: (_, record) => (
               <div style={{ minWidth: 0 }}>
-                <Text strong style={{ display: 'block' }}>
-                  {record.title}
-                </Text>
+                <Space wrap style={{ display: 'flex' }}>
+                  <Text strong>{record.title}</Text>
+                  <Tag color={record.version > 1 ? 'green' : undefined}>
+                    {t(`handbookContent.${record.version > 1 ? 'edited' : 'usingDefault'}`)}
+                  </Tag>
+                </Space>
                 <Text type='secondary' style={{ fontSize: 12 }} ellipsis={{ tooltip: record.description }}>
                   {record.description}
                 </Text>

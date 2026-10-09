@@ -70,11 +70,15 @@ export interface PageContentManagerProps {
   api: PageSectionsApi
   title: string
   description: string
+  /** Nhúng trong tab của một màn CMS chung, không lặp tiêu đề trang. */
+  embedded?: boolean
   /**
    * Chữ có sẵn của một ngôn ngữ, là chữ trang đang hiển thị khi khối chưa được biên tập; đọc theo yêu cầu để không đưa
    * cả hai file `messages` vào bundle của màn admin. Trả về cây các chuỗi mà `defaultPath` của trường trỏ vào.
    */
   loadDefaults: (locale: ContentLocale) => Promise<unknown>
+  /** Bố cục trường riêng của một khối; trả undefined để dùng bố cục mặc định. */
+  renderSectionFields?: (section: HomeSectionDef) => ReactNode
 }
 
 /** Giá trị cả form: mỗi khối theo mã khối. */
@@ -100,7 +104,9 @@ export function PageContentManager({
   api,
   title,
   description,
-  loadDefaults
+  embedded = false,
+  loadDefaults,
+  renderSectionFields
 }: PageContentManagerProps) {
   const t = useTranslations('admin')
   const tc = useTranslations('admin.homeContent')
@@ -159,31 +165,42 @@ export function PageContentManager({
         // Đổi ngôn ngữ thì dựng lại cả form để giá trị ban đầu khớp bản của ngôn ngữ đó.
         key={locale}
         pageKey={pageKey}
+        formName={embedded ? pageKey : undefined}
         sections={sections}
         api={api}
         locale={locale}
         saved={saved.data ?? []}
         messages={defaults.data}
+        renderSectionFields={renderSectionFields}
         onPendingChange={setPending}
       />
     )
   }
 
+  const localePicker = (
+    <Segmented<ContentLocale>
+      value={locale}
+      onChange={changeLocale}
+      options={[
+        { value: 'vi', label: tc('locales.vi') },
+        { value: 'en', label: tc('locales.en') }
+      ]}
+    />
+  )
+
+  if (embedded)
+    return (
+      <div className='flex min-w-0 flex-col gap-4'>
+        <div className='flex flex-wrap items-start justify-between gap-4'>
+          <p className='text-muted-foreground max-w-3xl text-sm'>{description}</p>
+          {localePicker}
+        </div>
+        {body}
+      </div>
+    )
+
   return (
-    <AdminPage
-      title={title}
-      description={description}
-      actions={
-        <Segmented<ContentLocale>
-          value={locale}
-          onChange={changeLocale}
-          options={[
-            { value: 'vi', label: tc('locales.vi') },
-            { value: 'en', label: tc('locales.en') }
-          ]}
-        />
-      }
-    >
+    <AdminPage title={title} description={description} actions={localePicker}>
       {body}
     </AdminPage>
   )
@@ -191,20 +208,24 @@ export function PageContentManager({
 
 function PageContentForm({
   pageKey,
+  formName,
   sections,
   api,
   locale,
   saved,
   messages,
-  onPendingChange
+  onPendingChange,
+  renderSectionFields
 }: {
   pageKey: CmsPageKey
+  formName?: string
   sections: readonly HomeSectionDef[]
   api: PageSectionsApi
   locale: ContentLocale
   saved: BmtPageSectionAdmin[]
   messages: unknown
   onPendingChange: (count: number) => void
+  renderSectionFields?: PageContentManagerProps['renderSectionFields']
 }) {
   const t = useTranslations('admin')
   const tc = useTranslations('admin.homeContent')
@@ -354,15 +375,22 @@ function PageContentForm({
   }
 
   return (
-    <Form form={form} layout='vertical' initialValues={initial} onValuesChange={() => setSnapshot(readValues())}>
+    <Form
+      name={formName}
+      form={form}
+      layout='vertical'
+      initialValues={initial}
+      onValuesChange={() => setSnapshot(readValues())}
+    >
       <Collapse
         defaultActiveKey={[sections[0]?.key ?? '']}
         items={sections.map((section, index) => {
           const current = savedByKey.get(section.key) ?? null
           return {
             key: section.key,
+            forceRender: pageKey === 'plans' || pageKey === 'supervision',
             label: (
-              <Space>
+              <Space wrap>
                 <span className='font-semibold'>
                   {index + 1}. {titleOf(section)}
                 </span>
@@ -377,6 +405,7 @@ function PageContentForm({
                 hasSaved={current !== null}
                 busy={busy}
                 onRestore={() => restoreSection(section)}
+                customFields={renderSectionFields?.(section)}
               />
             )
           }
@@ -407,13 +436,15 @@ function SectionBody({
   messages,
   hasSaved,
   busy,
-  onRestore
+  onRestore,
+  customFields
 }: {
   section: HomeSectionDef
   messages: unknown
   hasSaved: boolean
   busy: boolean
   onRestore: () => void
+  customFields?: ReactNode
 }) {
   const tc = useTranslations('admin.homeContent')
   const t = useTranslations('admin')
@@ -437,19 +468,20 @@ function SectionBody({
         ) : null}
       </div>
 
-      {section.fields.length > 0 ? (
-        <div className='grid gap-x-4 md:grid-cols-2'>
-          {section.fields.map((field) => (
-            <FieldItem
-              key={field.name}
-              field={field}
-              name={[section.key, field.name]}
-              sectionKey={sectionTextKey(section)}
-              wide={isWide(field)}
-            />
-          ))}
-        </div>
-      ) : null}
+      {customFields ??
+        (section.fields.length > 0 ? (
+          <div className='grid gap-x-4 md:grid-cols-2'>
+            {section.fields.map((field) => (
+              <FieldItem
+                key={field.name}
+                field={field}
+                name={[section.key, field.name]}
+                sectionKey={sectionTextKey(section)}
+                wide={isWide(field)}
+              />
+            ))}
+          </div>
+        ) : null)}
 
       {section.lists.map((list) => (
         <div key={list.name} className='mb-2'>
@@ -486,23 +518,30 @@ function useHomeTexts() {
   return useTranslations('admin.homeContent') as unknown as LooseTranslator
 }
 
-/** Nhãn của một trường: ưu tiên nhãn riêng của khối (`fieldsBySection.<khối>.<tên>`), không có thì nhãn chung. */
+/** Ưu tiên nhãn riêng của khối trước khi dùng nhãn chung. */
 function useFieldLabel(sectionKey: string) {
   const tc = useHomeTexts()
-  return (name: string) =>
-    tc.has(`fieldsBySection.${sectionKey}.${name}`) ? tc(`fieldsBySection.${sectionKey}.${name}`) : tc(`fields.${name}`)
+  return (name: string) => {
+    const sectionLabel = `fieldsBySection.${sectionKey}.${name}`
+    const nestedLabel = `sections.${sectionKey}.fields.${name}`
+    if (tc.has(sectionLabel)) return tc(sectionLabel)
+    if (tc.has(nestedLabel)) return tc(nestedLabel)
+    return tc(`fields.${name}`)
+  }
 }
 
-function FieldItem({
+export function FieldItem({
   field,
   name,
   sectionKey,
-  wide
+  wide,
+  compact = false
 }: {
   field: HomeField
   name: FieldPath
   sectionKey: string
   wide?: boolean
+  compact?: boolean
 }) {
   const t = useTranslations('admin')
   const tc = useTranslations('admin.homeContent')
@@ -551,11 +590,22 @@ function FieldItem({
   }
 
   return (
-    <Form.Item className={wideClass} name={name} label={label} rules={textRules}>
+    <Form.Item
+      className={wideClass}
+      name={name}
+      label={compact ? undefined : label}
+      rules={textRules}
+      style={compact ? { marginBottom: 0 } : undefined}
+    >
       {field.kind === 'textarea' ? (
-        <Input.TextArea autoSize={{ minRows: 2, maxRows: 6 }} maxLength={HOME_TEXT_MAX_LENGTH} showCount />
+        <Input.TextArea
+          aria-label={label}
+          autoSize={{ minRows: compact ? 1 : 2, maxRows: 6 }}
+          maxLength={HOME_TEXT_MAX_LENGTH}
+          showCount={!compact}
+        />
       ) : (
-        <Input maxLength={HOME_TEXT_MAX_LENGTH} />
+        <Input aria-label={label} maxLength={HOME_TEXT_MAX_LENGTH} />
       )}
     </Form.Item>
   )

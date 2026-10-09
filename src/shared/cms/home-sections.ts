@@ -142,7 +142,11 @@ export function collectIconKeys(sections: HomeSections): string[] {
   const keys = new Set<string>()
 
   for (const section of Object.values(sections)) {
-    for (const value of Object.values(section)) {
+    for (const [field, value] of Object.entries(section)) {
+      if (field === 'icon' || field.endsWith('Icon')) {
+        const key = lucideIconKey(cleanText(value))
+        if (key) keys.add(key)
+      }
       if (!Array.isArray(value)) continue
       for (const item of value) {
         if (!isPlainObject(item)) continue

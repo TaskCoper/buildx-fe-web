@@ -1269,7 +1269,6 @@
     "articles": {
       "uncategorized": "Uncategorized",
       "loadError": "Could not load the article list. Try reloading the page.",
-
       "eyebrow": "BuildX handbook",
       "title": "Explore building knowledge",
       "subtitle": "Useful insights to stay in control at every step of building your home.",
@@ -2621,7 +2620,8 @@
       "title": "Not sure which plan to pick? Get free advice",
       "subtitle": "Call our hotline or ask the AI assistant for the plan that fits your project.",
       "call": "Call {hotline}",
-      "chat": "Chat with the AI assistant"
+      "chat": "Chat with the AI assistant",
+      "hotline": "0934 888 881"
     },
     "gift": {
       "badge": "Special gift",
@@ -2688,6 +2688,11 @@
         "advisoryOnline": "Online advisory",
         "advisoryPriority": "Priority advisory",
         "advisoryExpert": "One-on-one with an expert"
+      },
+      "buttons": {
+        "basic": "Choose BASIC",
+        "advanced": "Choose PLUS",
+        "pro": "Choose PRO"
       }
     },
     "value": {
@@ -2904,7 +2909,6 @@
       "footerContent": "Footer",
       "contractorsContent": "Find contractors",
       "handbookContent": "Handbook",
-
       "dashboard": "To-do",
       "templates": "Template library",
       "styles": "Styles",
@@ -2943,7 +2947,9 @@
       "roles": "Roles & permissions",
       "staff": "Staff accounts",
       "assignments": "Supervision assignments",
-      "constructionSites": "Construction sites"
+      "constructionSites": "Construction sites",
+      "plansContent": "Consultation packages",
+      "supervisionContent": "Supervision packages"
     },
     "actions": {
       "create": "Add new",
@@ -5228,8 +5234,10 @@
       "previousSlugs": "Previous slugs",
       "locale": "Language",
       "localeLocked": "The language can only be chosen when the article is created.",
-      "locales": { "vi": "Vietnamese", "en": "English" },
-
+      "locales": {
+        "vi": "Vietnamese",
+        "en": "English"
+      },
       "description": "Handbook news articles. New articles always start as Draft and can be saved incomplete; publishing requires a title, cover image, reading time, content and a slug; categories are optional. Deleting is permanent.",
       "manageCategories": "Manage categories",
       "states": {
@@ -5468,7 +5476,11 @@
       "discard": "Discard changes",
       "notShownEmpty": "The block has no articles, so the handbook page is hiding the whole newsletter strip. Add a published article to show it.",
       "notShownAllHidden": "None of the articles in the block is published, so the handbook page is hiding the whole newsletter strip. Republish one of them or add another article.",
-      "states": { "Draft": "Draft", "Published": "Published", "Hidden": "Hidden" }
+      "states": {
+        "Draft": "Draft",
+        "Published": "Published",
+        "Hidden": "Hidden"
+      }
     },
     "cmsCache": {
       "refreshFailed": "Content was saved, but the public page could not be refreshed. It will update during automatic revalidation."
@@ -5484,7 +5496,7 @@
       "edited": "Edited",
       "usingDefault": "Using default",
       "restore": "Restore default",
-      "restoreConfirm": "Delete the edited version of this block? The home page will go back to the built-in content.",
+      "restoreConfirm": "Delete the edited version of this block? The page will return to its built-in content.",
       "restored": "Default restored.",
       "saveAll": "Save all",
       "pendingCount": "{count} blocks with unsaved changes",
@@ -5607,6 +5619,86 @@
         "contractorsCta": {
           "title": "Closing call to action",
           "hint": "The green strip inviting visitors to create a project, and the line inviting contractors to become partners."
+        },
+        "plans_hero": {
+          "title": "Pricing page heading",
+          "hint": "Title and introduction. The final word in the title is orange."
+        },
+        "plans_advice": {
+          "title": "Package advice",
+          "hint": "Advice copy and hotline. Keep '{hotline}' in the call label to show the configured number. Chat opens the AI assistant."
+        },
+        "plans_comparison": {
+          "title": "Detailed comparison",
+          "hint": "This table is display content only and does not change actual plan permissions or quotas. Each cell can be Yes, No, or custom text/numbers."
+        },
+        "plans_value": {
+          "title": "Customer value",
+          "hint": "Add, edit, remove or reorder items. Choose an icon and enter independent text for each column."
+        },
+        "plans_notes": {
+          "title": "Footer notes",
+          "hint": "The three notes in the pale green band and the dossier scope statement below."
+        },
+        "supervision_comparison": {
+          "title": "Detailed comparison",
+          "hint": "Edit supervision comparison tables and page content. CMS content does not change plan configuration or sale prices.",
+          "fields": {
+            "title": "Title",
+            "criterion": "Item column",
+            "choosePlanRow": "Choose plan row",
+            "buttons_self": "Button — Self-managed",
+            "buttons_check": "Button — Check",
+            "buttons_control": "Button — Control"
+          }
+        },
+        "supervision_addons": {
+          "title": "Additional services and surcharges",
+          "hint": "Edit supervision comparison tables and page content. CMS content does not change plan configuration or sale prices.",
+          "fields": {
+            "title": "Title",
+            "item": "Item column",
+            "price": "Suggested price",
+            "note": "Note",
+            "label": "Item"
+          }
+        },
+        "supervision_scope": {
+          "title": "Service scope principles",
+          "hint": "Edit supervision comparison tables and page content. CMS content does not change plan configuration or sale prices.",
+          "fields": {
+            "title": "Title",
+            "icon": "Heading icon",
+            "text": "Principle"
+          }
+        },
+        "supervision_journey": {
+          "title": "Supervision journey",
+          "hint": "Edit supervision comparison tables and page content. CMS content does not change plan configuration or sale prices.",
+          "fields": {
+            "title": "Title",
+            "description": "Step description",
+            "icon": "Step icon"
+          }
+        },
+        "supervision_value": {
+          "title": "Customer value",
+          "hint": "Edit supervision comparison tables and page content. CMS content does not change plan configuration or sale prices.",
+          "fields": {
+            "title": "Title"
+          }
+        },
+        "supervision_notes": {
+          "title": "Page notes",
+          "hint": "Edit supervision comparison tables and page content. CMS content does not change plan configuration or sale prices.",
+          "fields": {
+            "payment": "Payment",
+            "scope": "Plan scope",
+            "area": "Service area",
+            "paymentIcon": "Payment icon",
+            "scopeIcon": "Scope icon",
+            "areaIcon": "Area icon"
+          }
         }
       },
       "lists": {
@@ -5805,17 +5897,156 @@
         "contractorsCta": {
           "title": "Create project invitation",
           "action": "Create project button text"
+        },
+        "plans_hero": {
+          "title": "Title",
+          "subtitle": "Description"
+        },
+        "plans_advice": {
+          "title": "Title",
+          "subtitle": "Description",
+          "call": "Hotline button label",
+          "chat": "Chat button label",
+          "hotline": "Hotline"
+        },
+        "plans_comparison": {
+          "title": "Title",
+          "criterion": "Item",
+          "choosePlanRow": "Choose plan",
+          "groups_core": "Group — Core allowances",
+          "groups_design": "Group — Design & estimate features",
+          "groups_compare": "Group — Comparison & optimisation features",
+          "groups_support": "Group — Support",
+          "groups_proOnly": "Group — PRO exclusive",
+          "core_designOptions": "New design options",
+          "core_libraryCredits": "Template look-ups",
+          "core_optionUnit": "Design option unit",
+          "core_libraryUnit": "Library quota unit",
+          "rows_uploadPhoto": "Row — Upload site / existing photos",
+          "rows_siteInfo": "Row — Enter area, location, scale",
+          "rows_buildingType": "Row — Choose building type",
+          "rows_style": "Row — Choose style / colour",
+          "rows_layout": "Row — Space planning",
+          "rows_renderImages": "Row — Design visuals",
+          "rows_structureEstimate": "Row — Structural estimate",
+          "rows_finishingEstimate": "Row — Finishing estimate",
+          "rows_interiorEstimate": "Row — Interior estimate",
+          "rows_materialList": "Row — Suggested material list",
+          "rows_boq": "Row — Bill of quantities & estimate",
+          "rows_exportDossier": "Row — Export construction dossier",
+          "rows_contractorPack": "Row — Bundle to send contractors",
+          "rows_compareOptions": "Row — Compare design options",
+          "rows_compareCost": "Row — Compare cost between options",
+          "rows_compareMaterial": "Row — Compare material options",
+          "rows_optimizeBudget": "Row — Optimise to a target budget",
+          "rows_costDelta": "Row — Cost-delta analysis on changes",
+          "rows_materialAlternatives": "Row — Alternative materials for the budget",
+          "rows_advisory": "Row — Advisory support",
+          "rows_render3d": "Row — Photoreal 3D renders",
+          "rows_gift": "Row — Special gift",
+          "rows_giftCondition": "Row — Terms",
+          "values_layoutBasic": "Display text — Basic",
+          "values_layout2d3d": "Display text — 2D & 3D",
+          "values_layout2d3dPlus": "Display text — Advanced 2D & 3D",
+          "values_estimateRough": "Display text — Rough",
+          "values_estimateDetailed": "Display text — Detailed",
+          "values_estimateOptimized": "Display text — Detailed & optimised",
+          "values_advisoryOnline": "Display text — Online advisory",
+          "values_advisoryPriority": "Display text — Priority advisory",
+          "values_advisoryExpert": "Display text — One-on-one with an expert",
+          "buttons_basic": "Button — BASIC",
+          "buttons_advanced": "Button — PLUS",
+          "buttons_pro": "Button — PRO"
+        },
+        "plans_value": {
+          "title": "Title",
+          "rows_easy": "Row — Easy",
+          "cells_easy_basic": "Easy — BASIC",
+          "cells_easy_advanced": "Easy — PLUS",
+          "cells_easy_pro": "Easy — PRO",
+          "rows_time": "Row — Saves time",
+          "cells_time_basic": "Saves time — BASIC",
+          "cells_time_advanced": "Saves time — PLUS",
+          "cells_time_pro": "Saves time — PRO",
+          "rows_budget": "Row — Budget control",
+          "cells_budget_basic": "Budget control — BASIC",
+          "cells_budget_advanced": "Budget control — PLUS",
+          "cells_budget_pro": "Budget control — PRO",
+          "rows_ready": "Row — Build ready",
+          "cells_ready_basic": "Build ready — BASIC",
+          "cells_ready_advanced": "Build ready — PLUS",
+          "cells_ready_pro": "Build ready — PRO"
+        },
+        "plans_notes": {
+          "payment": "Payment note",
+          "estimate": "Estimate note",
+          "gift": "Gift note",
+          "scope": "Dossier scope"
         }
       },
       "floors": "{count} floors",
       "pickMissing": "Hidden or no longer public",
       "pickArchitects": "Pick up to {max} architects",
-      "pickArticles": "Pick up to {max} articles"
+      "pickArticles": "Pick up to {max} articles",
+      "plansDescription": "Edit the pricing page blocks in display order. Prices, quotas, benefits, gifts and the Highlighted flag are managed in Plan pricing. Each language has its own content.",
+      "plansTable": {
+        "label": "Edit the detailed comparison table",
+        "hint": "Edit group headings, row labels and text cells in the table. Level descriptions apply to the matching plan level; quotas, benefits and gifts come from plan settings.",
+        "fromPlan": "From each plan’s settings",
+        "quotaHint": "This text template applies to all three plans. Keep '{count}'; quotas come from each plan’s settings.",
+        "scrollHint": "Swipe horizontally to view and edit all three plan columns.",
+        "dynamicHint": "This table is display content only and does not change actual plan permissions or quotas. Each cell can be Yes, No, or custom text/numbers.",
+        "invalidGroups": "The table contains invalid content or exceeds a limit. Please check its groups and items.",
+        "itemColumn": "Item",
+        "groupName": "Group name",
+        "groupStyle": "Group color",
+        "standard": "Green",
+        "accent": "Orange highlight",
+        "groupUp": "Move group up",
+        "groupDown": "Move group down",
+        "deleteGroup": "Delete group",
+        "deleteGroupConfirm": "Remove this group and all its items from the table draft?",
+        "cancel": "Cancel",
+        "rowName": "Item name",
+        "deleteRow": "Delete item",
+        "addRow": "Add item",
+        "addGroup": "Add group",
+        "newGroup": "Group {index}",
+        "empty": "No groups yet. Select Add group to create table content.",
+        "cellKind": "{tier} cell type",
+        "cellText": "{tier} cell content",
+        "yes": "Yes (✓)",
+        "no": "No (–)",
+        "text": "Custom text"
+      },
+      "valueTable": {
+        "hint": "Add, edit, remove or reorder items. Choose an icon and enter independent text for each column.",
+        "rowName": "Item {index} name",
+        "icon": "Item {index} icon",
+        "cell": "Item {index} — {tier}",
+        "chooseIcon": "Choose an icon",
+        "iconUnavailable": "The icon list is unavailable. Current content is preserved.",
+        "deleteConfirm": "Remove this item?",
+        "empty": "No items yet. Add an item to build the table.",
+        "invalidItems": "Check the content: up to 100 items, with up to 1000 characters per cell."
+      },
+      "supervisionDescription": "Edit supervision comparison tables and page content. CMS content does not change plan configuration or sale prices.",
+      "supervisionActions": "Actions",
+      "packageTabs": {
+        "design": "Design packages",
+        "supervision": "Supervision packages"
+      }
     },
     "handbookContent": {
       "description": "Manage the handbook page content in two tabs, News and Template library, in the order readers see it on the page. The text cards are edited per language: a block you have not edited uses the page's built-in translation, so the form opens with the text currently shown, and an unedited language never borrows another language's text. The three steps, topics and featured articles are shared by every language.",
-      "locales": { "vi": "Vietnamese", "en": "English" },
-      "groups": { "news": "News", "library": "Template library" },
+      "locales": {
+        "vi": "Vietnamese",
+        "en": "English"
+      },
+      "groups": {
+        "news": "News",
+        "library": "Template library"
+      },
       "newsGroups": {
         "top": {
           "title": "Top of the page and the three steps",
@@ -5825,7 +6056,10 @@
           "title": "BuildX newsletter",
           "hint": "The Newsletter block sits right below the three steps: featured and related articles."
         },
-        "articles": { "title": "Article list", "hint": "The articles block sits at the bottom of the News tab." }
+        "articles": {
+          "title": "Article list",
+          "hint": "The articles block sits at the bottom of the News tab."
+        }
       },
       "edited": "Edited",
       "usingDefault": "Using the default",
@@ -5834,12 +6068,24 @@
       "restored": "Default restored.",
       "unchanged": "The text is the same as the default, so there is nothing to save.",
       "sections": {
-        "hero": { "title": "Opening" },
-        "stagesHeading": { "title": "Heading of the three steps" },
-        "articlesHeading": { "title": "Articles block" },
-        "newsletterHeading": { "title": "Newsletter block" },
-        "libraryBanner": { "title": "Template library tab banner" },
-        "tabs": { "title": "The two tab names" }
+        "hero": {
+          "title": "Opening"
+        },
+        "stagesHeading": {
+          "title": "Heading of the three steps"
+        },
+        "articlesHeading": {
+          "title": "Articles block"
+        },
+        "newsletterHeading": {
+          "title": "Newsletter block"
+        },
+        "libraryBanner": {
+          "title": "Template library tab banner"
+        },
+        "tabs": {
+          "title": "The two tab names"
+        }
       },
       "fields": {
         "eyebrow": "Line above the title",
@@ -7485,6 +7731,11 @@
           "perVisit": "Per visit",
           "everyVisit": "Every visit",
           "full": "Full"
+        },
+        "buttons": {
+          "self": "Choose {tier}",
+          "check": "Choose {tier}",
+          "control": "Choose {tier}"
         }
       },
       "addons": {
@@ -7509,7 +7760,8 @@
         "title": "What the service covers",
         "r1": "BuildX inspects, records, flags, reports and follows up within the plan you choose.",
         "r2": "The contractor remains responsible for the works, quality, site safety and warranty.",
-        "r3": "The plan does not include a full-time engineer on site."
+        "r3": "The plan does not include a full-time engineer on site.",
+        "icon": "ShieldCheck"
       },
       "journey": {
         "title": "Supervision journey",
@@ -7556,7 +7808,10 @@
       "notes": {
         "payment": "Payment by bank-transfer QR.",
         "scope": "Priced per project for homes up to 3 storeys and 300 m² of floor area; beyond that, add-ons apply.",
-        "area": "Standard service area is within 30 km of an engineer base; travel costs apply beyond that."
+        "area": "Standard service area is within 30 km of an engineer base; travel costs apply beyond that.",
+        "paymentIcon": "QrCode",
+        "scopeIcon": "Ruler",
+        "areaIcon": "MapPin"
       }
     },
     "dashboard": {

@@ -66,3 +66,10 @@ export function resolveIconNodes(names: readonly string[]): HomeIconNodes {
   }
   return result
 }
+
+/** Chỉ tên chuẩn của icon; mã component vẫn ở server. */
+export function listIconNames(): string[] {
+  return Object.keys(lucide.icons)
+    .filter((name) => lucideIconKey(name))
+    .sort()
+}

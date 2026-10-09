@@ -6,7 +6,7 @@ import {
   Alert,
   App,
   Button,
-  Card,
+  Collapse,
   Form,
   Input,
   Popconfirm,
@@ -18,7 +18,7 @@ import {
   Typography
 } from 'antd'
 import { useTranslations } from 'next-intl'
-import { Suspense, useState, type ReactNode } from 'react'
+import { Suspense, useState } from 'react'
 
 import { isApiError } from '@/shared/lib/api'
 import { adminKeys } from '../../api/admin.keys'
@@ -39,7 +39,7 @@ import {
 import { AdminPage } from '../common/admin-page'
 import { ImageUrlField } from '../common/field-kit'
 import { HandbookNewsletterManager } from './handbook-newsletter-manager'
-import { HandbookStepManager } from './handbook-step-manager'
+import { HandbookStepManager, HandbookStepsStatus } from './handbook-step-manager'
 
 const { Text } = Typography
 
@@ -124,10 +124,10 @@ function ContentLayout({ locale, onLocaleChange, tab, onTabChange }: ContentScre
   const byKey = new Map((saved.data ?? []).map((section) => [section.sectionKey, section]))
 
   /**
-   * Thẻ chữ của một khối. Lỗi hoặc đang tải chỉ ảnh hưởng các thẻ chữ: ba bước và bài nổi bật tự tải riêng nên vẫn
+   * Form sửa chữ của một khối. Lỗi hoặc đang tải chỉ ảnh hưởng các khối chữ: ba bước và bài nổi bật tự tải riêng nên vẫn
    * dùng được khi API khối chữ gặp sự cố.
    */
-  const card = (key: SectionKey) => {
+  const editor = (key: SectionKey) => {
     const section = SECTIONS_BY_KEY.get(key)
     if (!section) return null
     if (saved.isPending || defaults.isPending) return <Skeleton key={key} active />
@@ -142,7 +142,7 @@ function ContentLayout({ locale, onLocaleChange, tab, onTabChange }: ContentScre
       )
     }
     return (
-      <SectionCard
+      <SectionEditor
         // Đổi ngôn ngữ hoặc version thì dựng lại form để giá trị ban đầu khớp bản vừa tải.
         key={`${locale}:${key}:${byKey.get(key)?.version ?? 0}`}
         section={section}
@@ -152,6 +152,21 @@ function ContentLayout({ locale, onLocaleChange, tab, onTabChange }: ContentScre
       />
     )
   }
+
+  const sectionItem = (key: SectionKey, number: number) => ({
+    key,
+    // Giữ form và dữ liệu đang nhập khi đóng khối; mở lại không nạp lại giá trị ban đầu.
+    forceRender: true,
+    label: (
+      <Space wrap>
+        <span className='font-semibold'>
+          {number}. {tc(`sections.${key}.title`)}
+        </span>
+        {saved.data ? byKey.has(key) ? <Tag color='green'>{tc('edited')}</Tag> : <Tag>{tc('usingDefault')}</Tag> : null}
+      </Space>
+    ),
+    children: editor(key)
+  })
 
   return (
     <AdminPage
@@ -168,9 +183,12 @@ function ContentLayout({ locale, onLocaleChange, tab, onTabChange }: ContentScre
         />
       }
     >
-      <Space orientation='vertical' size={16} style={{ width: '100%' }}>
+      <div className='flex flex-col gap-4'>
         {/* Tên hai tab đặt tên cho chính thanh tab nên dùng chung cho cả hai tab. */}
-        {HANDBOOK_SECTION_GROUPS.shared.map(card)}
+        <Collapse
+          defaultActiveKey={['tabs']}
+          items={HANDBOOK_SECTION_GROUPS.shared.map((key, index) => sectionItem(key, index + 1))}
+        />
         <Tabs
           activeKey={tab}
           onChange={(key) => onTabChange(key as ContentTab)}
@@ -179,52 +197,62 @@ function ContentLayout({ locale, onLocaleChange, tab, onTabChange }: ContentScre
               key: 'news',
               label: tc('groups.news'),
               children: (
-                <Space orientation='vertical' size={32} style={{ width: '100%' }}>
-                  <ContentGroup title={tc('newsGroups.top.title')} hint={tc('newsGroups.top.hint')}>
-                    {card('hero')}
-                    {card('stagesHeading')}
-                    <HandbookStepManager />
-                  </ContentGroup>
-                  <ContentGroup title={tc('newsGroups.newsletter.title')} hint={tc('newsGroups.newsletter.hint')}>
-                    {card('newsletterHeading')}
-                    <HandbookNewsletterManager />
-                  </ContentGroup>
-                  <ContentGroup title={tc('newsGroups.articles.title')} hint={tc('newsGroups.articles.hint')}>
-                    {card('articlesHeading')}
-                  </ContentGroup>
-                </Space>
+                <Collapse
+                  defaultActiveKey={['hero']}
+                  items={[
+                    sectionItem('hero', 1),
+                    sectionItem('stagesHeading', 2),
+                    {
+                      key: 'steps',
+                      forceRender: true,
+                      label: (
+                        <Space wrap>
+                          <span className='font-semibold'>3. {t('nav.handbookSteps')}</span>
+                          <HandbookStepsStatus />
+                        </Space>
+                      ),
+                      children: (
+                        <div className='flex flex-col gap-4'>
+                          <Text type='secondary'>{tc('newsGroups.top.hint')}</Text>
+                          <HandbookStepManager />
+                        </div>
+                      )
+                    },
+                    sectionItem('newsletterHeading', 4),
+                    {
+                      key: 'newsletter',
+                      forceRender: true,
+                      label: <span className='font-semibold'>5. {tc('newsGroups.newsletter.title')}</span>,
+                      children: (
+                        <div className='flex flex-col gap-4'>
+                          <Text type='secondary'>{tc('newsGroups.newsletter.hint')}</Text>
+                          <HandbookNewsletterManager />
+                        </div>
+                      )
+                    },
+                    sectionItem('articlesHeading', 6)
+                  ]}
+                />
               )
             },
             {
               key: 'library',
               label: tc('groups.library'),
               children: (
-                <Space orientation='vertical' size={16} style={{ width: '100%' }}>
-                  {HANDBOOK_SECTION_GROUPS.library.map(card)}
-                </Space>
+                <Collapse
+                  defaultActiveKey={['libraryBanner']}
+                  items={HANDBOOK_SECTION_GROUPS.library.map((key, index) => sectionItem(key, index + 1))}
+                />
               )
             }
           ]}
         />
-      </Space>
+      </div>
     </AdminPage>
   )
 }
 
-/** Một nhóm theo vùng của trang công khai: tiêu đề, một dòng nói vùng đó nằm ở đâu, rồi các thẻ sửa. */
-function ContentGroup({ title, hint, children }: { title: string; hint: string; children: ReactNode }) {
-  return (
-    <section className='flex flex-col gap-4'>
-      <div className='border-primary border-l-4 pl-3'>
-        <div className='text-base font-semibold'>{title}</div>
-        <Text type='secondary'>{hint}</Text>
-      </div>
-      {children}
-    </section>
-  )
-}
-
-function SectionCard({
+function SectionEditor({
   section,
   locale,
   saved,
@@ -295,15 +323,9 @@ function SectionCard({
   }
 
   return (
-    <Card
-      title={
-        <Space>
-          {tc(`sections.${section.key}.title`)}
-          {saved ? <Tag color='green'>{tc('edited')}</Tag> : <Tag>{tc('usingDefault')}</Tag>}
-        </Space>
-      }
-      extra={
-        <Space>
+    <>
+      <div className='mb-4 flex flex-wrap justify-end gap-3'>
+        <Space wrap>
           {saved ? (
             <Popconfirm
               title={tc('restoreConfirm')}
@@ -318,8 +340,7 @@ function SectionCard({
             {t('actions.save')}
           </Button>
         </Space>
-      }
-    >
+      </div>
       <Form form={form} layout='vertical' initialValues={initial}>
         {section.fields.map((field) =>
           field.kind === 'image' ? (
@@ -343,6 +364,6 @@ function SectionCard({
           )
         )}
       </Form>
-    </Card>
+    </>
   )
 }

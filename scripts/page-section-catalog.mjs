@@ -9,7 +9,7 @@
 
 /** Đường dẫn catalog trong workspace (`bmt-be` nằm cạnh thư mục `buildx`). */
 export const CATALOG_URL = new URL(
-  '../../../bmt-be/src/bmt-be.contract/services/handbook/PageSectionCatalog.cs',
+  '../../bmt-be/src/bmt-be.contract/services/handbook/PageSectionCatalog.cs',
   import.meta.url
 )
 
@@ -38,9 +38,9 @@ function namedList(args, name) {
 }
 
 function parseStructuredField(call) {
-  const kind = call.match(/^(Items|Ids|Html)\(/)[1]
+  const kind = call.match(/^(Items|Ids|Html|Icon)\(/)[1]
   const args = balanced(call, call.indexOf('('))
-  if (kind === 'Html') return { kind, name: args.match(/^\s*"([^"]+)"/)[1] }
+  if (kind === 'Html' || kind === 'Icon') return { kind, name: args.match(/^\s*"([^"]+)"/)[1] }
   if (kind === 'Ids') {
     const [, name, max] = args.match(/^\s*"([^"]+)"\s*,\s*(\d+)/)
     return { kind, name, max: Number(max) }
@@ -78,8 +78,17 @@ export function parsePageCatalog(text, pageConstant, sectionKeysClass) {
     const structured = []
     if (fieldsAt >= 0) {
       const body = balanced(args, args.indexOf('[', fieldsAt))
-      for (const call of body.matchAll(/\b(Items|Ids|Html)\(/g))
+      let consumed = 0
+      for (const call of body.matchAll(/\b(Items|Ids|Html|Icon)\(/g)) {
+        if (call.index < consumed) continue
+        const args = balanced(body, body.indexOf('(', call.index))
+        consumed = body.indexOf('(', call.index) + args.length + 2
         structured.push(parseStructuredField(body.slice(call.index)))
+      }
+      for (const match of body.matchAll(
+        /new\("([^"]+)",\s*PageSectionFieldKind\.(PlansComparisonGroups|SupervisionComparisonGroups)\)/g
+      ))
+        structured.push({ kind: match[2], name: match[1] })
     }
     sections.set(constants[match[1]], {
       required: namedList(args, 'RequiredText'),

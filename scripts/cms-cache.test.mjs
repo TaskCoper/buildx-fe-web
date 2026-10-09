@@ -11,7 +11,11 @@ function load(path, overrides = {}) {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 }
   }).outputText
   const loadedModule = { exports: {} }
-  new Function('require', 'module', 'exports', js)((name) => overrides[name] ?? require(name), loadedModule, loadedModule.exports)
+  new Function('require', 'module', 'exports', js)(
+    (name) => overrides[name] ?? require(name),
+    loadedModule,
+    loadedModule.exports
+  )
   return loadedModule.exports
 }
 
@@ -76,7 +80,7 @@ test('footer làm mới layout của ngôn ngữ tương ứng; trang khác khô
     ])
   }))
 
-test('all/all phủ đủ tám tag CMS và đường dẫn home/footer/contractors/handbook', async (t) =>
+test('all/all phủ đủ mười hai tag CMS và đường dẫn của các trang đã khai báo', async (t) =>
   run(t, async () => {
     const response = await route.POST(request({ pageKey: 'all', locale: 'all' }, webhook))
     assert.equal(response.status, 200)
@@ -93,11 +97,16 @@ test('all/all phủ đủ tám tag CMS và đường dẫn home/footer/contracto
         'cms:handbook:en',
         'cms:handbook:vi',
         'cms:home:en',
-        'cms:home:vi'
+        'cms:home:vi',
+        'cms:plans:en',
+        'cms:plans:vi',
+        'cms:supervision:en',
+        'cms:supervision:vi'
       ]
     )
     assert.ok(effects.some(([kind, path, type]) => kind === 'path' && path === '/vi/contractors' && type === 'page'))
     assert.ok(effects.some(([kind, path, type]) => kind === 'path' && path === '/en/handbook' && type === 'page'))
+    assert.ok(effects.some(([kind, path, type]) => kind === 'path' && path === '/vi/plans' && type === 'page'))
   }))
 
 for (const [name, headers, status] of [
@@ -197,4 +206,14 @@ test('fetch công khai giữ TTL 60 giây và gắn đúng tag riêng cho page/l
     await server.fetchPageSections('footer', 'en')
     assert.deepEqual(calls[0][1].next, { revalidate: 60, tags: ['cms:home:vi'] })
     assert.deepEqual(calls[1][1].next, { revalidate: 60, tags: ['cms:footer:en'] })
+  }))
+
+test('supervision CMS revalidates the nested public route for only the selected locale', async (t) =>
+  run(t, async () => {
+    const response = await route.POST(request({ pageKey: 'supervision', locale: 'vi' }, webhook))
+    assert.equal(response.status, 200)
+    assert.deepEqual(effects, [
+      ['tag', 'cms:supervision:vi', { expire: 0 }],
+      ['path', '/vi/plans/supervision', 'page']
+    ])
   }))

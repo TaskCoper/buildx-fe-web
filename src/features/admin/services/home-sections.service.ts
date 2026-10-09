@@ -60,6 +60,11 @@ export interface HomeSectionDef {
   textKey?: string
   fields: readonly HomeField[]
   lists: readonly HomeList[]
+  /** Nội dung riêng có cấu trúc; dùng cùng luồng lưu, locale và version của CMS. */
+  contentAdapter?: {
+    formValues: (saved: Record<string, unknown> | null | undefined, messages: unknown) => HomeFormValues
+    buildContent: (values: Record<string, unknown>, messages: unknown) => Record<string, unknown>
+  }
 }
 
 /** Giới hạn độ dài mỗi trường chữ. */
@@ -388,7 +393,7 @@ type PlainObject = Record<string, unknown>
 export type HomeRowValues = Record<string, string>
 
 /** Giá trị của cả form một khối: chữ theo tên trường, và danh sách theo tên danh sách. */
-export type HomeFormValues = Record<string, string | HomeRowValues[] | string[]>
+export type HomeFormValues = Record<string, unknown>
 
 function isPlainObject(value: unknown): value is PlainObject {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -472,6 +477,7 @@ export function formValuesFor(
   saved: Record<string, unknown> | null | undefined,
   messages: unknown
 ): HomeFormValues {
+  if (section.contentAdapter) return section.contentAdapter.formValues(saved, messages)
   const values: HomeFormValues = {}
   const defaults = scalarDefaults(section, messages)
   for (const field of section.fields) {
@@ -514,6 +520,7 @@ function rowContent(fields: readonly HomeField[], row: unknown): PlainObject {
  * Trả đối tượng rỗng khi không có gì khác bản có sẵn.
  */
 export function buildContent(section: HomeSectionDef, values: Record<string, unknown>, messages: unknown): PlainObject {
+  if (section.contentAdapter) return section.contentAdapter.buildContent(values, messages)
   const content: PlainObject = {}
   const defaults = scalarDefaults(section, messages)
 

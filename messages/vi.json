@@ -1269,7 +1269,6 @@
     "articles": {
       "uncategorized": "Chưa phân loại",
       "loadError": "Không tải được danh sách bài viết. Thử tải lại trang.",
-
       "eyebrow": "Cẩm nang BuildX",
       "title": "Khám phá kiến thức xây dựng",
       "subtitle": "Thông tin hữu ích để bạn chủ động hơn trong từng bước xây nhà.",
@@ -2621,7 +2620,8 @@
       "title": "Chưa chắc chọn gói nào? Tư vấn miễn phí",
       "subtitle": "Gọi tổng đài hoặc hỏi trợ lý AI để được gợi ý gói phù hợp với công trình của bạn.",
       "call": "Gọi tổng đài {hotline}",
-      "chat": "Chat với trợ lý AI"
+      "chat": "Chat với trợ lý AI",
+      "hotline": "0934 888 881"
     },
     "gift": {
       "badge": "Quà tặng đặc biệt",
@@ -2688,6 +2688,11 @@
         "advisoryOnline": "Tư vấn online",
         "advisoryPriority": "Tư vấn ưu tiên",
         "advisoryExpert": "Tư vấn 1:1 cùng chuyên gia"
+      },
+      "buttons": {
+        "basic": "Chọn gói BASIC",
+        "advanced": "Chọn gói PLUS",
+        "pro": "Chọn gói PRO"
       }
     },
     "value": {
@@ -2904,7 +2909,6 @@
       "footerContent": "Footer",
       "contractorsContent": "Tìm nhà thầu",
       "handbookContent": "Cẩm nang",
-
       "dashboard": "Việc cần xử lý",
       "templates": "Thư viện mẫu",
       "styles": "Phong cách",
@@ -2943,7 +2947,9 @@
       "roles": "Vai trò & quyền",
       "staff": "Tài khoản nhân viên",
       "assignments": "Phân công giám sát",
-      "constructionSites": "Công trình"
+      "constructionSites": "Công trình",
+      "plansContent": "Gói tư vấn",
+      "supervisionContent": "Gói giám sát"
     },
     "actions": {
       "create": "Thêm mới",
@@ -5228,8 +5234,10 @@
       "previousSlugs": "Đường dẫn cũ",
       "locale": "Ngôn ngữ",
       "localeLocked": "Ngôn ngữ chỉ chọn lúc tạo bài.",
-      "locales": { "vi": "Tiếng Việt", "en": "Tiếng Anh" },
-
+      "locales": {
+        "vi": "Tiếng Việt",
+        "en": "Tiếng Anh"
+      },
       "description": "Bài tin tức của Cẩm nang. Bài mới luôn là Nháp và được lưu dù thiếu thông tin; chỉ công bố được khi đủ tiêu đề, ảnh đại diện, số phút đọc, nội dung và đường dẫn; danh mục không bắt buộc. Xóa là xóa hẳn, không khôi phục.",
       "manageCategories": "Quản lý danh mục",
       "states": {
@@ -5468,7 +5476,11 @@
       "discard": "Hủy thay đổi",
       "notShownEmpty": "Khối chưa có bài nào nên trang Cẩm nang đang ẩn cả dải Bản tin. Thêm bài đang công bố để dải này hiển thị.",
       "notShownAllHidden": "Không có bài nào trong khối đang công bố nên trang Cẩm nang đang ẩn cả dải Bản tin. Công bố lại một bài đã xếp hoặc thêm bài khác.",
-      "states": { "Draft": "Nháp", "Published": "Đã công bố", "Hidden": "Đang ẩn" }
+      "states": {
+        "Draft": "Nháp",
+        "Published": "Đã công bố",
+        "Hidden": "Đang ẩn"
+      }
     },
     "cmsCache": {
       "refreshFailed": "Nội dung đã lưu nhưng chưa làm mới được trang công khai. Trang sẽ cập nhật theo chu kỳ làm mới tự động."
@@ -5484,7 +5496,7 @@
       "edited": "Đã biên tập",
       "usingDefault": "Đang dùng bản mặc định",
       "restore": "Khôi phục mặc định",
-      "restoreConfirm": "Xóa bản đã sửa của khối này? Trang chủ sẽ quay lại dùng nội dung có sẵn.",
+      "restoreConfirm": "Xóa bản đã sửa của khối này? Trang sẽ quay lại dùng nội dung có sẵn.",
       "restored": "Đã khôi phục bản mặc định.",
       "saveAll": "Lưu tất cả",
       "pendingCount": "{count} khối có thay đổi chưa lưu",
@@ -5607,6 +5619,86 @@
         "contractorsCta": {
           "title": "Dải kêu gọi cuối trang",
           "hint": "Dải xanh mời tạo hồ sơ dự án và dòng mời nhà thầu trở thành đối tác ở cuối trang."
+        },
+        "plans_hero": {
+          "title": "Đầu trang bảng giá",
+          "hint": "Tiêu đề và mô tả đầu trang. Từ cuối của tiêu đề được tô cam."
+        },
+        "plans_advice": {
+          "title": "Tư vấn chọn gói",
+          "hint": "Chữ trong dải tư vấn và hotline. Giữ '{hotline}' trong chữ nút gọi để số luôn khớp hotline đã nhập. Nút chat mở trợ lý AI."
+        },
+        "plans_comparison": {
+          "title": "Bảng so sánh chi tiết",
+          "hint": "Nội dung bảng chỉ để trình bày, không thay đổi quyền sử dụng hoặc hạn mức thật của gói. Mỗi ô chọn Có, Không hoặc nhập chữ/số."
+        },
+        "plans_value": {
+          "title": "Giá trị khách hàng nhận được",
+          "hint": "Thêm, sửa, xóa hoặc sắp xếp hạng mục. Chọn icon và nhập nội dung riêng cho từng cột."
+        },
+        "plans_notes": {
+          "title": "Ghi chú cuối trang",
+          "hint": "Ba ghi chú trong dải nền xanh nhạt và dòng mô tả phạm vi hồ sơ bên dưới."
+        },
+        "supervision_comparison": {
+          "title": "Bảng so sánh chi tiết",
+          "hint": "Biên tập các bảng và nội dung giới thiệu gói giám sát. Nội dung CMS không thay đổi cấu hình gói hoặc giá bán thật.",
+          "fields": {
+            "title": "Tiêu đề",
+            "criterion": "Tên cột hạng mục",
+            "choosePlanRow": "Tên hàng chọn gói",
+            "buttons_self": "Chữ nút — Tự quản lý",
+            "buttons_check": "Chữ nút — An tâm",
+            "buttons_control": "Chữ nút — Toàn diện"
+          }
+        },
+        "supervision_addons": {
+          "title": "Dịch vụ thêm và phụ phí",
+          "hint": "Biên tập các bảng và nội dung giới thiệu gói giám sát. Nội dung CMS không thay đổi cấu hình gói hoặc giá bán thật.",
+          "fields": {
+            "title": "Tiêu đề",
+            "item": "Tên cột hạng mục",
+            "price": "Giá đề xuất",
+            "note": "Ghi chú",
+            "label": "Hạng mục"
+          }
+        },
+        "supervision_scope": {
+          "title": "Nguyên tắc phạm vi dịch vụ",
+          "hint": "Biên tập các bảng và nội dung giới thiệu gói giám sát. Nội dung CMS không thay đổi cấu hình gói hoặc giá bán thật.",
+          "fields": {
+            "title": "Tiêu đề",
+            "icon": "Icon tiêu đề",
+            "text": "Nội dung nguyên tắc"
+          }
+        },
+        "supervision_journey": {
+          "title": "Hành trình giám sát",
+          "hint": "Biên tập các bảng và nội dung giới thiệu gói giám sát. Nội dung CMS không thay đổi cấu hình gói hoặc giá bán thật.",
+          "fields": {
+            "title": "Tiêu đề",
+            "description": "Mô tả bước",
+            "icon": "Icon bước"
+          }
+        },
+        "supervision_value": {
+          "title": "Giá trị khách hàng nhận được",
+          "hint": "Biên tập các bảng và nội dung giới thiệu gói giám sát. Nội dung CMS không thay đổi cấu hình gói hoặc giá bán thật.",
+          "fields": {
+            "title": "Tiêu đề"
+          }
+        },
+        "supervision_notes": {
+          "title": "Ghi chú cuối trang",
+          "hint": "Biên tập các bảng và nội dung giới thiệu gói giám sát. Nội dung CMS không thay đổi cấu hình gói hoặc giá bán thật.",
+          "fields": {
+            "payment": "Thanh toán",
+            "scope": "Phạm vi gói",
+            "area": "Khu vực phục vụ",
+            "paymentIcon": "Icon thanh toán",
+            "scopeIcon": "Icon phạm vi",
+            "areaIcon": "Icon khu vực"
+          }
         }
       },
       "lists": {
@@ -5805,17 +5897,156 @@
         "contractorsCta": {
           "title": "Lời mời tạo hồ sơ",
           "action": "Chữ nút tạo hồ sơ"
+        },
+        "plans_hero": {
+          "title": "Tiêu đề",
+          "subtitle": "Mô tả"
+        },
+        "plans_advice": {
+          "title": "Tiêu đề",
+          "subtitle": "Mô tả",
+          "call": "Chữ nút gọi tổng đài",
+          "chat": "Chữ nút chat",
+          "hotline": "Hotline"
+        },
+        "plans_comparison": {
+          "title": "Tiêu đề",
+          "criterion": "Hạng mục",
+          "choosePlanRow": "Chọn gói",
+          "groups_core": "Tên nhóm — Quyền lợi chính",
+          "groups_design": "Tên nhóm — Tính năng thiết kế & dự toán",
+          "groups_compare": "Tên nhóm — Tính năng so sánh & tối ưu",
+          "groups_support": "Tên nhóm — Hỗ trợ",
+          "groups_proOnly": "Tên nhóm — Đặc quyền gói PRO",
+          "core_designOptions": "Số phương án thiết kế mới",
+          "core_libraryCredits": "Tra cứu thư viện mẫu",
+          "core_optionUnit": "Đơn vị số phương án",
+          "core_libraryUnit": "Đơn vị lượt tra cứu",
+          "rows_uploadPhoto": "Tên hàng — Upload ảnh khu đất / hiện trạng",
+          "rows_siteInfo": "Tên hàng — Nhập diện tích, vị trí, quy mô",
+          "rows_buildingType": "Tên hàng — Chọn loại công trình",
+          "rows_style": "Tên hàng — Chọn phong cách / màu sắc",
+          "rows_layout": "Tên hàng — Bố trí công năng",
+          "rows_renderImages": "Tên hàng — Phương án hình ảnh thiết kế",
+          "rows_structureEstimate": "Tên hàng — Dự toán phần thô",
+          "rows_finishingEstimate": "Tên hàng — Dự toán hoàn thiện",
+          "rows_interiorEstimate": "Tên hàng — Dự toán nội thất",
+          "rows_materialList": "Tên hàng — Danh mục vật liệu đề xuất",
+          "rows_boq": "Tên hàng — Bảng khối lượng & dự toán",
+          "rows_exportDossier": "Tên hàng — Xuất hồ sơ thi công",
+          "rows_contractorPack": "Tên hàng — Bộ dữ liệu tổng hợp gửi nhà thầu",
+          "rows_compareOptions": "Tên hàng — So sánh các phương án thiết kế",
+          "rows_compareCost": "Tên hàng — So sánh chi phí giữa các phương án",
+          "rows_compareMaterial": "Tên hàng — So sánh phương án vật liệu",
+          "rows_optimizeBudget": "Tên hàng — Tối ưu theo ngân sách mục tiêu",
+          "rows_costDelta": "Tên hàng — Phân tích chênh lệch chi phí khi thay đổi",
+          "rows_materialAlternatives": "Tên hàng — Đề xuất vật liệu thay thế theo ngân sách",
+          "rows_advisory": "Tên hàng — Hỗ trợ tư vấn",
+          "rows_render3d": "Tên hàng — Phối cảnh 3D chân thực",
+          "rows_gift": "Tên hàng — Quà tặng đặc biệt",
+          "rows_giftCondition": "Tên hàng — Điều kiện áp dụng",
+          "values_layoutBasic": "Chữ hiển thị — Cơ bản",
+          "values_layout2d3d": "Chữ hiển thị — 2D & 3D",
+          "values_layout2d3dPlus": "Chữ hiển thị — 2D & 3D nâng cao",
+          "values_estimateRough": "Chữ hiển thị — Sơ bộ",
+          "values_estimateDetailed": "Chữ hiển thị — Chi tiết",
+          "values_estimateOptimized": "Chữ hiển thị — Chi tiết & tối ưu",
+          "values_advisoryOnline": "Chữ hiển thị — Tư vấn online",
+          "values_advisoryPriority": "Chữ hiển thị — Tư vấn ưu tiên",
+          "values_advisoryExpert": "Chữ hiển thị — Tư vấn 1:1 cùng chuyên gia",
+          "buttons_basic": "Chữ nút — BASIC",
+          "buttons_advanced": "Chữ nút — PLUS",
+          "buttons_pro": "Chữ nút — PRO"
+        },
+        "plans_value": {
+          "title": "Tiêu đề",
+          "rows_easy": "Tên hàng — Dễ dàng",
+          "cells_easy_basic": "Dễ dàng — BASIC",
+          "cells_easy_advanced": "Dễ dàng — PLUS",
+          "cells_easy_pro": "Dễ dàng — PRO",
+          "rows_time": "Tên hàng — Tiết kiệm thời gian",
+          "cells_time_basic": "Tiết kiệm thời gian — BASIC",
+          "cells_time_advanced": "Tiết kiệm thời gian — PLUS",
+          "cells_time_pro": "Tiết kiệm thời gian — PRO",
+          "rows_budget": "Tên hàng — Kiểm soát ngân sách",
+          "cells_budget_basic": "Kiểm soát ngân sách — BASIC",
+          "cells_budget_advanced": "Kiểm soát ngân sách — PLUS",
+          "cells_budget_pro": "Kiểm soát ngân sách — PRO",
+          "rows_ready": "Tên hàng — Sẵn sàng thi công",
+          "cells_ready_basic": "Sẵn sàng thi công — BASIC",
+          "cells_ready_advanced": "Sẵn sàng thi công — PLUS",
+          "cells_ready_pro": "Sẵn sàng thi công — PRO"
+        },
+        "plans_notes": {
+          "payment": "Ghi chú thanh toán",
+          "estimate": "Ghi chú dự toán",
+          "gift": "Ghi chú quà tặng",
+          "scope": "Phạm vi hồ sơ"
         }
       },
       "floors": "{count} tầng",
       "pickMissing": "Đã ẩn hoặc không còn công khai",
       "pickArchitects": "Chọn tối đa {max} kiến trúc sư",
-      "pickArticles": "Chọn tối đa {max} bài viết"
+      "pickArticles": "Chọn tối đa {max} bài viết",
+      "plansDescription": "Sửa các khối của trang bảng giá theo thứ tự hiển thị. Giá, số lượt, quyền lợi, quà tặng và cờ Nổi bật được quản lý ở Bảng giá gói. Mỗi ngôn ngữ có nội dung riêng.",
+      "plansTable": {
+        "label": "Biên tập bảng so sánh chi tiết",
+        "hint": "Sửa tên nhóm, tên hàng và các ô chữ ngay trong bảng. Các ô mô tả mức được dùng cho mức tương ứng của gói; số lượt, quyền lợi và quà tặng lấy từ cấu hình gói.",
+        "fromPlan": "Theo cấu hình từng gói",
+        "quotaHint": "Mẫu chữ dùng chung cho ba gói. Giữ biến '{count}'; số lượt lấy từ cấu hình từng gói.",
+        "scrollHint": "Vuốt ngang để xem và sửa cả ba cột gói.",
+        "dynamicHint": "Nội dung bảng chỉ để trình bày, không thay đổi quyền sử dụng hoặc hạn mức thật của gói. Mỗi ô chọn Có, Không hoặc nhập chữ/số.",
+        "invalidGroups": "Bảng có nội dung không hợp lệ hoặc vượt giới hạn. Vui lòng kiểm tra các nhóm và hạng mục.",
+        "itemColumn": "Hạng mục",
+        "groupName": "Tên nhóm",
+        "groupStyle": "Màu nhóm",
+        "standard": "Xanh",
+        "accent": "Cam nổi bật",
+        "groupUp": "Đưa nhóm lên",
+        "groupDown": "Đưa nhóm xuống",
+        "deleteGroup": "Xóa nhóm",
+        "deleteGroupConfirm": "Xóa nhóm và tất cả hạng mục trong nhóm khỏi bảng đang sửa?",
+        "cancel": "Hủy",
+        "rowName": "Tên hạng mục",
+        "deleteRow": "Xóa hạng mục",
+        "addRow": "Thêm hạng mục",
+        "addGroup": "Thêm nhóm",
+        "newGroup": "Nhóm {index}",
+        "empty": "Chưa có nhóm. Bấm Thêm nhóm để tạo nội dung bảng.",
+        "cellKind": "Kiểu ô {tier}",
+        "cellText": "Nội dung ô {tier}",
+        "yes": "Có (✓)",
+        "no": "Không (–)",
+        "text": "Nhập chữ"
+      },
+      "valueTable": {
+        "hint": "Thêm, sửa, xóa hoặc sắp xếp hạng mục. Chọn icon và nhập nội dung riêng cho từng cột.",
+        "rowName": "Tên hạng mục {index}",
+        "icon": "Icon hạng mục {index}",
+        "cell": "Hạng mục {index} — {tier}",
+        "chooseIcon": "Chọn icon",
+        "iconUnavailable": "Chưa tải được danh sách icon. Nội dung hiện tại vẫn được giữ.",
+        "deleteConfirm": "Xóa hạng mục này?",
+        "empty": "Chưa có hạng mục. Thêm hạng mục để tạo nội dung bảng.",
+        "invalidItems": "Kiểm tra nội dung: tối đa 100 hạng mục, mỗi ô tối đa 1000 ký tự."
+      },
+      "supervisionDescription": "Biên tập các bảng và nội dung giới thiệu gói giám sát. Nội dung CMS không thay đổi cấu hình gói hoặc giá bán thật.",
+      "supervisionActions": "Thao tác",
+      "packageTabs": {
+        "design": "Gói thiết kế",
+        "supervision": "Gói giám sát"
+      }
     },
     "handbookContent": {
       "description": "Quản lý nội dung trang Cẩm nang theo hai tab Tin tức và Thư viện mẫu, xếp theo đúng thứ tự người đọc thấy trên trang. Các thẻ chữ sửa riêng từng ngôn ngữ: khối chưa sửa dùng bản dịch sẵn có nên form mở ra với đúng chữ đang hiển thị, và ngôn ngữ chưa sửa không mượn chữ của ngôn ngữ khác. Ba bước, chủ đề hướng dẫn và bài nổi bật dùng chung cho mọi ngôn ngữ.",
-      "locales": { "vi": "Tiếng Việt", "en": "Tiếng Anh" },
-      "groups": { "news": "Tin tức", "library": "Thư viện mẫu" },
+      "locales": {
+        "vi": "Tiếng Việt",
+        "en": "Tiếng Anh"
+      },
+      "groups": {
+        "news": "Tin tức",
+        "library": "Thư viện mẫu"
+      },
       "newsGroups": {
         "top": {
           "title": "Đầu trang và ba bước",
@@ -5825,7 +6056,10 @@
           "title": "Bản tin BuildX",
           "hint": "Khối Bản tin nằm ngay dưới ba bước: bài nổi bật và bài liên quan."
         },
-        "articles": { "title": "Danh sách bài viết", "hint": "Khối bài viết nằm cuối tab Tin tức." }
+        "articles": {
+          "title": "Danh sách bài viết",
+          "hint": "Khối bài viết nằm cuối tab Tin tức."
+        }
       },
       "edited": "Đã biên tập",
       "usingDefault": "Đang dùng bản mặc định",
@@ -5834,12 +6068,24 @@
       "restored": "Đã khôi phục bản mặc định.",
       "unchanged": "Chữ chưa khác bản mặc định nên chưa cần lưu.",
       "sections": {
-        "hero": { "title": "Phần mở đầu" },
-        "stagesHeading": { "title": "Tiêu đề nhóm ba bước" },
-        "articlesHeading": { "title": "Khối bài viết" },
-        "newsletterHeading": { "title": "Khối Bản tin" },
-        "libraryBanner": { "title": "Banner tab Thư viện mẫu" },
-        "tabs": { "title": "Tên hai tab" }
+        "hero": {
+          "title": "Phần mở đầu"
+        },
+        "stagesHeading": {
+          "title": "Tiêu đề nhóm ba bước"
+        },
+        "articlesHeading": {
+          "title": "Khối bài viết"
+        },
+        "newsletterHeading": {
+          "title": "Khối Bản tin"
+        },
+        "libraryBanner": {
+          "title": "Banner tab Thư viện mẫu"
+        },
+        "tabs": {
+          "title": "Tên hai tab"
+        }
       },
       "fields": {
         "eyebrow": "Dòng nhãn phía trên",
@@ -7485,6 +7731,11 @@
           "perVisit": "Theo lần kiểm tra",
           "everyVisit": "Mọi lần kiểm tra",
           "full": "Đầy đủ"
+        },
+        "buttons": {
+          "self": "Chọn gói {tier}",
+          "check": "Chọn gói {tier}",
+          "control": "Chọn gói {tier}"
         }
       },
       "addons": {
@@ -7509,7 +7760,8 @@
         "title": "Nguyên tắc phạm vi dịch vụ",
         "r1": "BuildX kiểm tra, ghi nhận, cảnh báo, báo cáo và theo dõi xử lý trong phạm vi gói đã chọn.",
         "r2": "Nhà thầu vẫn chịu trách nhiệm tổ chức thi công, chất lượng phần việc, an toàn lao động và bảo hành.",
-        "r3": "Gói không bao gồm kỹ sư thường trực tại công trình."
+        "r3": "Gói không bao gồm kỹ sư thường trực tại công trình.",
+        "icon": "ShieldCheck"
       },
       "journey": {
         "title": "Hành trình giám sát",
@@ -7556,7 +7808,10 @@
       "notes": {
         "payment": "Thanh toán qua QR chuyển khoản ngân hàng.",
         "scope": "Gói tính theo dự án, áp dụng cho nhà ở đến 3 tầng và 300 m² sàn; ngoài phạm vi này tính theo dịch vụ thêm.",
-        "area": "Khu vực phục vụ chuẩn trong bán kính 30 km từ điểm có kỹ sư; ngoài khu vực tính thêm chi phí di chuyển."
+        "area": "Khu vực phục vụ chuẩn trong bán kính 30 km từ điểm có kỹ sư; ngoài khu vực tính thêm chi phí di chuyển.",
+        "paymentIcon": "QrCode",
+        "scopeIcon": "Ruler",
+        "areaIcon": "MapPin"
       }
     },
     "dashboard": {

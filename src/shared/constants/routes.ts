@@ -95,6 +95,8 @@ export const ADMIN_ROUTES = {
   FOOTER_CONTENT: '/admin/footer-content',
   /** Nội dung trang Tìm nhà thầu: đầu trang, bốn cam kết, thẻ an toàn, câu hỏi thường gặp và dải kêu gọi. */
   CONTRACTORS_CONTENT: '/admin/contractors-content',
+  PLANS_CONTENT: '/admin/plans-content',
+  SUPERVISION_CONTENT: '/admin/supervision-content',
   /** Video hướng dẫn của trang Hướng dẫn. */
   GUIDE_VIDEOS: '/admin/guide-videos',
   /** Mã giảm giá của ô nhập mã ở S03. */

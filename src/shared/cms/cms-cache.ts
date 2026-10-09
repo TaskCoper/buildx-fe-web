@@ -1,4 +1,4 @@
-export const CMS_PAGE_KEYS = ['home', 'footer', 'contractors', 'handbook'] as const
+export const CMS_PAGE_KEYS = ['home', 'footer', 'contractors', 'handbook', 'plans', 'supervision'] as const
 export const CMS_LOCALES = ['vi', 'en'] as const
 
 export type CmsPageKey = (typeof CMS_PAGE_KEYS)[number]
@@ -21,7 +21,7 @@ export function cmsCacheEntries(target: CmsCacheTarget) {
   return pages.flatMap((pageKey) =>
     locales.map((locale) => ({
       tag: cmsCacheTag(pageKey, locale),
-      path: `/${locale}${pageKey === 'home' || pageKey === 'footer' ? '' : `/${pageKey}`}`,
+      path: `/${locale}${pageKey === 'home' || pageKey === 'footer' ? '' : `/${pageKey === 'supervision' ? 'plans/supervision' : pageKey}`}`,
       type: pageKey === 'footer' ? ('layout' as const) : ('page' as const)
     }))
   )

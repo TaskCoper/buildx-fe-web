@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 
 import { lucideIconKey } from '@/shared/cms/home-sections'
-import { resolveIconNodes } from '@/shared/cms/icon-nodes.server'
+import { listIconNames, resolveIconNodes } from '@/shared/cms/icon-nodes.server'
 
 /**
  * Xem trước icon cho ô nhập tên icon của admin — `GET /api/icon-preview?name=Camera`.
@@ -14,6 +14,9 @@ import { resolveIconNodes } from '@/shared/cms/icon-nodes.server'
  * chạy sau reverse proxy hoặc tunnel; còn tra theo tên thì kết quả không đổi nên cho trình duyệt cache được.
  */
 export function GET(request: Request) {
+  if (new URL(request.url).searchParams.get('catalog') === '1') {
+    return NextResponse.json({ names: listIconNames() }, { headers: { 'Cache-Control': 'public, max-age=3600' } })
+  }
   const name = new URL(request.url).searchParams.get('name') ?? ''
   const key = lucideIconKey(name) ?? null
   const node = key ? (resolveIconNodes([name])[key] ?? null) : null

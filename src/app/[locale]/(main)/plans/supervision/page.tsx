@@ -1,4 +1,6 @@
 import { setRequestLocale } from 'next-intl/server'
+import { HomeContentProvider } from '@/shared/cms/home-content'
+import { fetchPageContent } from '@/shared/cms/home-content.server'
 import { Suspense } from 'react'
 
 import { SupervisionPricing } from '@/features/supervision'
@@ -26,13 +28,16 @@ interface PageProps {
 export default async function SupervisionPlansPage({ params }: PageProps) {
   const { locale } = await params
   setRequestLocale(locale)
+  const { sections, iconNodes } = await fetchPageContent('supervision', locale)
 
   return (
     <>
       <PlanTabs active='supervision' />
-      <Suspense fallback={<SupervisionPricing />}>
-        <SupervisionPricingWithProject />
-      </Suspense>
+      <HomeContentProvider sections={sections} iconNodes={iconNodes}>
+        <Suspense fallback={<SupervisionPricing />}>
+          <SupervisionPricingWithProject />
+        </Suspense>
+      </HomeContentProvider>
     </>
   )
 }
