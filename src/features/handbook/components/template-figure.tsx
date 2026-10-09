@@ -167,7 +167,7 @@ interface PictureProps {
  * bằng COOKIE PHIÊN — mà `next/image` tải ảnh phía máy chủ Next nên không mang cookie của khách
  * và sẽ nhận 401/403. Với ảnh loại này dùng thẻ `<img>` thường để chính trình duyệt tải.
  */
-function Picture({ src, alt, className, sizes, priority, fit = 'cover', imageClassName, onLoad }: PictureProps) {
+export function Picture({ src, alt, className, sizes, priority, fit = 'cover', imageClassName, onLoad }: PictureProps) {
   if (!isProtectedContentUrl(src)) {
     return (
       <Photo

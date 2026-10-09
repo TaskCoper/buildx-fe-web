@@ -506,9 +506,7 @@ function InvitationCard({
             </div>
             {contractor ? (
               <>
-                <p className='text-muted-foreground mt-0.5 text-sm'>
-                  {contractor.kind} · {contractor.officeAddress}
-                </p>
+                <p className='text-muted-foreground mt-0.5 text-sm'>{contractor.officeAddress}</p>
                 <ContractorStats contractor={contractor} dense className='mt-1.5' />
               </>
             ) : null}

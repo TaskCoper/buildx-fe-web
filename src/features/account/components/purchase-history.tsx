@@ -1,5 +1,6 @@
 'use client'
 
+import { useQueryClient } from '@tanstack/react-query'
 import { Download, FileText, Info, Loader2, Mail, QrCode, ReceiptText } from 'lucide-react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { useLocale, useTranslations } from 'next-intl'
@@ -10,34 +11,53 @@ import { Link } from '@/i18n/navigation'
 import type { Locale } from '@/i18n/routing'
 import { useAuth } from '@/shared/auth'
 import { useChatContextStore } from '@/shared/chat-context'
+import { isApiError } from '@/shared/lib/api'
 import { revealEase } from '@/shared/components/common'
 import { Button } from '@/shared/components/ui/button'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/shared/components/ui/sheet'
 import { Skeleton } from '@/shared/components/ui/skeleton'
-import type { CmsTransaction, CmsTransactionStatus } from '@/shared/cms'
+import type { CmsTransaction } from '@/shared/cms'
 import { checkoutPaymentRoute, ROUTES } from '@/shared/constants/routes'
 import { cn } from '@/shared/lib/utils'
 import { formatCurrency, formatDisplayDate, formatDisplayDateTime, formatDisplayTime } from '@/shared/utils'
+import { accountKeys } from '../api/account.keys'
 import { usePurchaseHistory } from '../hooks/use-purchase-history'
+import {
+  canCancelPhase,
+  isOpenPhase,
+  orderCodeOf,
+  transactionPhase,
+  type TransactionPhase
+} from '../services/transaction-phase'
 
 type FilterStatus = 'all' | 'paid' | 'pending' | 'refunded'
 
 const ORDER_ID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
+interface PurchaseHistoryProps {
+  /**
+   * Hủy một đơn đang chờ thanh toán. Hủy đơn là việc của feature `checkout` (không import chéo giữa các feature)
+   * nên tầng app truyền xuống; không truyền thì lịch sử không hiện nút "Hủy đơn".
+   */
+  onCancelOrder?: (orderId: string) => Promise<void>
+}
+
 /**
- * Đơn chưa xác nhận thanh toán → bay thẳng vào trang QR của đơn đó để chuyển tiếp hoặc huỷ. Chỉ đơn thật
- * (id là UUID) mới có trang thanh toán; giao dịch mock không có đơn nên không hiện nút.
+ * Đơn còn mở → bay thẳng vào trang QR của đơn đó để chuyển tiếp. Chỉ đơn thật (id là UUID) mới có trang
+ * thanh toán; giao dịch mock không có đơn nên không hiện nút.
  */
 function ContinuePaymentButton({
   transaction,
+  phase,
   label,
   className
 }: {
   transaction: CmsTransaction
+  phase: TransactionPhase
   label: string
   className?: string
 }) {
-  if (transaction.status !== 'pending' || !ORDER_ID_RE.test(transaction.id)) return null
+  if (!isOpenPhase(phase) || !ORDER_ID_RE.test(transaction.id)) return null
   return (
     <Button asChild size='sm' className={className}>
       <Link href={checkoutPaymentRoute(transaction.id)}>
@@ -48,41 +68,54 @@ function ContinuePaymentButton({
   )
 }
 
-const STATUS_TONE: Record<CmsTransactionStatus, string> = {
+type PillTone = 'paid' | 'pending' | 'failed' | 'muted'
+
+const PHASE_TONE: Record<TransactionPhase, PillTone> = {
+  awaiting: 'pending',
+  partial: 'pending',
+  paid: 'paid',
+  expired: 'muted',
+  canceled: 'muted',
+  failed: 'failed',
+  refunded: 'muted'
+}
+
+const TONE_CLASS: Record<PillTone, string> = {
   paid: 'bg-success/10 text-success',
   pending: 'bg-warning/20 text-warning-strong',
   failed: 'bg-destructive/10 text-destructive',
-  refunded: 'bg-muted text-muted-foreground'
+  muted: 'bg-muted text-muted-foreground'
+}
+
+const TONE_DOT: Record<PillTone, string> = {
+  paid: 'bg-success',
+  pending: 'bg-warning-strong',
+  failed: 'bg-destructive',
+  muted: 'bg-muted-foreground'
 }
 
 function StatusPill({
-  status,
+  phase,
   label,
   pulsePending = false,
   reduceMotion = false
 }: {
-  status: CmsTransactionStatus
+  phase: TransactionPhase
   label: string
   pulsePending?: boolean
   reduceMotion?: boolean
 }) {
-  const dotClass =
-    status === 'paid'
-      ? 'bg-success'
-      : status === 'pending'
-        ? 'bg-warning-strong'
-        : status === 'failed'
-          ? 'bg-destructive'
-          : 'bg-muted-foreground'
+  const tone = PHASE_TONE[phase]
+  const dotClass = TONE_DOT[tone]
 
   return (
     <span
       className={cn(
         'inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 max-md:text-xs text-[11px] font-medium whitespace-nowrap',
-        STATUS_TONE[status]
+        TONE_CLASS[tone]
       )}
     >
-      {status === 'pending' && pulsePending ? (
+      {tone === 'pending' && pulsePending ? (
         <motion.span
           className={cn('size-1.5 shrink-0 rounded-full', dotClass)}
           animate={reduceMotion ? undefined : { opacity: [1, 0.35, 1] }}
@@ -120,10 +153,11 @@ function ReceiptRow({
   )
 }
 
-export function PurchaseHistory() {
+export function PurchaseHistory({ onCancelOrder }: PurchaseHistoryProps = {}) {
   const t = useTranslations('account.purchaseHistory')
   const locale = useLocale() as Locale
   const reduceMotion = Boolean(useReducedMotion())
+  const queryClient = useQueryClient()
   const { user } = useAuth()
   const setAssistantOpen = useChatContextStore((s) => s.setPanelOpen)
   const setAssistantSuppressed = useChatContextStore((s) => s.setDockSuppressed)
@@ -132,6 +166,9 @@ export function PurchaseHistory() {
   const [receipt, setReceipt] = useState<CmsTransaction | null>(null)
   const [resendingReceiptId, setResendingReceiptId] = useState<string | null>(null)
   const [downloadingReceiptId, setDownloadingReceiptId] = useState<string | null>(null)
+  /** Đơn đang hỏi lại "Xác nhận hủy?" ngay trên dòng (không dùng hộp thoại) và đơn đang gọi API hủy. */
+  const [confirmCancelId, setConfirmCancelId] = useState<string | null>(null)
+  const [cancellingId, setCancellingId] = useState<string | null>(null)
 
   const transactions = useMemo(
     () => [...(history?.transactions ?? [])].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt)),
@@ -147,6 +184,9 @@ export function PurchaseHistory() {
     [transactions]
   )
   const visible = filter === 'all' ? transactions : transactions.filter((item) => item.status === filter)
+  // Biên nhận chỉ có khi đã thanh toán; các trạng thái khác mở cùng khung này nhưng là "Chi tiết đơn".
+  const receiptPhase = receipt ? transactionPhase(receipt) : null
+  const receiptPaid = receiptPhase === 'paid'
 
   useEffect(
     () => () => {
@@ -159,6 +199,93 @@ export function PurchaseHistory() {
     setAssistantOpen(false)
     setAssistantSuppressed(true)
     setReceipt(transaction)
+  }
+
+  const handleCancel = async (transaction: CmsTransaction) => {
+    if (!onCancelOrder) return
+    setCancellingId(transaction.id)
+    try {
+      await onCancelOrder(transaction.id)
+      toast.success(t('actions.cancelled'))
+      setConfirmCancelId(null)
+      await queryClient.invalidateQueries({ queryKey: accountKeys.purchaseHistory() })
+    } catch (error) {
+      // Lỗi từ BE (vd. đơn vừa nhận tiền nên không hủy được) đã được dịch ở tầng API.
+      toast.error(isApiError(error) ? error.message : t('actions.cancelFailed'))
+    } finally {
+      setCancellingId(null)
+    }
+  }
+
+  /**
+   * Các thao tác của một đơn (góp ý case 5): đơn chờ có đúng hai nút rõ ràng — Tiếp tục thanh toán / Hủy đơn;
+   * đơn đã nhận một phần tiền không hủy được (BR-PAY-003) nên chỉ có Tiếp tục kèm lời giải thích; "Biên nhận
+   * thanh toán" CHỈ có khi đã thanh toán, mọi trạng thái còn lại dùng "Chi tiết đơn".
+   */
+  const renderActions = (transaction: CmsTransaction, compact: boolean) => {
+    const phase = transactionPhase(transaction)
+    const real = ORDER_ID_RE.test(transaction.id)
+    const open = isOpenPhase(phase)
+    const cancelable = real && canCancelPhase(phase) && Boolean(onCancelOrder)
+    const confirming = confirmCancelId === transaction.id
+    const cancelling = cancellingId === transaction.id
+    const size = compact ? 'w-full' : 'h-8 text-xs'
+
+    return (
+      <div className={cn('flex flex-wrap gap-2', compact ? 'flex-col' : 'justify-end')}>
+        <ContinuePaymentButton transaction={transaction} phase={phase} label={t('continuePayment')} className={size} />
+        {cancelable ? (
+          confirming ? (
+            <>
+              <Button
+                variant='destructive'
+                size='sm'
+                className={size}
+                disabled={cancelling}
+                onClick={() => void handleCancel(transaction)}
+              >
+                {cancelling ? <Loader2 className='size-3.5 animate-spin' /> : null}
+                {cancelling ? t('actions.cancelling') : t('actions.confirmCancel')}
+              </Button>
+              <Button
+                variant='outline'
+                size='sm'
+                className={size}
+                disabled={cancelling}
+                onClick={() => setConfirmCancelId(null)}
+              >
+                {t('actions.keep')}
+              </Button>
+            </>
+          ) : (
+            <Button variant='outline' size='sm' className={size} onClick={() => setConfirmCancelId(transaction.id)}>
+              {t('actions.cancel')}
+            </Button>
+          )
+        ) : null}
+        {phase === 'partial' ? (
+          <p
+            className={cn(
+              'text-muted-foreground max-md:text-xs text-[11px] text-pretty',
+              !compact && 'w-full text-right'
+            )}
+          >
+            {t('actions.partialNote')}
+          </p>
+        ) : null}
+        {!open || !real ? (
+          <Button
+            variant='outline'
+            size='sm'
+            className={cn(size, 'hover:bg-accent/70 motion-reduce:transition-none')}
+            onClick={() => handleOpenReceipt(transaction)}
+          >
+            <FileText className='size-3.5' />
+            {phase === 'paid' ? t('actions.receipt') : t('actions.viewDetail')}
+          </Button>
+        ) : null}
+      </div>
+    )
   }
 
   const handleResendReceipt = async () => {
@@ -187,7 +314,7 @@ export function PurchaseHistory() {
           ...(user?.phone ? { buyerPhone: user.phone } : {}),
           buyerEmail: user?.email ?? receipt.customerEmail,
           planName: receipt.planName ?? t(`tier.${receipt.tier}`),
-          planDetail: t(`receiptDialog.planDetail.${receipt.tier}`),
+          planDetail: receipt.planName ? '' : t(`receiptDialog.planDetail.${receipt.tier}`),
           subtotal: amount,
           discount: t('receiptDialog.noDiscount'),
           total: amount,
@@ -282,12 +409,12 @@ export function PurchaseHistory() {
               <table className='w-full min-w-[720px] border-collapse text-left'>
                 <thead className='bg-muted/50 text-muted-foreground max-md:text-xs text-[11px] uppercase'>
                   <tr>
-                    <th className='px-4 py-3 font-medium'>{t('table.project')}</th>
+                    <th className='px-4 py-3 font-medium'>{t('table.order')}</th>
                     <th className='px-4 py-3 font-medium'>{t('table.date')}</th>
                     <th className='px-4 py-3 font-medium'>{t('table.plan')}</th>
                     <th className='px-4 py-3 text-right font-medium'>{t('table.amount')}</th>
                     <th className='px-4 py-3 font-medium'>{t('table.status')}</th>
-                    <th className='px-4 py-3 text-right font-medium'>{t('table.receipt')}</th>
+                    <th className='px-4 py-3 text-right font-medium'>{t('table.actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -303,10 +430,15 @@ export function PurchaseHistory() {
                       }
                       className='border-t align-top transition-colors duration-200 hover:bg-primary/5 motion-reduce:transition-none'
                     >
-                      <td className='px-4 py-3 text-xs font-semibold'>
-                        <p className='line-clamp-3 wrap-anywhere' title={transaction.projectName}>
-                          {transaction.projectName?.trim() || t('projectUnavailable')}
-                        </p>
+                      {/* Cột "Mã đơn" thay cột "Công trình" (góp ý case 5): lịch sử mua gói không gắn với công trình,
+                          nên chỉ ghi công trình khi đơn thật sự có. */}
+                      <td className='px-4 py-3 text-xs'>
+                        <p className='font-semibold'>{t('orderCode', { code: orderCodeOf(transaction) })}</p>
+                        {transaction.projectName?.trim() ? (
+                          <p className='text-muted-foreground mt-0.5 line-clamp-2 wrap-anywhere'>
+                            {t('projectLine', { project: transaction.projectName.trim() })}
+                          </p>
+                        ) : null}
                       </td>
                       <td className='px-4 py-3 text-xs'>
                         <div>{formatDisplayDate(transaction.createdAt, locale)}</div>
@@ -329,30 +461,13 @@ export function PurchaseHistory() {
                       </td>
                       <td className='px-4 py-3'>
                         <StatusPill
-                          status={transaction.status}
-                          label={t(`status.${transaction.status}`)}
+                          phase={transactionPhase(transaction)}
+                          label={t(`phase.${transactionPhase(transaction)}`)}
                           pulsePending
                           reduceMotion={reduceMotion}
                         />
                       </td>
-                      <td className='px-4 py-3 text-right'>
-                        <div className='flex flex-wrap justify-end gap-2'>
-                          <ContinuePaymentButton
-                            transaction={transaction}
-                            label={t('continuePayment')}
-                            className='h-8 text-xs'
-                          />
-                          <Button
-                            variant='outline'
-                            size='sm'
-                            className='h-8 text-xs hover:bg-accent/70 motion-reduce:transition-none'
-                            onClick={() => handleOpenReceipt(transaction)}
-                          >
-                            <FileText className='size-3.5' />
-                            {t('receipt')}
-                          </Button>
-                        </div>
-                      </td>
+                      <td className='px-4 py-3 text-right'>{renderActions(transaction, false)}</td>
                     </motion.tr>
                   ))}
                 </tbody>
@@ -372,16 +487,19 @@ export function PurchaseHistory() {
                 >
                   <div className='flex items-start justify-between gap-3'>
                     <div className='min-w-0 flex-1'>
-                      <p className='line-clamp-3 text-sm font-semibold wrap-anywhere' title={transaction.projectName}>
-                        {transaction.projectName?.trim() || t('projectUnavailable')}
-                      </p>
+                      <p className='text-sm font-semibold'>{t('orderCode', { code: orderCodeOf(transaction) })}</p>
                       <p className='text-muted-foreground mt-1 text-xs'>
                         {transaction.planName ?? t(`tier.${transaction.tier}`)}
                       </p>
+                      {transaction.projectName?.trim() ? (
+                        <p className='text-muted-foreground mt-0.5 line-clamp-2 text-xs wrap-anywhere'>
+                          {t('projectLine', { project: transaction.projectName.trim() })}
+                        </p>
+                      ) : null}
                     </div>
                     <StatusPill
-                      status={transaction.status}
-                      label={t(`status.${transaction.status}`)}
+                      phase={transactionPhase(transaction)}
+                      label={t(`phase.${transactionPhase(transaction)}`)}
                       pulsePending
                       reduceMotion={reduceMotion}
                     />
@@ -393,16 +511,7 @@ export function PurchaseHistory() {
                     </div>
                     <p className='shrink-0 text-sm font-semibold'>{formatCurrency(transaction.amount, locale)}</p>
                   </div>
-                  <ContinuePaymentButton transaction={transaction} label={t('continuePayment')} className='w-full' />
-                  <Button
-                    variant='outline'
-                    size='sm'
-                    className='w-full hover:bg-accent/70 motion-reduce:transition-none'
-                    onClick={() => handleOpenReceipt(transaction)}
-                  >
-                    <FileText className='size-3.5' />
-                    {t('receipt')}
-                  </Button>
+                  {renderActions(transaction, true)}
                 </motion.article>
               ))}
             </div>
@@ -461,9 +570,15 @@ export function PurchaseHistory() {
         >
           <SheetHeader className='border-b px-5 py-4 pr-12 text-left'>
             <SheetTitle className='text-base sm:text-lg'>
-              {receipt ? t('receiptDialog.titleWithCode', { code: receipt.id }) : t('receiptDialog.title')}
+              {receipt
+                ? receiptPaid
+                  ? t('receiptDialog.titleWithCode', { code: orderCodeOf(receipt) })
+                  : t('detailDialog.titleWithCode', { code: orderCodeOf(receipt) })
+                : t('receiptDialog.title')}
             </SheetTitle>
-            <SheetDescription className='sr-only'>{t('receiptDialog.description')}</SheetDescription>
+            <SheetDescription className='sr-only'>
+              {receiptPaid || !receipt ? t('receiptDialog.description') : t('detailDialog.description')}
+            </SheetDescription>
           </SheetHeader>
           {receipt ? (
             <div className='flex min-h-0 flex-1 flex-col'>
@@ -475,7 +590,9 @@ export function PurchaseHistory() {
                         <ReceiptText className='size-4' />
                       </span>
                       <p className='max-md:text-xs text-[11px] font-bold tracking-[0.12em] uppercase'>
-                        {t('receiptDialog.receiptHeading', { code: receipt.id })}
+                        {receiptPaid
+                          ? t('receiptDialog.receiptHeading', { code: orderCodeOf(receipt) })
+                          : t('detailDialog.heading', { code: orderCodeOf(receipt) })}
                       </p>
                     </div>
                   </div>
@@ -500,9 +617,13 @@ export function PurchaseHistory() {
                     <ReceiptRow label={t('table.plan')}>
                       <div className='space-y-0.5'>
                         <p className='font-semibold'>{receipt.planName ?? t(`tier.${receipt.tier}`)}</p>
-                        <p className='text-muted-foreground text-xs font-normal'>
-                          {t(`receiptDialog.planDetail.${receipt.tier}`)}
-                        </p>
+                        {/* Đơn thật chỉ có tên gói, không có hạng cố định: mô tả theo `tier` là giá trị đệm và sẽ ghi
+                            sai (vd. "Gói thiết kế BASIC" dưới gói PLUS) nên chỉ hiện cho dữ liệu mock. */}
+                        {receipt.planName ? null : (
+                          <p className='text-muted-foreground text-xs font-normal'>
+                            {t(`receiptDialog.planDetail.${receipt.tier}`)}
+                          </p>
+                        )}
                       </div>
                     </ReceiptRow>
 
@@ -526,26 +647,44 @@ export function PurchaseHistory() {
 
                     <ReceiptRow label={t('table.status')}>
                       <div className='flex justify-end'>
-                        <StatusPill status={receipt.status} label={t(`status.${receipt.status}`)} />
+                        <StatusPill
+                          phase={receiptPhase ?? 'awaiting'}
+                          label={t(`phase.${receiptPhase ?? 'awaiting'}`)}
+                        />
                       </div>
                     </ReceiptRow>
 
-                    <ReceiptRow label={t('receiptDialog.vatInvoice')}>
-                      <span className='font-semibold'>
-                        {receipt.note?.toLocaleLowerCase(locale).includes('vat')
-                          ? t('receiptDialog.vatIssued')
-                          : t('receiptDialog.vatNotRequested')}
-                      </span>
-                    </ReceiptRow>
+                    {receiptPaid ? (
+                      <ReceiptRow label={t('receiptDialog.vatInvoice')}>
+                        <span className='font-semibold'>
+                          {receipt.note?.toLocaleLowerCase(locale).includes('vat')
+                            ? t('receiptDialog.vatIssued')
+                            : t('receiptDialog.vatNotRequested')}
+                        </span>
+                      </ReceiptRow>
+                    ) : null}
                   </dl>
                 </div>
 
+                {receiptPhase && !receiptPaid ? (
+                  <p className='bg-muted/50 mt-3 rounded-lg px-3 py-2.5 text-sm text-pretty'>
+                    {t(`phaseReason.${receiptPhase}`)}
+                  </p>
+                ) : null}
+
                 <p className='text-muted-foreground mt-3 max-md:text-xs text-[11px] leading-relaxed text-pretty'>
-                  {t('receiptDialog.note', { code: receipt.id })}
+                  {receiptPaid
+                    ? t('receiptDialog.note', { code: orderCodeOf(receipt) })
+                    : t('detailDialog.note', { code: orderCodeOf(receipt) })}
                 </p>
               </div>
 
-              <div className='bg-background flex flex-col-reverse gap-2 border-t px-5 py-4 sm:flex-row sm:justify-end'>
+              <div
+                className={cn(
+                  'bg-background flex-col-reverse gap-2 border-t px-5 py-4 sm:flex-row sm:justify-end',
+                  receiptPaid ? 'flex' : 'hidden'
+                )}
+              >
                 <Button
                   variant='outline'
                   size='sm'

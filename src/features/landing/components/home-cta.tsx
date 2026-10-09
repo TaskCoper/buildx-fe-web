@@ -5,6 +5,8 @@ import { motion } from 'motion/react'
 import { useTranslations } from 'next-intl'
 
 import { Link } from '@/i18n/navigation'
+import { useHomeSections } from '@/shared/cms/home-content'
+import { sectionText } from '@/shared/cms/home-sections'
 import { Button } from '@/shared/components/ui/button'
 import { ResumeProjectLabel } from './resume-project-label'
 
@@ -36,6 +38,8 @@ interface HomeCtaProps {
  */
 export function HomeCta({ onCreateProject, resumeProject, skipShine }: HomeCtaProps) {
   const t = useTranslations('landing.cta')
+  // Chữ admin lưu ở khối `cta`; bản "Tiếp tục dự án" (có tên dự án) giữ nguyên theo i18n.
+  const sections = useHomeSections()
 
   return (
     <section id='home-cta' className='mx-auto w-full max-w-[90rem] px-4 py-5 lg:px-8'>
@@ -60,10 +64,14 @@ export function HomeCta({ onCreateProject, resumeProject, skipShine }: HomeCtaPr
 
         <div className='min-w-0 flex-1'>
           <p className='text-sm font-bold text-pretty sm:text-base'>
-            {resumeProject ? t('resumeTitle', { name: resumeProject.name }) : t('title')}
+            {resumeProject
+              ? t('resumeTitle', { name: resumeProject.name })
+              : (sectionText(sections, 'cta', 'title') ?? t('title'))}
           </p>
           <p className='text-muted-foreground mt-0.5 text-xs text-pretty sm:mt-0 sm:text-sm'>
-            {resumeProject ? t(`byStatus.${resumeProject.status}`) : t('subtitle')}
+            {resumeProject
+              ? t(`byStatus.${resumeProject.status}`)
+              : (sectionText(sections, 'cta', 'subtitle') ?? t('subtitle'))}
           </p>
         </div>
 
@@ -89,7 +97,7 @@ export function HomeCta({ onCreateProject, resumeProject, skipShine }: HomeCtaPr
               className='brand-green-button h-11 rounded-full px-8 text-base has-[>svg]:px-8 max-sm:h-9 max-sm:px-3 max-sm:text-xs max-sm:has-[>svg]:px-3'
               onClick={onCreateProject}
             >
-              {t('action')}
+              {sectionText(sections, 'cta', 'action') ?? t('action')}
               <ArrowRight className='size-4' />
             </Button>
           )}

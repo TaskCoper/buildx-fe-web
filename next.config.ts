@@ -22,6 +22,17 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [{ source: '/api/v1/:path*', destination: `${BMT_API_ORIGIN}/api/v1/:path*` }]
   },
+  // `apple-app-site-association` không có đuôi tệp nên Next trả `application/octet-stream`; iOS yêu cầu JSON
+  // (liên kết sâu / Universal Links). `assetlinks.json` của Android có đuôi `.json` nên đã đúng kiểu. Hai tệp nằm ở
+  // `public/.well-known/` và phải trả 200 trực tiếp, không redirect (proxy.ts đã bỏ qua mọi đường dẫn có dấu chấm).
+  async headers() {
+    return [
+      {
+        source: '/.well-known/apple-app-site-association',
+        headers: [{ key: 'Content-Type', value: 'application/json' }]
+      }
+    ]
+  },
   poweredByHeader: false,
   // Type-safe `Link`/`router` routes.
   typedRoutes: true,

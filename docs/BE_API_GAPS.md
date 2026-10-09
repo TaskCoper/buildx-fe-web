@@ -20,6 +20,10 @@ Cập nhật: 29/09/2026 (đối soát lại toàn bộ — xem **mục 7**). Đ
 4. Admin: Tin tức, KTS, Yêu cầu tư vấn
 5. Admin: Danh mục dự toán và Thư viện mẫu
 6. Admin: Gói, Đơn, Giao dịch
+7. Đối soát lại Swagger (29/09/2026)
+8. Nội dung trang chủ do admin biên tập
+9. Chân trang và các trang Về BuildX do admin biên tập
+10. Trang Tìm nhà thầu do admin biên tập
 
 ---
 
@@ -102,6 +106,8 @@ Lý do chung: API của cả 3 khu đều thiếu những trường mà giao di�
 | Lượt **tra cứu lưới** và lượt **xem chi tiết** theo **ngày**, áp dụng cả cho khách miễn phí/khách vãng lai | `/me/design-subscription` chỉ có quota theo kỳ gói (`catalog.detail`, `design.generate`), trả `null` khi chưa mua gói, trả 401 khi chưa đăng nhập. Không có lượt "tra cứu lưới" | Thêm API hạn mức tra cứu (free/ngày và theo gói), hoặc xác nhận bỏ lượt "lookup". Nếu vậy FE sẽ cần bỏ bớt UI (cần user duyệt) |
 
 #### Tư vấn 1:1 (`listConsultants`, `getConsultant`, `getAvailability`, `bookConsultation`, `getMyBookings`, `cancelMyBooking`)
+
+**Cập nhật 08/10/2026:** các dòng khảo sát cũ bên dưới chỉ ghi bối cảnh trước khi nối API. Danh sách/chi tiết KTS và gửi yêu cầu đã nối BMT, dùng UUID thật. Backend và UI đã bổ sung `shortDescription` và `designProjects:[{name,imageUrls}]`; không còn thiếu mô tả ngắn hoặc bộ ảnh dự án. Chỉ các luồng lịch trống, lịch của tôi và hủy lịch tiếp tục dùng mock. Chưa xác minh trọn luồng frontend, API và database trên môi trường chung.
 
 | Màn / chức năng UI                                                                                                                                | UI cần                                                                                                  | API đang có / thiếu                                                                                                               | Đề xuất                                                                                                                                                                                                                                                                   |
 | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -491,3 +497,120 @@ Rà soát toàn bộ endpoint đã nối so với Swagger live (133 path / 160 o
 - Response detail trả sẵn URL con (`eventsPath`, `historyPath`, `detailUrl`…) nhưng code tự ghép chuỗi từ id → nên đọc theo path BE trả cho bền với thay đổi routing.
 - Nút Google login không có endpoint BE (mock/trang trí).
 - Admin library thiếu filter server-side (2D/3D, tên) → code tải hết mẫu + lọc client (nặng nếu nhiều mẫu) → đề xuất BE thêm filter cho `GET /admin/library/templates`.
+
+## 8. Nội dung trang chủ do admin biên tập — chờ BE deploy trang `home` (08/10/2026)
+
+Trang chủ đã đọc nội dung biên tập từ `GET /api/v1/pages/home/sections?locale={vi|en}`, cùng cơ chế "khối chữ" mà Cẩm nang đang dùng (`PUT /admin/pages/{pageKey}/sections/{sectionKey}`).
+
+### 1. Đã làm phía site khách
+
+- `page.tsx` gọi API ở **server** (làm mới tối đa 60 giây, quá 4 giây thì bỏ qua) để HTML đầu tiên đã có chữ admin sửa, không bị nháy từ chữ mặc định sang chữ mới.
+- Khối nào chưa lưu, hoặc trường nào để trống, thì giao diện dùng nội dung có sẵn trong `messages/*.json`. Lỗi API hoặc phản hồi sai hình dạng cũng rơi về nội dung có sẵn, nên trang chủ không bao giờ trống vì CMS.
+- Chế độ `NEXT_PUBLIC_USE_MOCK_API=true` không gọi API.
+
+### 2. Chưa nối vì API thiếu (báo BE)
+
+Kiểm tra thật 08/10/2026:
+
+| Lệnh gọi                                 | Kết quả                                                        |
+| ---------------------------------------- | -------------------------------------------------------------- |
+| `GET /pages/handbook/sections?locale=vi` | 200, `value: []` (trang đã khai báo, chưa có bản lưu)          |
+| `GET /pages/home/sections?locale=vi`     | **404** `PageSectionNotFound` — "Trang này chưa được khai báo" |
+
+Source BE (`bmt-be/src/bmt-be.contract/services/handbook/PageSectionCatalog.cs`, kèm `HomePageSectionTests.cs`) **đã khai báo trang `home` với đúng 12 khối** như bảng dưới, nhưng môi trường `bmt-api.vnzdna.com` chưa chạy bản có trang này. FE đã làm màn admin **Nội dung trang chủ** (`/admin/home-content`) theo hình dạng đó; trên môi trường hiện tại màn vẫn mở và soạn được, còn bấm Lưu sẽ nhận 404 của BE cho tới khi deploy. **Đề nghị BE deploy bản có trang `home`.** Mọi trường chữ, ảnh và icon đều không bắt buộc (để trống thì giao diện dùng nội dung có sẵn).
+
+| `sectionKey`   | Trường chữ                                                                                                                                                                                                                                                                                  | Danh sách                                                                                                                                                                                  |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `hero`         | `eyebrow`, `titleLead`, `titleAccent`, `subtitle`, `primaryCta`, `secondaryCta`, `cardTitle`, `cardAreaLabel`, `cardAreaValue`, `cardTypeLabel`, `cardTypeValue`, `cardStyleLabel`, `cardStyleValue`, `cardOptionsLabel`, `cardOptionsValue`, `cardTotalLabel`, `cardTotalValue`, `cardCta` | `slides[]` — 1 đến 8 mục `{ imageUrl }` (ảnh nền xoay vòng); `guideIds[]` — tối đa 1 id video hướng dẫn công khai, mở khi bấm nút phụ                                                      |
+| `stats`        | —                                                                                                                                                                                                                                                                                           | `items[]` — 5 mục `{ icon, value, label }`                                                                                                                                                 |
+| `painPoints`   | `title`, `subtitle`, `note`                                                                                                                                                                                                                                                                 | `items[]` — 5 mục `{ icon, title, description }`                                                                                                                                           |
+| `services`     | `title`, `subtitle`, `viewAll`                                                                                                                                                                                                                                                              | `items[]` — 4 mục `{ icon, title, description, usedAtStep, action }`                                                                                                                       |
+| `journey`      | `title`, `subtitle`, `cta`, `currentStepBadge`, `labelYouDo`, `labelBuildxDoes`, `labelYouGet`                                                                                                                                                                                              | `items[]` — 5 mục theo thứ tự project, design, dossier, contractor, build: `{ title, description, youDo, buildxDoes, youGet, icon }`                                                       |
+| `dossiers`     | `title`, `viewAll`, `viewOne`, `tab2d`, `tab3d`                                                                                                                                                                                                                                             | `templateIds2d[]`, `templateIds3d[]` — id mẫu thư viện, giữ đúng thứ tự admin chọn. Mỗi danh sách tối đa 4 (cả hai tab tối đa 8); ô chọn của màn admin chỉ liệt kê mẫu công khai đúng loại |
+| `articles`     | `title`, `viewAll`                                                                                                                                                                                                                                                                          | `articleIds[]` — id bài viết Cẩm nang công khai, tối đa 3, giữ đúng thứ tự admin chọn                                                                                                      |
+| `guides`       | `title`, `subtitle`, `viewAll`                                                                                                                                                                                                                                                              | `guideIds[]` — id video Hướng dẫn (tối đa 3 hiển thị)                                                                                                                                      |
+| `consult`      | `title`, `description`, `viewAll`                                                                                                                                                                                                                                                           | `architectIds[]` — id kiến trúc sư công khai, tối đa 3, giữ đúng thứ tự admin chọn                                                                                                         |
+| `brands`       | `title`                                                                                                                                                                                                                                                                                     | `logos[]` — `{ imageUrl, name }`                                                                                                                                                           |
+| `testimonials` | `title`                                                                                                                                                                                                                                                                                     | `reviews[]` — tối đa 12 mục `{ name, meta, quote, avatarUrl }`                                                                                                                             |
+| `cta`          | `title`, `subtitle`, `action`                                                                                                                                                                                                                                                               | —                                                                                                                                                                                          |
+
+### 3. Lưu ý
+
+- `icon` là tên icon của thư viện lucide-react, nhận cả `PencilRuler` lẫn `pencil-ruler`. Tên không tồn tại thì giao diện dùng icon mặc định của vị trí đó, nên BE chỉ cần kiểm tra là chuỗi ngắn (≤ 64 ký tự, chữ, số, gạch ngang).
+- Các trường ảnh (`imageUrl`, `avatarUrl`) đi theo quy tắc ảnh thuộc tên miền kho đã có ở các khối khác.
+- Đường dẫn của nút (CTA) **không** nằm trong CMS, chỉ có nhãn.
+- `templateIds2d/3d` và `guideIds` chỉ là danh sách id. Mẫu hoặc video đã ẩn/xóa thì bị bỏ qua, không bù thêm mục khác; nếu admin chưa chọn gì thì trang chủ tự chọn như trước.
+- `stats`, `painPoints`, `journey` phải đủ đúng 5 mục và `services` đúng 4 mục (BE bắt số mục cố định, gắn theo thứ tự thẻ trên giao diện); trường nào của mục để trống thì thẻ đó dùng chữ có sẵn. Vì vậy màn admin ghi cả danh sách khi có thẻ nào đổi.
+- Màn admin làm theo mẫu "Nội dung trang Cẩm nang": lưu từng khối, gửi `expectedVersion`, mỗi ngôn ngữ một bản. Khi trang `home` chưa có trên BE, màn vẫn hiện form trên nội dung có sẵn; bấm Lưu thì lỗi 404 của BE hiện qua thông báo.
+
+## 9. Chân trang và các trang "Về BuildX" do admin biên tập — chờ BE deploy trang `footer` (08/10/2026)
+
+Chân trang và năm trang pháp lý đã đọc nội dung biên tập từ `GET /api/v1/pages/footer/sections?locale={vi|en}`, cùng cơ chế "khối chữ" của trang chủ và Cẩm nang (`PUT /admin/pages/footer/sections/{sectionKey}`, quyền `news.manage`). Khác trang chủ ở một điểm: có loại trường mới **`Html`** (rich text) cho nội dung dài.
+
+### 1. Đã làm phía site khách
+
+- `SiteFooterWithContent` (server) gọi API để HTML đầu tiên đã có hotline, email, địa chỉ và liên kết mạng xã hội đúng. Làm mới tối đa 60 giây, quá 4 giây thì bỏ qua.
+- Trường nào chưa lưu thì chân trang giữ cách làm cũ: tài liệu `settings` cũ, rồi hằng số trong `shared/config/site.ts` và `messages/*.json`.
+- Liên kết mạng xã hội chỉ dùng khi là `http`/`https` (nhập thiếu giao thức như `zalo.me/abc` thì tự thêm `https://`). Giá trị khác, ví dụ `javascript:`, bị bỏ và chân trang dùng liên kết có sẵn. BE chỉ lưu chuỗi, nên đây là chốt chặn cuối ở giao diện.
+- Năm trang `/terms`, `/privacy`, `/ai-terms`, `/ecommerce-partners`, `/payment-policy` hiện `body` do admin soạn trong "tờ giấy" trắng (`.legal-html`). Trang nào chưa soạn thì vẫn hiện bản có sẵn (`LegalPage`), nên không bao giờ trống vì CMS. `title` tùy chọn thay tiêu đề tab trình duyệt.
+- Chế độ `NEXT_PUBLIC_USE_MOCK_API=true` không gọi API.
+
+### 2. Chưa nối vì API thiếu (báo BE)
+
+Source BE (`bmt-be/src/bmt-be.contract/services/handbook/PageSectionCatalog.cs`, kèm `FooterPageSectionTests.cs`) **đã khai báo trang `footer` với 7 khối** như bảng dưới, nhưng đây là thay đổi mới trên nhánh `feature/footer-content`, chưa có trên môi trường `bmt-api.vnzdna.com` cho tới khi merge và deploy. Khi chưa có, `GET /pages/footer/sections` trả 404 và site khách dùng nội dung có sẵn.
+
+| `sectionKey` | Trường chữ                                                          | Trường `Html` |
+| ------------ | ------------------------------------------------------------------- | ------------- |
+| `contact`    | `hotline`, `email`, `address`                                       | —             |
+| `social`     | `facebookUrl`, `zaloUrl`, `youtubeUrl`, `tiktokUrl`, `instagramUrl` | —             |
+| `terms`      | `title`                                                             | `body`        |
+| `privacy`    | `title`                                                             | `body`        |
+| `aiTerms`    | `title`                                                             | `body`        |
+| `ecommerce`  | `title`                                                             | `body`        |
+| `payment`    | `title`                                                             | `body`        |
+
+Quy tắc của loại trường `Html` (đã làm ở BE):
+
+- Chuỗi HTML tối đa **200000 ký tự**, kiểm cả trước và sau khi làm sạch. Trường chữ thường vẫn tối đa 1000 ký tự.
+- Được làm sạch bằng `INewsHtmlSanitizer` của tin tức rồi lưu **bản đã làm sạch**; thẻ giữ lại gồm `p`, `h2`–`h6`, `ul`/`ol`/`li`, `blockquote`, `strong`, `em`, `u`, `a`, bảng.
+- **Không nhận ảnh**: có `<img>` thì trả 422 `InvalidPageSection` ("Nội dung trang này chưa hỗ trợ ảnh."). Ô soạn của admin cũng không có nút ảnh và không nhận ảnh dán vào.
+- Nội dung rỗng, hoặc không còn chữ nào sau khi làm sạch, được lưu thành chuỗi rỗng; giao diện coi như chưa soạn.
+
+### 3. Lưu ý
+
+- Các trường `hotline`, `email`, `address`, `*Url` là chuỗi tự do, không kiểm định dạng ở BE.
+- `terms`... `payment` dùng `h2` đầu tiên làm tiêu đề lớn của trang (canh giữa) và `h3` làm tiêu đề từng điều; trình soạn của admin chỉ có H2 và H3 nên khớp với quy ước này.
+- Lần đầu mở màn, nội dung năm trang là bản có sẵn đã đổi sang HTML (`legalDocToHtml`) để admin sửa tại chỗ; chữ đậm, nghiêng, danh sách và khung ghi chú được giữ, còn màu chữ và cỡ chữ do CSS dựng lại. Chỉ khi admin sửa khác bản có sẵn thì mới ghi lên BE.
+- Tài liệu nghiệp vụ của nhóm Cẩm nang (BR/TDD-HB-003) không có trong bản `bmt-documentation` dùng chung, nên phần hợp đồng ở mục này là nơi ghi tạm cho tới khi BE cập nhật tài liệu.
+
+## 10. Trang Tìm nhà thầu do admin biên tập — chờ BE deploy trang `contractors` (08/10/2026)
+
+Trang `/contractors` đã đọc nội dung biên tập từ `GET /api/v1/pages/contractors/sections?locale={vi|en}`, cùng cơ chế "khối chữ" của trang chủ (`PUT /admin/pages/contractors/sections/{sectionKey}`, quyền `news.manage`). Không liên quan tới API quản lý nhà thầu (`/admin/contractors`).
+
+### 1. Đã làm phía site khách
+
+- `page.tsx` gọi API ở **server** (làm mới tối đa 60 giây, quá 4 giây thì bỏ qua) rồi đưa xuống qua cùng ngữ cảnh khối chữ của trang chủ, để HTML đầu tiên đã có chữ, ảnh và icon admin đã sửa.
+- Khối nào chưa lưu, hoặc trường nào để trống, thì trang dùng nội dung có sẵn trong `messages/*.json`, ảnh `map.contractors` và icon mặc định. Lỗi API cũng rơi về nội dung có sẵn.
+- Ảnh đầu trang: có `hero.imageUrl` thì dùng, không thì dùng ảnh `map.contractors` như trước (màn "Hình ảnh site" vẫn đặt được).
+- Ba thẻ "An toàn & minh bạch" mặc định vẽ hình ghép (khiên + ổ khoá, tài liệu có khoá, sao + nhóm người). Admin đặt `icon` và tra được thì vẽ icon lucide đó thay cho hình ghép.
+- Chế độ `NEXT_PUBLIC_USE_MOCK_API=true` không gọi API.
+
+### 2. Chưa nối vì API thiếu (báo BE)
+
+Source BE (`PageSectionCatalog.cs`, kèm `ContractorsPageSectionTests.cs`) khai báo trang `contractors` với 5 khối như bảng dưới, trên nhánh `feature/contractors-content`; chưa có trên môi trường `bmt-api.vnzdna.com` cho tới khi merge và deploy. Khi chưa có, `GET /pages/contractors/sections` trả 404 và site khách dùng nội dung có sẵn.
+
+| `sectionKey` | Trường chữ / ảnh                                                                         | Danh sách `items` (số mục cố định)                                                                              |
+| ------------ | ---------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `hero`       | `titleLine1`, `titleLine2`, `subtitle`, `createBrief`, `viewContractors`, ảnh `imageUrl` | —                                                                                                               |
+| `promises`   | —                                                                                        | 4 mục: `title`, `icon` (thứ tự: miễn phí, đã xác minh, so sánh minh bạch, liên hệ được bảo vệ)                  |
+| `safety`     | `title`                                                                                  | 3 mục: `title`, `body`, `icon` (thứ tự: liên hệ được bảo vệ, báo cáo lưu trên nền tảng, đánh giá từ dự án thật) |
+| `faq`        | `title`                                                                                  | 7 mục: `question`, `answer`                                                                                     |
+| `cta`        | `title`, `action`, `partnerText`, `partnerAction`                                        | —                                                                                                               |
+
+### 3. Lưu ý
+
+- Mọi trường đều tùy chọn; ảnh `imageUrl` phải thuộc tên miền kho ảnh như các khối khác.
+- Đường dẫn của các nút (tạo hồ sơ, xem danh sách, trở thành đối tác) **không** nằm trong CMS, chỉ có chữ.
+- Danh sách có số mục cố định vì gắn với giao diện theo thứ tự (và liên kết `#faq-N`), nên chỉ sửa nội dung, không thêm bớt mục. Cần thêm bớt câu hỏi thì phải đổi cả BE lẫn giao diện.
+- Câu trả lời là chữ thuần. Câu trả lời số 3 có sẵn dùng thẻ `<mark>` quanh "3 nhà thầu" nhưng thẻ này không có hiệu ứng nhìn thấy, nên màn admin bỏ thẻ khi hiện chữ có sẵn.
+- Màn admin `/admin/contractors-content` dùng chung `PageContentManager` với trang chủ và chân trang: lưu từng khối, gửi `expectedVersion`, mỗi ngôn ngữ một bản.

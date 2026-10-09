@@ -9,8 +9,9 @@ import { mockConsultationApi } from './consultation.mock'
  */
 // Đã nối: liệt kê KTS, xem một KTS (`/architects`), gửi yêu cầu tư vấn (`POST /consultation-requests`, miễn phí).
 // Giữ mock: lịch trống (getAvailability), lịch tư vấn của tôi (getMyBookings) và hủy lịch (cancelMyBooking) — API
-// không có. `/architects` thiếu điểm đánh giá, số nhận xét, ảnh công trình, headline, nơi công tác → để trống.
+// không có. Hồ sơ đã có công ty, đánh giá, mô tả ngắn và các dự án thiết kế từ API.
 const BmtConsultationApi = {
+  listConsultantsPage: bmtConsultationApi.listConsultantsPage,
   listConsultants: bmtConsultationApi.listConsultants,
   getConsultant: bmtConsultationApi.getConsultant,
   bookConsultation: bmtConsultationApi.bookConsultation

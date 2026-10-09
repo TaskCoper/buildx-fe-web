@@ -7,6 +7,8 @@ import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 're
 
 import { Link } from '@/i18n/navigation'
 import { useSiteImage } from '@/shared/cms'
+import { useHomeSections } from '@/shared/cms/home-content'
+import { sectionText } from '@/shared/cms/home-sections'
 import { revealEase, RevealPhoto } from '@/shared/components/common'
 import { Button } from '@/shared/components/ui/button'
 import { Skeleton } from '@/shared/components/ui/skeleton'
@@ -98,6 +100,9 @@ const CARD_WIDTH = 'w-[82%] sm:w-[calc((100%-1.25rem)/2)] lg:w-[calc((100%-3.75r
 export function HomeDossiers({ items }: HomeDossiersProps) {
   const t = useTranslations('landing.dossiers')
   const tCommon = useTranslations('common')
+  // Chữ admin lưu ở khối `dossiers`; trường trống thì dùng bản có sẵn. Mẫu nào hiện là việc của lớp app (chọn theo id).
+  const sections = useHomeSections()
+  const title = sectionText(sections, 'dossiers', 'title') ?? t('title')
   const { ref: trackRef, active, scrollTo } = useScrollSnapIndex<HTMLUListElement>()
   const [edge, setEdge] = useState({ start: true, end: false })
   const [kind, setKind] = useState<HomeTemplateKind>('2d')
@@ -170,7 +175,7 @@ export function HomeDossiers({ items }: HomeDossiersProps) {
     <section id='home-dossiers' className='mx-auto w-full max-w-[90rem] px-4 py-5 lg:px-8'>
       <header className='space-y-3'>
         <div className='flex items-baseline justify-between gap-6'>
-          <h2 className='text-2xl font-bold tracking-tight text-balance lg:text-[1.75rem]'>{t('title')}</h2>
+          <h2 className='text-2xl font-bold tracking-tight text-balance lg:text-[1.75rem]'>{title}</h2>
 
           {/* CTA theo cùng pattern với các section Home khác: nằm góc phải cùng hàng tiêu đề. */}
           <Link
@@ -178,7 +183,7 @@ export function HomeDossiers({ items }: HomeDossiersProps) {
             className='text-primary hover:text-brand-orange inline-flex shrink-0 items-center gap-1.5 text-sm font-medium underline-offset-4 transition-colors hover:underline'
           >
             {/* Mobile: chỉ còn mũi tên, chữ giữ lại cho trình đọc màn hình. */}
-            <span className='max-lg:sr-only'>{t('viewAll')}</span>
+            <span className='max-lg:sr-only'>{sectionText(sections, 'dossiers', 'viewAll') ?? t('viewAll')}</span>
             <ChevronRight className='size-6 lg:hidden' />
             <ArrowRight className='hidden size-4 lg:block' />
           </Link>
@@ -189,7 +194,7 @@ export function HomeDossiers({ items }: HomeDossiersProps) {
             <div
               ref={kindTrackRef}
               role='tablist'
-              aria-label={t('title')}
+              aria-label={title}
               className='bg-muted relative inline-flex w-fit rounded-full p-1.5'
             >
               <span
@@ -217,7 +222,8 @@ export function HomeDossiers({ items }: HomeDossiersProps) {
                       selected ? 'text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
                     )}
                   >
-                    {t(option === '2d' ? 'tab2d' : 'tab3d')}
+                    {sectionText(sections, 'dossiers', option === '2d' ? 'tab2d' : 'tab3d') ??
+                      t(option === '2d' ? 'tab2d' : 'tab3d')}
                   </button>
                 )
               })}
@@ -312,6 +318,7 @@ function FallbackCard({ dossier, index }: { dossier: HomeDossier; index: number 
 
 function DossierCard({ item, index }: { item: HomeTemplateItem; index: number }) {
   const t = useTranslations('landing.dossiers')
+  const sections = useHomeSections()
 
   // Thẻ ở xa (chưa tới trong hàng cuộn ngang) chỉ hiện khi vuốt tới; thẻ lóng mép cũng phải hiện được — mà
   // một mép nhỏ không bao giờ đạt 30% diện tích. `some` = chỉ cần thấy 1 pixel là hiện.
@@ -371,7 +378,7 @@ function DossierCard({ item, index }: { item: HomeTemplateItem; index: number })
           </ul>
 
           <span className='text-primary group-hover:text-brand-orange mt-auto inline-flex items-center gap-1.5 pt-2 text-sm font-medium transition-colors group-hover:underline'>
-            {t('viewOne')}
+            {sectionText(sections, 'dossiers', 'viewOne') ?? t('viewOne')}
             <ArrowRight className='size-3.5' />
           </span>
         </div>

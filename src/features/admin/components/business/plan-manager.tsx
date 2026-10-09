@@ -31,6 +31,7 @@ import { Fragment, useState } from 'react'
 import type { Locale } from '@/i18n/routing'
 import { isApiError } from '@/shared/lib/api'
 import { formatCurrency } from '@/shared/utils'
+import { MoneyInput } from '../common/money-input'
 import { adminKeys } from '../../api/admin.keys'
 import {
   bmtPlansApi,
@@ -731,7 +732,7 @@ function PlanFields({
           extra={t('supervisionNote')}
           rules={requiredPrice}
         >
-          <InputNumber min={1} step={100_000} precision={0} suffix='₫' style={{ width: '100%' }} />
+          <MoneyInput min={1} step={100_000} />
         </Form.Item>
       ) : (
         <>
@@ -760,17 +761,10 @@ function PlanFields({
 
               <Text strong>{t('priceRow')}</Text>
               <Form.Item name='monthPrice' style={{ marginBottom: 8 }} rules={requiredPrice}>
-                <InputNumber min={1} step={1000} precision={0} suffix='₫' style={{ width: '100%' }} />
+                <MoneyInput min={1} step={1000} />
               </Form.Item>
               <Form.Item name='yearPrice' style={{ marginBottom: 8 }} rules={yearPriceRule}>
-                <InputNumber
-                  min={1}
-                  step={1000}
-                  precision={0}
-                  suffix='₫'
-                  placeholder={t('yearOptionalPlaceholder')}
-                  style={{ width: '100%' }}
-                />
+                <MoneyInput min={1} step={1000} placeholder={t('yearOptionalPlaceholder')} />
               </Form.Item>
 
               {quotaDefs.map((def, index) => {

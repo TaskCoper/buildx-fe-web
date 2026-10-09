@@ -1,7 +1,7 @@
 'use client'
 
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/shared/components/ui'
-import { BadgeCheck, CircleCheck } from 'lucide-react'
+import { BadgeCheck } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useTranslations } from 'next-intl'
 import { revealEase } from '@/shared/components/common'
@@ -75,18 +75,6 @@ export function ContractorProfileSheet({
                     <li key={project.id} className='bg-muted/40 flex justify-between gap-3 rounded-xl p-3 text-sm'>
                       <span className='font-medium'>{project.name}</span>
                       <span className='text-muted-foreground shrink-0'>{project.year}</span>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-
-              <section>
-                <h3 className='font-semibold'>{tFirm('legalTitle')}</h3>
-                <ul className='mt-2 space-y-2'>
-                  {contractor.legalChecks.map((check) => (
-                    <li key={check} className='flex items-start gap-2 text-sm'>
-                      <CircleCheck className='text-primary mt-0.5 size-4 shrink-0' />
-                      <span className='text-muted-foreground'>{check}</span>
                     </li>
                   ))}
                 </ul>

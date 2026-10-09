@@ -6,6 +6,7 @@ import { useLocale, useTranslations } from 'next-intl'
 import type { Locale } from '@/i18n/routing'
 import type { SupervisionPackage } from '@/shared/cms'
 import { formatCurrency } from '@/shared/utils'
+import { MoneyInput } from '../common/money-input'
 import { StringListField } from '../common/field-kit'
 import { ResourceManager } from '../common/resource-manager'
 import { useProductLabel } from './use-product-label'
@@ -95,14 +96,7 @@ export function SupervisionPackageManager() {
                 label={t('supervisionPackages.price')}
                 rules={[{ required: true, type: 'number', min: 0, message: t('supervisionPackages.priceRule') }]}
               >
-                <InputNumber<number>
-                  min={0}
-                  step={100_000}
-                  style={{ width: '100%' }}
-                  formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
-                  parser={(value) => Number(`${value}`.replace(/\./g, ''))}
-                  suffix='₫'
-                />
+                <MoneyInput min={0} step={100_000} />
               </Form.Item>
             </Col>
             <Col xs={24} md={12}>

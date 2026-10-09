@@ -152,15 +152,6 @@ export function remainingInvites(invitations: readonly Pick<Invitation, 'contrac
   return Math.max(0, MAX_INVITATIONS - invitations.length)
 }
 
-/**
- * Nhà thầu đã báo NGƯNG nhận dự án mới — không mời được. Khác với "chưa khai báo": API trả `null` thì
- * `acceptingProjectsKnown` là `false`, khi đó chưa biết nên KHÔNG khóa lời mời. Dữ liệu mock không có
- * cờ này nên coi như đã biết.
- */
-export function isNotAccepting(contractor: Pick<Contractor, 'acceptingProjects' | 'acceptingProjectsKnown'>): boolean {
-  return contractor.acceptingProjectsKnown !== false && !contractor.acceptingProjects
-}
-
 /** Nhà thầu này đã được mời cho dự án đang xét chưa. */
 export function isInvited(invitations: readonly Pick<Invitation, 'contractorId'>[], contractorId: string): boolean {
   return invitations.some((invitation) => invitation.contractorId === contractorId)

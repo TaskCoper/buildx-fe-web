@@ -9,20 +9,22 @@ export const generateMetadata = pageMetadata('design')
 
 interface PageProps {
   params: Promise<{ locale: Locale }>
-  searchParams: Promise<{ createProject?: string }>
 }
 
 /**
  * Điểm vào mục "Thiết kế & Dự toán" trên thanh công cụ.
  * Chưa có dự án nào đang mở → mở Cửa sổ Tạo dự án (mục III.1).
+ *
+ * Không đọc `searchParams` ở server (làm trang thành động, không ISR được): `?createProject=1` do `DesignEntry` đọc ở
+ * client.
  */
-export default async function DesignPage({ params, searchParams }: PageProps) {
-  const [{ locale }, query] = await Promise.all([params, searchParams])
+export default async function DesignPage({ params }: PageProps) {
+  const { locale } = await params
   setRequestLocale(locale)
 
   return (
     <ProtectedRoute>
-      <DesignEntry openCreateProject={query.createProject === '1'} />
+      <DesignEntry />
     </ProtectedRoute>
   )
 }

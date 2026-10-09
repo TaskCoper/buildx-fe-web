@@ -1,5 +1,6 @@
 'use client'
 
+import { useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 
 import { useProject } from '@/features/design'
@@ -7,13 +8,6 @@ import { OrderConfirm, isApiOrderId, type OfferKey, type OrderKind } from '@/fea
 import { usePlans } from '@/features/plans'
 import { useSupervisionPackageList } from '@/features/supervision'
 import { LoadingSpinner } from '@/shared/components/common'
-
-interface ConfirmViewProps {
-  productId: string
-  kind: OrderKind
-  projectId?: string
-  offer?: string
-}
 
 const OFFER_KEYS: readonly OfferKey[] = ['Month', 'Year', 'ConstructionSite']
 
@@ -32,9 +26,17 @@ function toOfferKey(offer?: string): OfferKey | undefined {
  * `kind` KHÔNG suy từ `?project=`: mua gói giám sát không cần công trình (BR-PAY-001
  * khoản 4), nên khách vào từ tab Bảng giá sẽ không có tham số đó mà vẫn mua giám sát.
  * Loại đơn lấy từ chính gói: có trong danh sách gói giám sát thì là giám sát.
+ *
+ * `?plan=`, `?project=`, `?offer=` đọc ở đây (client) chứ không phải `searchParams` của server, để trang vẫn ISR được.
+ * Có `?project=` mà không tra được gói thì mặc định coi là đơn giám sát, như trước.
  */
-export function ConfirmView({ productId, kind, projectId, offer }: ConfirmViewProps) {
+export function ConfirmView() {
   const t = useTranslations('checkout.confirm')
+  const searchParams = useSearchParams()
+  const productId = searchParams.get('plan') ?? ''
+  const projectId = searchParams.get('project') ?? undefined
+  const offer = searchParams.get('offer') ?? undefined
+  const kind: OrderKind = projectId ? 'supervision' : 'design'
   const { data: plans, isPending: plansPending } = usePlans()
   const { packages, isPending: packagesPending } = useSupervisionPackageList()
   // Chỉ hiện TÊN dự án, không bao giờ hiện mã (uuid) — chưa tải xong thì ẩn dòng này.

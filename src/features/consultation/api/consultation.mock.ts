@@ -1,6 +1,7 @@
 import { cmsDb } from '@/shared/cms'
 import { mockDelay } from '@/shared/lib/mock'
-import { AVAILABILITY_DAYS, SESSION_TIMES } from '../constants/consultation.constants'
+import type { PagedResult } from '@/shared/types'
+import { AVAILABILITY_DAYS, CONSULTANT_LIST_PAGE_SIZE, SESSION_TIMES } from '../constants/consultation.constants'
 import type {
   BookConsultationPayload,
   Consultant,
@@ -186,6 +187,19 @@ function availabilityOf(consultantId: string): ConsultationDay[] {
 }
 
 export const mockConsultationApi = {
+  listConsultantsPage: async (pageIndex: number, _signal?: AbortSignal): Promise<PagedResult<Consultant>> => {
+    await mockDelay(250)
+    const items = cmsDb.list('consultants').filter((consultant) => consultant.visible)
+    const start = (pageIndex - 1) * CONSULTANT_LIST_PAGE_SIZE
+    return {
+      items: items.slice(start, start + CONSULTANT_LIST_PAGE_SIZE),
+      pageIndex,
+      pageSize: CONSULTANT_LIST_PAGE_SIZE,
+      totalCount: items.length,
+      hasNextPage: start + CONSULTANT_LIST_PAGE_SIZE < items.length,
+      hasPreviousPage: pageIndex > 1
+    }
+  },
   listConsultants: async (): Promise<Consultant[]> => {
     await mockDelay(250)
     // Chỉ kiến trúc sư Đang hiển thị xuất hiện ở màn đặt lịch.

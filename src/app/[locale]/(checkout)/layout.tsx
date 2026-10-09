@@ -4,6 +4,12 @@ import { CheckoutHeader } from '@/shared/layouts'
 import { ChatDock } from '../chat-dock'
 
 /**
+ * Cache khung dùng chung; thông tin đơn hàng và thanh toán chỉ lấy ở client
+ * bằng phiên hiện tại, không đưa vào HTML dùng chung của ISR.
+ */
+export const revalidate = 60
+
+/**
  * Khung riêng của luồng thanh toán (S03, S04, S06, S07, S08).
  *
  * Ảnh khách duyệt vẽ các màn này với thanh trên cùng RÚT GỌN (logo + "Bạn cần

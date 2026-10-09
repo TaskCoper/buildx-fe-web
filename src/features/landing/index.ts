@@ -11,6 +11,7 @@ export { HomeBrands } from './components/home-brands'
 export { HomeCta, type HomeCtaResumeProject } from './components/home-cta'
 export { HomeDossiers, type HomeTemplateItem, type HomeTemplateFactKind } from './components/home-dossiers'
 export { HomeServices } from './components/home-services'
+export { LegalHtmlPage } from './components/legal-html-page'
 export { LegalPage } from './components/legal-page'
 export {
   HERO_CARD_ROWS,

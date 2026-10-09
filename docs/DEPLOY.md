@@ -35,7 +35,7 @@ cùng tên với biến ứng dụng, kể cả giá trị công khai, để gi�
 
 | Secret                        | Giá trị / mục đích                                                                      | Thời điểm đọc  |
 | ----------------------------- | --------------------------------------------------------------------------------------- | -------------- |
-| `BMT_API_ORIGIN`              | Dev: `http://bmt-api-dev:8080`; prod: `http://bmt-api-prod:8080`                        | Build          |
+| `BMT_API_ORIGIN`              | Dev: `http://bmt-api-dev:8080`; prod: `http://bmt-api-prod:8080`                        | Build và container chạy |
 | `NEXT_PUBLIC_API_BASE_URL`    | Giữ `/api/v1` để cookie auth đi qua cùng domain                                         | Build          |
 | `NEXT_PUBLIC_API_TIMEOUT`     | Mặc định `30000` ms                                                                     | Build          |
 | `NEXT_PUBLIC_APP_NAME`        | Mặc định `BuildX AI`                                                                    | Build          |
@@ -44,11 +44,13 @@ cùng tên với biến ứng dụng, kể cả giá trị công khai, để gi�
 | `NEXT_PUBLIC_USE_MOCK_API`    | Mặc định `false`, dùng backend thật                                                     | Build          |
 | `NEXT_PUBLIC_VIETMAP_API_KEY` | Khóa công khai để hiển thị bản đồ; có thể để trống                                      | Build          |
 | `VIETMAP_API_KEY`             | Khóa riêng để server gọi geocode; có thể để trống nếu chưa cấu hình geocode             | Container chạy |
+| `CMS_REVALIDATION_SECRET`     | Khóa của `POST /api/cms/revalidate`, cùng giá trị với BE                                | Container chạy |
 
 Đổi `NEXT_PUBLIC_*` hoặc `BMT_API_ORIGIN` thì phải build image mới. Next.js nhúng
 biến công khai vào bundle và lưu đích rewrite lúc build. Không truyền
 `VIETMAP_API_KEY` bằng build arg hoặc dùng nó thay khóa công khai. File `.env.local`
-không được đưa vào Docker build context.
+không được đưa vào Docker build context. `CMS_REVALIDATION_SECRET` cũng chỉ truyền
+khi container chạy. Cấu hình webhook và thứ tự deploy xem [CMS_CACHE.md](CMS_CACHE.md).
 
 Nguồn đối chiếu: [biến môi trường Next.js](https://nextjs.org/docs/app/guides/environment-variables)
 và [standalone output](https://nextjs.org/docs/app/api-reference/config/next-config-js/output).

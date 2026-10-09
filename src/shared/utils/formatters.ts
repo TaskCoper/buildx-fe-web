@@ -145,3 +145,24 @@ export function formatDigitGroups(value: string, locale: Locale): string {
   if (!digits) return ''
   return formatNumber(Number(digits), locale)
 }
+
+/**
+ * `formatter` của ô nhập TIỀN (antd `InputNumber`): `1850000` → `1.850.000`.
+ *
+ * Luôn dấu chấm kiểu Việt cho mọi ô tiền ở khu quản trị (góp ý case 17), không phụ thuộc ngôn ngữ trình duyệt.
+ * Chỉ dùng cho số nguyên VND — ô có phần thập phân (như phần trăm) không dùng hàm này.
+ */
+export function formatMoneyInput(value?: string | number | null): string {
+  if (value === undefined || value === null || value === '') return ''
+  return String(value)
+    .replace(/\D/g, '')
+    .replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+}
+
+/**
+ * `parser` đi cặp với {@link formatMoneyInput}: bỏ mọi ký tự không phải số (dán "1.850.000 ₫" vẫn ra đúng).
+ * Ô trống trả chuỗi rỗng để antd hiểu là chưa nhập (trả 0 thì ô "không giới hạn" không xoá trống được).
+ */
+export function parseMoneyInput(value?: string): string {
+  return (value ?? '').replace(/\D/g, '')
+}

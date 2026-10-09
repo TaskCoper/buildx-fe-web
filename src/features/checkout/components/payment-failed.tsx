@@ -40,6 +40,10 @@ export function PaymentFailed({ orderId }: PaymentFailedProps) {
     )
   }
 
+  // Nói ĐÚNG nguyên nhân của đơn (góp ý case 5): hết hạn, đã hủy hay thanh toán chưa thành công — không gộp chung
+  // một câu "chưa nhận được thanh toán" cho cả ba trường hợp.
+  const closedKind = order.status === 'expired' ? 'expired' : order.status === 'cancelled' ? 'canceled' : null
+
   return (
     // Hình S07: cột nội dung hẹp, canh giữa.
     <div className='mx-auto w-full max-w-[90rem] space-y-5 lg:space-y-6 px-4 py-5 lg:px-8 [&>*:not([data-checkout-stepper])]:mx-auto [&>*:not([data-checkout-stepper])]:max-w-lg'>
@@ -55,23 +59,37 @@ export function PaymentFailed({ orderId }: PaymentFailedProps) {
         <span className='bg-destructive/10 text-destructive mx-auto flex size-20 items-center justify-center rounded-full'>
           <AlertCircle className='size-10' strokeWidth={2.25} />
         </span>
-        <h1 className='text-destructive text-3xl font-bold tracking-tight'>{t('title')}</h1>
-        <p className='text-muted-foreground text-pretty'>{t('subtitle')}</p>
+        <h1 className='text-destructive text-3xl font-bold tracking-tight'>
+          {closedKind ? t(`${closedKind}.title`) : t('title')}
+        </h1>
+        <p className='text-muted-foreground text-pretty'>{closedKind ? t(`${closedKind}.subtitle`) : t('subtitle')}</p>
       </div>
 
       <section className='border-destructive/30 bg-destructive/5 rounded-2xl border p-5'>
-        <h2 className='text-destructive text-sm font-semibold'>{t('reasonsTitle')}</h2>
-        <ul className='mt-3 space-y-2'>
-          {/* Bản mô tả S07 liệt kê ba lý do: sai nội dung chuyển khoản, giao dịch
-              chưa hoàn tất, ngân hàng xử lý chậm (mã QR hết hạn là lý do thứ tư
-              app tự thêm vì QR có hạn thật). */}
-          {[t('reasonExpired'), t('reasonContent'), t('reasonIncomplete'), t('reasonBank')].map((reason) => (
-            <li key={reason} className='flex items-start gap-2.5 border-b pb-2 text-sm last:border-b-0 last:pb-0'>
+        {closedKind ? (
+          <>
+            <h2 className='text-destructive text-sm font-semibold'>{t('causeTitle')}</h2>
+            <p className='mt-3 flex items-start gap-2.5 text-sm'>
               <AlertCircle className='text-destructive mt-0.5 size-4 shrink-0' />
-              <span className='text-pretty'>{reason}</span>
-            </li>
-          ))}
-        </ul>
+              <span className='text-pretty'>{t(`${closedKind}.cause`)}</span>
+            </p>
+          </>
+        ) : (
+          <>
+            <h2 className='text-destructive text-sm font-semibold'>{t('reasonsTitle')}</h2>
+            <ul className='mt-3 space-y-2'>
+              {/* Bản mô tả S07 liệt kê ba lý do: sai nội dung chuyển khoản, giao dịch
+                  chưa hoàn tất, ngân hàng xử lý chậm (mã QR hết hạn là lý do thứ tư
+                  app tự thêm vì QR có hạn thật). */}
+              {[t('reasonExpired'), t('reasonContent'), t('reasonIncomplete'), t('reasonBank')].map((reason) => (
+                <li key={reason} className='flex items-start gap-2.5 border-b pb-2 text-sm last:border-b-0 last:pb-0'>
+                  <AlertCircle className='text-destructive mt-0.5 size-4 shrink-0' />
+                  <span className='text-pretty'>{reason}</span>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
       </section>
 
       <div className='space-y-2'>
@@ -93,7 +111,7 @@ export function PaymentFailed({ orderId }: PaymentFailedProps) {
           disabled={regenerate.isPending}
         >
           <RotateCcw className='size-4' />
-          {t('retry')}
+          {closedKind ? t('newOrder') : t('retry')}
         </Button>
         <Button variant='ghost' className='w-full' onClick={() => toast.info(t('support'))}>
           <Headset className='size-4' />

@@ -666,6 +666,12 @@ function ContractorMatchesContent({ projectId }: ContractorMatchesProps) {
                     invitedJustNow={newlyInvitedIds.has(contractor.id)}
                     inviteLocked={inviteLocked || preview}
                     compareLocked={!compareIds.includes(contractor.id) && compareIds.length >= MAX_INVITATIONS}
+                    siteWardName={brief?.constructionSite?.wardName || brief?.address.wardName}
+                    siteCoords={
+                      brief?.constructionSite
+                        ? { latitude: brief.constructionSite.latitude, longitude: brief.constructionSite.longitude }
+                        : undefined
+                    }
                     ringFlash={
                       (justArrived && index === 0) ||
                       lastViewedId === contractor.id ||

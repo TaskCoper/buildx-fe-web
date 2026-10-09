@@ -69,6 +69,7 @@ interface BmtArticleSummary {
   /** Đường dẫn hiện tại; NULL với bài cũ chưa được gán đường dẫn (BR-NEWS-004 Except). */
   slug?: string | null
   title: string
+  summary?: string | null
   readingTimeMinutes?: number | null
   coverImageUrl: string
   firstPublishedAtUtc: string
@@ -214,8 +215,7 @@ function toArticleSummary(dto: BmtArticleSummary): HandbookArticleWithCategories
     // Route `/handbook/bai-viet/[slug]` nhận cả đường dẫn lẫn định danh; bài cũ chưa có đường dẫn dùng định danh.
     slug: articleSlugOf(dto.slug, dto.id),
     title: dto.title,
-    // BE đã bỏ `summary`; type UI khách bắt buộc `excerpt` nên để chuỗi rỗng.
-    excerpt: '',
+    excerpt: dto.summary ?? '',
     imageUrl: dto.coverImageUrl,
     category: dto.categories[0]?.name ?? '',
     publishedAt: dto.firstPublishedAtUtc,
