@@ -60,6 +60,7 @@ const CODE_MAX = 100
 const NAME_MAX = 200
 /** Giới hạn mềm cho các trường trình bày thẻ (phía client). */
 const HIGHLIGHT_LABEL_MAX = 100
+const GIFT_TEXT_MAX = 4000
 
 const SALE_TONE: Record<PlanSaleState, StatusTone> = { NotPublished: 'off', OnSale: 'success', Stopped: 'off' }
 const SALE_STATES: readonly PlanSaleState[] = ['NotPublished', 'OnSale', 'Stopped']
@@ -171,9 +172,8 @@ function toDraft(values: PlanFormValues): BmtPlanDraftContent {
     coverImageUrl: values.coverImageUrl?.trim() || null,
     isHighlighted: values.isHighlighted ?? false,
     highlightLabel: values.highlightLabel?.trim() || null,
-    // Quà tặng đã gỡ khỏi form — luôn gửi null để bản nháp không giữ quà cũ.
-    giftDescription: null,
-    giftConditions: null
+    giftDescription: values.kind === 'Design' ? values.giftDescription?.trim() || null : null,
+    giftConditions: values.kind === 'Design' ? values.giftConditions?.trim() || null : null
   }
   const base = { name: values.name.trim(), description: values.description?.trim() ?? '' }
   if (values.kind === 'Supervision') {
@@ -879,6 +879,29 @@ function PlanFields({
           </Form.Item>
         </Col>
       </Row>
+
+      {kind === 'Design' ? (
+        <Row gutter={16}>
+          <Col xs={24} md={12}>
+            <Form.Item
+              name='giftDescription'
+              label={t('giftDescription')}
+              rules={[{ max: GIFT_TEXT_MAX, message: tAdmin('fields.maxLength', { max: GIFT_TEXT_MAX }) }]}
+            >
+              <Input.TextArea rows={3} maxLength={GIFT_TEXT_MAX} showCount />
+            </Form.Item>
+          </Col>
+          <Col xs={24} md={12}>
+            <Form.Item
+              name='giftConditions'
+              label={t('giftConditions')}
+              rules={[{ max: GIFT_TEXT_MAX, message: tAdmin('fields.maxLength', { max: GIFT_TEXT_MAX }) }]}
+            >
+              <Input.TextArea rows={3} maxLength={GIFT_TEXT_MAX} showCount />
+            </Form.Item>
+          </Col>
+        </Row>
+      ) : null}
 
       <Text type='secondary' style={{ display: 'block', marginTop: 8, fontSize: 12 }}>
         {t('snapshotNote')}

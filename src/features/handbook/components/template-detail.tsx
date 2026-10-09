@@ -817,6 +817,7 @@ export function TemplateDetail({ templateId }: { templateId: string }) {
                     )}
                   >
                     <span
+                      data-similar-media
                       className={cn(
                         'block overflow-hidden',
                         item.kind === '2d' ? 'w-24 shrink-0 rounded-lg' : 'w-full'
@@ -826,7 +827,7 @@ export function TemplateDetail({ templateId }: { templateId: string }) {
                         template={item}
                         className={cn(
                           'transition-transform duration-400 ease-out group-hover/similar:scale-[1.025]',
-                          item.kind === '2d' ? 'w-24 shrink-0 rounded-lg' : 'aspect-4/3 w-full'
+                          item.kind === '2d' ? 'aspect-3/4 w-24 shrink-0 rounded-lg' : 'aspect-4/3 w-full'
                         )}
                         sizes={item.kind === '2d' ? '96px' : '260px'}
                       />
@@ -1261,9 +1262,10 @@ function TemplateFloorViewer({
                 <TemplateFigure
                   template={template}
                   floor={activeFloor}
-                  className={cn('w-full rounded-lg', template.kind === '3d' && 'aspect-16/9')}
+                  className={cn('w-full rounded-lg', template.kind === '3d' ? 'aspect-16/9' : 'min-h-[50vh]')}
                   autoHeight={template.kind === '2d'}
                   sizes='96vw'
+                  original
                 />
               </div>
             ) : null}
