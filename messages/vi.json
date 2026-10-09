@@ -3193,7 +3193,7 @@
       "overdueBy": "Đã quá giờ {minutes} phút."
     },
     "customers": {
-      "description": "Danh sách tài khoản khách hàng. Gói, quota, đơn hàng, giao dịch và thao tác Ban / Mở ban nằm ở trang chi tiết.",
+      "description": "Danh sách tài khoản khách hàng. Gói đã mua, đơn hàng và giao dịch của từng khách nằm ở trang chi tiết.",
       "name": "Họ tên",
       "email": "Email",
       "phone": "Số điện thoại",
@@ -3218,7 +3218,7 @@
       "plan": "Gói",
       "notFound": "Không tìm thấy tài khoản này.",
       "backToList": "Về danh sách",
-      "detailDescription": "Thông tin chỉ đọc. Gói và quota lấy theo snapshot của đơn đã mua — admin không đổi gói, hạn dùng, quota hay trạng thái kích hoạt.",
+      "detailDescription": "Thông tin chỉ đọc. Admin không đổi gói, hạn dùng hay số lượt của khách.",
       "profileTitle": "Tổng quan hồ sơ",
       "emailVerified": "Xác minh email",
       "verifiedYes": "Đã xác minh",
@@ -3293,7 +3293,11 @@
         "timeout": "Hết thời gian xử lý"
       },
       "quotaRef": "Thông tin liên quan",
-      "libraryView": "Xem chi tiết mẫu"
+      "libraryView": "Xem chi tiết mẫu",
+      "searchPlaceholder": "Tìm theo tên, email hoặc số điện thoại",
+      "retry": "Thử lại",
+      "commerceForbidden": "Bạn cần quyền xem thương mại (commerce.read) để xem gói, đơn hàng và giao dịch của khách.",
+      "listTruncated": "Đang hiện {shown} dòng mới nhất trong tổng {total} dòng."
     },
     "transactions": {
       "description": "Sổ giao dịch thanh toán trong hệ thống — chỉ đọc. Tìm theo mã / tên / email; lọc trạng thái, gói và phương thức.",

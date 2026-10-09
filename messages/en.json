@@ -3193,7 +3193,7 @@
       "overdueBy": "Overdue by {minutes} minutes."
     },
     "customers": {
-      "description": "Customer accounts. Plans, credits, orders, transactions and Ban / Unban live on the detail page.",
+      "description": "Customer accounts. Each customer's purchased packages, orders and transactions are on the detail page.",
       "name": "Full name",
       "email": "Email",
       "phone": "Phone",
@@ -3218,7 +3218,7 @@
       "plan": "Plan",
       "notFound": "This account was not found.",
       "backToList": "Back to list",
-      "detailDescription": "Read-only. Plans and credits follow the purchased order snapshot — admins cannot change plans, expiry, credits or activation.",
+      "detailDescription": "Read-only. Admins cannot change a customer's packages, expiry or credits.",
       "profileTitle": "Profile",
       "emailVerified": "Email verification",
       "verifiedYes": "Verified",
@@ -3293,7 +3293,11 @@
         "timeout": "Timed out"
       },
       "quotaRef": "Reference",
-      "libraryView": "Template detail view"
+      "libraryView": "Template detail view",
+      "searchPlaceholder": "Search by name, email or phone number",
+      "retry": "Retry",
+      "commerceForbidden": "You need the commerce permission (commerce.read) to see this customer's packages, orders and transactions.",
+      "listTruncated": "Showing the latest {shown} of {total} rows."
     },
     "transactions": {
       "description": "The payment ledger — read only. Search by code / name / email; filter by status, plan and method.",

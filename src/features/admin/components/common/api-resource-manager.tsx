@@ -50,6 +50,11 @@ export interface ApiResourceManagerProps<T> {
    */
   queryKey: readonly unknown[]
   fetchPage: (params: ApiPageParams) => Promise<PagedResult<T>>
+  /**
+   * Lấy MỘT dòng theo mã, dùng khi mở thẳng URL `?act=view&rid=…` (liên kết từ màn khác) mà dòng đó không nằm trong trang
+   * danh sách đang hiện. Bỏ trống = chỉ mở được dòng có trong danh sách.
+   */
+  fetchOne?: (id: string) => Promise<T>
   rowKey: (item: T) => string
   columns: NonNullable<TableProps<T>['columns']>
   /** Có ô tìm kiếm: từ khóa đi thẳng lên server (`keyword`). */
@@ -124,6 +129,7 @@ function ApiResourceManagerBody<T>({
   compactHeader,
   queryKey,
   fetchPage,
+  fetchOne,
   rowKey,
   columns,
   searchable = false,
@@ -177,7 +183,15 @@ function ApiResourceManagerBody<T>({
       : null
   const rowId = formPage.id
   const fromList = rowId ? (data?.items.find((item) => rowKey(item) === rowId) ?? null) : null
-  const target = fromList ?? (opened && rowId && rowKey(opened) === rowId ? opened : null)
+  const listed = fromList ?? (opened && rowId && rowKey(opened) === rowId ? opened : null)
+  // Dòng không nằm trong trang danh sách (mở từ liên kết ngoài): hỏi API theo mã nếu màn có khai báo `fetchOne`.
+  const oneQuery = useQuery({
+    queryKey: [...queryKey, 'one', rowId],
+    queryFn: () => fetchOne!(rowId!),
+    enabled: Boolean(fetchOne && rowId && mode && !listed),
+    retry: false
+  })
+  const target = listed ?? oneQuery.data ?? null
 
   function openPage(next: FormPageMode, item?: T) {
     setOpened(item ?? null)
@@ -214,7 +228,7 @@ function ApiResourceManagerBody<T>({
 
   const hasActions = Boolean(rowActions || renderView || canEdit)
   const wide = drawerWidth >= 700
-  const loading = isPending || isFetching
+  const loading = isPending || isFetching || oneQuery.isFetching
 
   /* ===== Trang Thêm / Sửa ===== */
   if (mode === 'new' || mode === 'edit') {

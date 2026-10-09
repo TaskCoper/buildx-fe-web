@@ -45,10 +45,17 @@ test('guests and customers cannot open admin, even with injected permissions', (
 })
 test('a custom role opens exactly the sections granted by its effective permissions', () => {
   const reader = staff(['commerce.read', 'audit.read'])
-  for (const route of ['/admin/orders', '/admin/customers/id', '/admin/transactions', '/admin/access-audit']) {
+  for (const route of ['/admin/orders', '/admin/transactions', '/admin/access-audit']) {
     assert.equal(canAccessAdminRoute(reader, route), true, route)
   }
-  for (const route of ['/admin/roles', '/admin/staff', '/admin/payment-connections', '/admin/unknown']) {
+  for (const route of [
+    '/admin/customers',
+    '/admin/customers/id',
+    '/admin/roles',
+    '/admin/staff',
+    '/admin/payment-connections',
+    '/admin/unknown'
+  ]) {
     assert.equal(canAccessAdminRoute(reader, route), false, route)
   }
 })
@@ -61,6 +68,8 @@ test('Admin has no bypass for permission-based endpoints', () => {
 })
 for (const [permission, route] of [
   ['role.manage', '/admin/roles'],
+  ['customer.manage', '/admin/customers'],
+  ['customer.manage', '/admin/customers/some-customer-id'],
   ['user.manage', '/admin/staff'],
   ['assignment.manage', '/admin/assignments'],
   ['audit.read', '/admin/access-audit'],

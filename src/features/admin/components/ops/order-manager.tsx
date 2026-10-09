@@ -150,6 +150,8 @@ function PaymentOrderTable({ switcher }: { switcher: ReactNode }) {
       description={t('ordersDescription')}
       queryKey={adminKeys.bmt('payment-orders', filters)}
       fetchPage={({ pageIndex, pageSize }) => bmtCommerceApi.listPaymentOrders({ pageIndex, pageSize, ...filters })}
+      // Liên kết từ trang chi tiết khách (`?act=view&rid=…`) mở được đơn kể cả khi nó không nằm ở trang đầu danh sách.
+      fetchOne={(orderId) => bmtCommerceApi.getPaymentOrder(orderId)}
       rowKey={(order) => order.id}
       drawerWidth={760}
       banner={
@@ -475,6 +477,7 @@ function PurchaseTable({ switcher }: { switcher: ReactNode }) {
       description={t('purchasesDescription')}
       queryKey={adminKeys.bmt('package-purchases', filters)}
       fetchPage={({ pageIndex, pageSize }) => bmtCommerceApi.listPackagePurchases({ pageIndex, pageSize, ...filters })}
+      fetchOne={(orderId) => bmtCommerceApi.getPackagePurchase(orderId)}
       rowKey={(purchase) => purchase.purchaseId}
       drawerWidth={760}
       banner={

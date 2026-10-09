@@ -13,7 +13,9 @@ type AdminAccessRule = { anyPermission: readonly PermissionCode[] } | { adminOnl
 export const ADMIN_ROUTE_ACCESS = {
   [ADMIN_ROUTES.ORDERS]: { anyPermission: [P.COMMERCE_READ] },
   [ADMIN_ROUTES.TRANSACTIONS]: { anyPermission: [P.COMMERCE_READ] },
-  [ADMIN_ROUTES.CUSTOMERS]: { anyPermission: [P.COMMERCE_READ] },
+  // `GET /customers` đòi `customer.manage`. Gói, đơn và giao dịch trong trang chi tiết đòi thêm `commerce.read`
+  // (từng khối tự kiểm quyền), nên `commerce.read` một mình không mở được màn này.
+  [ADMIN_ROUTES.CUSTOMERS]: { anyPermission: [P.CUSTOMER_MANAGE] },
   [ADMIN_ROUTES.PLAN_TABLE]: { anyPermission: [P.PLAN_MANAGE] },
   [ADMIN_ROUTES.PLANS_CONTENT]: { anyPermission: [P.NEWS_MANAGE] },
   [ADMIN_ROUTES.SUPERVISION_CONTENT]: { anyPermission: [P.NEWS_MANAGE] },

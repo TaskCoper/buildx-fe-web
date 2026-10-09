@@ -630,3 +630,34 @@ Schema `comparison` bổ sung trường có cấu trúc `groups`, giữ 47 trư�
 Backend commit `cecde694645f3d826d9727a8be412193b61eaf28` đã [triển khai thành công](https://github.com/TaskCoper/bmt-be/actions/runs/37884195750). GET CMS công khai ở cả `vi` và `en` sau triển khai trả HTTP 200. Đã đạt 140 kiểm thử backend liên quan, 55 kiểm thử frontend, 28 kiểm tra trình duyệt với API giả lập và bảy kiểm thử rendering; TypeScript, ESLint, Prettier và production build đạt. Frontend đã build/start lại trên localhost:3000, chưa triển khai lên website. Chưa kiểm ghi nội dung động qua phiên quản trị và database thật.
 
 Đã kiểm hợp đồng frontend/backend, quyền truy cập, ngôn ngữ độc lập, giới hạn chữ và xung đột phiên bản; kiểm trình duyệt bằng API giả lập cho lưu năm phần, khôi phục, bản chưa lưu, bảng công khai và bố cục điện thoại. Các kiểm tra này chưa chứng minh thao tác ghi trên database hoặc webhook của môi trường thật. Xem phần CMS Bảng giá trong `TDD-HB-003`.
+
+## 12. Admin — Khách hàng (nối API thật, 09/10/2026)
+
+Màn `/admin/customers` và `/admin/customers/{id}` đọc từ backend, không còn đọc dữ liệu mẫu lưu trong trình duyệt. Đã kiểm trên trình duyệt với backend giả khớp contract trong code `bmt-be` (ghi lại URL và tham số thật mà FE gửi); chưa chạy với `bmt-api.vnzdna.com` vì cần tài khoản nhân viên có `customer.manage`.
+
+### 1. Đã nối
+
+- Danh sách: `GET /customers?search&pageIndex&pageSize` (quyền `customer.manage`). Tìm theo tên, email, SĐT và phân trang đều chạy ở server, 20 dòng mỗi trang.
+- Hồ sơ: `GET /customers/{id}`. Mã `404 CustomerNotFound` hiện "Không tìm thấy tài khoản này"; lỗi khác hiện thông báo kèm nút Thử lại.
+- Gói, đơn, giao dịch của khách (cần thêm `commerce.read`, thiếu thì mỗi khối báo rõ và không gọi API): `GET /admin/package-purchases`, `/admin/payment-orders`, `/admin/bank-transactions` lọc theo `customerId`, mỗi lần lấy tối đa 100 dòng mới nhất (khách có nhiều hơn thì trang báo). Hạn và lượt đã dùng / đang giữ của gói đang dùng lấy từ `GET /admin/package-purchases/{orderId}`.
+- Quyền của mục Khách hàng đổi từ `commerce.read` sang `customer.manage`, đúng quyền backend đòi cho `/customers`.
+- Liên kết "Xem chi tiết đơn" mở màn Đơn hàng ở trang xem đơn (`?act=view&rid=…`). `ApiResourceManager` có thêm `fetchOne` để mở được đơn không nằm ở trang đầu danh sách.
+
+### 2. Chưa nối vì API thiếu (báo BE)
+
+Theo yêu cầu "không có API thì xoá", các chức năng dưới đây đã **bỏ khỏi giao diện**; khi backend có endpoint thì thêm lại.
+
+| Chức năng đã bỏ khỏi màn                               | Hiện trạng backend                                                                      | Ghi chú khi thêm lại                                    |
+| ------------------------------------------------------ | --------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| Nút Ban / Mở ban tài khoản khách, kèm lý do            | Chỉ có `POST /staff/{id}/lock` và `unlock` cho nhân viên; khách không có endpoint nào   | Cần endpoint khoá / mở khoá khách (và trả lý do khoá)   |
+| Khối "Lịch sử sử dụng quota" (giữ, trừ, hoàn)          | Không có endpoint                                                                       | Số lượt đã dùng / đang giữ vẫn xem ở khối gói đang dùng |
+| Bộ lọc trạng thái Hoạt động / Đã ban trên danh sách    | `GET /customers` chỉ có tham số `search`                                                | Cần tham số `status`; cột Trạng thái vẫn hiện           |
+| Dòng Vai trò, Phương thức đăng nhập, Lý do khoá        | `CustomerInfo` không có các trường này (vai trò luôn là Khách hàng nên không đáng hiện) | Cần BE trả phương thức đăng nhập nếu muốn hiện lại      |
+| Quyền lợi theo đơn, quà tặng, giai đoạn và lượt kỹ sư  | API thương mại không trả                                                                | Gói giám sát hiện công trình và mốc cấp / gán           |
+| Tài liệu của `GET /customers` và `GET /customers/{id}` | `bmt-documentation` chưa có Story hay TDD, chỉ có trong code BE                         | FE bám contract trong code; cần bổ sung tài liệu        |
+
+### 3. Lưu ý
+
+- Họ tên ghép `lastName` rồi `firstName`; thiếu cả hai thì dùng email.
+- Trạng thái `Locked` của backend hiện là "Đã ban" để giữ nhãn cũ của màn.
+- Các bộ dữ liệu mẫu cũ của màn (`customers`, `customerPackages`, `quotaEvents` trong kho CMS cục bộ) không còn được màn này đọc.
