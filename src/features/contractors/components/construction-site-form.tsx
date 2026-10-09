@@ -34,7 +34,7 @@ import {
 } from '@/shared/components/ui'
 import { contractorReviewRoute, ROUTES } from '@/shared/constants/routes'
 import { errorCodeOf, isApiError } from '@/shared/lib/api'
-import { LocationMap, SearchableSelect } from '@/shared/components/common'
+import { LocationMap, MoneyTextInput, SearchableSelect } from '@/shared/components/common'
 import { findByName, geocodeApi, parseRegion } from '@/shared/geocode'
 import { cn } from '@/shared/lib/utils'
 import { constructionSitesApi } from '../api/construction-sites.api'
@@ -737,6 +737,8 @@ export function ConstructionSiteForm({ projectId }: { projectId: string }) {
       maxLength?: number
       inputMode?: 'decimal' | 'numeric'
       multiline?: boolean
+      /** Số tiền VND: hiện dấu chấm ngăn mỗi 3 số, giá trị trong form vẫn chỉ gồm chữ số. */
+      money?: boolean
     } = {}
   ) {
     return (
@@ -763,6 +765,16 @@ export function ConstructionSiteForm({ projectId }: { projectId: string }) {
                   disabled={options.disabled}
                   rows={8}
                   className='min-h-44'
+                />
+              ) : options.money ? (
+                <MoneyTextInput
+                  ref={field.ref}
+                  name={field.name}
+                  onBlur={field.onBlur}
+                  value={String(field.value ?? '')}
+                  onValueChange={field.onChange}
+                  placeholder={options.placeholder}
+                  disabled={options.disabled}
                 />
               ) : (
                 <Input {...field} value={String(field.value ?? '')} {...options} />
@@ -1247,7 +1259,7 @@ export function ConstructionSiteForm({ projectId }: { projectId: string }) {
                 ) : null}
               </div>
               <div className='grid gap-4 sm:grid-cols-2'>
-                {textField('budgetVnd', t('budget'), { inputMode: 'numeric', placeholder: '1.850.000.000', disabled })}
+                {textField('budgetVnd', t('budget'), { money: true, placeholder: '1.850.000.000', disabled })}
                 {selectField(
                   'plannedStart',
                   t('start'),

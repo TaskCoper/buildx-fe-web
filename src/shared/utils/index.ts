@@ -1,4 +1,5 @@
 export {
+  caretAfterDigits,
   formatBudgetShort,
   formatCurrency,
   formatDate,
