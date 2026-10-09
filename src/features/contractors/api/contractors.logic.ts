@@ -322,6 +322,7 @@ export function contractorFromApi(api: ApiContractor): Contractor {
     // Chi tiết không có ngữ cảnh dự án của khách nên BE không tính "dự án tương tự"; trang hồ sơ hiện số này
     // với chữ "đã thực hiện", nên dùng toàn bộ dự án BE trả (TDD-CTR-002: chi tiết trả toàn bộ dự án).
     similarProjects: api.projects.length,
+    similarProjectsKnown: false,
     completedProjects: api.projects.length,
     distanceKm: 0,
     serviceAreas: api.serviceAreas,

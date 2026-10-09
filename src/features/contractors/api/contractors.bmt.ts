@@ -40,6 +40,7 @@ function toContractor(item: PublicContractorItem): Contractor {
     ratingKnown: item.rating != null,
     reviewCountKnown: item.ratingCount != null,
     similarProjects: item.similarProjectCount ?? 0,
+    similarProjectsKnown: item.similarProjectCount != null,
     completedProjects: item.projectCount ?? 0,
     distanceKm: item.distanceKm ?? 0,
     serviceAreas: (item.serviceAreaText ?? '')

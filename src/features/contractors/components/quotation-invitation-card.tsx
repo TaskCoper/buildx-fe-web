@@ -16,7 +16,10 @@ import { ContractorStats } from './contractor-stats'
 
 const strong = (chunks: React.ReactNode) => <b className='text-foreground font-medium'>{chunks}</b>
 
-/** S18 presentation over RFQ data. No invented INV code, update time or status history. */
+/**
+ * S18 presentation over RFQ data. No invented INV code, update time or status history: the only code the API gives a
+ * request is the dossier code of its construction site (`siteCode`), which ops also search by, so that is what we show.
+ */
 export function QuotationInvitationCard({
   item,
   onDetail,
@@ -85,7 +88,7 @@ export function QuotationInvitationCard({
       </div>
 
       <div className='text-muted-foreground flex flex-wrap items-center gap-x-6 gap-y-1.5 border-t pt-3 text-sm'>
-        <span>{t.rich('code', { code: rfq('displayCodeUnavailable'), b: strong })}</span>
+        {item.siteCode ? <span>{t.rich('siteCode', { code: item.siteCode, b: strong })}</span> : null}
         <span>{t.rich('sentAt', { time: stamp(item.createdAtUtc), b: strong })}</span>
         {detail.data ? (
           <button type='button' onClick={onDetail} title={rfq('viewSent')} className='text-left hover:underline'>

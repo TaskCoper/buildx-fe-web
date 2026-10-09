@@ -471,7 +471,7 @@ export function SurveyScheduler({ projectId, contractorId }: SurveySchedulerProp
         withDistance.distanceKnown === false
           ? tCommon('distanceUnknown')
           : tCommon('distanceShort', {
-              km: formatNumber(withDistance.distanceKm, locale, { minimumFractionDigits: 1 })
+              km: formatNumber(withDistance.distanceKm, locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })
             }),
       hint: tCommon('distanceSuffix')
     },

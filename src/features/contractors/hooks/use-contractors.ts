@@ -1,6 +1,6 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
+import { useQueries, useQuery } from '@tanstack/react-query'
 import { env } from '@/shared/config/env'
 import { getContractorFilterOptions, type ContractorSearchFilters } from '@/shared/contractors'
 
@@ -47,6 +47,28 @@ export function useContractor(contractorId: string) {
     queryFn: () => contractorsApi.getContractor(contractorId),
     enabled: Boolean(contractorId),
     retry: false
+  })
+}
+
+/**
+ * Hồ sơ của một DANH SÁCH nhà thầu theo mã (bảng so sánh S15): mỗi mã một request `GET /contractors/{id}` chạy song song,
+ * dùng chung cache với {@link useContractor}. Kết quả giữ đúng thứ tự `ids`; mã nào lỗi thì `contractors[i]` là `undefined`
+ * và nằm trong `failedIds` — một nhà thầu lỗi không làm mất các cột còn lại.
+ */
+export function useContractorsByIds(ids: readonly string[]) {
+  return useQueries({
+    queries: ids.map((id) => ({
+      queryKey: contractorKeys.detail(id),
+      queryFn: () => contractorsApi.getContractor(id),
+      retry: false,
+      staleTime: 60 * 1000
+    })),
+    combine: (results) => ({
+      contractors: results.map((result) => result.data),
+      isPending: results.some((result) => result.isPending),
+      failedIds: ids.filter((_, index) => results[index]?.isError),
+      refetchFailed: () => Promise.all(results.map((result) => (result.isError ? result.refetch() : undefined)))
+    })
   })
 }
 
