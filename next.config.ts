@@ -37,6 +37,10 @@ const nextConfig: NextConfig = {
   // Type-safe `Link`/`router` routes.
   typedRoutes: true,
   images: {
+    // Mặc định Next chỉ phát WebP. Liệt kê AVIF trước để trình duyệt hỗ trợ nhận AVIF (nhỏ hơn WebP khoảng 20–30% ở cùng
+    // chất lượng), trình duyệt cũ vẫn nhận WebP. Áp dụng cho MỌI ảnh qua `next/image`, kể cả ảnh admin tải lên CDN.
+    formats: ['image/avif', 'image/webp'],
+    // Danh sách host này phải khớp `OPTIMIZABLE_IMAGE_HOSTS` trong `src/shared/lib/image-src.ts` (có test kiểm).
     remotePatterns: [
       // Royalty-free catalogue photography (see `shared/lib/imagery.ts`).
       // Replace with the CMS asset host once admin uploads the real catalogue.

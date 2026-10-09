@@ -28,6 +28,15 @@ Hợp đồng duy nhất là `POST /api/cms/revalidate`, payload `{ "pageKey": "
 
 API không đẩy HTML mới tới tab đang mở. Người đọc cần tải lại hoặc điều hướng lại. Khi có CDN ngoài Next.js hay nhiều instance dùng cache riêng, cần xử lý tầng cache đó khi triển khai.
 
+## Ảnh
+
+Ảnh tĩnh trong `public/images` là AVIF. Ảnh hiển thị qua `next/image` (kể cả `Photo` và `RevealPhoto`) được Next đổi sang AVIF cho trình duyệt hỗ trợ, trình duyệt cũ nhận WebP; cấu hình nằm ở `images.formats` trong `next.config.ts`. Ảnh admin tải lên CDN cũng hưởng lợi, miễn là được hiển thị bằng `next/image`.
+
+- **Thêm ảnh mới:** chạy `node scripts/optimize-images.mjs <đường dẫn ảnh>`, rồi trỏ code tới file `.avif` vừa tạo. Script thu nhỏ ảnh quá lớn và giữ nguyên ảnh mà AVIF không nhỏ hơn đáng kể (icon vài KB). Thêm `--delete-originals` để xoá bản gốc sau khi đổi; thêm `--dry-run` để chỉ xem kết quả.
+- **Hiển thị ảnh:** dùng `Photo` hoặc `next/image` để Next chọn định dạng và đúng cỡ khung. Chỉ dùng thẻ `<img>` khi bắt buộc: ảnh `/api/…` cần cookie phiên (`next/image` tải từ máy chủ nên không mang cookie), ảnh xem trước dạng `blob:`, ảnh nằm trong HTML bài viết, và URL do admin dán ở host lạ.
+- **Ảnh từ URL admin dán:** gọi `canOptimizeImage` (`shared/lib/image-src.ts`) để chọn giữa `next/image` và `<img>`. Với host ngoài `images.remotePatterns`, bản production không báo lỗi mà ảnh vỡ lặng lẽ. Khi thêm host vào `remotePatterns`, thêm cả vào `OPTIMIZABLE_IMAGE_HOSTS`; `pnpm test:images` kiểm hai danh sách khớp nhau.
+- **Đổi ảnh trong `public/`:** nếu giữ nguyên tên file, trình duyệt và bộ nhớ đệm ảnh của Next có thể còn giữ bản cũ. Đặt tên file mới khi đổi nội dung ảnh.
+
 ## Kiểm chứng
 
 Chạy `pnpm build`, sau đó `pnpm test:rendering`. Bộ test chạy output standalone trong thư mục cache riêng và gọi API fixture chỉ đọc. Nó kiểm manifest production, header ISR, cache HIT, nội dung Home và Footer sau webhook, HTML bảng giá có query, khung riêng tư không gọi `/users/me` ở server, loading/noindex của admin và chuyển hướng khách chưa đăng nhập. CI chạy bộ test sau build.

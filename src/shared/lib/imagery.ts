@@ -66,7 +66,7 @@ export const BUILDING_IMAGE = {
 
 /** Ảnh chủ đề dùng chung cho cẩm nang, hướng dẫn và hồ sơ. */
 export const TOPIC_IMAGE = {
-  articleEnd: '/images/handbook/article-end-villa.png',
+  articleEnd: '/images/handbook/article-end-villa.avif',
   /** Công trường / lô đất — minh họa bước chụp ảnh lô đất. */
   site: photo('photo-1541888946425-d81bb19240f5'),
   /** Kiến trúc sư đang đọc bản vẽ — minh họa nhập liệu, hồ sơ, dự toán. */
@@ -155,9 +155,9 @@ export const PORTRAIT_IMAGE = {
  * Dùng ở khung minh họa trang chủ và thẻ xem trước hồ sơ.
  */
 export const RENDER_IMAGE = {
-  villa: '/images/villa-light.png',
-  townhouse: '/images/townhouse-light.png',
-  apartment: '/images/appartment-light.png'
+  villa: '/images/villa-light.avif',
+  townhouse: '/images/townhouse-light.avif',
+  apartment: '/images/appartment-light.avif'
 } as const
 
 /**
@@ -169,53 +169,53 @@ export const RENDER_IMAGE = {
  */
 export const LIBRARY_PHOTO_PREFIX = '/images/library/'
 
-/** Ảnh trong thư viện file khách gửi: `'2d/2d-0001.webp'` → đường dẫn đầy đủ. */
+/** Ảnh trong thư viện file khách gửi: `'2d/2d-0001.avif'` → đường dẫn đầy đủ. */
 const libraryPhoto = (file: string) => `${LIBRARY_PHOTO_PREFIX}${file}`
 
 /**
  * Bản vẽ mặt bằng THẬT của thư viện mẫu 2D (Phần 2.1).
  *
- * File khách gửi, đã chuyển sang webp và đặt trong `/public/images/library/2d`.
+ * File khách gửi, đã chuyển sang avif và đặt trong `/public/images/library/2d`.
  * Mỗi tấm là mặt bằng TẦNG TRỆT của một mẫu — các tầng còn lại vẫn để
  * `PlanDrawing` dựng SVG cho tới khi có đủ file, đúng như fallback sẵn có của
  * `TemplateFigure`. Khóa đặt theo kích thước lô để khỏi lẫn khi thêm bản vẽ mới.
  */
 export const PLAN_IMAGE = {
   /** Lô 9×20m, 91m² sàn — phòng ngủ trệt, tiểu cảnh giữa nhà, chỗ đậu ô tô. */
-  garden9x20: libraryPhoto('2d/2d-0001.webp'),
+  garden9x20: libraryPhoto('2d/2d-0001.avif'),
   /** Lô 4×9,8m, 35,2m² sàn — nhà phố hẹp, gara xe máy. */
-  townhouse4x10: libraryPhoto('2d/2d-0002.webp'),
+  townhouse4x10: libraryPhoto('2d/2d-0002.avif'),
   /** Lô 5×10m, 25,25m² phần ở — gara ô tô trong nhà, sân thượng nhỏ. */
-  townhouse5x10: libraryPhoto('2d/2d-0003.webp'),
+  townhouse5x10: libraryPhoto('2d/2d-0003.avif'),
   /** Lô 5×12m — gara ô tô, phòng ngủ 1 ở tầng trệt. */
-  townhouse5x12: libraryPhoto('2d/2d-0004.webp'),
+  townhouse5x12: libraryPhoto('2d/2d-0004.avif'),
   /** Lô 6,75×10,02m — phòng ngủ chính tầng trệt, mái che xe. */
-  garden675x10: libraryPhoto('2d/2d-0005.webp'),
+  garden675x10: libraryPhoto('2d/2d-0005.avif'),
   /** Lô 6,75×13m — gara ô tô + gara xe máy, phòng sinh hoạt chung. */
-  garden675x13: libraryPhoto('2d/2d-0006.webp')
+  garden675x13: libraryPhoto('2d/2d-0006.avif')
 } as const
 
 /**
  * Ảnh phối cảnh nội thất THẬT của thư viện mẫu 3D (Phần 2.2).
  *
- * Sáu tấm khách gửi, đã chuyển sang webp trong `/public/images/library/3d`.
+ * Sáu tấm khách gửi, đã chuyển sang avif trong `/public/images/library/3d`.
  * Toàn bộ là phòng khách tông kem – gỗ sáng nên chỉ gắn cho mẫu HIỆN ĐẠI /
  * TỐI GIẢN; mẫu Tân cổ điển, Indochine, mái Thái vẫn dùng ảnh stock cho tới khi
  * có phối cảnh đúng phong cách.
  */
 export const INTERIOR_RENDER = {
   /** Phòng khách căn hộ tông kem, sofa cong, đèn chùm bi. */
-  creamLiving: libraryPhoto('3d/3d-0001.webp'),
+  creamLiving: libraryPhoto('3d/3d-0001.avif'),
   /** Phòng khách trắng ấm, sofa module, ghế Togo, ban công. */
-  softMinimal: libraryPhoto('3d/3d-0004.webp'),
+  softMinimal: libraryPhoto('3d/3d-0004.avif'),
   /** Vách TV đá marble kết hợp lam gỗ, hắt sáng viền. */
-  stoneTvWall: libraryPhoto('3d/3d-0005.webp'),
+  stoneTvWall: libraryPhoto('3d/3d-0005.avif'),
   /** Khách – ăn liên thông, cửa vòm nhìn ra thành phố. */
-  openDining: libraryPhoto('3d/3d-0007.webp'),
+  openDining: libraryPhoto('3d/3d-0007.avif'),
   /** Phòng khách tông gỗ óc chó, tủ TV kịch trần, đèn cần câu. */
-  walnutLiving: libraryPhoto('3d/3d-0008.webp'),
+  walnutLiving: libraryPhoto('3d/3d-0008.avif'),
   /** Phòng khách tối giản cạnh ban công, sofa bông kem. */
-  balconyLiving: libraryPhoto('3d/3d-0009.webp')
+  balconyLiving: libraryPhoto('3d/3d-0009.avif')
 } as const
 
 /**
@@ -235,9 +235,9 @@ export const HOME_IMAGE = {
 
 /** Banner đầu trang Cẩm nang "Hiểu rõ từng bước xây nhà" — ảnh khách gửi (góp ý CN02). */
 export const HANDBOOK_IMAGE = {
-  banner: '/images/handbook/banner.webp',
+  banner: '/images/handbook/banner.avif',
   /** Banner đầu tab Thư viện mẫu — cùng khung với `banner` của tab Tin tức. */
-  libraryBanner: '/images/handbook/thu-vien-mau-banner.png'
+  libraryBanner: '/images/handbook/thu-vien-mau-banner.avif'
 } as const
 
 /**
@@ -245,7 +245,7 @@ export const HANDBOOK_IMAGE = {
  * BuildX. Thẻ nhà thầu được đặt nổi lên trên bằng CSS.
  */
 export const MAP_IMAGE = {
-  contractors: '/images/contractors/banner-tim-nha-thau.png'
+  contractors: '/images/contractors/banner-tim-nha-thau.avif'
 } as const
 
 /**

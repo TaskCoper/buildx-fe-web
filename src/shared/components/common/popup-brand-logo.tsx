@@ -22,7 +22,7 @@ export function PopupBrandLogo() {
       <span className='block -translate-y-1/2'>
         {/* eslint-disable-next-line @next/next/no-img-element -- logo tĩnh trong public, không cần loader */}
         <img
-          src='/images/brand/buildx-popup-logo-transparent.png'
+          src='/images/brand/buildx-popup-logo-transparent.avif'
           alt='BuildX'
           className='h-24 w-auto max-w-32 object-contain'
         />
