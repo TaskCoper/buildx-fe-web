@@ -1,6 +1,6 @@
 'use client'
 
-import { Check, Copy, Download, Headset, Info, LoaderCircle } from 'lucide-react'
+import { ArrowLeft, Check, Copy, Download, Headset, Info, LoaderCircle } from 'lucide-react'
 import { useLocale, useTranslations } from 'next-intl'
 import { QRCodeCanvas } from 'qrcode.react'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
@@ -310,6 +310,18 @@ export function QrPayment({ orderId }: QrPaymentProps) {
       style={entranceStyle}
       className='mx-auto w-full max-w-[90rem] space-y-5 lg:space-y-6 px-4 py-5 lg:px-8'
     >
+      {/* Góp ý case 10: màn QR cũng cần lối lùi về bước xác nhận đơn. Từ `sm` hiện nút này (giống màn xác nhận);
+          dưới `sm` đã có nút lùi nằm trong `CheckoutSteps`. */}
+      <button
+        type='button'
+        onClick={() => void backToConfirm()}
+        data-back-navigation
+        className='text-foreground hover:text-foreground hidden items-center gap-1.5 text-sm font-medium transition-colors sm:inline-flex'
+      >
+        <ArrowLeft className='size-4' />
+        {tCommon('back')}
+      </button>
+
       <CheckoutSteps
         current='payment'
         onPreviousStep={() => void backToConfirm()}

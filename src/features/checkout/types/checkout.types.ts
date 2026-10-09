@@ -61,3 +61,18 @@ export interface CreateOrderPayload {
    */
   offerKey?: OfferKey
 }
+
+/**
+ * Đơn THIẾT KẾ đang mở của khách (`Pending` hoặc `PartiallyPaid`). BR-PAY-001: mỗi khách chỉ có tối đa MỘT đơn
+ * thiết kế đang chờ, nên màn xác nhận đơn hiện đơn này và đổi nút "Tiến hành thanh toán" thành "Tiếp tục thanh
+ * toán đơn hiện tại" thay vì để khách bấm tạo đơn mới rồi bị chặn.
+ */
+export interface PendingDesignOrder {
+  id: string
+  planName: string
+  priceVnd: number
+  /** Số tiền đã ghi nhận; > 0 là đã nhận một phần — khi đó khách không tự hủy được (BR-PAY-003). */
+  receivedVnd: number
+  state: 'Pending' | 'PartiallyPaid'
+  expiresAtUtc: string
+}

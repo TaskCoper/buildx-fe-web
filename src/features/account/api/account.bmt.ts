@@ -179,6 +179,8 @@ export async function bmtGetPurchaseHistory(): Promise<AccountPurchaseHistory> {
     planName: order.planName,
     amount: Number(order.priceVnd) || 0,
     method: 'bank-qr',
+    orderState: order.state,
+    receivedAmount: Number(order.receivedAmountVnd) || 0,
     status: toTransactionStatus(order.state),
     createdAt: order.createdAtUtc
   }))

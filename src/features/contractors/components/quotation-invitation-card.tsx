@@ -59,9 +59,7 @@ export function QuotationInvitationCard({
               {contractor?.verified ? <BadgeCheck className='text-primary size-4 shrink-0' /> : null}
             </h2>
             {contractor?.officeAddress ? (
-              <p className='text-muted-foreground mt-1 text-sm'>
-                {[contractor.kind, contractor.officeAddress].filter(Boolean).join(' · ')}
-              </p>
+              <p className='text-muted-foreground mt-1 text-sm'>{contractor.officeAddress}</p>
             ) : null}
             {contractor ? <ContractorStats contractor={contractor} dense className='mt-2' /> : null}
           </div>

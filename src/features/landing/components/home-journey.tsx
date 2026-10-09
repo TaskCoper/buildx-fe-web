@@ -1,11 +1,13 @@
 'use client'
 
-import { ArrowRight, ChevronDown } from 'lucide-react'
+import { ArrowRight, ChevronDown, Icon } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useTranslations } from 'next-intl'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ComponentProps } from 'react'
 
 import { Link } from '@/i18n/navigation'
+import { useHomeIconNodes, useHomeSections } from '@/shared/cms/home-content'
+import { itemText, lucideIconKey, sectionItems, sectionText } from '@/shared/cms/home-sections'
 import { revealEase } from '@/shared/components/common'
 import { Button } from '@/shared/components/ui/button'
 import { cn } from '@/shared/lib/utils'
@@ -27,6 +29,21 @@ const STEP_ICON: Record<HomeJourneyStep, string> = {
 
 const DETAIL_FIELDS = ['youDo', 'savicoDoes', 'youGet'] as const
 
+type DetailField = (typeof DETAIL_FIELDS)[number]
+
+/** Tên trường của ba chi tiết trong nội dung admin lưu (khác tên khóa i18n vì khóa cũ còn mang tên thương hiệu cũ). */
+const SAVED_DETAIL_FIELD: Record<DetailField, string> = {
+  youDo: 'youDo',
+  savicoDoes: 'buildxDoes',
+  youGet: 'youGet'
+}
+
+const SAVED_DETAIL_LABEL: Record<DetailField, string> = {
+  youDo: 'labelYouDo',
+  savicoDoes: 'labelBuildxDoes',
+  youGet: 'labelYouGet'
+}
+
 interface HomeJourneyProps {
   onCreateProject?: () => void
   /** Dự án dở gần nhất — bước hiện tại tự sáng, các bước trước có dấu ✓. */
@@ -47,6 +64,16 @@ interface HomeJourneyProps {
  */
 export function HomeJourney({ onCreateProject, activeProject }: HomeJourneyProps) {
   const t = useTranslations('landing.journey')
+  // Nội dung admin đã lưu (khối `journey`, 5 mục theo đúng thứ tự HOME_JOURNEY_STEPS); trường trống thì dùng bản có sẵn.
+  const sections = useHomeSections()
+  const iconNodes = useHomeIconNodes()
+  const saved = sectionItems(sections, 'journey', 'items')
+  const stepText = (step: HomeJourneyStep, field: 'title' | 'description') =>
+    itemText(saved?.[HOME_JOURNEY_STEPS.indexOf(step)], field) ?? t(`items.${step}.${field}`)
+  const detailText = (step: HomeJourneyStep, field: DetailField) =>
+    itemText(saved?.[HOME_JOURNEY_STEPS.indexOf(step)], SAVED_DETAIL_FIELD[field]) ?? t(`items.${step}.${field}`)
+  const detailLabel = (field: DetailField) =>
+    sectionText(sections, 'journey', SAVED_DETAIL_LABEL[field]) ?? t(`detailLabels.${field}`)
   const [hovered, setHovered] = useState<number | null>(null)
   // Bước xa nhất đã rê qua trong lượt rê chuột hiện tại — chỉ TĂNG dần khi rê
   // sang thẻ sau, không tụt lại khi rê giữa các thẻ (tránh giật nền xám của
@@ -97,8 +124,12 @@ export function HomeJourney({ onCreateProject, activeProject }: HomeJourneyProps
       <header className='flex flex-wrap items-end justify-between gap-x-10 gap-y-3'>
         <div className='space-y-2'>
           {/* Góp ý BuildX: bỏ dòng nhãn, chỉ còn tiêu đề + một câu mô tả. */}
-          <h2 className='text-2xl font-bold tracking-tight text-balance lg:text-[1.75rem]'>{t('title')}</h2>
-          <p className='text-foreground max-w-5xl text-sm text-pretty'>{t('subtitle')}</p>
+          <h2 className='text-2xl font-bold tracking-tight text-balance lg:text-[1.75rem]'>
+            {sectionText(sections, 'journey', 'title') ?? t('title')}
+          </h2>
+          <p className='text-foreground max-w-5xl text-sm text-pretty'>
+            {sectionText(sections, 'journey', 'subtitle') ?? t('subtitle')}
+          </p>
         </div>
       </header>
 
@@ -107,7 +138,9 @@ export function HomeJourney({ onCreateProject, activeProject }: HomeJourneyProps
         className='mt-4 grid gap-4 lg:mt-8 sm:grid-cols-2 lg:grid-cols-[repeat(4,minmax(0,1fr)_auto)_minmax(0,1fr)] lg:gap-3'
       >
         {HOME_JOURNEY_STEPS.map((step, index) => {
-          const iconSrc = STEP_ICON[step]
+          // Admin nhập tên icon lucide thì vẽ icon đó; để trống (hoặc tên không tra được) thì dùng ảnh icon mặc định của bước.
+          const iconKey = lucideIconKey(itemText(saved?.[index], 'icon'))
+          const iconNode = iconKey ? iconNodes[iconKey] : undefined
           const isCurrent = index === activeIndex
           const isHovered = hovered === index
           const isSweptPassed = sweepIndex !== null && index < sweepIndex
@@ -115,6 +148,11 @@ export function HomeJourney({ onCreateProject, activeProject }: HomeJourneyProps
           const isHoverPassed = hoverReached !== null && index < hoverReached
           const isPastCard = isPastResume || isHoverPassed || isSweptPassed
           const isOpen = expanded === step
+          const stepIconColor = isOpen
+            ? 'text-brand-orange max-sm:text-brand-orange-foreground'
+            : isHovered
+              ? 'text-brand-orange'
+              : 'sm:text-primary'
           const isSwept = sweepIndex === index
           const shouldBounce = isHovered || isCurrent || isSwept || revealed.has(index)
 
@@ -175,27 +213,34 @@ export function HomeJourney({ onCreateProject, activeProject }: HomeJourneyProps
                       isOpen ? 'bg-brand-orange text-brand-orange-foreground' : 'bg-muted text-muted-foreground'
                     )}
                   >
-                    <span
-                      aria-hidden
-                      className={cn(
-                        'block size-6 bg-current transition-colors duration-500 ease-in-out sm:size-8',
-                        isOpen
-                          ? 'text-brand-orange max-sm:text-brand-orange-foreground'
-                          : isHovered
-                            ? 'text-brand-orange'
-                            : 'sm:text-primary'
-                      )}
-                      style={{
-                        maskImage: `url(${iconSrc})`,
-                        WebkitMaskImage: `url(${iconSrc})`,
-                        maskSize: 'contain',
-                        WebkitMaskSize: 'contain',
-                        maskRepeat: 'no-repeat',
-                        WebkitMaskRepeat: 'no-repeat',
-                        maskPosition: 'center',
-                        WebkitMaskPosition: 'center'
-                      }}
-                    />
+                    {iconNode ? (
+                      <Icon
+                        aria-hidden
+                        iconNode={iconNode as ComponentProps<typeof Icon>['iconNode']}
+                        className={cn(
+                          'block size-6 transition-colors duration-500 ease-in-out sm:size-8',
+                          stepIconColor
+                        )}
+                      />
+                    ) : (
+                      <span
+                        aria-hidden
+                        className={cn(
+                          'block size-6 bg-current transition-colors duration-500 ease-in-out sm:size-8',
+                          stepIconColor
+                        )}
+                        style={{
+                          maskImage: `url("${STEP_ICON[step]}")`,
+                          WebkitMaskImage: `url("${STEP_ICON[step]}")`,
+                          maskSize: 'contain',
+                          WebkitMaskSize: 'contain',
+                          maskRepeat: 'no-repeat',
+                          WebkitMaskRepeat: 'no-repeat',
+                          maskPosition: 'center',
+                          WebkitMaskPosition: 'center'
+                        }}
+                      />
+                    )}
                   </span>
                   <div className='min-w-0 flex-1 space-y-0.5 sm:contents sm:space-y-0'>
                     <h3
@@ -204,10 +249,10 @@ export function HomeJourney({ onCreateProject, activeProject }: HomeJourneyProps
                         (isHovered || isOpen) && 'text-brand-orange'
                       )}
                     >
-                      {t(`items.${step}.title`)}
+                      {stepText(step, 'title')}
                     </h3>
                     <p className='text-muted-foreground text-xs leading-relaxed text-pretty'>
-                      {t(`items.${step}.description`)}
+                      {stepText(step, 'description')}
                     </p>
                   </div>
                   <ChevronDown
@@ -221,7 +266,7 @@ export function HomeJourney({ onCreateProject, activeProject }: HomeJourneyProps
 
                 {isCurrent ? (
                   <span className='bg-primary/10 text-primary-strong mt-2 self-start rounded-full px-2.5 py-1 max-md:text-xs text-[11px] font-semibold sm:mt-0 sm:self-auto'>
-                    {t('currentStepBadge')}
+                    {sectionText(sections, 'journey', 'currentStepBadge') ?? t('currentStepBadge')}
                   </span>
                 ) : null}
 
@@ -239,10 +284,10 @@ export function HomeJourney({ onCreateProject, activeProject }: HomeJourneyProps
                       {DETAIL_FIELDS.map((field) => (
                         <div key={field} className='first:mt-2'>
                           <dt className='text-brand-orange text-xs font-semibold tracking-wide uppercase'>
-                            {t(`detailLabels.${field}`)}
+                            {detailLabel(field)}
                           </dt>
                           <dd className='text-foreground mt-1 text-sm leading-relaxed text-pretty'>
-                            {t(`items.${step}.${field}`)}
+                            {detailText(step, field)}
                           </dd>
                         </div>
                       ))}
@@ -290,11 +335,9 @@ export function HomeJourney({ onCreateProject, activeProject }: HomeJourneyProps
                 className='flex min-w-0 flex-col justify-start px-5 py-4 sm:first:pl-5 sm:last:pr-5'
               >
                 <dt className='text-brand-orange min-h-4 text-xs leading-4 font-semibold tracking-wide uppercase'>
-                  {t(`detailLabels.${field}`)}
+                  {detailLabel(field)}
                 </dt>
-                <dd className='text-foreground mt-1.5 text-sm leading-5 text-pretty'>
-                  {t(`items.${expanded}.${field}`)}
-                </dd>
+                <dd className='text-foreground mt-1.5 text-sm leading-5 text-pretty'>{detailText(expanded, field)}</dd>
               </motion.div>
             ))}
           </motion.dl>
@@ -323,7 +366,7 @@ export function HomeJourney({ onCreateProject, activeProject }: HomeJourneyProps
             className='brand-green-button h-11 rounded-full px-8 text-base has-[>svg]:px-8'
             onClick={onCreateProject}
           >
-            {t('cta')}
+            {sectionText(sections, 'journey', 'cta') ?? t('cta')}
             <ArrowRight className='size-4' />
           </Button>
         )}

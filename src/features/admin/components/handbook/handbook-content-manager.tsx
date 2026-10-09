@@ -1,6 +1,7 @@
 'use client'
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useCmsCacheRefresh } from '../../hooks/use-cms-cache-refresh'
 import {
   Alert,
   App,
@@ -245,6 +246,7 @@ function SectionCard({
   const initial = formValuesFor(section.fields, saved?.content, defaults)
 
   const fail = (err: unknown) => message.error(isApiError(err) ? err.message : t('feedback.apiError'))
+  const refreshCmsCache = useCmsCacheRefresh()
   const refresh = () => queryClient.invalidateQueries({ queryKey: sectionsKey(locale) })
 
   const save = async () => {
@@ -266,6 +268,7 @@ function SectionCard({
         content,
         expectedVersion: saved?.version
       })
+      await refreshCmsCache('handbook', locale)
       await refresh()
       message.success(t('feedback.saved'))
     } catch (err) {
@@ -280,6 +283,7 @@ function SectionCard({
     setBusy(true)
     try {
       await handbookAdminApi.deletePageSection(section.key, locale)
+      await refreshCmsCache('handbook', locale)
       await refresh()
       message.success(tc('restored'))
     } catch (err) {

@@ -380,6 +380,9 @@ export function GuideBrowser({ onCreateProject }: GuideBrowserProps) {
               if (suggestionsOpen && activeSuggestion >= 0) {
                 typeSuggestion(suggestions[activeSuggestion]!.label)
               } else {
+                // Enter là "tìm luôn": đóng bảng gợi ý (gõ tiếp thì nó tự mở lại) rồi cuộn xuống kết quả.
+                setSuggestionsDismissed(true)
+                setActiveSuggestion(-1)
                 gridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
               }
             } else if (event.key === 'Escape') {

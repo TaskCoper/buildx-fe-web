@@ -4,7 +4,6 @@ import Image from 'next/image'
 import {
   ArrowLeftRight,
   ArrowRight,
-  BadgeCheck,
   Building2,
   CalendarClock,
   ClipboardCheck,
@@ -30,7 +29,9 @@ import { Link, useRouter } from '@/i18n/navigation'
 import type { Locale } from '@/i18n/routing'
 import { useAuth, useAuthDialogStore } from '@/shared/auth'
 import { isContractorEligible, useCmsCollection, useCmsDocument, useSiteImage } from '@/shared/cms'
-import { revealContainerVariants, revealEase, revealItemVariants } from '@/shared/components/common'
+import { useHomeIconNodes, useHomeSections } from '@/shared/cms/home-content'
+import { itemText, lucideIconKey, sectionItems, sectionText } from '@/shared/cms/home-sections'
+import { NamedIcon, revealContainerVariants, revealEase, revealItemVariants } from '@/shared/components/common'
 import { Alert, AlertDescription, Button, Skeleton } from '@/shared/components/ui'
 import { env } from '@/shared/config/env'
 import {
@@ -102,6 +103,9 @@ const SAFETY_CARDS = [{ key: 'privacy' }, { key: 'record' }, { key: 'review' }] 
  *   `Users`. Dùng mỗi `Star` như bản trước thì mất hẳn phần "khách hàng thật",
  *   mà đó mới là ý của thẻ.
  *
+ * Admin đặt tên icon lucide cho thẻ (`icon`) và tra được thì vẽ icon đó thay cho hình ghép; không đặt, hoặc tên
+ * không tra được, thì giữ hình ghép mặc định như cũ.
+ *
  * Cỡ icon đo được là 24.4% bề ngang thẻ. Chữ trong ảnh demo lớn hơn khổ thật
  * khoảng 1.4 lần (xem ghi chú ở hero), nên bê nguyên 24.4% thì icon át hết chữ;
  * dùng 17.5% bề ngang thẻ = 24.4% × 0.72, đúng hệ số đã áp cho hero.
@@ -110,8 +114,11 @@ const SAFETY_CARDS = [{ key: 'privacy' }, { key: 'record' }, { key: 'review' }] 
  * HỘP NỘI DUNG của thẻ (đã trừ lề 7.4% mỗi bên), nên 17.5% bề ngang thẻ tương
  * đương 20.6% hộp nội dung.
  */
-function SafetyIcon({ kind }: { kind: (typeof SAFETY_CARDS)[number]['key'] }) {
+function SafetyIcon({ kind, icon }: { kind: (typeof SAFETY_CARDS)[number]['key']; icon?: string }) {
   const reduceMotion = useReducedMotion()
+  const iconNodes = useHomeIconNodes()
+  const customKey = lucideIconKey(icon)
+  const custom = customKey !== undefined && iconNodes[customKey] !== undefined
   return (
     // Ô vuông có kích thước XÁC ĐỊNH là bắt buộc: icon lucide mang sẵn thuộc
     // tính `height="24"`, nên nếu chỉ đặt `w-[…%]` thì bề ngang co giãn còn
@@ -129,14 +136,23 @@ function SafetyIcon({ kind }: { kind: (typeof SAFETY_CARDS)[number]['key'] }) {
       style={{ strokeDasharray: 90 }}
       className='relative flex aspect-square w-[20.6%] min-w-12 shrink-0 items-center justify-center'
     >
-      {kind === 'record' ? (
+      {custom ? (
+        <NamedIcon
+          name={icon}
+          fallback={Shield}
+          className='text-primary transition-colors duration-300 group-hover:text-brand-orange size-full'
+          strokeWidth={1.25}
+        />
+      ) : null}
+
+      {!custom && kind === 'record' ? (
         <FileLock2
           className='text-primary transition-colors duration-300 group-hover:text-brand-orange size-full'
           strokeWidth={1.25}
         />
       ) : null}
 
-      {kind === 'review' ? (
+      {!custom && kind === 'review' ? (
         <span className='flex size-full flex-col items-center justify-center gap-1'>
           {/* Cỡ sao để CỐ ĐỊNH chứ không theo %: hàng sao không có chiều cao xác
               định nên `size-[14%]` không phân giải được chiều cao và sao biến
@@ -161,7 +177,7 @@ function SafetyIcon({ kind }: { kind: (typeof SAFETY_CARDS)[number]['key'] }) {
         </span>
       ) : null}
 
-      {kind === 'privacy' ? (
+      {!custom && kind === 'privacy' ? (
         <>
           <Shield
             className='text-primary transition-colors duration-300 group-hover:text-brand-orange size-full'
@@ -278,6 +294,17 @@ export function ContractorLanding() {
 
   // Banner hero theo sheet góp ý BuildX; admin vẫn thay được ở màn "Hình ảnh site".
   const mapImage = useSiteImage('map.contractors')
+  // Nội dung admin đã lưu (trang `contractors`); trường nào trống hoặc khối nào chưa lưu thì dùng chữ, ảnh và icon có sẵn.
+  const sections = useHomeSections()
+  const heroImage = sectionText(sections, 'hero', 'imageUrl') ?? mapImage
+  const heroLine1 = sectionText(sections, 'hero', 'titleLine1') ?? t('hero.titleLine1')
+  const heroLine2 = sectionText(sections, 'hero', 'titleLine2') ?? t('hero.titleLine2')
+  const heroSubtitle = sectionText(sections, 'hero', 'subtitle') ?? t('hero.subtitle')
+  const createBriefLabel = sectionText(sections, 'hero', 'createBrief') ?? t('hero.createBrief')
+  const viewContractorsLabel = sectionText(sections, 'hero', 'viewContractors') ?? t('hero.viewContractors')
+  const promiseItems = sectionItems(sections, 'promises', 'items')
+  const safetyItems = sectionItems(sections, 'safety', 'items')
+  const faqItems = sectionItems(sections, 'faq', 'items')
   const mock = env.NEXT_PUBLIC_USE_MOCK_API
   // CMS chỉ là nguồn nhà thầu cho chế độ mock. API thật quyết định hồ sơ công khai.
   const matching = useCmsDocument('contractorMatching')
@@ -451,7 +478,7 @@ export function ContractorLanding() {
         {/* Không chia cột ảnh: chỉ mask lớp blur, giữ ảnh gốc liền mạch. */}
         <div aria-hidden className='absolute inset-0 -z-10'>
           <Image
-            src={mapImage}
+            src={heroImage}
             alt=''
             fill
             priority
@@ -459,7 +486,7 @@ export function ContractorLanding() {
             className='object-cover object-right lg:object-[right_30%]'
           />
           <div className='absolute inset-0 hidden lg:left-[15%] lg:block [mask-image:linear-gradient(to_right,transparent,black_30%)]'>
-            <Image src={mapImage} alt='' fill priority sizes='85vw' className='object-cover object-[right_40%]' />
+            <Image src={heroImage} alt='' fill priority sizes='85vw' className='object-cover object-[right_40%]' />
           </div>
           <div
             data-contractor-hero-blur
@@ -492,13 +519,13 @@ export function ContractorLanding() {
             >
               <motion.h1
                 className='text-primary-strong text-[clamp(1.05rem,5.4vw,1.875rem)] leading-[1.15] font-bold tracking-tight text-balance sm:text-4xl lg:text-[2.2rem]'
-                aria-label={t('hero.title')}
+                aria-label={`${heroLine1} ${heroLine2}`}
               >
                 <motion.span variants={revealItemVariants} className='block'>
-                  {t('hero.titleLine1')}
+                  {heroLine1}
                 </motion.span>
                 <motion.span variants={revealItemVariants} className='block'>
-                  {t('hero.titleLine2')}
+                  {heroLine2}
                 </motion.span>
               </motion.h1>
               {/* Hình S09: câu dẫn ngắt đúng BA dòng và rộng bằng ~88% cột chữ, hẹp
@@ -508,7 +535,7 @@ export function ContractorLanding() {
                 variants={revealItemVariants}
                 className='text-muted-foreground mt-4 max-w-[30rem] text-base text-pretty sm:mt-[26px]'
               >
-                {t('hero.subtitle')}
+                {heroSubtitle}
               </motion.p>
               {/* Hình S09: hai nút cùng cỡ, nút phụ nền trắng viền xanh, và nút
                 chính KHÔNG có mũi tên. */}
@@ -521,7 +548,7 @@ export function ContractorLanding() {
                   onClick={startBrief}
                   disabled={createBrief.isPending}
                 >
-                  {t('hero.createBrief')}
+                  {createBriefLabel}
                 </Button>
                 <Button
                   variant='outline'
@@ -530,7 +557,7 @@ export function ContractorLanding() {
                 >
                   {/* Dẫn sang trang danh sách nhà thầu đầy đủ (góp ý BuildX); 3 nhà thầu bên
                     dưới trang này chỉ là phần xem trước. */}
-                  <Link href={contractorPreviewRoute()}>{t('hero.viewContractors')}</Link>
+                  <Link href={contractorPreviewRoute()}>{viewContractorsLabel}</Link>
                 </Button>
               </motion.div>
               {selectionError ? (
@@ -591,7 +618,7 @@ export function ContractorLanding() {
               { key: 'transparent', icon: ClipboardCheck },
               { key: 'privacy', icon: Lock }
             ] as const
-          ).map((item) => (
+          ).map((item, index) => (
             <motion.li
               key={item.key}
               variants={revealItemVariants}
@@ -606,9 +633,16 @@ export function ContractorLanding() {
                 style={{ strokeDasharray: 64 }}
                 className='text-primary shrink-0 transition-[transform,color] duration-200 group-hover:-translate-y-0.5 group-hover:text-brand-orange'
               >
-                <item.icon className='size-5 sm:size-7' strokeWidth={1.5} />
+                <NamedIcon
+                  name={itemText(promiseItems?.[index], 'icon')}
+                  fallback={item.icon}
+                  className='size-5 sm:size-7'
+                  strokeWidth={1.5}
+                />
               </motion.span>
-              <span className='text-sm font-medium text-pretty'>{t(`promises.${item.key}`)}</span>
+              <span className='text-sm font-medium text-pretty'>
+                {itemText(promiseItems?.[index], 'title') ?? t(`promises.${item.key}`)}
+              </span>
             </motion.li>
           ))}
         </motion.ul>
@@ -866,12 +900,6 @@ export function ContractorLanding() {
                           ? tCommon('reviewCount', { count: contractor.reviewCount })
                           : null}
                       </span>
-                      <span className='flex items-center gap-1.5'>
-                        <BadgeCheck className='text-primary size-3.5 shrink-0' />
-                        {tCommon('similarProjects', {
-                          count: contractor.completedProjects ?? contractor.similarProjects
-                        })}
-                      </span>
                     </span>
                   </div>
 
@@ -929,7 +957,7 @@ export function ContractorLanding() {
                   </Button>
                 ) : null}
                 <Button size='sm' onClick={startBrief} disabled={createBrief.isPending}>
-                  {t('hero.createBrief')}
+                  {createBriefLabel}
                 </Button>
                 <button
                   type='button'
@@ -953,7 +981,7 @@ export function ContractorLanding() {
           dòng. */}
       <section className={PAGE_CONTAINER}>
         <h2 className='text-foreground text-center text-2xl font-bold tracking-tight text-balance sm:text-lg sm:tracking-wide sm:text-wrap sm:uppercase'>
-          {t('safety.title')}
+          {sectionText(sections, 'safety', 'title') ?? t('safety.title')}
         </h2>
         {/* Số đo trên Hình S09 (phần nội dung 424px): ba thẻ 14…148, 158…288,
             298…436 → mỗi thẻ 135px (31.8%), khe 10px (**2.36%**, bản trước để
@@ -967,7 +995,7 @@ export function ContractorLanding() {
           viewport={{ once: true, amount: 0.3 }}
           className='mt-5 grid gap-[2.36%] gap-y-4 md:grid-cols-3'
         >
-          {SAFETY_CARDS.map((item) => (
+          {SAFETY_CARDS.map((item, index) => (
             <motion.li
               key={item.key}
               variants={revealItemVariants}
@@ -975,15 +1003,15 @@ export function ContractorLanding() {
               // này CHƯA từng có ở trạng thái nghỉ, chỉ thêm cho hover).
               className='group bg-card flex items-center gap-[8.9%] rounded-2xl border p-[7.4%] transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-lg sm:p-5 md:p-[7.4%]'
             >
-              <SafetyIcon kind={item.key} />
+              <SafetyIcon kind={item.key} icon={itemText(safetyItems?.[index], 'icon')} />
               <div className='min-w-0 flex-1'>
                 {/* Hình S09: tiêu đề thẻ ngắt HAI dòng — cột chữ chỉ rộng
                     53.3% bề ngang thẻ nên chữ phải đủ lớn mới gãy dòng như ảnh. */}
                 <h3 className='text-primary-strong text-xl leading-snug font-bold text-balance transition-colors duration-300 group-hover:text-brand-orange'>
-                  {t(`safety.${item.key}Title`)}
+                  {itemText(safetyItems?.[index], 'title') ?? t(`safety.${item.key}Title`)}
                 </h3>
                 <p className='text-muted-foreground mt-2 text-[15px] leading-relaxed text-pretty'>
-                  {t(`safety.${item.key}Body`)}
+                  {itemText(safetyItems?.[index], 'body') ?? t(`safety.${item.key}Body`)}
                 </p>
               </div>
             </motion.li>
@@ -1008,7 +1036,7 @@ export function ContractorLanding() {
           thắng ảnh ở chỗ này. */}
       <section id='faq' className={cn(PAGE_CONTAINER, 'scroll-mt-24')}>
         <h2 className='text-foreground text-center text-2xl font-bold tracking-tight text-balance sm:text-lg sm:tracking-wide sm:text-wrap sm:uppercase'>
-          {t('faq.title')}
+          {sectionText(sections, 'faq', 'title') ?? t('faq.title')}
         </h2>
         <motion.dl
           variants={revealContainerVariants}
@@ -1030,13 +1058,14 @@ export function ContractorLanding() {
               {/* Mục 10: vạch xanh bên trái vẽ từ trên xuống khi rê dòng. */}
               <span className='bg-primary absolute inset-y-0 left-0 w-0.5 origin-top scale-y-0 transition-transform duration-300 group-hover/faq:scale-y-100' />
               <dt className='group-hover/faq:text-primary-strong font-semibold transition-colors'>
-                {t(`faq.q${index}`)}
+                {itemText(faqItems?.[index - 1], 'question') ?? t(`faq.q${index}`)}
               </dt>
               <dd className='text-muted-foreground text-sm text-pretty'>
-                {t.rich(`faq.a${index}`, {
-                  // "3 nhà thầu": font-weight 400, không highlight nền.
-                  mark: (chunks) => <span className='normal-case'>{chunks}</span>
-                })}
+                {itemText(faqItems?.[index - 1], 'answer') ??
+                  t.rich(`faq.a${index}`, {
+                    // "3 nhà thầu": font-weight 400, không highlight nền.
+                    mark: (chunks) => <span className='normal-case'>{chunks}</span>
+                  })}
               </dd>
             </motion.div>
           ))}
@@ -1070,7 +1099,9 @@ export function ContractorLanding() {
             transition={{ duration: 1.4, delay: 0.2, ease: revealEase }}
             className='bg-primary/40 pointer-events-none absolute -top-10 -right-10 size-40 rounded-full blur-3xl'
           />
-          <p className='relative text-sm font-bold text-pretty sm:text-base sm:font-semibold'>{t('cta.title')}</p>
+          <p className='relative text-sm font-bold text-pretty sm:text-base sm:font-semibold'>
+            {sectionText(sections, 'cta', 'title') ?? t('cta.title')}
+          </p>
           <div className='relative flex flex-wrap items-center gap-2 max-sm:flex-col max-sm:items-stretch max-sm:gap-3'>
             {currentBrief ? (
               <Button
@@ -1096,7 +1127,7 @@ export function ContractorLanding() {
                   transition={{ duration: 0.9, delay: 0.5, ease: 'easeInOut' }}
                   className='absolute inset-y-0 left-0 w-1/3 -skew-x-12 bg-white/40'
                 />
-                <span className='relative'>{t('cta.action')}</span>
+                <span className='relative'>{sectionText(sections, 'cta', 'action') ?? t('cta.action')}</span>
               </span>
             </Button>
           </div>
@@ -1112,14 +1143,14 @@ export function ContractorLanding() {
         >
           <span className='inline-flex items-center gap-2'>
             <Handshake className='text-brand-orange size-6 shrink-0 max-sm:size-5' strokeWidth={1.75} />
-            {t('partner.text')}
+            {sectionText(sections, 'cta', 'partnerText') ?? t('partner.text')}
           </span>
           <button
             type='button'
             onClick={() => setPartnerDialogOpen(true)}
             className='text-brand-orange inline-flex cursor-pointer items-center gap-1.5 font-semibold'
           >
-            {t('partner.action')}
+            {sectionText(sections, 'cta', 'partnerAction') ?? t('partner.action')}
             <ArrowRight className='size-3.5 transition-transform duration-300 group-hover:translate-x-1' />
           </button>
         </motion.div>

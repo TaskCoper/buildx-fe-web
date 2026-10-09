@@ -1,9 +1,9 @@
 'use client'
 
-import { UploadOutlined } from '@ant-design/icons'
+import { DeleteOutlined, PictureOutlined, UploadOutlined } from '@ant-design/icons'
 import { App, Button, Image as AntImage, Typography, Upload } from 'antd'
 import { useTranslations } from 'next-intl'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { isApiError } from '@/shared/lib/api'
 import { ACCEPTED_IMAGE_TYPES, MediaUploadError, type MediaPurpose, uploadImage } from '@/shared/media'
@@ -129,19 +129,85 @@ export function ImageUploadButton({ onUploaded, purpose, size, label }: ImageUpl
 export function ImagePicker({
   value,
   onChange,
-  purpose
+  purpose,
+  onUploadingChange,
+  variant = 'inline',
+  onRemove,
+  removeLabel
 }: {
   value?: string
   onChange?: (url: string | undefined) => void
+  onUploadingChange?: (uploading: boolean) => void
   purpose?: MediaPurpose
+  variant?: 'inline' | 'card'
+  onRemove?: () => void
+  removeLabel?: string
 }) {
   const t = useTranslations('admin.imageUpload')
   const tf = useTranslations('admin')
   const { upload, busy } = useImageUpload(purpose)
 
+  const mounted = useRef(true)
+  const change = useRef(onChange)
+  useEffect(() => {
+    change.current = onChange
+  }, [onChange])
+  useEffect(() => {
+    mounted.current = true
+    return () => {
+      mounted.current = false
+    }
+  }, [])
+
   const pick = async (file: File) => {
-    const url = await upload(file)
-    if (url) onChange?.(url)
+    onUploadingChange?.(true)
+    try {
+      const url = await upload(file)
+      if (url && mounted.current) change.current?.(url)
+    } finally {
+      onUploadingChange?.(false)
+    }
+  }
+
+  if (variant === 'card') {
+    return (
+      <FileDropZone disabled={busy} onFiles={([file]) => file && void pick(file)}>
+        <div className='architect-image-picker overflow-hidden rounded-xl border border-border bg-background'>
+          <div className='architect-image-preview relative grid aspect-4/3 place-items-center bg-muted/40'>
+            {value ? (
+              <AntImage src={value} alt='' width='100%' height='100%' style={{ objectFit: 'cover' }} />
+            ) : (
+              <div className='text-muted-foreground flex flex-col items-center gap-2 p-4 text-center'>
+                <PictureOutlined className='text-3xl' />
+                <span className='text-xs'>{tf('fields.noImage')}</span>
+              </div>
+            )}
+            {(onRemove || value) && (
+              <div className='absolute top-2 right-2'>
+                <Button
+                  danger
+                  size='small'
+                  icon={<DeleteOutlined />}
+                  aria-label={removeLabel ?? t('remove')}
+                  title={removeLabel ?? t('remove')}
+                  disabled={busy}
+                  onClick={() => (onRemove ? onRemove() : onChange?.(undefined))}
+                />
+              </div>
+            )}
+          </div>
+          <div className='flex flex-col items-center gap-2 p-3'>
+            <PickImageButton
+              size='small'
+              busy={busy}
+              label={value ? t('replace') : t('button')}
+              onFile={(file) => void pick(file)}
+            />
+            <span className='text-muted-foreground text-center text-xs'>{t('orDrop')}</span>
+          </div>
+        </div>
+      </FileDropZone>
+    )
   }
 
   return (

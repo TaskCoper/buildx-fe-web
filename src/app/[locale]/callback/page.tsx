@@ -8,6 +8,12 @@ import { Logo } from '@/shared/components/common'
 import { ROUTES } from '@/shared/constants/routes'
 import { pageMetadata } from '@/shared/lib/page-metadata'
 
+/**
+ * Cache khung dùng chung 60 giây; query, token và dữ liệu được xử lý ở client.
+ * Sau thời hạn, lượt truy cập tiếp theo kích hoạt làm mới nền.
+ */
+export const revalidate = 60
+
 const titleOf = pageMetadata('googleCallback')
 
 // Trang nhận mã đăng nhập: không lập chỉ mục và không gửi Referer đi nơi khác (fragment mang mã hoàn tất dùng một lần).

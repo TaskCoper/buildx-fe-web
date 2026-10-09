@@ -8,8 +8,8 @@ import {
   type LegalDocKey,
   type LegalNote,
   type LegalParagraph
-} from '../constants/legal-docs'
-import { LEGAL_DOCS_EN } from '../constants/legal-docs.en'
+} from '@/shared/legal/legal-docs'
+import { LEGAL_DOCS_EN } from '@/shared/legal/legal-docs.en'
 
 const ALIGN = { j: 'justify', c: 'center', r: 'right' } as const
 

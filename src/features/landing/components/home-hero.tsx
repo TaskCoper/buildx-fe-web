@@ -15,12 +15,14 @@ import { useTranslations } from 'next-intl'
 import { type MouseEvent, useEffect, useState } from 'react'
 
 import { Link } from '@/i18n/navigation'
+import { useHomeSections } from '@/shared/cms/home-content'
+import { itemText, sectionItems, sectionText } from '@/shared/cms/home-sections'
 import { revealEase } from '@/shared/components/common'
 import { Button } from '@/shared/components/ui/button'
 import { ROUTES } from '@/shared/constants/routes'
 import { useSessionOnce } from '@/shared/hooks'
 import { cn } from '@/shared/lib'
-import { HERO_CARD_ROWS, HERO_SLIDE_INTERVAL_MS, HERO_SLIDES } from '../constants/landing.constants'
+import { HERO_CARD_ROWS, HERO_SLIDE_INTERVAL_MS, HERO_SLIDES, type HeroCardRow } from '../constants/landing.constants'
 import { ResumeProjectLabel } from './resume-project-label'
 
 interface HomeHeroProps {
@@ -37,6 +39,14 @@ const INTRO_SESSION_KEY = 'savico.hero-intro-played'
 
 /** Đích của nút "Xem hồ sơ mẫu": tab Thư viện mẫu trong Cẩm nang. */
 const LIBRARY_HREF = `${ROUTES.HANDBOOK}?tab=library`
+
+/** Tên trường (trong khối `hero` admin lưu) của nhãn và giá trị từng dòng thẻ "Hồ sơ dự án". */
+const CARD_ROW_FIELD: Record<HeroCardRow, { label: string; value: string }> = {
+  area: { label: 'cardAreaLabel', value: 'cardAreaValue' },
+  type: { label: 'cardTypeLabel', value: 'cardTypeValue' },
+  style: { label: 'cardStyleLabel', value: 'cardStyleValue' },
+  options: { label: 'cardOptionsLabel', value: 'cardOptionsValue' }
+}
 
 /** Hệ số tăng tốc chuỗi mở màn hero (sheet góp ý BuildX). */
 const INTRO_SPEED = { delay: 0.45, duration: 0.65 } as const
@@ -59,20 +69,22 @@ const INTRO_SPEED = { delay: 0.45, duration: 0.65 } as const
  */
 export function HomeHero({ onCreateProject, onWatchIntro, resumeProject }: HomeHeroProps) {
   const t = useTranslations('landing.hero')
-  // Chữ hero admin sửa được qua kho `uiStrings` (phủ thẳng lên i18n), nên ở đây
-  // chỉ cần `t` — không còn tài liệu `home` song song để lệch nhau nữa.
+  // Chữ và ảnh slide do admin lưu ở khối `hero` của trang chủ; trường nào trống thì dùng bản có sẵn
+  // (i18n `landing.hero.*` và HERO_SLIDES). Đường dẫn của nút không nằm trong CMS.
+  const sections = useHomeSections()
+  const savedSlides = sectionItems(sections, 'hero', 'slides')
+    ?.map((item) => itemText(item, 'imageUrl'))
+    .filter((url): url is string => url !== undefined)
+  const slides: readonly string[] = savedSlides && savedSlides.length > 0 ? savedSlides : HERO_SLIDES
   const reduceMotion = useReducedMotion()
   // Ảnh nền chạy slide tự động; giảm chuyển động thì đứng yên ở ảnh đầu.
   const [slide, setSlide] = useState(0)
 
   useEffect(() => {
     if (reduceMotion) return
-    const timer = window.setInterval(
-      () => setSlide((current) => (current + 1) % HERO_SLIDES.length),
-      HERO_SLIDE_INTERVAL_MS
-    )
+    const timer = window.setInterval(() => setSlide((current) => (current + 1) % slides.length), HERO_SLIDE_INTERVAL_MS)
     return () => window.clearInterval(timer)
-  }, [reduceMotion])
+  }, [reduceMotion, slides.length])
 
   const seenBefore = useSessionOnce(INTRO_SESSION_KEY)
   // Cuộn hay bấm giữa chừng cũng nhảy thẳng tới trạng thái hoàn chỉnh — gộp
@@ -117,9 +129,9 @@ export function HomeHero({ onCreateProject, onWatchIntro, resumeProject }: HomeH
         >
           {/* Các ảnh chồng lên nhau, chỉ ảnh đang chiếu đậm — chuyển ảnh là mờ dần
               chéo nhau, ảnh sau đã tải sẵn nên không nháy trắng. */}
-          {HERO_SLIDES.map((src, index) => (
+          {slides.map((src, index) => (
             <Image
-              key={src}
+              key={`${index}-${src}`}
               src={src}
               alt=''
               fill
@@ -152,7 +164,7 @@ export function HomeHero({ onCreateProject, onWatchIntro, resumeProject }: HomeH
             transition={seq(0)}
             className='text-brand-orange text-xs font-semibold tracking-[0.16em] uppercase'
           >
-            {t('eyebrow')}
+            {sectionText(sections, 'hero', 'eyebrow') ?? t('eyebrow')}
           </motion.p>
 
           {/* Tiêu đề chỉ có MỘT bản trong HTML (sheet góp ý BuildX: bản cũ dựng hai
@@ -170,7 +182,7 @@ export function HomeHero({ onCreateProject, onWatchIntro, resumeProject }: HomeH
               transition={seq(0.1, 0.75)}
               className='block text-balance whitespace-pre-line'
             >
-              {t('titleLead')}{' '}
+              {sectionText(sections, 'hero', 'titleLead') ?? t('titleLead')}{' '}
               <motion.span
                 initial={{ backgroundPositionX: skip ? '0%' : '100%' }}
                 animate={{ backgroundPositionX: '0%' }}
@@ -182,7 +194,7 @@ export function HomeHero({ onCreateProject, onWatchIntro, resumeProject }: HomeH
                 }}
                 className='block bg-clip-text text-balance text-transparent lg:text-wrap lg:whitespace-nowrap'
               >
-                {t('titleAccent')}
+                {sectionText(sections, 'hero', 'titleAccent') ?? t('titleAccent')}
               </motion.span>
             </motion.span>
           </h1>
@@ -197,7 +209,7 @@ export function HomeHero({ onCreateProject, onWatchIntro, resumeProject }: HomeH
             transition={seq(0.55, 0.75)}
             className='text-muted-foreground max-w-[38rem] whitespace-pre-line'
           >
-            {t('subtitle')}
+            {sectionText(sections, 'hero', 'subtitle') ?? t('subtitle')}
           </motion.p>
 
           <motion.div
@@ -221,7 +233,7 @@ export function HomeHero({ onCreateProject, onWatchIntro, resumeProject }: HomeH
                 className='brand-green-button group h-11 rounded-full px-8 text-base has-[>svg]:px-8'
                 onClick={onCreateProject}
               >
-                {t('primaryCta')}
+                {sectionText(sections, 'hero', 'primaryCta') ?? t('primaryCta')}
                 <ArrowRight className='size-4 transition-transform duration-300 group-hover:translate-x-1' />
               </Button>
             )}
@@ -232,7 +244,7 @@ export function HomeHero({ onCreateProject, onWatchIntro, resumeProject }: HomeH
               onClick={onWatchIntro}
             >
               <Play className='size-4' />
-              {t('secondaryCta')}
+              {sectionText(sections, 'hero', 'secondaryCta') ?? t('secondaryCta')}
             </Button>
           </motion.div>
         </div>
@@ -259,6 +271,7 @@ interface HeroDossierCardProps {
  */
 function HeroDossierCard({ skip, skipStar, seq }: HeroDossierCardProps) {
   const t = useTranslations('landing.hero.card')
+  const sections = useHomeSections()
 
   const rotateX = useMotionValue(0)
   const rotateY = useMotionValue(0)
@@ -323,7 +336,7 @@ function HeroDossierCard({ skip, skipStar, seq }: HeroDossierCardProps) {
           />
           <Star className='fill-warning text-warning relative size-3.5' />
         </motion.span>
-        {t('title')}
+        {sectionText(sections, 'hero', 'cardTitle') ?? t('title')}
       </p>
 
       <dl className='space-y-1.5 text-xs'>
@@ -335,8 +348,12 @@ function HeroDossierCard({ skip, skipStar, seq }: HeroDossierCardProps) {
             transition={seq(0.85 + index * 0.11, 0.45)}
             className='flex items-center justify-between gap-4'
           >
-            <dt className='text-muted-foreground'>{t(`rows.${row}.label`)}</dt>
-            <dd className='font-medium'>{t(`rows.${row}.value`)}</dd>
+            <dt className='text-muted-foreground'>
+              {sectionText(sections, 'hero', CARD_ROW_FIELD[row].label) ?? t(`rows.${row}.label`)}
+            </dt>
+            <dd className='font-medium'>
+              {sectionText(sections, 'hero', CARD_ROW_FIELD[row].value) ?? t(`rows.${row}.value`)}
+            </dd>
           </motion.div>
         ))}
       </dl>
@@ -348,13 +365,15 @@ function HeroDossierCard({ skip, skipStar, seq }: HeroDossierCardProps) {
         className='flex flex-col gap-0.5 border-t pt-2 text-xs'
       >
         {/* Nhãn trên, số dưới: "Tổng dự toán (mẫu)" + "Khoảng 2,1 tỷ đồng" không vừa một hàng thẻ 14rem. */}
-        <span className='font-semibold'>{t('totalLabel')}</span>
-        <span className='text-primary text-sm font-semibold'>{t('totalValue')}</span>
+        <span className='font-semibold'>{sectionText(sections, 'hero', 'cardTotalLabel') ?? t('totalLabel')}</span>
+        <span className='text-primary text-sm font-semibold'>
+          {sectionText(sections, 'hero', 'cardTotalValue') ?? t('totalValue')}
+        </span>
       </motion.div>
 
       {/* "Xem hồ sơ mẫu" đi thẳng tới tab Thư viện mẫu của trang Cẩm nang. */}
       <Button asChild className='brand-green-button h-8.5 w-full rounded-full text-xs'>
-        <Link href={LIBRARY_HREF}>{t('cta')}</Link>
+        <Link href={LIBRARY_HREF}>{sectionText(sections, 'hero', 'cardCta') ?? t('cta')}</Link>
       </Button>
     </motion.div>
   )

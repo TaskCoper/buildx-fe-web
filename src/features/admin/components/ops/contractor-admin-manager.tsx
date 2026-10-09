@@ -2,7 +2,7 @@
 
 import { DeleteOutlined, EyeInvisibleOutlined, EyeOutlined } from '@ant-design/icons'
 import { useQuery } from '@tanstack/react-query'
-import { App, Col, Divider, Form, Input, InputNumber, Row, Select, Switch, Typography } from 'antd'
+import { App, Col, Divider, Form, Input, InputNumber, Row, Select, Typography } from 'antd'
 import { useTranslations } from 'next-intl'
 import { useRef } from 'react'
 
@@ -11,6 +11,7 @@ import {
   contractorsAdminApi,
   type AdminContractorDetail,
   type AdminContractorItem,
+  type ContractorProfileInput,
   type ContractorProfileUpdate
 } from '../../api/bmt/contractors.admin.api'
 import { constructionScopesApi } from '../../api/bmt/construction-scopes.api'
@@ -47,6 +48,28 @@ const str = (v: unknown): string | null => {
 type FilterOptions = ContractorFilterOptions
 
 /**
+ * Form chỉ có MỘT ô "Số KTS & kỹ sư" (góp ý case 19) còn BE vẫn lưu hai số riêng. Ô hiện tổng của hai số;
+ * khách cũng chỉ thấy tổng (xem `normalizeContractor`).
+ */
+function teamCountOf(profile?: ContractorProfileInput): number | null {
+  const architects = profile?.architectCount
+  const engineers = profile?.engineerCount
+  return architects == null && engineers == null ? null : (architects ?? 0) + (engineers ?? 0)
+}
+
+/**
+ * Hai số gửi lên BE. Người dùng không đổi tổng thì giữ nguyên hai số đã lưu để không làm lệch dữ liệu;
+ * đổi tổng thì ghi vào số KTS và để trống số kỹ sư (tổng vẫn đúng).
+ */
+function teamCountFields(values: Record<string, unknown>, profile?: ContractorProfileInput) {
+  const next = num(values.teamCount)
+  if (profile && next === teamCountOf(profile)) {
+    return { architectCount: profile.architectCount ?? null, engineerCount: profile.engineerCount ?? null }
+  }
+  return { architectCount: next, engineerCount: null }
+}
+
+/**
  * QUẢN LÝ NHÀ THẦU (STORY-CTR-001, BR-CTR-002/004) — CRUD gọn: danh sách → form
  * tạo/sửa hồ sơ (gộp một chỗ) → ẩn/hiện → xoá. BE tách API granular nhưng màn
  * này gộp lại theo ý người dùng.
@@ -77,7 +100,9 @@ function buildProfileBody(
       name: String(values.name ?? '').trim(),
       shortDescription: str(values.shortDescription),
       introduction: str(values.introduction),
-      contractorType: str(values.contractorType),
+      // Form không còn ô Loại nhà thầu, Khu vực phục vụ và Đang nhận việc (góp ý case 19, 21): PUT thay toàn bộ
+      // hồ sơ nên giữ giá trị đã lưu thay vì xoá; hồ sơ mới mặc định đang nhận dự án.
+      contractorType: prev?.profile.contractorType ?? null,
       address: str(values.address),
       ...(values._structuredAddress
         ? {
@@ -93,12 +118,11 @@ function buildProfileBody(
       latitude: num(values.latitude),
       longitude: num(values.longitude),
       foundedYear: num(values.foundedYear),
-      architectCount: num(values.architectCount),
-      engineerCount: num(values.engineerCount),
-      serviceAreaText: str(values.serviceAreaText),
+      ...teamCountFields(values, prev?.profile),
+      serviceAreaText: prev?.profile.serviceAreaText ?? null,
       surveyHours: num(values.surveyHours),
       warrantyMonths: num(values.warrantyMonths),
-      acceptingProjects: Boolean(values.acceptingProjects),
+      acceptingProjects: prev?.profile.acceptingProjects ?? true,
       rating: num(values.rating),
       ratingCount: num(values.ratingCount),
       contactPerson: str(values.contactPerson),
@@ -158,7 +182,6 @@ export function ContractorAdminManager() {
       drawerWidth={720}
       createValues={() => ({
         name: '',
-        contractorType: '',
         shortDescription: '',
         introduction: '',
         address: '',
@@ -170,13 +193,10 @@ export function ContractorAdminManager() {
         addressDetail: null,
         latitude: null,
         longitude: null,
-        serviceAreaText: '',
         foundedYear: null,
-        architectCount: null,
-        engineerCount: null,
+        teamCount: null,
         surveyHours: null,
         warrantyMonths: null,
-        acceptingProjects: false,
         rating: null,
         ratingCount: null,
         contactPerson: '',
@@ -219,7 +239,6 @@ export function ContractorAdminManager() {
           name: p.name ?? '',
           shortDescription: p.shortDescription ?? '',
           introduction: p.introduction ?? '',
-          contractorType: p.contractorType ?? '',
           address: p.address ?? '',
           provinceCode: p.provinceCode ?? null,
           wardCode: p.wardCode ?? null,
@@ -237,12 +256,9 @@ export function ContractorAdminManager() {
           latitude: p.latitude ?? null,
           longitude: p.longitude ?? null,
           foundedYear: p.foundedYear ?? null,
-          architectCount: p.architectCount ?? null,
-          engineerCount: p.engineerCount ?? null,
-          serviceAreaText: p.serviceAreaText ?? '',
+          teamCount: teamCountOf(p),
           surveyHours: p.surveyHours ?? null,
           warrantyMonths: p.warrantyMonths ?? null,
-          acceptingProjects: p.acceptingProjects ?? false,
           rating: p.rating ?? null,
           ratingCount: p.ratingCount ?? null,
           contactPerson: p.contactPerson ?? '',
@@ -340,9 +356,6 @@ export function ContractorAdminManager() {
             >
               <Input />
             </Form.Item>
-            <Form.Item name='contractorType' label={c('contractorType')}>
-              <Input />
-            </Form.Item>
             <Form.Item name='shortDescription' label={c('shortDescription')}>
               <Input.TextArea rows={2} maxLength={300} showCount />
             </Form.Item>
@@ -352,9 +365,6 @@ export function ContractorAdminManager() {
 
             <Divider titlePlacement='start'>{c('sections.location')}</Divider>
             <ContractorAddressField form={form} visible={ctx.item?.status === 'Visible'} />
-            <Form.Item name='serviceAreaText' label={c('serviceAreaText')}>
-              <Input />
-            </Form.Item>
 
             <Divider titlePlacement='start'>{c('sections.capability')}</Divider>
             <Form.Item name='buildingTypeIds' label={c('buildingTypes')} extra={c('requiredForVisible')}>
@@ -376,36 +386,26 @@ export function ContractorAdminManager() {
               />
             </Form.Item>
             <Row gutter={12}>
-              <Col span={8}>
+              <Col span={12}>
                 <Form.Item name='foundedYear' label={c('foundedYear')}>
                   <InputNumber style={{ width: '100%' }} />
                 </Form.Item>
               </Col>
-              <Col span={8}>
-                <Form.Item name='architectCount' label={c('architectCount')}>
-                  <InputNumber style={{ width: '100%' }} min={0} />
-                </Form.Item>
-              </Col>
-              <Col span={8}>
-                <Form.Item name='engineerCount' label={c('engineerCount')}>
+              <Col span={12}>
+                <Form.Item name='teamCount' label={c('teamCount')}>
                   <InputNumber style={{ width: '100%' }} min={0} />
                 </Form.Item>
               </Col>
             </Row>
             <Row gutter={12}>
-              <Col span={8}>
+              <Col span={12}>
                 <Form.Item name='surveyHours' label={c('surveyHours')}>
                   <InputNumber style={{ width: '100%' }} min={0} />
                 </Form.Item>
               </Col>
-              <Col span={8}>
+              <Col span={12}>
                 <Form.Item name='warrantyMonths' label={c('warrantyMonths')}>
                   <InputNumber style={{ width: '100%' }} min={0} />
-                </Form.Item>
-              </Col>
-              <Col span={8}>
-                <Form.Item name='acceptingProjects' label={c('acceptingProjects')} valuePropName='checked'>
-                  <Switch />
                 </Form.Item>
               </Col>
             </Row>
@@ -443,7 +443,11 @@ export function ContractorAdminManager() {
             </Row>
 
             <Divider titlePlacement='start'>{c('sections.legal')}</Divider>
-            <Form.Item name='legalName' label={c('legalName')}>
+            <Form.Item
+              name='legalName'
+              label={c('legalName')}
+              rules={[{ required: true, whitespace: true, message: t('fields.requiredMessage') }]}
+            >
               <Input />
             </Form.Item>
             <Row gutter={12}>

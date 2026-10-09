@@ -58,6 +58,7 @@ export interface ApiResourceManagerProps<T> {
   searchPlaceholder?: string
   /** Các trường trong trang thêm / sửa. */
   renderForm?: (form: FormInstance, ctx: { isNew: boolean; item: T | null }) => ReactNode
+  onValidationFailed?: (form: FormInstance) => void
   /** Giá trị form khi bấm "Thêm mới". Bỏ trống = màn không cho thêm. */
   createValues?: () => Record<string, unknown>
   onCreate?: (values: Record<string, unknown>) => Promise<unknown>
@@ -128,6 +129,7 @@ function ApiResourceManagerBody<T>({
   searchable = false,
   searchPlaceholder,
   renderForm,
+  onValidationFailed,
   createValues,
   onCreate,
   toFormValues,
@@ -235,6 +237,7 @@ function ApiResourceManagerBody<T>({
         queryKey={queryKey}
         rowKey={rowKey}
         renderForm={renderForm}
+        onValidationFailed={onValidationFailed}
         createValues={createValues}
         onCreate={onCreate}
         toFormValues={toFormValues}
@@ -363,6 +366,7 @@ interface FormSessionProps<T> {
   queryKey: readonly unknown[]
   rowKey: (item: T) => string
   renderForm?: ApiResourceManagerProps<T>['renderForm']
+  onValidationFailed?: ApiResourceManagerProps<T>['onValidationFailed']
   createValues?: ApiResourceManagerProps<T>['createValues']
   onCreate?: ApiResourceManagerProps<T>['onCreate']
   toFormValues?: ApiResourceManagerProps<T>['toFormValues']
@@ -385,6 +389,7 @@ function FormSession<T>({
   queryKey,
   rowKey,
   renderForm,
+  onValidationFailed,
   createValues,
   onCreate,
   toFormValues,
@@ -440,7 +445,10 @@ function FormSession<T>({
   }
 
   async function submit(saveMode?: string) {
-    const values = (await form.validateFields().catch(() => null)) as Record<string, unknown> | null
+    const values = (await form.validateFields().catch(() => {
+      onValidationFailed?.(form)
+      return null
+    })) as Record<string, unknown> | null
     if (!values) return
     setSaving(true)
     try {

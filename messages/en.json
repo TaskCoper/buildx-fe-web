@@ -130,7 +130,7 @@
       "nameLabel": "Full name",
       "namePlaceholder": "John Doe",
       "emailLabel": "Email",
-      "emailPlaceholder": "you@company.com",
+      "emailPlaceholder": "Enter your email",
       "passwordLabel": "Password",
       "passwordPlaceholder": "At least 8 characters",
       "confirmPasswordLabel": "Confirm password",
@@ -146,7 +146,7 @@
       "title": "Forgot password",
       "subtitle": "Enter your email to receive a reset code",
       "emailLabel": "Email",
-      "emailPlaceholder": "you@company.com",
+      "emailPlaceholder": "Enter your email",
       "submit": "Send reset code",
       "backToLogin": "Back to sign in",
       "requestError": "Couldn't send the reset code. Please try again.",
@@ -251,7 +251,8 @@
       "AccessForbidden": "Only customer accounts can buy plans. Admin accounts cannot be used to purchase.",
       "IdempotencyConflict": "Duplicate request. Reload the page and try again.",
       "PaymentInputInvalid": "The plan or billing cycle is invalid. Reload the page and pick the plan again.",
-      "viewPurchases": "View plan history"
+      "viewPurchases": "View plan history",
+      "continuePending": "Continue payment"
     }
   },
   "apiErrors": {
@@ -508,7 +509,9 @@
       "StillValidating": "The file is taking longer than expected to check. Please try again in a few minutes.",
       "TooLarge": "The file is larger than allowed.",
       "ExportFailed": "The export file couldn't be created. Please try again.",
-      "AuditLogImmutable": "Audit logs can't be edited or deleted."
+      "AuditLogImmutable": "Audit logs can't be edited or deleted.",
+      "InvalidCmsCacheTarget": "The page or language to refresh is invalid.",
+      "CmsAuthorizationUnavailable": "Unable to verify content refresh permissions. Please try again."
     }
   },
   "validation": {
@@ -2377,17 +2380,57 @@
       "filter": {
         "all": "All",
         "paid": "Paid",
-        "pending": "Verifying",
+        "pending": "Awaiting payment",
         "refunded": "Refunded"
       },
       "table": {
         "code": "Order",
+        "order": "Order",
         "project": "Project",
         "date": "Date",
         "plan": "Plan",
         "amount": "Amount",
         "status": "Status",
-        "receipt": "Receipt"
+        "receipt": "Receipt",
+        "actions": "Actions"
+      },
+      "projectLine": "Project: {project}",
+      "orderCode": "Order #{code}",
+      "phase": {
+        "awaiting": "Awaiting payment",
+        "partial": "Partial payment received",
+        "paid": "Paid",
+        "expired": "Expired",
+        "canceled": "Canceled",
+        "failed": "Payment failed",
+        "refunded": "Refunded"
+      },
+      "phaseReason": {
+        "awaiting": "This order is waiting for your transfer. Choose Continue payment to reopen the QR code.",
+        "partial": "BuildX has received part of the payment. Transfer the remaining amount before the order expires.",
+        "expired": "This order ran out of time to be paid. You can create a new order.",
+        "canceled": "This order was canceled. You can create a new order.",
+        "failed": "The payment did not go through. You can create a new order.",
+        "refunded": "This order was refunded."
+      },
+      "actions": {
+        "viewDetail": "Order details",
+        "receipt": "Payment receipt",
+        "cancel": "Cancel order",
+        "confirmCancel": "Confirm cancel",
+        "keep": "Keep order",
+        "cancelling": "Canceling…",
+        "cancelled": "Order canceled. You can create a new order.",
+        "partialNote": "Part of the payment was received, so it can't be canceled yet.",
+        "cancelFailed": "Could not cancel the order. Please try again."
+      },
+      "detailDialog": {
+        "title": "Order details",
+        "titleWithCode": "Order #{code} details",
+        "heading": "Order details · #{code}",
+        "description": "Order information and payment status.",
+        "state": "Status",
+        "note": "Need help with this order? Contact BuildX support and include order #{code}."
       },
       "tier": {
         "basic": "BASIC plan",
@@ -2399,8 +2442,8 @@
       },
       "status": {
         "paid": "Paid",
-        "pending": "Verifying",
-        "failed": "Failed",
+        "pending": "Awaiting payment",
+        "failed": "Payment failed",
         "refunded": "Refunded"
       },
       "receipt": "Receipt",
@@ -2723,7 +2766,12 @@
     },
     "rail": {
       "searchPlaceholder": "Search architects...",
-      "backToList": "Architect list"
+      "backToList": "Architect list",
+      "empty": "No matching architects in the loaded list.",
+      "loadError": "Unable to load architects. Please try again.",
+      "loadingMore": "Loading more architects…",
+      "loadMore": "Load more architects",
+      "retry": "Try again"
     },
     "profile": {
       "reviews": "({count} reviews)",
@@ -2737,7 +2785,10 @@
       "lightboxClose": "Close",
       "lightboxPrev": "Previous photo",
       "lightboxNext": "Next photo",
-      "viewLarger": "View larger: {label}"
+      "viewLarger": "View larger: {label}",
+      "designProjects": "Design projects",
+      "designImage": "{name} · Image {index}",
+      "moreDesignImages": "{count} more images"
     },
     "slots": {
       "title": "Choose a consultation slot",
@@ -2826,6 +2877,7 @@
       "consult": "1:1 consultation",
       "people": "Customers",
       "library": "Library",
+      "content": "Content",
       "catalog": "Construction catalogue",
       "packages": "Plans",
       "access": "Staff & access"
@@ -2848,7 +2900,10 @@
     },
     "nav": {
       "handbookNewsletter": "Handbook newsletter",
-      "handbookContent": "Handbook page content",
+      "homeContent": "Home",
+      "footerContent": "Footer",
+      "contractorsContent": "Find contractors",
+      "handbookContent": "Handbook",
 
       "dashboard": "To-do",
       "templates": "Template library",
@@ -4017,8 +4072,7 @@
       "buildingTypes": "Building types",
       "scopes": "Construction scopes",
       "foundedYear": "Founded year",
-      "architectCount": "Architects",
-      "engineerCount": "Engineers",
+      "teamCount": "Architects & engineers",
       "surveyHours": "Survey within (hours)",
       "warrantyMonths": "Warranty (months)",
       "acceptingProjects": "Accepting projects",
@@ -5186,6 +5240,8 @@
       },
       "title": "Title",
       "untitled": "(Untitled)",
+      "summary": "Short description",
+      "summaryHint": "Optional. Up to 500 characters; you can leave it blank when publishing.",
       "readingTimeMinutes": "Reading time (min)",
       "cover": "Cover image",
       "categories": "Categories",
@@ -5230,6 +5286,24 @@
         "imageRemove": "Remove image frame",
         "imageDelete": "Delete image",
         "imageResize": "Drag to resize the image",
+        "table": {
+          "insert": "Insert table",
+          "rows": "Rows",
+          "columns": "Columns",
+          "withHeaderRow": "First row is a header",
+          "sizeHint": "Insert up to {max} rows and {max} columns at a time. You can add more rows or columns afterwards.",
+          "actions": "Edit table",
+          "addRowBefore": "Add row above",
+          "addRowAfter": "Add row below",
+          "deleteRow": "Delete row",
+          "addColumnBefore": "Add column left",
+          "addColumnAfter": "Add column right",
+          "deleteColumn": "Delete column",
+          "toggleHeaderRow": "Toggle header row",
+          "mergeCells": "Merge selected cells",
+          "splitCell": "Split cell",
+          "deleteTable": "Delete table"
+        },
         "tools": {
           "bold": "Bold",
           "italic": "Italic",
@@ -5271,7 +5345,7 @@
       "name": "Full name",
       "title": "Job title",
       "avatar": "Avatar",
-      "avatarHint": "An https link to an image on the system image store (the same store as estimate images). Links on other domains are rejected.",
+      "avatarHint": "Choose a clear portrait for the architect’s card and profile.",
       "categories": "Expertise",
       "categoriesHint": "Pick at least one. Add new ones with the “Expertise categories” button.",
       "noCategories": "No expertise yet — create some with the “Expertise categories” button first.",
@@ -5288,7 +5362,48 @@
       "hideWarning": "Customers will not be able to send new requests to this architect; existing requests are kept.",
       "companyName": "Company",
       "rating": "Rating",
-      "reviewCount": "Review count"
+      "reviewCount": "Review count",
+      "designImagesUploading": "Design images are uploading. Please wait before saving.",
+      "shortDescription": "Short description",
+      "shortDescriptionHint": "Optional, up to 500 characters. Shown on cards and the public profile.",
+      "designProjects": "Design projects",
+      "designProjectsHint": "The list is optional. Each project needs a name and at least one image.",
+      "designProjectIndex": "Project {index}",
+      "designProjectName": "Design project name",
+      "addDesignProject": "Add design project",
+      "removeDesignProject": "Remove project",
+      "addDesignImage": "Add design image",
+      "removeDesignImage": "Remove image",
+      "designImageIndex": "Design image {index}",
+      "viewProjectImages": "View images of {name}",
+      "designImagesRequired": "Select at least one design image and wait for the upload to finish.",
+      "detailError": "Could not load the profile. Please reopen it to try again.",
+      "optional": "Optional",
+      "noDesignProjects": "No design projects yet",
+      "noDesignProjectsHint": "Add selected projects to help clients explore the architect’s design style and experience.",
+      "sections": {
+        "identity": "Basic information",
+        "identityHint": "The architect’s photo, title and areas of expertise.",
+        "about": "About the architect",
+        "aboutHint": "Describe design strengths and style to help clients choose.",
+        "experience": "Experience and visibility",
+        "experienceHint": "Update profile figures and choose whether to display the profile.",
+        "visibility": "Show on the consultation page",
+        "visibilityHint": "Visible profiles appear in the architect directory for clients."
+      },
+      "placeholders": {
+        "name": "Enter full name",
+        "title": "For example: Lead architect",
+        "company": "Enter company name",
+        "categories": "Select areas of expertise",
+        "shortDescription": "Summarize design strengths or style…",
+        "introduction": "Describe experience, working approach and design philosophy…",
+        "projectName": "For example: An Phu garden villa"
+      },
+      "tabs": {
+        "profile": "Profile information",
+        "projects": "Architect projects"
+      }
     },
     "architectCategories": {
       "title": "Expertise categories",
@@ -5354,6 +5469,348 @@
       "notShownEmpty": "The block has no articles, so the handbook page is hiding the whole newsletter strip. Add a published article to show it.",
       "notShownAllHidden": "None of the articles in the block is published, so the handbook page is hiding the whole newsletter strip. Republish one of them or add another article.",
       "states": { "Draft": "Draft", "Published": "Published", "Hidden": "Hidden" }
+    },
+    "cmsCache": {
+      "refreshFailed": "Content was saved, but the public page could not be refreshed. It will update during automatic revalidation."
+    },
+    "homeContent": {
+      "contractorsDescription": "Text, hero image and icons of the Find contractors page, in 5 blocks in scroll order: hero, the four promises, Safe & transparent, FAQ and the closing call to action. Each language is saved separately: a block you have not edited uses the built-in content, so the form opens with exactly what visitors see, and only what differs from the built-in text is saved. Button links are kept by the app and cannot be edited here.",
+      "footerDescription": "Footer contact details, social media links and the content of the five About BuildX pages (Terms of Use, Privacy, AI Terms, E-commerce & Partners, Payment & Refunds). Each language is saved separately: a block you have not edited uses the built-in content, so the form opens with exactly what visitors see, and only what differs from the built-in text is saved.",
+      "description": "Text, images, icons, templates and featured videos of the home page, split into 12 blocks in scroll order. Each language is saved separately: a block you have not edited uses the built-in content, so the form opens with the text visitors currently see, and only what differs from the built-in content is saved. Button links are kept by the app and cannot be edited here.",
+      "locales": {
+        "vi": "Vietnamese",
+        "en": "English"
+      },
+      "edited": "Edited",
+      "usingDefault": "Using default",
+      "restore": "Restore default",
+      "restoreConfirm": "Delete the edited version of this block? The home page will go back to the built-in content.",
+      "restored": "Default restored.",
+      "saveAll": "Save all",
+      "pendingCount": "{count} blocks with unsaved changes",
+      "noPending": "No changes yet",
+      "changed": "Changed",
+      "savedAll": "Saved {count} blocks.",
+      "savePartial": "Saved {done} blocks, {failed} failed ({names}).",
+      "conflictReloaded": "Block {names} was just changed by someone else and has been reloaded. Review it, then save again.",
+      "fixErrors": "Some fields are invalid. Fix them before saving.",
+      "unsavedTitle": "Discard unsaved changes?",
+      "unsavedBody": "Switching language discards the unsaved changes in the current language.",
+      "discard": "Discard changes",
+      "keepEditing": "Keep editing",
+      "iconHint": "A lucide-react icon name, for example Camera or pencil-ruler. Leave empty to use the default icon.",
+      "iconInvalid": "An icon name contains only letters, digits and hyphens, up to 64 characters.",
+      "iconNotFound": "This icon was not found; the home page will use the default icon.",
+      "iconPreviewFailed": "Could not preview the icon right now. You can still save; try typing it again later.",
+      "pickTemplates": "Pick up to {max} templates",
+      "pickGuides": "Pick up to {max} videos",
+      "pickLoadError": "Could not load the list. Try reloading the page.",
+      "idsHint": "Up to {max}. Shown in the order you pick them; leave empty to let the home page choose as before.",
+      "rowTitle": "Item {index}",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "addRow": "Add item",
+      "maxReached": "Limit of {max} items reached",
+      "sections": {
+        "hero": {
+          "title": "Top of the page",
+          "hint": "The big headline, two buttons (the secondary one opens a guide video), the sample \"Project file\" card on the right and the rotating background images."
+        },
+        "stats": {
+          "title": "Figures strip",
+          "hint": "Five figures right below the top of the page."
+        },
+        "painPoints": {
+          "title": "Common problems",
+          "hint": "The \"Facing these problems too?\" block with five cards."
+        },
+        "journey": {
+          "title": "Project journey",
+          "hint": "The five-step strip from creating a project to construction."
+        },
+        "services": {
+          "title": "Service plans",
+          "hint": "The plan picker by stage, four cards."
+        },
+        "dossiers": {
+          "title": "Template library",
+          "hint": "The \"Template library list\" strip with 2D and 3D drawing tabs."
+        },
+        "articles": {
+          "title": "Handbook articles",
+          "hint": "The \"Home building handbook\" strip with three articles: edit the title and pick the articles."
+        },
+        "guides": {
+          "title": "User guides",
+          "hint": "The guide video strip, up to three videos."
+        },
+        "consult": {
+          "title": "1:1 consultation",
+          "hint": "The booking block with an architect: edit the text and pick up to 3 featured architects."
+        },
+        "brands": {
+          "title": "Partner brands",
+          "hint": "The scrolling strip of brand logos."
+        },
+        "testimonials": {
+          "title": "Customers about BuildX",
+          "hint": "Customer reviews."
+        },
+        "cta": {
+          "title": "Closing call to action",
+          "hint": "The call to create a project at the end of the home page."
+        },
+        "contact": {
+          "title": "Contact details",
+          "hint": "Hotline, email and address in the Contact column of the footer. A field left as the built-in value keeps using the built-in details."
+        },
+        "social": {
+          "title": "Social media",
+          "hint": "Links behind the social media icons in the footer brand column. Only http or https addresses are accepted; one typed without a scheme (for example zalo.me/abc) gets https:// added."
+        },
+        "terms": {
+          "title": "Terms of Use page",
+          "hint": "The /terms page in the About BuildX column of the footer. It opens with exactly what visitors read; edit in place, then press Save all. The title only appears on the browser tab, the large heading of the page is part of the content. Only text, lists, tables and links are accepted; images are not supported."
+        },
+        "privacy": {
+          "title": "Privacy page",
+          "hint": "The /privacy page in the About BuildX column of the footer. It opens with exactly what visitors read; edit in place, then press Save all. The title only appears on the browser tab, the large heading of the page is part of the content. Only text, lists, tables and links are accepted; images are not supported."
+        },
+        "aiTerms": {
+          "title": "AI Terms of Use page",
+          "hint": "The /ai-terms page in the About BuildX column of the footer. It opens with exactly what visitors read; edit in place, then press Save all. The title only appears on the browser tab, the large heading of the page is part of the content. Only text, lists, tables and links are accepted; images are not supported."
+        },
+        "ecommerce": {
+          "title": "E-commerce & Partners page",
+          "hint": "The /ecommerce-partners page in the About BuildX column of the footer. It opens with exactly what visitors read; edit in place, then press Save all. The title only appears on the browser tab, the large heading of the page is part of the content. Only text, lists, tables and links are accepted; images are not supported."
+        },
+        "payment": {
+          "title": "Payment & Refunds page",
+          "hint": "The /payment-policy page in the About BuildX column of the footer. It opens with exactly what visitors read; edit in place, then press Save all. The title only appears on the browser tab, the large heading of the page is part of the content. Only text, lists, tables and links are accepted; images are not supported."
+        },
+        "contractorsHero": {
+          "title": "Hero",
+          "hint": "Two-line title, lead sentence, two buttons and background image at the top of the page. An empty image keeps the built-in one."
+        },
+        "contractorsPromises": {
+          "title": "Four promises",
+          "hint": "The strip of four promises right under the hero: text and icon of each promise."
+        },
+        "contractorsSafety": {
+          "title": "Safe & transparent",
+          "hint": "Three cards under the heading. An empty icon keeps the built-in illustration of the card."
+        },
+        "contractorsFaq": {
+          "title": "FAQ",
+          "hint": "The heading and seven questions with their answers."
+        },
+        "contractorsCta": {
+          "title": "Closing call to action",
+          "hint": "The green strip inviting visitors to create a project, and the line inviting contractors to become partners."
+        }
+      },
+      "lists": {
+        "hero": {
+          "slides": {
+            "title": "Rotating background images",
+            "hint": "Leave empty to use the default image set. One or more images replace the default set entirely. Up to 8 images."
+          },
+          "guideIds": {
+            "title": "Video for the \"Watch the tour\" button",
+            "hint": "Pick 1 public guide video to open when a visitor clicks the secondary button. Leave empty to use the featured video (or the first one in the list)."
+          }
+        },
+        "stats": {
+          "items": {
+            "title": "Five figures",
+            "hint": "Exactly 5 cards in a fixed order. Leave an icon empty to use the card default."
+          }
+        },
+        "painPoints": {
+          "items": {
+            "title": "Five problem cards",
+            "hint": "Exactly 5 cards in a fixed order. Leave an icon empty to use the default."
+          }
+        },
+        "journey": {
+          "items": {
+            "title": "Five journey steps",
+            "hint": "Exactly 5 steps in a fixed order. Leave the icon empty to use the default step icon."
+          }
+        },
+        "services": {
+          "items": {
+            "title": "Four service plans",
+            "hint": "Exactly 4 cards in a fixed order. Leave an icon empty to use the default."
+          }
+        },
+        "dossiers": {
+          "templateIds2d": {
+            "title": "Featured 2D drawing templates",
+            "hint": "Pick up to 4 2D templates (up to 8 across both tabs). Only public templates are listed. Leave empty and this tab shows the newest templates."
+          },
+          "templateIds3d": {
+            "title": "Featured 3D drawing templates",
+            "hint": "Pick up to 4 3D templates (up to 8 across both tabs). Only public templates are listed. Leave empty and this tab shows the newest templates."
+          }
+        },
+        "articles": {
+          "articleIds": {
+            "title": "Featured articles",
+            "hint": "Pick up to 3 articles, shown in the order you pick them. Only public articles are listed; an article hidden later is skipped automatically. Leave empty and the home page shows the 3 newest."
+          }
+        },
+        "guides": {
+          "guideIds": {
+            "title": "Featured videos",
+            "hint": "Pick up to 3 videos. Only public videos are listed; a video hidden later is skipped automatically. Leave empty to let the home page choose as before."
+          }
+        },
+        "consult": {
+          "architectIds": {
+            "title": "Featured architects",
+            "hint": "Pick up to 3 architects, shown in the order you pick them. Only publicly visible architects are listed. Leave empty to let the home page choose as before (preferring the specialty of the project in progress)."
+          }
+        },
+        "brands": {
+          "logos": {
+            "title": "Brand logos",
+            "hint": "Leave empty to use the default logo set. One or more logos replace it entirely. Up to 30 logos."
+          }
+        },
+        "testimonials": {
+          "reviews": {
+            "title": "Customer reviews",
+            "hint": "Leave empty to use the default reviews. One or more reviews replace them entirely. Up to 12 reviews."
+          }
+        },
+        "contractorsPromises": {
+          "items": {
+            "title": "Four promises",
+            "hint": "Exactly 4 items in a fixed order. Leave an icon empty to use the item default."
+          }
+        },
+        "contractorsSafety": {
+          "items": {
+            "title": "Three cards",
+            "hint": "Exactly 3 cards in a fixed order. Leave an icon empty to keep the built-in illustration."
+          }
+        },
+        "contractorsFaq": {
+          "items": {
+            "title": "Seven questions",
+            "hint": "Exactly 7 questions in a fixed order. Answers are plain text without formatting."
+          }
+        }
+      },
+      "fields": {
+        "eyebrow": "Line above the title",
+        "titleLead": "Title — first part",
+        "titleAccent": "Title — highlighted part",
+        "subtitle": "Short description",
+        "primaryCta": "Main button",
+        "secondaryCta": "Secondary button",
+        "cardTitle": "Project card — title",
+        "cardAreaLabel": "Project card — area label",
+        "cardAreaValue": "Project card — area value",
+        "cardTypeLabel": "Project card — building type label",
+        "cardTypeValue": "Project card — building type value",
+        "cardStyleLabel": "Project card — style label",
+        "cardStyleValue": "Project card — style value",
+        "cardOptionsLabel": "Project card — options label",
+        "cardOptionsValue": "Project card — options value",
+        "cardTotalLabel": "Project card — estimate total label",
+        "cardTotalValue": "Project card — estimate total value",
+        "cardCta": "Project card — button text",
+        "imageUrl": "Image",
+        "icon": "Icon",
+        "value": "Highlighted value",
+        "label": "Description",
+        "title": "Title",
+        "description": "Description",
+        "note": "Question on the left",
+        "cta": "Button text",
+        "currentStepBadge": "\"You are at this step\" label",
+        "labelYouDo": "\"What you do\" label",
+        "labelBuildxDoes": "\"What BuildX does\" label",
+        "labelYouGet": "\"What you get\" label",
+        "youDo": "What you do",
+        "buildxDoes": "What BuildX does",
+        "youGet": "What you get",
+        "viewAll": "\"View all\" link text",
+        "usedAtStep": "Used at step",
+        "action": "Button text",
+        "tab2d": "2D drawings tab name",
+        "tab3d": "3D drawings tab name",
+        "viewOne": "Single template button text",
+        "name": "Name",
+        "meta": "Extra information",
+        "quote": "Quote",
+        "avatarUrl": "Avatar (optional)",
+        "hotline": "Hotline",
+        "email": "Email",
+        "address": "Address",
+        "facebookUrl": "Facebook",
+        "zaloUrl": "Zalo",
+        "youtubeUrl": "YouTube",
+        "tiktokUrl": "TikTok",
+        "instagramUrl": "Instagram",
+        "body": "Page content",
+        "titleLine1": "Title, line 1",
+        "titleLine2": "Title, line 2",
+        "createBrief": "Create project button text",
+        "viewContractors": "View contractors button text",
+        "question": "Question",
+        "answer": "Answer",
+        "partnerText": "Contractor invitation",
+        "partnerAction": "Become a partner link text"
+      },
+      "fieldsBySection": {
+        "hero": {
+          "imageUrl": "Background image"
+        },
+        "stats": {
+          "label": "Short description"
+        },
+        "brands": {
+          "name": "Brand name",
+          "imageUrl": "Logo"
+        },
+        "testimonials": {
+          "name": "Customer name",
+          "meta": "House type · area · location"
+        },
+        "terms": {
+          "title": "Browser tab title"
+        },
+        "privacy": {
+          "title": "Browser tab title"
+        },
+        "aiTerms": {
+          "title": "Browser tab title"
+        },
+        "ecommerce": {
+          "title": "Browser tab title"
+        },
+        "payment": {
+          "title": "Browser tab title"
+        },
+        "contractorsHero": {
+          "imageUrl": "Hero image",
+          "subtitle": "Lead sentence"
+        },
+        "contractorsSafety": {
+          "body": "Short description"
+        },
+        "contractorsCta": {
+          "title": "Create project invitation",
+          "action": "Create project button text"
+        }
+      },
+      "floors": "{count} floors",
+      "pickMissing": "Hidden or no longer public",
+      "pickArchitects": "Pick up to {max} architects",
+      "pickArticles": "Pick up to {max} articles"
     },
     "handbookContent": {
       "description": "Manage the handbook page content in two tabs, News and Template library, in the order readers see it on the page. The text cards are edited per language: a block you have not edited uses the page's built-in translation, so the form opens with the text currently shown, and an unedited language never borrows another language's text. The three steps, topics and featured articles are shared by every language.",
@@ -5642,9 +6099,11 @@
       "similarSuffix": "completed",
       "distanceShort": "{km} km",
       "distanceSuffix": "from the site",
+      "distanceFromPlace": "from {place}",
       "surveyEarly": "Can survey early",
       "readyToStart": "Ready to start",
       "surveyLabel": "Can survey",
+      "surveyOnSite": "in person on site",
       "surveyHours": "within {hours}h",
       "acceptingLabel": "Accepting",
       "acceptingSuffix": "projects",
@@ -6123,6 +6582,7 @@
       },
       "introTitle": "About the company",
       "founded": "Founded in {year}",
+      "legalEntity": "Legal entity: {name}",
       "team": "{count} architects & engineers",
       "office": "Office in {address}",
       "serviceAreaCount": "{count} areas",
@@ -6215,8 +6675,8 @@
         "sortOldest": "Oldest",
         "filterLabel": "Filter by project type",
         "filters": {
-          "all": "All {count}",
-          "type": "{label} {count}"
+          "all": "All",
+          "type": "{label}"
         },
         "verifiedBadge": "Verified",
         "featuredBadge": "Featured",
@@ -6319,7 +6779,7 @@
         "warranty": "Warranty",
         "accepting": "Accepting projects"
       },
-      "legalVerified": "Verified",
+      "legalVerified": "Verified by BuildX",
       "select": "Select contractor",
       "selected": "Contractor selected",
       "footerHint": "Pick up to {max} of {total} contractors to invite",
@@ -6758,6 +7218,21 @@
       "submit": "Proceed to payment",
       "processing": "Creating order...",
       "readyHint": "You will be taken to the QR payment page.",
+      "pending": {
+        "title": "You have a design order waiting for payment",
+        "body": "Each account can have only one pending design order. Continue paying or cancel it before creating a new one.",
+        "partialBody": "BuildX has received part of the payment for this order, so it can't be canceled yet. Transfer the remaining amount or wait for it to expire.",
+        "plan": "Plan",
+        "amount": "Amount",
+        "received": "Received",
+        "expires": "Expires at {time}",
+        "continue": "Continue paying the current order",
+        "cancel": "Cancel current order",
+        "confirmCancel": "Confirm cancel",
+        "keep": "Keep order",
+        "cancelling": "Canceling…",
+        "cancelled": "The old order was canceled. You can pay for the new order now."
+      },
       "refund": "Full refund within {hours} hours if you have not used any credits.",
       "noCardNote": "BuildX never collects or stores your payment details.",
       "terms": "I have read and agree to the <terms>Terms of Use</terms> and <payment>Payment Policy</payment> of BuildX.",
@@ -6839,6 +7314,18 @@
       "reasonContent": "The transfer reference was wrong",
       "reasonIncomplete": "The transfer was not completed",
       "reasonBank": "The bank is processing slowly",
+      "causeTitle": "Cause",
+      "newOrder": "Create a new order",
+      "expired": {
+        "title": "This order has expired",
+        "subtitle": "The order ran out of payment time (15 minutes) and is no longer valid. You can create a new order.",
+        "cause": "Expired: the order was not fully paid within 15 minutes."
+      },
+      "canceled": {
+        "title": "This order was canceled",
+        "subtitle": "This order was canceled and no longer accepts payment. You can create a new order.",
+        "cause": "Canceled: the order was canceled before full payment arrived."
+      },
       "retry": "Try paying again",
       "support": "Contact support",
       "holdNote": "Order {code} stays on the system for {hours} hours."

@@ -130,7 +130,7 @@
       "nameLabel": "Họ và tên",
       "namePlaceholder": "Nguyễn Văn A",
       "emailLabel": "Email",
-      "emailPlaceholder": "ban@congty.com",
+      "emailPlaceholder": "Nhập email của bạn",
       "passwordLabel": "Mật khẩu",
       "passwordPlaceholder": "Tối thiểu 8 ký tự",
       "confirmPasswordLabel": "Xác nhận mật khẩu",
@@ -146,7 +146,7 @@
       "title": "Quên mật khẩu",
       "subtitle": "Nhập email để nhận mã đặt lại mật khẩu",
       "emailLabel": "Email",
-      "emailPlaceholder": "ban@congty.com",
+      "emailPlaceholder": "Nhập email của bạn",
       "submit": "Gửi mã đặt lại",
       "backToLogin": "Quay lại đăng nhập",
       "requestError": "Không gửi được mã đặt lại. Vui lòng thử lại.",
@@ -251,7 +251,8 @@
       "AccessForbidden": "Chỉ tài khoản khách hàng mới mua được gói. Tài khoản quản trị không dùng để mua.",
       "IdempotencyConflict": "Yêu cầu bị trùng. Bạn tải lại trang rồi thử lại.",
       "PaymentInputInvalid": "Thông tin gói hoặc chu kỳ không hợp lệ. Bạn tải lại trang rồi chọn lại gói.",
-      "viewPurchases": "Xem lịch sử gói"
+      "viewPurchases": "Xem lịch sử gói",
+      "continuePending": "Tiếp tục thanh toán"
     }
   },
   "apiErrors": {
@@ -508,7 +509,9 @@
       "StillValidating": "Tệp đang được kiểm tra lâu hơn dự kiến. Vui lòng thử lại sau ít phút.",
       "TooLarge": "Tệp vượt quá dung lượng cho phép.",
       "ExportFailed": "Chưa tạo được tệp xuất. Vui lòng thử lại.",
-      "AuditLogImmutable": "Nhật ký không thể sửa hoặc xoá."
+      "AuditLogImmutable": "Nhật ký không thể sửa hoặc xoá.",
+      "InvalidCmsCacheTarget": "Trang hoặc ngôn ngữ cần làm mới không hợp lệ.",
+      "CmsAuthorizationUnavailable": "Chưa kiểm tra được quyền làm mới nội dung. Vui lòng thử lại."
     }
   },
   "validation": {
@@ -2377,17 +2380,57 @@
       "filter": {
         "all": "Tất cả",
         "paid": "Đã thanh toán",
-        "pending": "Đang xác nhận",
+        "pending": "Chờ thanh toán",
         "refunded": "Đã hoàn tiền"
       },
       "table": {
         "code": "Mã đơn",
+        "order": "Đơn hàng",
         "project": "Công trình",
         "date": "Ngày",
         "plan": "Gói",
         "amount": "Số tiền",
         "status": "Trạng thái",
-        "receipt": "Biên nhận"
+        "receipt": "Biên nhận",
+        "actions": "Thao tác"
+      },
+      "projectLine": "Công trình: {project}",
+      "orderCode": "Mã đơn #{code}",
+      "phase": {
+        "awaiting": "Chờ thanh toán",
+        "partial": "Đã nhận một phần tiền",
+        "paid": "Đã thanh toán",
+        "expired": "Hết hạn",
+        "canceled": "Đã hủy",
+        "failed": "Thanh toán thất bại",
+        "refunded": "Đã hoàn tiền"
+      },
+      "phaseReason": {
+        "awaiting": "Đơn đang chờ bạn chuyển khoản. Bấm Tiếp tục thanh toán để mở lại mã QR.",
+        "partial": "BuildX đã nhận một phần tiền. Hãy chuyển nốt phần còn thiếu trước khi đơn hết hạn.",
+        "expired": "Đơn đã quá thời gian chờ thanh toán. Bạn có thể tạo đơn mới.",
+        "canceled": "Đơn đã được hủy. Bạn có thể tạo đơn mới.",
+        "failed": "Thanh toán không thành công. Bạn có thể tạo đơn mới.",
+        "refunded": "Đơn đã được hoàn tiền."
+      },
+      "actions": {
+        "viewDetail": "Chi tiết đơn",
+        "receipt": "Biên nhận thanh toán",
+        "cancel": "Hủy đơn",
+        "confirmCancel": "Xác nhận hủy",
+        "keep": "Giữ đơn",
+        "cancelling": "Đang hủy…",
+        "cancelled": "Đã hủy đơn. Bạn có thể tạo đơn mới.",
+        "partialNote": "Đã nhận một phần tiền nên chưa hủy được.",
+        "cancelFailed": "Không hủy được đơn. Vui lòng thử lại."
+      },
+      "detailDialog": {
+        "title": "Chi tiết đơn",
+        "titleWithCode": "Chi tiết đơn #{code}",
+        "heading": "Chi tiết đơn · #{code}",
+        "description": "Thông tin đơn hàng và tình trạng thanh toán.",
+        "state": "Tình trạng",
+        "note": "Cần hỗ trợ về đơn này? Liên hệ đội hỗ trợ BuildX và kèm mã đơn #{code}."
       },
       "tier": {
         "basic": "Gói BASIC",
@@ -2399,8 +2442,8 @@
       },
       "status": {
         "paid": "Đã thanh toán",
-        "pending": "Đang xác nhận",
-        "failed": "Thất bại",
+        "pending": "Chờ thanh toán",
+        "failed": "Thanh toán thất bại",
         "refunded": "Đã hoàn tiền"
       },
       "receipt": "Biên nhận",
@@ -2723,7 +2766,12 @@
     },
     "rail": {
       "searchPlaceholder": "Tìm kiến trúc sư...",
-      "backToList": "Danh sách kiến trúc sư"
+      "backToList": "Danh sách kiến trúc sư",
+      "empty": "Chưa có kiến trúc sư phù hợp trong danh sách đã tải.",
+      "loadError": "Không tải được danh sách kiến trúc sư. Vui lòng thử lại.",
+      "loadingMore": "Đang tải thêm kiến trúc sư…",
+      "loadMore": "Xem thêm kiến trúc sư",
+      "retry": "Thử lại"
     },
     "profile": {
       "reviews": "({count} đánh giá)",
@@ -2737,7 +2785,10 @@
       "lightboxClose": "Đóng",
       "lightboxPrev": "Ảnh trước",
       "lightboxNext": "Ảnh sau",
-      "viewLarger": "Xem ảnh lớn: {label}"
+      "viewLarger": "Xem ảnh lớn: {label}",
+      "designProjects": "Dự án thiết kế",
+      "designImage": "{name} · Ảnh {index}",
+      "moreDesignImages": "{count} ảnh khác"
     },
     "slots": {
       "title": "Chọn khung giờ tư vấn",
@@ -2826,6 +2877,7 @@
       "consult": "Tư vấn 1:1",
       "people": "Khách hàng",
       "library": "Thư viện",
+      "content": "Nội dung",
       "catalog": "Danh mục công trình",
       "packages": "Gói dịch vụ",
       "access": "Nhân sự & phân quyền"
@@ -2848,7 +2900,10 @@
     },
     "nav": {
       "handbookNewsletter": "Bản tin Cẩm nang",
-      "handbookContent": "Nội dung trang Cẩm nang",
+      "homeContent": "Trang chủ",
+      "footerContent": "Footer",
+      "contractorsContent": "Tìm nhà thầu",
+      "handbookContent": "Cẩm nang",
 
       "dashboard": "Việc cần xử lý",
       "templates": "Thư viện mẫu",
@@ -4017,8 +4072,7 @@
       "buildingTypes": "Loại công trình",
       "scopes": "Phạm vi thi công",
       "foundedYear": "Năm thành lập",
-      "architectCount": "Số KTS",
-      "engineerCount": "Số kỹ sư",
+      "teamCount": "Số KTS & kỹ sư",
       "surveyHours": "Giờ khảo sát (trong)",
       "warrantyMonths": "Bảo hành (tháng)",
       "acceptingProjects": "Đang nhận việc",
@@ -5186,6 +5240,8 @@
       },
       "title": "Tiêu đề",
       "untitled": "(Chưa có tiêu đề)",
+      "summary": "Mô tả ngắn",
+      "summaryHint": "Không bắt buộc. Tối đa 500 ký tự; có thể để trống khi công bố.",
       "readingTimeMinutes": "Số phút đọc",
       "cover": "Ảnh đại diện",
       "categories": "Danh mục",
@@ -5230,6 +5286,24 @@
         "imageRemove": "Bỏ khung ảnh",
         "imageDelete": "Xóa ảnh",
         "imageResize": "Kéo để đổi kích thước ảnh",
+        "table": {
+          "insert": "Chèn bảng",
+          "rows": "Số dòng",
+          "columns": "Số cột",
+          "withHeaderRow": "Dòng đầu là tiêu đề",
+          "sizeHint": "Chèn tối đa {max} dòng và {max} cột mỗi lần. Có thể thêm dòng hoặc cột sau đó.",
+          "actions": "Chỉnh bảng",
+          "addRowBefore": "Thêm dòng phía trên",
+          "addRowAfter": "Thêm dòng phía dưới",
+          "deleteRow": "Xóa dòng",
+          "addColumnBefore": "Thêm cột bên trái",
+          "addColumnAfter": "Thêm cột bên phải",
+          "deleteColumn": "Xóa cột",
+          "toggleHeaderRow": "Bật/tắt dòng tiêu đề",
+          "mergeCells": "Gộp các ô đã chọn",
+          "splitCell": "Tách ô",
+          "deleteTable": "Xóa bảng"
+        },
         "tools": {
           "bold": "In đậm",
           "italic": "In nghiêng",
@@ -5271,7 +5345,7 @@
       "name": "Họ tên",
       "title": "Chức danh",
       "avatar": "Ảnh đại diện",
-      "avatarHint": "Link https của ảnh trên kho ảnh hệ thống (cùng kho với ảnh dự toán). Link ở tên miền khác sẽ bị từ chối.",
+      "avatarHint": "Chọn ảnh chân dung rõ nét để hiển thị trên thẻ và hồ sơ kiến trúc sư.",
       "categories": "Chuyên môn",
       "categoriesHint": "Chọn ít nhất một chuyên môn. Thêm chuyên môn mới ở nút “Danh mục chuyên môn”.",
       "noCategories": "Chưa có chuyên môn nào — tạo ở nút “Danh mục chuyên môn” trước.",
@@ -5288,7 +5362,48 @@
       "hideWarning": "Khách sẽ không gửi được yêu cầu mới cho KTS này; các yêu cầu đã gửi vẫn giữ để xử lý.",
       "companyName": "Công ty",
       "rating": "Điểm đánh giá",
-      "reviewCount": "Số lượt đánh giá"
+      "reviewCount": "Số lượt đánh giá",
+      "designImagesUploading": "Ảnh thiết kế đang tải lên. Vui lòng chờ tải xong rồi lưu.",
+      "shortDescription": "Mô tả ngắn",
+      "shortDescriptionHint": "Tùy chọn, tối đa 500 ký tự. Hiển thị trên thẻ và hồ sơ công khai.",
+      "designProjects": "Dự án thiết kế",
+      "designProjectsHint": "Có thể để trống danh sách. Mỗi dự án cần tên và ít nhất một ảnh.",
+      "designProjectIndex": "Dự án {index}",
+      "designProjectName": "Tên dự án thiết kế",
+      "addDesignProject": "Thêm dự án thiết kế",
+      "removeDesignProject": "Xóa dự án",
+      "addDesignImage": "Thêm ảnh thiết kế",
+      "removeDesignImage": "Xóa ảnh",
+      "designImageIndex": "Ảnh thiết kế {index}",
+      "viewProjectImages": "Xem ảnh dự án {name}",
+      "designImagesRequired": "Chọn ít nhất một ảnh thiết kế và chờ tải ảnh xong.",
+      "detailError": "Không tải được hồ sơ. Vui lòng mở lại để thử lại.",
+      "optional": "Tùy chọn",
+      "noDesignProjects": "Chưa có dự án thiết kế",
+      "noDesignProjectsHint": "Thêm các dự án tiêu biểu để khách hàng xem phong cách và năng lực thiết kế của kiến trúc sư.",
+      "sections": {
+        "identity": "Thông tin cơ bản",
+        "identityHint": "Ảnh đại diện, chức danh và chuyên môn của kiến trúc sư.",
+        "about": "Giới thiệu kiến trúc sư",
+        "aboutHint": "Viết rõ thế mạnh và phong cách thiết kế để khách hàng dễ lựa chọn.",
+        "experience": "Kinh nghiệm và hiển thị",
+        "experienceHint": "Cập nhật số liệu và chọn trạng thái hiển thị của hồ sơ.",
+        "visibility": "Hiển thị trên trang tư vấn",
+        "visibilityHint": "Hồ sơ đang hiển thị sẽ xuất hiện trong danh sách kiến trúc sư dành cho khách hàng."
+      },
+      "placeholders": {
+        "name": "Nhập họ và tên",
+        "title": "Ví dụ: Kiến trúc sư trưởng",
+        "company": "Nhập tên công ty",
+        "categories": "Chọn chuyên môn thiết kế",
+        "shortDescription": "Tóm tắt ngắn về thế mạnh hoặc phong cách thiết kế…",
+        "introduction": "Giới thiệu kinh nghiệm, cách làm việc và định hướng thiết kế…",
+        "projectName": "Ví dụ: Biệt thự sân vườn An Phú"
+      },
+      "tabs": {
+        "profile": "Thông tin hồ sơ",
+        "projects": "Dự án của kiến trúc sư"
+      }
     },
     "architectCategories": {
       "title": "Danh mục chuyên môn",
@@ -5354,6 +5469,348 @@
       "notShownEmpty": "Khối chưa có bài nào nên trang Cẩm nang đang ẩn cả dải Bản tin. Thêm bài đang công bố để dải này hiển thị.",
       "notShownAllHidden": "Không có bài nào trong khối đang công bố nên trang Cẩm nang đang ẩn cả dải Bản tin. Công bố lại một bài đã xếp hoặc thêm bài khác.",
       "states": { "Draft": "Nháp", "Published": "Đã công bố", "Hidden": "Đang ẩn" }
+    },
+    "cmsCache": {
+      "refreshFailed": "Nội dung đã lưu nhưng chưa làm mới được trang công khai. Trang sẽ cập nhật theo chu kỳ làm mới tự động."
+    },
+    "homeContent": {
+      "contractorsDescription": "Chữ, ảnh đầu trang và icon của trang Tìm nhà thầu, chia 5 khối theo đúng thứ tự khi cuộn trang: đầu trang, bốn cam kết, An toàn & minh bạch, câu hỏi thường gặp và dải kêu gọi cuối trang. Mỗi ngôn ngữ lưu riêng: khối chưa sửa dùng nội dung có sẵn nên form mở ra với đúng chữ đang hiển thị, và chỉ phần khác bản có sẵn mới được lưu. Đường dẫn của các nút do ứng dụng giữ, không sửa ở đây.",
+      "footerDescription": "Thông tin liên hệ, liên kết mạng xã hội ở chân trang và nội dung năm trang Về BuildX (Điều khoản sử dụng, Quyền riêng tư, Điều khoản AI, TMĐT & Đối tác, Thanh toán & Hoàn tiền). Mỗi ngôn ngữ lưu riêng: khối chưa sửa dùng nội dung có sẵn nên form mở ra với đúng nội dung khách đang thấy, và chỉ phần khác bản có sẵn mới được lưu.",
+      "description": "Chữ, ảnh, icon, mẫu và video nổi bật của trang chủ, chia 12 khối theo đúng thứ tự khi cuộn trang. Mỗi ngôn ngữ lưu riêng: khối chưa sửa dùng nội dung có sẵn nên form mở ra với đúng chữ đang hiển thị, và chỉ phần khác bản có sẵn mới được lưu. Đường dẫn của các nút do ứng dụng giữ, không sửa ở đây.",
+      "locales": {
+        "vi": "Tiếng Việt",
+        "en": "Tiếng Anh"
+      },
+      "edited": "Đã biên tập",
+      "usingDefault": "Đang dùng bản mặc định",
+      "restore": "Khôi phục mặc định",
+      "restoreConfirm": "Xóa bản đã sửa của khối này? Trang chủ sẽ quay lại dùng nội dung có sẵn.",
+      "restored": "Đã khôi phục bản mặc định.",
+      "saveAll": "Lưu tất cả",
+      "pendingCount": "{count} khối có thay đổi chưa lưu",
+      "noPending": "Chưa có thay đổi nào",
+      "changed": "Có thay đổi",
+      "savedAll": "Đã lưu {count} khối.",
+      "savePartial": "Đã lưu {done} khối, {failed} khối lỗi ({names}).",
+      "conflictReloaded": "Khối {names} vừa được người khác sửa, đã tải lại bản mới. Xem lại rồi lưu tiếp.",
+      "fixErrors": "Còn trường chưa hợp lệ, hãy sửa trước khi lưu.",
+      "unsavedTitle": "Bỏ các thay đổi chưa lưu?",
+      "unsavedBody": "Đổi ngôn ngữ sẽ làm mất các thay đổi chưa lưu ở ngôn ngữ hiện tại.",
+      "discard": "Bỏ thay đổi",
+      "keepEditing": "Tiếp tục sửa",
+      "iconHint": "Tên icon thư viện lucide-react, ví dụ Camera hoặc pencil-ruler. Bỏ trống thì dùng icon mặc định.",
+      "iconInvalid": "Tên icon chỉ gồm chữ, số và dấu gạch ngang, tối đa 64 ký tự.",
+      "iconNotFound": "Không tìm thấy icon này; trang chủ sẽ dùng icon mặc định.",
+      "iconPreviewFailed": "Không xem trước được icon lúc này. Bạn vẫn lưu được; thử gõ lại sau.",
+      "pickTemplates": "Chọn tối đa {max} mẫu",
+      "pickGuides": "Chọn tối đa {max} video",
+      "pickLoadError": "Không tải được danh sách. Thử tải lại trang.",
+      "idsHint": "Tối đa {max}. Hiện theo đúng thứ tự bạn chọn; để trống thì trang chủ tự chọn như trước.",
+      "rowTitle": "Mục {index}",
+      "moveUp": "Chuyển lên",
+      "moveDown": "Chuyển xuống",
+      "addRow": "Thêm mục",
+      "maxReached": "Đã đủ {max} mục",
+      "sections": {
+        "hero": {
+          "title": "Phần đầu trang",
+          "hint": "Tiêu đề lớn, hai nút (nút phụ mở video hướng dẫn), thẻ \"Hồ sơ dự án\" mẫu bên phải và ảnh nền xoay vòng."
+        },
+        "stats": {
+          "title": "Dải số liệu",
+          "hint": "Năm số liệu ngay dưới phần đầu trang."
+        },
+        "painPoints": {
+          "title": "Những vấn đề thường gặp",
+          "hint": "Khối \"Bạn cũng đang gặp những vấn đề này?\" với năm thẻ."
+        },
+        "journey": {
+          "title": "Hành trình dự án",
+          "hint": "Dải năm bước từ tạo dự án đến thi công."
+        },
+        "services": {
+          "title": "Gói dịch vụ",
+          "hint": "Khối chọn gói theo giai đoạn, bốn thẻ."
+        },
+        "dossiers": {
+          "title": "Thư viện mẫu",
+          "hint": "Dải \"Danh sách thư viện mẫu\" chia hai tab bản vẽ 2D và 3D."
+        },
+        "articles": {
+          "title": "Bài viết Cẩm nang",
+          "hint": "Dải \"Cẩm nang xây nhà\" với ba bài viết: sửa tiêu đề và chọn bài."
+        },
+        "guides": {
+          "title": "Hướng dẫn sử dụng",
+          "hint": "Dải video hướng dẫn, hiện tối đa ba video."
+        },
+        "consult": {
+          "title": "Tư vấn 1:1",
+          "hint": "Khối đặt lịch với kiến trúc sư: sửa chữ và chọn tối đa 3 kiến trúc sư nổi bật."
+        },
+        "brands": {
+          "title": "Thương hiệu đối tác",
+          "hint": "Dải logo thương hiệu chạy ngang."
+        },
+        "testimonials": {
+          "title": "Khách hàng nói về BuildX",
+          "hint": "Các ý kiến của khách hàng."
+        },
+        "cta": {
+          "title": "Lời kêu gọi cuối trang",
+          "hint": "Khối kêu gọi tạo dự án ở cuối trang chủ."
+        },
+        "contact": {
+          "title": "Thông tin liên hệ",
+          "hint": "Hotline, email và địa chỉ ở cột Liên hệ của chân trang. Ô nào để nguyên như có sẵn thì chân trang tiếp tục dùng thông tin có sẵn."
+        },
+        "social": {
+          "title": "Mạng xã hội",
+          "hint": "Liên kết của các biểu tượng mạng xã hội ở cột thương hiệu của chân trang. Chỉ nhận đường dẫn http hoặc https; nhập thiếu giao thức (ví dụ zalo.me/abc) thì tự thêm https://."
+        },
+        "terms": {
+          "title": "Trang Điều khoản sử dụng",
+          "hint": "Trang /terms trong cột Về BuildX ở chân trang. Mở ra là đúng nội dung khách đang đọc; sửa tại chỗ rồi bấm Lưu tất cả. Tiêu đề chỉ hiện trên tab trình duyệt, tiêu đề lớn của bài nằm trong nội dung. Chỉ nhận chữ, danh sách, bảng và liên kết, chưa hỗ trợ ảnh."
+        },
+        "privacy": {
+          "title": "Trang Quyền riêng tư",
+          "hint": "Trang /privacy trong cột Về BuildX ở chân trang. Mở ra là đúng nội dung khách đang đọc; sửa tại chỗ rồi bấm Lưu tất cả. Tiêu đề chỉ hiện trên tab trình duyệt, tiêu đề lớn của bài nằm trong nội dung. Chỉ nhận chữ, danh sách, bảng và liên kết, chưa hỗ trợ ảnh."
+        },
+        "aiTerms": {
+          "title": "Trang Điều khoản sử dụng AI",
+          "hint": "Trang /ai-terms trong cột Về BuildX ở chân trang. Mở ra là đúng nội dung khách đang đọc; sửa tại chỗ rồi bấm Lưu tất cả. Tiêu đề chỉ hiện trên tab trình duyệt, tiêu đề lớn của bài nằm trong nội dung. Chỉ nhận chữ, danh sách, bảng và liên kết, chưa hỗ trợ ảnh."
+        },
+        "ecommerce": {
+          "title": "Trang TMĐT & Đối tác",
+          "hint": "Trang /ecommerce-partners trong cột Về BuildX ở chân trang. Mở ra là đúng nội dung khách đang đọc; sửa tại chỗ rồi bấm Lưu tất cả. Tiêu đề chỉ hiện trên tab trình duyệt, tiêu đề lớn của bài nằm trong nội dung. Chỉ nhận chữ, danh sách, bảng và liên kết, chưa hỗ trợ ảnh."
+        },
+        "payment": {
+          "title": "Trang Thanh toán & Hoàn tiền",
+          "hint": "Trang /payment-policy trong cột Về BuildX ở chân trang. Mở ra là đúng nội dung khách đang đọc; sửa tại chỗ rồi bấm Lưu tất cả. Tiêu đề chỉ hiện trên tab trình duyệt, tiêu đề lớn của bài nằm trong nội dung. Chỉ nhận chữ, danh sách, bảng và liên kết, chưa hỗ trợ ảnh."
+        },
+        "contractorsHero": {
+          "title": "Đầu trang",
+          "hint": "Tiêu đề (hai dòng), câu dẫn, hai nút và ảnh nền ở đầu trang. Ảnh để trống thì dùng ảnh có sẵn của trang."
+        },
+        "contractorsPromises": {
+          "title": "Bốn cam kết",
+          "hint": "Dải bốn cam kết ngay dưới đầu trang: chữ và icon của từng cam kết."
+        },
+        "contractorsSafety": {
+          "title": "An toàn & minh bạch",
+          "hint": "Ba thẻ dưới tiêu đề. Icon bỏ trống thì giữ hình minh họa có sẵn của thẻ."
+        },
+        "contractorsFaq": {
+          "title": "Câu hỏi thường gặp",
+          "hint": "Tiêu đề và bảy câu hỏi kèm câu trả lời."
+        },
+        "contractorsCta": {
+          "title": "Dải kêu gọi cuối trang",
+          "hint": "Dải xanh mời tạo hồ sơ dự án và dòng mời nhà thầu trở thành đối tác ở cuối trang."
+        }
+      },
+      "lists": {
+        "hero": {
+          "slides": {
+            "title": "Ảnh nền xoay vòng",
+            "hint": "Bỏ trống thì trang dùng bộ ảnh mặc định. Có ít nhất một ảnh thì thay hoàn toàn bộ mặc định. Tối đa 8 ảnh."
+          },
+          "guideIds": {
+            "title": "Video của nút \"Xem hướng dẫn\"",
+            "hint": "Chọn 1 video hướng dẫn công khai để mở khi khách bấm nút phụ. Để trống thì dùng video nổi bật (hoặc video đầu danh sách)."
+          }
+        },
+        "stats": {
+          "items": {
+            "title": "Năm số liệu",
+            "hint": "Đúng 5 thẻ, thứ tự cố định. Icon bỏ trống thì dùng icon mặc định của thẻ."
+          }
+        },
+        "painPoints": {
+          "items": {
+            "title": "Năm thẻ vấn đề",
+            "hint": "Đúng 5 thẻ, thứ tự cố định. Icon bỏ trống thì dùng icon mặc định."
+          }
+        },
+        "journey": {
+          "items": {
+            "title": "Năm bước của hành trình",
+            "hint": "Đúng 5 bước, thứ tự cố định. Icon bỏ trống thì dùng icon mặc định của bước."
+          }
+        },
+        "services": {
+          "items": {
+            "title": "Bốn gói dịch vụ",
+            "hint": "Đúng 4 thẻ, thứ tự cố định. Icon bỏ trống thì dùng icon mặc định."
+          }
+        },
+        "dossiers": {
+          "templateIds2d": {
+            "title": "Mẫu bản vẽ 2D nổi bật",
+            "hint": "Chọn tối đa 4 mẫu 2D (cả hai tab tối đa 8). Chỉ liệt kê mẫu đã công khai. Để trống thì tab này lấy các mẫu mới nhất."
+          },
+          "templateIds3d": {
+            "title": "Mẫu bản vẽ 3D nổi bật",
+            "hint": "Chọn tối đa 4 mẫu 3D (cả hai tab tối đa 8). Chỉ liệt kê mẫu đã công khai. Để trống thì tab này lấy các mẫu mới nhất."
+          }
+        },
+        "articles": {
+          "articleIds": {
+            "title": "Bài viết nổi bật",
+            "hint": "Chọn tối đa 3 bài, hiện theo đúng thứ tự chọn. Chỉ liệt kê bài đã công khai; bài bị ẩn sau đó sẽ tự bị bỏ qua. Để trống thì trang chủ lấy 3 bài mới nhất."
+          }
+        },
+        "guides": {
+          "guideIds": {
+            "title": "Video nổi bật",
+            "hint": "Chọn tối đa 3 video. Chỉ liệt kê video đã công khai; video bị ẩn sau đó sẽ tự bị bỏ qua. Để trống thì trang chủ tự chọn như trước."
+          }
+        },
+        "consult": {
+          "architectIds": {
+            "title": "Kiến trúc sư nổi bật",
+            "hint": "Chọn tối đa 3 kiến trúc sư, hiện theo đúng thứ tự chọn. Chỉ liệt kê kiến trúc sư đang hiển thị công khai. Để trống thì trang chủ tự chọn như trước (ưu tiên đúng chuyên môn của dự án đang làm)."
+          }
+        },
+        "brands": {
+          "logos": {
+            "title": "Logo thương hiệu",
+            "hint": "Bỏ trống thì trang dùng bộ logo mặc định. Có ít nhất một logo thì thay hoàn toàn. Tối đa 30 logo."
+          }
+        },
+        "testimonials": {
+          "reviews": {
+            "title": "Ý kiến khách hàng",
+            "hint": "Bỏ trống thì trang dùng các ý kiến mặc định. Có ít nhất một ý kiến thì thay hoàn toàn. Tối đa 12 ý kiến."
+          }
+        },
+        "contractorsPromises": {
+          "items": {
+            "title": "Bốn cam kết",
+            "hint": "Đúng 4 mục, thứ tự cố định. Icon bỏ trống thì dùng icon mặc định của mục."
+          }
+        },
+        "contractorsSafety": {
+          "items": {
+            "title": "Ba thẻ",
+            "hint": "Đúng 3 thẻ, thứ tự cố định. Icon bỏ trống thì giữ hình minh họa có sẵn."
+          }
+        },
+        "contractorsFaq": {
+          "items": {
+            "title": "Bảy câu hỏi",
+            "hint": "Đúng 7 câu hỏi, thứ tự cố định. Câu trả lời là chữ thường, không có định dạng."
+          }
+        }
+      },
+      "fields": {
+        "eyebrow": "Dòng nhãn phía trên",
+        "titleLead": "Tiêu đề — phần đầu",
+        "titleAccent": "Tiêu đề — phần nhấn màu",
+        "subtitle": "Mô tả ngắn",
+        "primaryCta": "Nút chính",
+        "secondaryCta": "Nút phụ",
+        "cardTitle": "Thẻ hồ sơ — tiêu đề",
+        "cardAreaLabel": "Thẻ hồ sơ — nhãn diện tích",
+        "cardAreaValue": "Thẻ hồ sơ — giá trị diện tích",
+        "cardTypeLabel": "Thẻ hồ sơ — nhãn loại công trình",
+        "cardTypeValue": "Thẻ hồ sơ — giá trị loại công trình",
+        "cardStyleLabel": "Thẻ hồ sơ — nhãn phong cách",
+        "cardStyleValue": "Thẻ hồ sơ — giá trị phong cách",
+        "cardOptionsLabel": "Thẻ hồ sơ — nhãn phương án",
+        "cardOptionsValue": "Thẻ hồ sơ — giá trị phương án",
+        "cardTotalLabel": "Thẻ hồ sơ — nhãn tổng dự toán",
+        "cardTotalValue": "Thẻ hồ sơ — giá trị tổng dự toán",
+        "cardCta": "Thẻ hồ sơ — chữ trên nút",
+        "imageUrl": "Ảnh",
+        "icon": "Icon",
+        "value": "Giá trị nổi bật",
+        "label": "Mô tả",
+        "title": "Tiêu đề",
+        "description": "Mô tả",
+        "note": "Câu hỏi bên trái",
+        "cta": "Chữ trên nút",
+        "currentStepBadge": "Nhãn \"Bạn đang ở bước này\"",
+        "labelYouDo": "Nhãn \"Bạn làm gì\"",
+        "labelBuildxDoes": "Nhãn \"BuildX làm gì\"",
+        "labelYouGet": "Nhãn \"Bạn nhận được gì\"",
+        "youDo": "Bạn làm gì",
+        "buildxDoes": "BuildX làm gì",
+        "youGet": "Bạn nhận được gì",
+        "viewAll": "Chữ liên kết \"Xem tất cả\"",
+        "usedAtStep": "Dùng ở bước",
+        "action": "Chữ trên nút",
+        "tab2d": "Tên tab bản vẽ 2D",
+        "tab3d": "Tên tab bản vẽ 3D",
+        "viewOne": "Chữ nút xem một mẫu",
+        "name": "Tên",
+        "meta": "Thông tin thêm",
+        "quote": "Lời nhận xét",
+        "avatarUrl": "Ảnh đại diện (không bắt buộc)",
+        "hotline": "Hotline",
+        "email": "Email",
+        "address": "Địa chỉ",
+        "facebookUrl": "Facebook",
+        "zaloUrl": "Zalo",
+        "youtubeUrl": "YouTube",
+        "tiktokUrl": "TikTok",
+        "instagramUrl": "Instagram",
+        "body": "Nội dung trang",
+        "titleLine1": "Tiêu đề, dòng 1",
+        "titleLine2": "Tiêu đề, dòng 2",
+        "createBrief": "Chữ nút tạo hồ sơ",
+        "viewContractors": "Chữ nút xem danh sách nhà thầu",
+        "question": "Câu hỏi",
+        "answer": "Câu trả lời",
+        "partnerText": "Lời mời nhà thầu",
+        "partnerAction": "Chữ liên kết trở thành đối tác"
+      },
+      "fieldsBySection": {
+        "hero": {
+          "imageUrl": "Ảnh nền"
+        },
+        "stats": {
+          "label": "Mô tả ngắn"
+        },
+        "brands": {
+          "name": "Tên thương hiệu",
+          "imageUrl": "Logo"
+        },
+        "testimonials": {
+          "name": "Tên khách hàng",
+          "meta": "Loại nhà · diện tích · nơi ở"
+        },
+        "terms": {
+          "title": "Tiêu đề tab trình duyệt"
+        },
+        "privacy": {
+          "title": "Tiêu đề tab trình duyệt"
+        },
+        "aiTerms": {
+          "title": "Tiêu đề tab trình duyệt"
+        },
+        "ecommerce": {
+          "title": "Tiêu đề tab trình duyệt"
+        },
+        "payment": {
+          "title": "Tiêu đề tab trình duyệt"
+        },
+        "contractorsHero": {
+          "imageUrl": "Ảnh đầu trang",
+          "subtitle": "Câu dẫn"
+        },
+        "contractorsSafety": {
+          "body": "Mô tả ngắn"
+        },
+        "contractorsCta": {
+          "title": "Lời mời tạo hồ sơ",
+          "action": "Chữ nút tạo hồ sơ"
+        }
+      },
+      "floors": "{count} tầng",
+      "pickMissing": "Đã ẩn hoặc không còn công khai",
+      "pickArchitects": "Chọn tối đa {max} kiến trúc sư",
+      "pickArticles": "Chọn tối đa {max} bài viết"
     },
     "handbookContent": {
       "description": "Quản lý nội dung trang Cẩm nang theo hai tab Tin tức và Thư viện mẫu, xếp theo đúng thứ tự người đọc thấy trên trang. Các thẻ chữ sửa riêng từng ngôn ngữ: khối chưa sửa dùng bản dịch sẵn có nên form mở ra với đúng chữ đang hiển thị, và ngôn ngữ chưa sửa không mượn chữ của ngôn ngữ khác. Ba bước, chủ đề hướng dẫn và bài nổi bật dùng chung cho mọi ngôn ngữ.",
@@ -5642,9 +6099,11 @@
       "similarSuffix": "đã thực hiện",
       "distanceShort": "{km} km",
       "distanceSuffix": "từ công trình",
+      "distanceFromPlace": "từ {place}",
       "surveyEarly": "Có thể khảo sát sớm",
       "readyToStart": "Sẵn sàng triển khai",
       "surveyLabel": "Có thể khảo sát",
+      "surveyOnSite": "trực tiếp từ hiện trường",
       "surveyHours": "trong {hours}h",
       "acceptingLabel": "Đang nhận",
       "acceptingSuffix": "dự án",
@@ -6123,6 +6582,7 @@
       },
       "introTitle": "Giới thiệu doanh nghiệp",
       "founded": "Thành lập năm {year}",
+      "legalEntity": "Pháp nhân: {name}",
       "team": "{count} kiến trúc sư & kỹ sư",
       "office": "Văn phòng tại {address}",
       "serviceAreaCount": "{count} khu vực",
@@ -6215,8 +6675,8 @@
         "sortOldest": "Cũ nhất",
         "filterLabel": "Lọc theo loại dự án",
         "filters": {
-          "all": "Tất cả {count}",
-          "type": "{label} {count}"
+          "all": "Tất cả",
+          "type": "{label}"
         },
         "verifiedBadge": "Đã xác minh",
         "featuredBadge": "Nổi bật",
@@ -6319,7 +6779,7 @@
         "warranty": "Bảo hành",
         "accepting": "Đang nhận dự án"
       },
-      "legalVerified": "Đã xác minh",
+      "legalVerified": "BuildX đã xác minh",
       "select": "Chọn nhà thầu",
       "selected": "Đã chọn nhà thầu",
       "footerHint": "Chọn tối đa {max} trong {total} nhà thầu để mời báo giá",
@@ -6758,6 +7218,21 @@
       "submit": "Tiến hành thanh toán",
       "processing": "Đang tạo đơn...",
       "readyHint": "Bạn sẽ được chuyển tới trang thanh toán bằng mã QR.",
+      "pending": {
+        "title": "Bạn đang có một đơn thiết kế chờ thanh toán",
+        "body": "Mỗi tài khoản chỉ có một đơn thiết kế đang chờ. Hãy tiếp tục thanh toán hoặc hủy đơn này trước khi tạo đơn mới.",
+        "partialBody": "BuildX đã nhận một phần tiền của đơn này nên chưa hủy được. Hãy chuyển nốt phần còn thiếu hoặc chờ đơn hết hạn.",
+        "plan": "Gói",
+        "amount": "Số tiền",
+        "received": "Đã nhận",
+        "expires": "Hết hạn lúc {time}",
+        "continue": "Tiếp tục thanh toán đơn hiện tại",
+        "cancel": "Hủy đơn hiện tại",
+        "confirmCancel": "Xác nhận hủy đơn",
+        "keep": "Giữ đơn",
+        "cancelling": "Đang hủy…",
+        "cancelled": "Đã hủy đơn cũ. Bạn có thể tiến hành thanh toán đơn mới."
+      },
       "refund": "Hoàn 100% trong {hours} giờ nếu bạn chưa dùng lượt nào.",
       "noCardNote": "BuildX không thu và không lưu thông tin thanh toán của bạn.",
       "terms": "Tôi đã đọc và đồng ý với <terms>Điều khoản sử dụng</terms> và <payment>Chính sách thanh toán</payment> của BuildX.",
@@ -6839,6 +7314,18 @@
       "reasonContent": "Sai nội dung chuyển khoản",
       "reasonIncomplete": "Giao dịch chưa hoàn tất",
       "reasonBank": "Ngân hàng đang xử lý chậm",
+      "causeTitle": "Nguyên nhân",
+      "newOrder": "Tạo đơn mới",
+      "expired": {
+        "title": "Đơn đã hết hạn",
+        "subtitle": "Đơn đã quá thời gian chờ thanh toán (15 phút) nên không còn hiệu lực. Bạn có thể tạo đơn mới.",
+        "cause": "Hết hạn: đơn chưa được thanh toán đủ trong 15 phút."
+      },
+      "canceled": {
+        "title": "Đơn đã được hủy",
+        "subtitle": "Đơn này đã được hủy nên không nhận tiền nữa. Bạn có thể tạo đơn mới.",
+        "cause": "Đã hủy: đơn bị hủy trước khi nhận đủ tiền."
+      },
       "retry": "Thử lại thanh toán",
       "support": "Liên hệ hỗ trợ",
       "holdNote": "Mã đơn hàng {code} được giữ trên hệ thống trong {hours} giờ."

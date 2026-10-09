@@ -1,6 +1,6 @@
 'use client'
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 
@@ -14,6 +14,19 @@ export function useConsultants() {
   return useQuery({
     queryKey: consultationKeys.consultants(),
     queryFn: () => consultationApi.listConsultants()
+  })
+}
+
+/** Danh sách cuộn ở hồ sơ KTS; giữ trang đã tải khi chuyển hồ sơ. */
+export function useConsultantPages() {
+  return useInfiniteQuery({
+    queryKey: consultationKeys.consultantPages(),
+    queryFn: ({ pageParam, signal }) => consultationApi.listConsultantsPage(pageParam, signal),
+    initialPageParam: 1,
+    staleTime: 30_000,
+    getNextPageParam: (page) => (page.hasNextPage && page.items.length > 0 ? page.pageIndex + 1 : undefined),
+    retry: false,
+    select: (data) => [...new Map(data.pages.flatMap((page) => page.items).map((item) => [item.id, item])).values()]
   })
 }
 

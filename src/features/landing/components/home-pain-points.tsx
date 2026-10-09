@@ -5,7 +5,9 @@ import { motion, useInView } from 'motion/react'
 import { useTranslations } from 'next-intl'
 import { useRef, useState } from 'react'
 
-import { revealEase, ScribbleArrow } from '@/shared/components/common'
+import { useHomeSections } from '@/shared/cms/home-content'
+import { itemText, sectionItems, sectionText } from '@/shared/cms/home-sections'
+import { NamedIcon, revealEase, ScribbleArrow } from '@/shared/components/common'
 import { cn } from '@/shared/lib/utils'
 import { HOME_PAIN_POINTS, type HomePainPoint } from '../constants/landing.constants'
 
@@ -33,6 +35,9 @@ const DIM_DELAY = ['delay-0', 'delay-75', 'delay-150', 'delay-200'] as const
  */
 export function HomePainPoints() {
   const t = useTranslations('landing.painPoints')
+  // Nội dung admin đã lưu (khối `painPoints`); trường trống thì dùng chữ và icon có sẵn. 5 mục theo thứ tự HOME_PAIN_POINTS.
+  const sections = useHomeSections()
+  const saved = sectionItems(sections, 'painPoints', 'items')
   const [hovered, setHovered] = useState<HomePainPoint | null>(null)
   const hoveredIndex = hovered === null ? -1 : HOME_PAIN_POINTS.indexOf(hovered)
   // Theo dõi KHUNG BỌC ghi chú, không theo dõi chính ghi chú: ghi chú bị `clip-path` che
@@ -57,7 +62,7 @@ export function HomePainPoints() {
               transition={{ duration: 0.75, delay: 0.08, ease: revealEase }}
               className='text-2xl font-bold tracking-tight text-balance lg:text-[1.75rem]'
             >
-              {t('title')}
+              {sectionText(sections, 'painPoints', 'title') ?? t('title')}
             </motion.h2>
             {/* Chỗ xuống dòng nằm trong chính câu chữ (`messages/*.json`). */}
             <motion.p
@@ -67,7 +72,7 @@ export function HomePainPoints() {
               transition={{ duration: 0.75, delay: 0.18, ease: revealEase }}
               className='text-primary-foreground max-w-5xl text-sm whitespace-pre-line'
             >
-              {t('subtitle')}
+              {sectionText(sections, 'painPoints', 'subtitle') ?? t('subtitle')}
             </motion.p>
           </div>
 
@@ -82,7 +87,7 @@ export function HomePainPoints() {
               className='flex flex-col items-end'
             >
               <p className='font-hand mr-10 max-w-[15rem] -rotate-6 text-left text-lg leading-snug whitespace-pre-line lg:mr-14 lg:-rotate-9 lg:text-xl'>
-                {t('note')}
+                {sectionText(sections, 'painPoints', 'note') ?? t('note')}
               </p>
               {/* Giữ đúng chiều ảnh mẫu: nét cong đi lên từ trái rồi đổ xuống,
                 đầu mũi chỉ xuống-phải về phía dải thẻ. */}
@@ -97,6 +102,7 @@ export function HomePainPoints() {
         <ul className='mt-4 grid auto-rows-fr gap-3 sm:auto-rows-auto sm:grid-cols-2 sm:gap-4 lg:mt-8 lg:grid-cols-5'>
           {HOME_PAIN_POINTS.map((point, index) => {
             const Icon = PAIN_ICON[point]
+            const item = saved?.[index]
             const isHovered = hovered === point
             const dimmed = hovered !== null && !isHovered
             const dimOrder = dimmed ? index - (index > hoveredIndex ? 1 : 0) : 0
@@ -126,7 +132,9 @@ export function HomePainPoints() {
                     viewport={{ once: true, amount: 0.4 }}
                     transition={{ duration: 0.4, delay: index * 0.1 + 0.15 }}
                   >
-                    <Icon
+                    <NamedIcon
+                      name={itemText(item, 'icon')}
+                      fallback={Icon}
                       className={cn(
                         'size-7 transition-colors duration-500 ease-out motion-reduce:transition-none',
                         isHovered ? 'text-brand-orange' : 'text-primary'
@@ -143,10 +151,10 @@ export function HomePainPoints() {
                         isHovered && 'text-brand-orange'
                       )}
                     >
-                      {t(`items.${point}.title`)}
+                      {itemText(item, 'title') ?? t(`items.${point}.title`)}
                     </h3>
                     <p className='text-foreground text-xs leading-relaxed font-normal text-pretty'>
-                      {t(`items.${point}.description`)}
+                      {itemText(item, 'description') ?? t(`items.${point}.description`)}
                     </p>
                   </div>
                 </div>

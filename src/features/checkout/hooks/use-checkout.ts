@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useEffect } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 
@@ -84,6 +84,44 @@ export function useOrder(orderId: string, { refetchIntervalMs = 3_000 }: UseOrde
   return query
 }
 
+/**
+ * Đơn thiết kế đang chờ thanh toán của khách (nếu có). Màn xác nhận đơn đọc để hiện đơn đó ngay trong khối
+ * "Đơn hàng của bạn" và đổi nút thành "Tiếp tục thanh toán đơn hiện tại" (góp ý case 5). Chỉ cần khi mua gói
+ * THIẾT KẾ từ API: gói giám sát cho nhiều đơn chờ cùng lúc, còn gói mock không có đơn thật.
+ */
+export function usePendingDesignOrder(enabled: boolean) {
+  return useQuery({
+    queryKey: checkoutKeys.pendingDesign(),
+    queryFn: () => checkoutApi.getPendingDesignOrder(),
+    enabled,
+    // Đơn có thể vừa hết hạn, được trả hoặc bị hủy ở tab khác: luôn hỏi lại khi mở màn.
+    staleTime: 0
+  })
+}
+
+/**
+ * Hủy một đơn tại chỗ (không chuyển trang): dùng ở lịch sử mua gói và ở khối "đơn đang chờ" của màn xác nhận.
+ * Lỗi của BE được đổi sang câu dành cho khách (vd. đơn đã nhận tiền thì không hủy được).
+ */
+export function useCancelOrderInPlace() {
+  const queryClient = useQueryClient()
+  const t = useTranslations('errors')
+
+  return useCallback(
+    async (orderId: string): Promise<void> => {
+      try {
+        const order = await checkoutApi.cancelOrder(orderId)
+        queryClient.setQueryData(checkoutKeys.order(orderId), order)
+        await queryClient.invalidateQueries({ queryKey: checkoutKeys.pendingDesign() })
+      } catch (error) {
+        const message = paymentErrorMessage(error, (code) => t(`payment.${code}`), t('generic'))
+        throw isApiError(error) ? { ...error, message } : new Error(message)
+      }
+    },
+    [queryClient, t]
+  )
+}
+
 interface UseCreateOrderOptions {
   beforeNavigate?: () => void | Promise<void>
 }
@@ -104,10 +142,20 @@ export function useCreateOrder({ beforeNavigate }: UseCreateOrderOptions = {}) {
     },
     onError: (error) => {
       const message = paymentErrorMessage(error, (code) => t(`payment.${code}`), t('generic'))
-      // Đang có đơn chờ thanh toán: đơn đó nằm ở lịch sử gói — kèm nút đưa khách tới đó để hoàn tất hoặc huỷ.
+      // Đang có đơn chờ thanh toán (vd. vừa tạo ở tab khác): nút trên thông báo mở THẲNG trang QR của đơn đó,
+      // không bắt khách đi vòng qua lịch sử gói. Không tìm thấy đơn thì mới đưa tới lịch sử.
       if (isApiError(error) && error.messageCode === 'PendingDesignOrderExists') {
+        void queryClient.invalidateQueries({ queryKey: checkoutKeys.pendingDesign() })
         toast.error(message, {
-          action: { label: t('payment.viewPurchases'), onClick: () => router.push(ROUTES.ACCOUNT_PURCHASES) }
+          action: {
+            label: t('payment.continuePending'),
+            onClick: () => {
+              void checkoutApi
+                .getPendingDesignOrder()
+                .then((pending) => router.push(pending ? checkoutPaymentRoute(pending.id) : ROUTES.ACCOUNT_PURCHASES))
+                .catch(() => router.push(ROUTES.ACCOUNT_PURCHASES))
+            }
+          }
         })
         return
       }

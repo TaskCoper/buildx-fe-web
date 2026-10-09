@@ -13,6 +13,11 @@ export interface BmtArchitectCategory {
   version: string
 }
 
+export interface BmtArchitectDesignProject {
+  name: string
+  imageUrls: string[]
+}
+
 export interface BmtAdminArchitect {
   id: string
   fullName: string
@@ -21,6 +26,7 @@ export interface BmtAdminArchitect {
   yearsExperience: number
   projectCount: number
   introduction: string
+  shortDescription?: string | null
   /** Sắp theo tên rồi Id. */
   categories: { id: string; name: string }[]
   isVisible: boolean
@@ -35,6 +41,7 @@ export interface BmtAdminArchitect {
  */
 export interface BmtAdminArchitectDetail extends BmtAdminArchitect {
   categoryIds: string[]
+  designProjects?: BmtArchitectDesignProject[]
   companyName?: string | null
   rating?: number | null
   reviewCount?: number | null
@@ -48,7 +55,9 @@ export interface BmtArchitectWrite {
   yearsExperience: number
   projectCount: number
   introduction: string
+  shortDescription?: string | null
   categoryIds: string[]
+  designProjects?: BmtArchitectDesignProject[]
   isVisible: boolean
   /** Tên công ty (nullable — tạo mới có thể bỏ trống). */
   companyName?: string | null
@@ -93,6 +102,8 @@ export const CONSULT_LIMITS = {
   companyName: 200,
   avatarUrl: 2048,
   introduction: 5000,
+  shortDescription: 500,
+  designProjectName: 200,
   categoryName: 200,
   internalNote: 5000
 } as const

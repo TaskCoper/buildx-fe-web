@@ -6,6 +6,8 @@ import { useTranslations } from 'next-intl'
 import { useMemo, useState } from 'react'
 
 import { cmsText, useCmsCollection, type CmsTestimonial } from '@/shared/cms'
+import { useHomeSections } from '@/shared/cms/home-content'
+import { itemText, sectionItems, sectionText } from '@/shared/cms/home-sections'
 import { revealEase } from '@/shared/components/common'
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/components/ui/avatar'
 import { useMediaQuery, useScrollSnapIndex } from '@/shared/hooks'
@@ -17,14 +19,16 @@ const STARS = [0, 1, 2, 3, 4]
 /** Desktop hiện 3 thẻ một trang; 6 đánh giá → 2 trang lật bằng mũi tên. */
 const PAGE_SIZE = 3
 
-/** Trang chủ hiện tối đa 6 đánh giá (góp ý BuildX). */
+/** Trang chủ hiện tối đa 6 đánh giá khi lấy từ bảng CMS cục bộ (góp ý BuildX). */
 const MAX_TESTIMONIALS = 6
 
+/** Số đánh giá tối đa admin lưu được ở khối `testimonials` của trang chủ (khớp giới hạn của backend). */
+const MAX_SAVED_TESTIMONIALS = 12
+
 /**
- * Dải "Khách hàng nói về BuildX" — tối đa 6 đánh giá dạng slide có mũi tên
- * (góp ý BuildX). Ảnh đại diện, tên, thông tin công trình và nội dung nằm trong bảng CMS
- * `testimonials` (admin sửa ở "Nhận xét khách hàng"); trường chữ để trống thì dùng bản dịch trong
- * i18n, ảnh để trống thì hiện chữ cái đầu của tên.
+ * Dải "Khách hàng nói về BuildX" — đánh giá dạng slide có mũi tên (góp ý BuildX). Danh sách admin lưu ở khối
+ * `testimonials` của trang chủ (tên, thông tin công trình, lời đánh giá, ảnh đại diện) được ưu tiên; chưa lưu thì dùng
+ * bảng CMS cục bộ `testimonials` và bản dịch trong i18n. Ảnh để trống thì hiện chữ cái đầu của tên.
  *
  * ★ Thẻ hiện lần lượt; trong thẻ 5 sao sáng lần lượt → trích dẫn → tên. Rê
  * thẻ: nhấc + vạch xanh mép trái. Desktop: 3 thẻ/trang, mũi tên lật trang.
@@ -34,14 +38,29 @@ export function HomeTestimonials() {
   const t = useTranslations('landing.testimonials')
   const [page, setPage] = useState(0)
   const collection = useCmsCollection('testimonials')
-  const all = useMemo(
-    () =>
-      collection
-        .filter((item) => item.status === 'active')
-        .sort((a, b) => a.order - b.order)
-        .slice(0, MAX_TESTIMONIALS),
-    [collection]
-  )
+  const sections = useHomeSections()
+  const all = useMemo<CmsTestimonial[]>(() => {
+    // Danh sách admin đã lưu: thứ tự trong danh sách là thứ tự hiển thị; mục không có lời đánh giá thì bỏ qua.
+    const saved = sectionItems(sections, 'testimonials', 'reviews')
+      ?.map(
+        (item, index): CmsTestimonial => ({
+          id: `home-${index}`,
+          name: itemText(item, 'name') ?? '',
+          meta: itemText(item, 'meta') ?? '',
+          quote: itemText(item, 'quote') ?? '',
+          avatarUrl: itemText(item, 'avatarUrl') ?? '',
+          status: 'active',
+          order: index
+        })
+      )
+      .filter((review) => review.quote !== '')
+    if (saved && saved.length > 0) return saved.slice(0, MAX_SAVED_TESTIMONIALS)
+
+    return collection
+      .filter((item) => item.status === 'active')
+      .sort((a, b) => a.order - b.order)
+      .slice(0, MAX_TESTIMONIALS)
+  }, [collection, sections])
   const { ref: trackRef, active, scrollTo } = useScrollSnapIndex<HTMLUListElement>()
 
   const isDesktop = useMediaQuery('(min-width: 1024px)')
@@ -60,7 +79,9 @@ export function HomeTestimonials() {
       <div className='mx-auto w-full max-w-[90rem] px-4 py-5 lg:px-8'>
         <div className='flex items-center justify-between gap-4'>
           {/* Góp ý BuildX: nhãn nhỏ viết hoa đổi thành headline chính, cùng cỡ với các tiêu đề khối phía trên. */}
-          <h2 className='text-2xl font-bold tracking-tight text-balance lg:text-[1.75rem]'>{t('titleMobile')}</h2>
+          <h2 className='text-2xl font-bold tracking-tight text-balance lg:text-[1.75rem]'>
+            {sectionText(sections, 'testimonials', 'title') ?? t('titleMobile')}
+          </h2>
 
           {all.length > 1 ? (
             <div className='flex items-center gap-2'>

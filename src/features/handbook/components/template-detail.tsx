@@ -571,14 +571,6 @@ export function TemplateDetail({ templateId }: { templateId: string }) {
       className='mx-auto w-full max-w-[90rem] space-y-5 lg:space-y-8 px-4 py-5 lg:px-8'
     >
       <div className='space-y-3'>
-        <Link
-          href={ROUTES.HANDBOOK}
-          data-back-navigation
-          className='text-foreground hover:text-foreground inline-flex items-center gap-1.5 text-sm font-medium transition-colors lg:hidden'
-        >
-          <ArrowLeft className='size-4' />
-          {t('breadcrumbRoot')}
-        </Link>
         <Breadcrumb data-entrance-step='0' data-detail-breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
@@ -607,6 +599,8 @@ export function TemplateDetail({ templateId }: { templateId: string }) {
           </BreadcrumbList>
         </Breadcrumb>
 
+        {/* Nút quay lại CHỈ có ở mobile và chỉ MỘT nút (góp ý case 9, 13): desktop đã có đường dẫn
+            "Cẩm nang > Thư viện mẫu > …" ngay trên nên không cần nút Quay lại. */}
         <button
           type='button'
           data-entrance-step='1'
@@ -614,7 +608,7 @@ export function TemplateDetail({ templateId }: { templateId: string }) {
           data-detail-back
           data-back-navigation
           onClick={handleBack}
-          className='text-foreground inline-flex items-center gap-1.5 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30'
+          className='text-foreground inline-flex items-center gap-1.5 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 lg:hidden'
         >
           <ArrowLeft data-detail-back-arrow className='size-4 transition-transform duration-200' />
           <span>{t('back')}</span>
