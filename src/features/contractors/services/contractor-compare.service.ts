@@ -4,7 +4,7 @@ import type { Contractor } from '../types/contractor.types'
  * Phần thuần của bảng so sánh nhà thầu (S15), không import gì ngoài kiểu để kiểm bằng `node --test`
  * (xem `scripts/contractor-compare.test.mjs`).
  *
- * Bảng so sánh gửi DANH SÁCH MÃ nhà thầu đã tick lên `GET /contractors/compare` (BR-CTR-008) và nhận lại thông tin từng
+ * Bảng so sánh gửi DANH SÁCH MÃ nhà thầu đã tick lên `GET /contractors/compare` (BR-CTR-010) và nhận lại thông tin từng
  * nhà thầu theo đúng thứ tự, không phụ thuộc nhà thầu có nằm trong danh sách đề xuất hay không. Trường nào nhà thầu chưa
  * khai báo là `null` ở phản hồi và giao diện hiện "Chưa cập nhật".
  */

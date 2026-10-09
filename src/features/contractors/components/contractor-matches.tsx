@@ -29,14 +29,14 @@ import {
   SERVICE_REGIONS
 } from '../constants/contractors.constants'
 import { useBrief } from '../hooks/use-brief'
-import { useContractors, useContractorFilterOptions } from '../hooks/use-contractors'
+import { useContractors, useContractorFilterOptions, useContractorsCompare } from '../hooks/use-contractors'
 import { useInvitations } from '../hooks/use-invitations'
 import { useSelectedProject } from '../hooks/use-selected-project'
 import { briefReadiness, isBriefComplete } from '../services/brief.service'
 import { filterContractors, isInvited } from '../services/contractor-list.service'
 import { useContractorsStore } from '../store/contractors.store'
 import { useProjectPickerStore } from '../store/project-picker.store'
-import type { ContractorSort, SearchRadiusKm, ServiceRegion } from '../types/contractor.types'
+import type { Contractor, ContractorSort, SearchRadiusKm, ServiceRegion } from '../types/contractor.types'
 import { ContractorCard } from './contractor-card'
 import { ContractorLogo } from './contractor-logo'
 import { ProjectContextBar } from './project-context-bar'
@@ -190,6 +190,7 @@ function DrawnCheck({ delay, duration }: { delay: number; duration: number }) {
 function ContractorMatchesContent({ projectId }: ContractorMatchesProps) {
   const t = useTranslations('contractors.matches')
   const tSort = useTranslations('contractors.sort')
+  const tCommon = useTranslations('contractors.common')
   const reduceMotion = useReducedMotion()
 
   const { data: brief, isError: briefFailed } = useBrief(projectId)
@@ -266,7 +267,25 @@ function ContractorMatchesContent({ projectId }: ContractorMatchesProps) {
   const sent = invitations ?? []
   const used = sent.length
   const inviteLocked = remaining === 0
-  const selected = (contractors ?? []).filter((c) => compareIds.includes(c.id))
+
+  // Khay "So sánh" phải đủ MỌI nhà thầu đã tick, kể cả nhà thầu thuộc tab vùng hoặc bán kính khác nên không nằm trong danh
+  // sách đang hiện (số đếm lấy từ `compareIds`, khay mà lọc theo danh sách thì đếm 3/3 mà chỉ hiện 2). Các mã ngoài danh
+  // sách lấy tên, logo, điểm qua API so sánh: một request, không kèm công trình vì khay không cần khoảng cách.
+  const listedIds = new Set((contractors ?? []).map((c) => c.id))
+  const unlistedIds = compareIds.filter((id) => !listedIds.has(id))
+  const unlisted = useContractorsCompare(unlistedIds, undefined, filtersReady && contractors !== undefined)
+  const selectedById = new Map<string, Contractor>(
+    [...(unlisted.data?.contractors ?? []), ...(contractors ?? [])].map((c) => [c.id, c])
+  )
+  const selected = compareIds.flatMap((id) => selectedById.get(id) ?? [])
+  const loadingSelectedCount = unlisted.isFetching ? unlistedIds.filter((id) => !selectedById.has(id)).length : 0
+
+  // Mã BE báo không còn dùng được (hồ sơ bị ẩn hoặc xoá) thì bỏ khỏi lựa chọn, nếu không số đếm kẹt ở 3/3 mà không có chip nào.
+  useEffect(() => {
+    for (const id of unlisted.data?.missingIds ?? []) {
+      if (useContractorsStore.getState().compareIds.includes(id)) toggleCompare(id)
+    }
+  }, [unlisted.data, toggleCompare])
 
   /** Vừa từ M04 sang (mục 6/10) — đọc một lần rồi xoá cờ ngay. */
   const [justArrived, setJustArrived] = useState(false)
@@ -718,7 +737,7 @@ function ContractorMatchesContent({ projectId }: ContractorMatchesProps) {
                     <span className='min-w-0 flex-1 truncate text-sm font-medium'>{contractor.name}</span>
                     <span className='inline-flex shrink-0 items-center gap-1 text-sm font-semibold'>
                       <Star className='text-warning size-3.5 fill-current' />
-                      {contractor.rating}/5
+                      {contractor.ratingKnown === false ? tCommon('ratingUnknown') : `${contractor.rating}/5`}
                     </span>
                     <button
                       type='button'
@@ -731,6 +750,13 @@ function ContractorMatchesContent({ projectId }: ContractorMatchesProps) {
                   </motion.li>
                 ))}
               </AnimatePresence>
+              {/* Nhà thầu ngoài danh sách đang hiện đang được tải: giữ chỗ để khay không thiếu chip rồi nhảy ra sau. */}
+              {Array.from({ length: loadingSelectedCount }, (_, index) => (
+                <li key={`loading-${index}`} aria-hidden className='flex items-center gap-2.5 rounded-xl border p-2.5'>
+                  <Skeleton className='size-10 rounded-lg' />
+                  <Skeleton className='h-4 flex-1' />
+                </li>
+              ))}
             </ul>
 
             <p className='text-muted-foreground mt-3 text-xs'>

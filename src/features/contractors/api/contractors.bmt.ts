@@ -101,7 +101,7 @@ export interface CompareContractorsResult {
 }
 
 /**
- * `GET /contractors/compare?ids=…&ids=…&constructionSiteId=…` (BR-CTR-008): một request cho cả danh sách mã. Có công trình thì
+ * `GET /contractors/compare?ids=…&ids=…&constructionSiteId=…` (BR-CTR-010): một request cho cả danh sách mã. Có công trình thì
  * BE tính thêm khoảng cách và số dự án tương tự (cần đăng nhập, đúng chủ công trình); không có thì hai số này chưa cập nhật.
  */
 async function compareContractors(
