@@ -17,7 +17,7 @@ import { toast } from 'sonner'
 
 import { Link, useRouter } from '@/i18n/navigation'
 import { useAuth, useAuthDialogStore } from '@/shared/auth'
-import { ErrorState } from '@/shared/components/common'
+import { ErrorState, ImageLightbox, preloadImage, type LightboxPhoto } from '@/shared/components/common'
 import { Badge } from '@/shared/components/ui/badge'
 import { Button } from '@/shared/components/ui/button'
 import {
@@ -33,6 +33,7 @@ import { Skeleton } from '@/shared/components/ui/skeleton'
 import { ROUTES } from '@/shared/constants/routes'
 import { usePageEntrance } from '@/shared/hooks'
 import { cn } from '@/shared/lib/utils'
+import { libraryImageUrl } from '@/shared/media/library-image.logic'
 import {
   HANDBOOK_DETAIL_CONSULT_PULSE_SESSION_KEY,
   HANDBOOK_TEMPLATE_RETURN_SESSION_KEY
@@ -48,7 +49,7 @@ import {
 import { useTemplateClassification } from '../hooks/use-template-classification'
 import { selectSimilarTemplates } from '../services/handbook.service'
 import { useHandbookReadStore } from '../store/handbook-read.store'
-import type { HandbookTemplate } from '../types/handbook.types'
+import type { HandbookFloor, HandbookTemplate } from '../types/handbook.types'
 import { ConsultButton } from './consult-button'
 import { FloorSwitcher, resolveFloor } from './floor-switcher'
 import { QuotaBadge } from './quota-badge'
@@ -879,6 +880,7 @@ export function TemplateDetail({ templateId }: { templateId: string }) {
 
 interface ViewerLabels {
   zoom: string
+  closeViewer?: string
   viewerTitle: string
   previousFloor: string
   nextFloor: string
@@ -921,11 +923,50 @@ function TemplateFloorViewer({
     axis: 'pending' as 'pending' | 'horizontal' | 'vertical'
   })
   const [lightboxOpen, setLightboxOpen] = useState(false)
+  const [lightboxPhotos, setLightboxPhotos] = useState<LightboxPhoto[]>([])
   const [zoomScale, setZoomScale] = useState(1)
+  // Mọi tầng đều có ảnh thì xem bằng hộp xem ảnh có zoom (như bên admin); tầng vẽ bằng SVG thì giữ hộp cũ.
+  const imageViewer = floors.length > 0 && floors.every((floor) => Boolean(floor.imageUrl))
   const pinchPointersRef = useRef(new Map<number, { x: number; y: number }>())
   const pinchStartRef = useRef<{ distance: number; scale: number } | null>(null)
 
   const reduceMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+  /** Bản nét để zoom: ảnh thư viện qua route đổi AVIF cỡ lớn nhất, ảnh công khai thì giữ nguyên. */
+  const zoomSource = useCallback((floor: HandbookFloor) => {
+    const src = floor.imageUrl ?? ''
+    return libraryImageUrl(src, 1920) ?? src
+  }, [])
+
+  /** Tải trước bản nét của tầng đang xem (rê chuột / chạm vào nút phóng to) để mở hộp là có ảnh ngay. */
+  const prefetchZoom = useCallback(() => {
+    const floor = floors[activeIndex]
+    if (imageViewer && floor) preloadImage(zoomSource(floor))
+  }, [activeIndex, floors, imageViewer, zoomSource])
+
+  /**
+   * Mở hộp xem ảnh. Ảnh nhỏ đang hiện ở khung xem đã nằm trong bộ nhớ đệm nên dùng làm ảnh tạm: hộp mở ra có hình ngay,
+   * bản nét tải xong thì thay vào.
+   */
+  const openLightbox = () => {
+    if (imageViewer) {
+      setLightboxPhotos(
+        floors.map((floor) => {
+          const loaded = viewportRef.current?.querySelector<HTMLImageElement>(
+            `[data-detail-floor-panel="${CSS.escape(floor.id)}"] img`
+          )
+          return {
+            url: zoomSource(floor),
+            caption: floor.groupLabel ? `${floor.groupLabel} · ${floor.label}` : floor.label,
+            ...(loaded?.complete && loaded.naturalWidth > 0 && loaded.currentSrc
+              ? { placeholderUrl: loaded.currentSrc }
+              : {})
+          }
+        })
+      )
+    }
+    setLightboxOpen(true)
+  }
 
   const readX = useCallback((fallback: number) => {
     const track = trackRef.current
@@ -1058,7 +1099,7 @@ function TemplateFloorViewer({
   const finishDrag = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (event.pointerType === 'mouse') {
       const target = event.target as HTMLElement
-      if (template.kind === '3d' && !target.closest('[data-detail-zoom],[data-detail-nav]')) setLightboxOpen(true)
+      if (template.kind === '3d' && !target.closest('[data-detail-zoom],[data-detail-nav]')) openLightbox()
       return
     }
 
@@ -1085,7 +1126,7 @@ function TemplateFloorViewer({
   }
 
   useEffect(() => {
-    if (!lightboxOpen) return
+    if (!lightboxOpen || imageViewer) return
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'ArrowLeft' && activeIndex > 0) {
         event.preventDefault()
@@ -1098,7 +1139,7 @@ function TemplateFloorViewer({
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [activeIndex, floors.length, lightboxOpen, selectIndex])
+  }, [activeIndex, floors.length, imageViewer, lightboxOpen, selectIndex])
 
   const onPinchPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (event.pointerType !== 'touch') return
@@ -1145,6 +1186,9 @@ function TemplateFloorViewer({
             event.preventDefault()
             selectIndex(activeIndex + 1)
           }
+        }}
+        onPointerEnter={(event) => {
+          if (event.pointerType === 'mouse' && template.kind === '3d') prefetchZoom()
         }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
@@ -1221,15 +1265,30 @@ function TemplateFloorViewer({
           type='button'
           data-detail-zoom
           aria-label={labels.zoom}
-          onClick={() => setLightboxOpen(true)}
+          onPointerEnter={prefetchZoom}
+          onFocus={prefetchZoom}
+          onTouchStart={prefetchZoom}
+          onClick={openLightbox}
           className='bg-background/85 text-foreground hover:bg-background absolute top-3 right-3 flex size-9 items-center justify-center rounded-full border shadow-sm backdrop-blur transition-[background-color,transform] hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30'
         >
           <Maximize2 className='size-4' />
         </button>
       </div>
 
+      {imageViewer ? (
+        <ImageLightbox
+          photos={lightboxPhotos}
+          index={lightboxOpen ? activeIndex : null}
+          onClose={() => setLightboxOpen(false)}
+          onNavigate={selectIndex}
+          closeLabel={labels.closeViewer}
+          previousLabel={labels.previousFloor}
+          nextLabel={labels.nextFloor}
+        />
+      ) : null}
+
       <Dialog
-        open={lightboxOpen}
+        open={lightboxOpen && !imageViewer}
         onOpenChange={(open) => {
           setLightboxOpen(open)
           if (!open) {

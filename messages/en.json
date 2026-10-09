@@ -10,6 +10,21 @@
     "search": "Search",
     "submit": "Submit",
     "close": "Close",
+    "imageViewer": {
+      "title": "Image viewer",
+      "close": "Close",
+      "previous": "Previous image",
+      "next": "Next image",
+      "counter": "{current} / {total}",
+      "toolbar": "Image tools",
+      "zoomIn": "Zoom in",
+      "zoomOut": "Zoom out",
+      "rotateLeft": "Rotate left",
+      "rotateRight": "Rotate right",
+      "reset": "Reset",
+      "loading": "Loading full-quality image…",
+      "loadFailed": "Could not load the full-quality image"
+    },
     "hotlinePopover": {
       "title": "BuildX hotline",
       "hint": "Call this number from your phone, or message BuildX on Zalo.",

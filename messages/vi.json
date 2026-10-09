@@ -10,6 +10,21 @@
     "search": "Tìm kiếm",
     "submit": "Gửi",
     "close": "Đóng",
+    "imageViewer": {
+      "title": "Xem ảnh lớn",
+      "close": "Đóng",
+      "previous": "Ảnh trước",
+      "next": "Ảnh sau",
+      "counter": "{current} / {total}",
+      "toolbar": "Công cụ xem ảnh",
+      "zoomIn": "Phóng to",
+      "zoomOut": "Thu nhỏ",
+      "rotateLeft": "Xoay trái",
+      "rotateRight": "Xoay phải",
+      "reset": "Đặt lại",
+      "loading": "Đang tải ảnh nét…",
+      "loadFailed": "Không tải được ảnh nét"
+    },
     "hotlinePopover": {
       "title": "Hotline BuildX",
       "hint": "Gọi số này từ điện thoại của bạn, hoặc nhắn Zalo cho BuildX.",

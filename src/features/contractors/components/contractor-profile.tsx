@@ -28,7 +28,14 @@ import { createPortal } from 'react-dom'
 import { Link, useRouter } from '@/i18n/navigation'
 import type { Locale } from '@/i18n/routing'
 import { useCmsCollection } from '@/shared/cms'
-import { Photo, revealContainerVariants, revealEase, revealItemVariants, RevealPhoto } from '@/shared/components/common'
+import {
+  ImageLightbox,
+  revealContainerVariants,
+  revealEase,
+  revealItemVariants,
+  RevealPhoto,
+  type LightboxPhoto
+} from '@/shared/components/common'
 import { Button } from '@/shared/components/ui/button'
 import {
   Dialog,
@@ -827,11 +834,8 @@ function CollagePhoto({
 }
 
 /**
- * Hộp phóng ảnh doanh nghiệp (mục 6) — phóng ra từ đúng ảnh vừa bấm, mũi tên
- * chuyển ảnh, Esc/bấm nền để đóng.
- *
- * Shared layout giữ đúng điểm xuất phát của ảnh; kéo ngang, phím mũi tên và Esc
- * cùng dùng chung một chỉ số nên không tạo ba luồng điều hướng lệch nhau.
+ * Hộp phóng ảnh doanh nghiệp (mục 6): dùng hộp xem ảnh chung của site khách — zoom, xoay, kéo ảnh, mũi tên chuyển ảnh,
+ * Esc / bấm nền để đóng.
  */
 function PhotoLightbox({
   photos,
@@ -844,96 +848,19 @@ function PhotoLightbox({
   onClose: () => void
   onNavigate: (nextIndex: number) => void
 }) {
-  const reduceMotion = useReducedMotion()
   const captionOf = usePhotoCaption()
-  useEffect(() => {
-    if (index === null) return
-    const handleKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose()
-      if (event.key === 'ArrowLeft') onNavigate((index - 1 + photos.length) % photos.length)
-      if (event.key === 'ArrowRight') onNavigate((index + 1) % photos.length)
-    }
-    window.addEventListener('keydown', handleKey)
-    return () => window.removeEventListener('keydown', handleKey)
-  }, [index, photos.length, onClose, onNavigate])
-
-  const photo = index !== null ? photos[index] : undefined
-
+  const lightboxPhotos: LightboxPhoto[] = photos.map((photo) => ({
+    // Ảnh chưa có URL không mở được (ô trống): chỉ số của nó không bao giờ được truyền vào hộp xem ảnh.
+    url: photo.url ?? '',
+    ...(captionOf(photo) ? { caption: captionOf(photo) } : {})
+  }))
   return (
-    <AnimatePresence>
-      {photo?.url ? (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
-          onClick={(event) => {
-            if (event.target === event.currentTarget) onClose()
-          }}
-          className='fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-6'
-        >
-          <motion.div
-            key={index}
-            layoutId={`firm-photo-${index}`}
-            initial={reduceMotion ? false : { opacity: 0.65, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={reduceMotion ? undefined : { opacity: 0.65, scale: 0.98 }}
-            transition={{ duration: 0.25 }}
-            drag={photos.length > 1 && !reduceMotion ? 'x' : false}
-            dragConstraints={{ left: 0, right: 0 }}
-            dragElastic={0.22}
-            onDragEnd={(_, info) => {
-              if (info.offset.x < -60) onNavigate(((index ?? 0) + 1) % photos.length)
-              if (info.offset.x > 60) onNavigate(((index ?? 0) - 1 + photos.length) % photos.length)
-            }}
-            className='relative aspect-video w-full max-w-3xl overflow-hidden rounded-2xl'
-          >
-            <Photo src={photo.url} alt='' className='size-full' sizes='90vw' />
-            {captionOf(photo) ? (
-              <p className='absolute inset-x-0 bottom-0 bg-linear-to-t from-black/75 to-transparent px-4 pt-8 pb-3 text-sm font-medium text-white'>
-                {captionOf(photo)}
-              </p>
-            ) : null}
-          </motion.div>
-
-          <button
-            type='button'
-            onClick={onClose}
-            aria-label='Close'
-            className='absolute top-4 right-4 flex size-9 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20'
-          >
-            <X className='size-4' />
-          </button>
-
-          {photos.length > 1 ? (
-            <>
-              <button
-                type='button'
-                onClick={(event) => {
-                  event.stopPropagation()
-                  onNavigate(((index ?? 0) - 1 + photos.length) % photos.length)
-                }}
-                aria-label='Previous photo'
-                className='absolute left-4 flex size-9 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20'
-              >
-                <ChevronLeft className='size-5' />
-              </button>
-              <button
-                type='button'
-                onClick={(event) => {
-                  event.stopPropagation()
-                  onNavigate(((index ?? 0) + 1) % photos.length)
-                }}
-                aria-label='Next photo'
-                className='absolute right-4 flex size-9 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20'
-              >
-                <ChevronRight className='size-5' />
-              </button>
-            </>
-          ) : null}
-        </motion.div>
-      ) : null}
-    </AnimatePresence>
+    <ImageLightbox
+      photos={lightboxPhotos}
+      index={index !== null && photos[index]?.url ? index : null}
+      onClose={onClose}
+      onNavigate={onNavigate}
+    />
   )
 }
 
