@@ -161,6 +161,15 @@ function ApiResourceManagerBody<T>({
   // Dòng vừa bấm mở: giữ lại để trang form không phụ thuộc việc dòng đó còn nằm trong trang danh sách hiện tại.
   const [opened, setOpened] = useState<T | null>(null)
 
+  // Đổi bộ lọc ngoài (nằm trong `queryKey`) thì về trang 1: đang ở trang 3 mà lọc ra ít kết quả sẽ không còn trang 3
+  // và bảng hiện trống. Điều chỉnh ngay khi vẽ, không đợi effect nên không có một lần tải thừa ở trang cũ.
+  const filterKey = JSON.stringify(queryKey)
+  const [appliedFilterKey, setAppliedFilterKey] = useState(filterKey)
+  if (appliedFilterKey !== filterKey) {
+    setAppliedFilterKey(filterKey)
+    setPage(1)
+  }
+
   const { data, isPending, isFetching, isError, error } = useQuery({
     queryKey: [...queryKey, { page, pageSize, keyword }],
     queryFn: () => fetchPage({ pageIndex: page, pageSize, keyword: keyword || undefined }),

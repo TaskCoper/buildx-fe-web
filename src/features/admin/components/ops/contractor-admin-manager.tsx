@@ -2,9 +2,9 @@
 
 import { DeleteOutlined, EyeInvisibleOutlined, EyeOutlined } from '@ant-design/icons'
 import { useQuery } from '@tanstack/react-query'
-import { App, Col, Divider, Form, Input, InputNumber, Row, Select, Typography } from 'antd'
+import { App, Col, Divider, Form, Input, InputNumber, Row, Segmented, Select, Typography } from 'antd'
 import { useTranslations } from 'next-intl'
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 
 import { getContractorFilterOptions, type ContractorFilterOptions } from '@/shared/contractors'
 import {
@@ -147,6 +147,8 @@ function buildProfileBody(
   }
 }
 
+type ContractorStatusFilter = 'all' | 'Visible' | 'Hidden'
+
 export function ContractorAdminManager() {
   const t = useTranslations('admin')
   const c = useTranslations('admin.contractorsAdmin')
@@ -155,6 +157,8 @@ export function ContractorAdminManager() {
   // Giữ bản chi tiết đã tải để lưu lại ảnh/giấy phép/hợp tác chưa quản lý ở form
   // CRUD này (tránh gửi rỗng làm BE xoá mất).
   const detailRef = useRef(new Map<string, AdminContractorDetail>())
+  // Lọc theo trạng thái hiển thị: gửi `status` lên `GET /admin/contractors` (BE chưa có tìm theo tên).
+  const [status, setStatus] = useState<ContractorStatusFilter>('all')
 
   const options = useQuery<FilterOptions>({
     queryKey: ['admin', 'contractor-form-options'],
@@ -175,9 +179,21 @@ export function ContractorAdminManager() {
     <ApiResourceManager<AdminContractorItem>
       title={t('nav.contractors')}
       description={c('description')}
-      queryKey={['admin', 'contractors']}
-      searchable
-      fetchPage={({ pageIndex, pageSize }) => contractorsAdminApi.list({ pageIndex, pageSize })}
+      queryKey={['admin', 'contractors', status]}
+      fetchPage={({ pageIndex, pageSize }) =>
+        contractorsAdminApi.list({ pageIndex, pageSize, status: status === 'all' ? undefined : status })
+      }
+      banner={
+        <Segmented<ContractorStatusFilter>
+          value={status}
+          onChange={setStatus}
+          options={[
+            { value: 'all', label: c('allStatuses') },
+            { value: 'Visible', label: c('visible') },
+            { value: 'Hidden', label: c('hidden') }
+          ]}
+        />
+      }
       rowKey={(item) => item.contractorId}
       drawerWidth={720}
       createValues={() => ({

@@ -661,3 +661,49 @@ Theo yêu cầu "không có API thì xoá", các chức năng dưới đây đã
 - Họ tên ghép `lastName` rồi `firstName`; thiếu cả hai thì dùng email.
 - Trạng thái `Locked` của backend hiện là "Đã ban" để giữ nhãn cũ của màn.
 - Các bộ dữ liệu mẫu cũ của màn (`customers`, `customerPackages`, `quotaEvents` trong kho CMS cục bộ) không còn được màn này đọc.
+
+## 13. Admin — ô tìm kiếm và bộ lọc (10/10/2026)
+
+Đã rà từng màn admin trong menu: mỗi ô tìm kiếm và bộ lọc có gửi lên API không, và tên tham số có khớp OpenAPI của `bmt-api.vnzdna.com` không. Kết quả: gần hết màn đã gọi API đúng. Có hai chỗ sai và đã sửa. Còn một số chỗ backend chưa có tham số, ghi ở cuối mục.
+
+### 1. Đã sửa
+
+- **Nhà thầu** (`/admin/contractors`): ô tìm kiếm cũ không làm gì, vì `GET /admin/contractors` chỉ nhận `status`, không có `keyword`. Đã bỏ ô tìm và thay bằng bộ lọc Tất cả / Đang hiện / Đang ẩn, gửi `status=Visible|Hidden`.
+- **Mọi bảng có bộ lọc dùng `ApiResourceManager`**: đổi bộ lọc không đưa bảng về trang 1. Đang ở trang 3 mà lọc ra ít kết quả thì bảng gửi `pageIndex=3` và hiện trống. Nay đổi bộ lọc là về trang 1.
+
+### 2. Đã gọi API đúng
+
+| Màn                             | Ô tìm / bộ lọc                                       | Tham số gửi lên API                                                                                  |
+| ------------------------------- | ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Đơn hàng                        | loại gói, trạng thái, mã thanh toán, khoảng ngày tạo | `GET /admin/payment-orders`: `kind`, `state`, `paymentCode`, `fromUtc`, `toUtc`                      |
+| Đơn hàng (xem theo lượt mua)    | loại gói, trạng thái hiệu lực, cách xử lý            | `GET /admin/package-purchases`: `kind`, `effectiveState`, `disposition`                              |
+| Giao dịch                       | trạng thái khớp, mã giao dịch ngân hàng, khoảng ngày | `GET /admin/bank-transactions`: `matchState`, `providerTransactionId`, `orderId`, `fromUtc`, `toUtc` |
+| Gói                             | trạng thái bán                                       | `GET /admin/plans`: `saleState`                                                                      |
+| Lời mời báo giá                 | trạng thái, mã hồ sơ                                 | `GET /admin/quotation-requests`: `status`, `siteCode`                                                |
+| Công trình                      | mã hồ sơ                                             | `GET /admin/construction-sites`: `code`                                                              |
+| Chuyên gia tư vấn               | hiện / ẩn                                            | `GET /admin/architects`: `isVisible`                                                                 |
+| Lịch hẹn tư vấn                 | trạng thái                                           | `GET /admin/consultation-requests`: `status`                                                         |
+| Khách hàng                      | tên, email, số điện thoại                            | `GET /customers`: `search`                                                                           |
+| Phân công                       | nhân viên, chỉ phân công đang hiệu lực               | `GET /assignments`: `staffUserId`, `activeOnly`                                                      |
+| Bài viết                        | từ khóa, trạng thái                                  | `GET /admin/news/articles`: `keyword`, `state`                                                       |
+| Video hướng dẫn                 | từ khóa                                              | `GET /admin/guides`: `keyword`                                                                       |
+| Bản tin của Cẩm nang (chọn bài) | từ khóa                                              | `GET /admin/news/articles`: `keyword`                                                                |
+| Nhà thầu                        | trạng thái hiển thị                                  | `GET /admin/contractors`: `status`                                                                   |
+
+### 3. Lọc ngay trên trình duyệt vì backend không có tham số
+
+- **Vai trò, nhân viên, loại công trình, phong cách, phạm vi thi công**: backend trả cả danh sách, không phân trang và không có tham số tìm. Màn lấy hết rồi tìm trên trình duyệt, nên kết quả đúng với toàn bộ danh sách.
+- **Thư viện mẫu**: `GET /admin/library/templates` chỉ có phân trang. Màn đọc hết mẫu và phiên bản của từng mẫu rồi lọc 2D/3D và tìm theo tên trên trình duyệt. Cần backend thêm `drawingKind` và `keyword` để bỏ cách này.
+
+### 4. Cần báo backend
+
+| Việc                     | Endpoint                       | Ghi chú                                                   |
+| ------------------------ | ------------------------------ | --------------------------------------------------------- |
+| Tìm nhà thầu theo tên    | `GET /admin/contractors`       | Hiện chỉ có `status`; cần thêm `keyword` để làm lại ô tìm |
+| Lọc 2D/3D và tìm tên mẫu | `GET /admin/library/templates` | Cần `drawingKind`, `keyword`                              |
+
+### 5. Chưa làm
+
+- **Nhật ký truy cập** (`GET /access-audit`): backend đã có `actorUserId`, `targetType`, `targetId`, `fromUtc`, `toUtc` nhưng màn chưa có ô lọc nào. Thêm ô lọc là việc mới, chưa làm.
+- **Gói**: `GET /admin/plans` có `kind` (Thiết kế / Giám sát) nhưng màn chưa có ô lọc loại gói.
+- **Các màn đã ẩn khỏi menu** (Quà tặng, Mã giảm giá, Dự án giám sát, Giai đoạn giám sát, Gói giám sát, Đánh giá khách hàng, Nhóm chi phí, Hạng mục, Đơn giá vật liệu, Quy tắc đề xuất, Lịch khảo sát): dùng dữ liệu lưu cục bộ và backend chưa có API tương ứng, nên ô tìm và bộ lọc ở đó chạy trên dữ liệu cục bộ. Chỉ nối được khi backend có endpoint.

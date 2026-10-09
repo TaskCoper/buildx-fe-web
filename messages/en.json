@@ -4055,6 +4055,7 @@
       "name": "Contractor name",
       "address": "Address",
       "statusLabel": "Status",
+      "allStatuses": "All",
       "visible": "Visible",
       "hidden": "Hidden",
       "hide": "Hide profile",

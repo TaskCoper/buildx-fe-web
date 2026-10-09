@@ -4055,6 +4055,7 @@
       "name": "Tên nhà thầu",
       "address": "Địa chỉ",
       "statusLabel": "Trạng thái",
+      "allStatuses": "Tất cả",
       "visible": "Đang hiện",
       "hidden": "Đang ẩn",
       "hide": "Ẩn hồ sơ",
