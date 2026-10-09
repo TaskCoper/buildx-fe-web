@@ -39,6 +39,7 @@ const BmtContractorsApi = {
   listSlots: legacyQuotationUnavailable,
   listContractors: bmtContractorsApi.listContractors,
   getContractor: bmtContractorsApi.getContractor,
+  compareContractors: bmtContractorsApi.compareContractors,
   getContractorProject: bmtContractorsApi.getContractorProject
 } satisfies Partial<typeof mockContractorsApi>
 

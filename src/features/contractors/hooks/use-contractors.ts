@@ -1,6 +1,6 @@
 'use client'
 
-import { useQueries, useQuery } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { env } from '@/shared/config/env'
 import { getContractorFilterOptions, type ContractorSearchFilters } from '@/shared/contractors'
 
@@ -51,24 +51,17 @@ export function useContractor(contractorId: string) {
 }
 
 /**
- * Hồ sơ của một DANH SÁCH nhà thầu theo mã (bảng so sánh S15): mỗi mã một request `GET /contractors/{id}` chạy song song,
- * dùng chung cache với {@link useContractor}. Kết quả giữ đúng thứ tự `ids`; mã nào lỗi thì `contractors[i]` là `undefined`
- * và nằm trong `failedIds` — một nhà thầu lỗi không làm mất các cột còn lại.
+ * Bảng so sánh S15: gửi DANH SÁCH mã nhà thầu đã tick (và công trình đang làm việc nếu có) lên `GET /contractors/compare`,
+ * nhận thông tin từng nhà thầu theo đúng thứ tự mã trong một request. `data.missingIds` là mã không còn dùng được (không
+ * tồn tại hoặc nhà thầu đang ẩn); các nhà thầu còn lại vẫn có đủ cột. `enabled` để chờ biết công trình trước khi hỏi.
  */
-export function useContractorsByIds(ids: readonly string[]) {
-  return useQueries({
-    queries: ids.map((id) => ({
-      queryKey: contractorKeys.detail(id),
-      queryFn: () => contractorsApi.getContractor(id),
-      retry: false,
-      staleTime: 60 * 1000
-    })),
-    combine: (results) => ({
-      contractors: results.map((result) => result.data),
-      isPending: results.some((result) => result.isPending),
-      failedIds: ids.filter((_, index) => results[index]?.isError),
-      refetchFailed: () => Promise.all(results.map((result) => (result.isError ? result.refetch() : undefined)))
-    })
+export function useContractorsCompare(ids: readonly string[], constructionSiteId: string | undefined, enabled = true) {
+  return useQuery({
+    queryKey: contractorKeys.compare(ids, constructionSiteId),
+    queryFn: ({ signal }) => contractorsApi.compareContractors(ids, constructionSiteId, signal),
+    enabled: enabled && ids.length > 0,
+    staleTime: 30 * 1000,
+    retry: false
   })
 }
 

@@ -2,7 +2,7 @@ import type { Consultant } from '@/shared/cms'
 import { http } from '@/shared/lib/api'
 import type { PagedResult } from '@/shared/types'
 import { CONSULTANT_LIST_PAGE_SIZE } from '../constants/consultation.constants'
-import type { BookConsultationPayload, ConsultationBooking } from '../types/consultation.types'
+import type { BookConsultationPayload, ConsultationBooking, ConsultationRequestItem } from '../types/consultation.types'
 
 /**
  * Nối Tư vấn 1:1 vào BMT API (KTS công khai + gửi yêu cầu tư vấn miễn phí).
@@ -73,8 +73,23 @@ async function listConsultantsPage(pageIndex: number, signal?: AbortSignal): Pro
   return { ...page, items: page.items.map(toConsultant) }
 }
 
+/** Số yêu cầu mỗi trang của màn Lịch tư vấn 1:1. */
+const MY_REQUESTS_PAGE_SIZE = 10
+
+/** `GET /me/consultation-requests`: yêu cầu tư vấn của CHÍNH khách đăng nhập, mới nhất trước (chỉ đọc). */
+async function listMyRequestsPage(
+  pageIndex: number,
+  signal?: AbortSignal
+): Promise<PagedResult<ConsultationRequestItem>> {
+  return http.get<PagedResult<ConsultationRequestItem>>('/me/consultation-requests', {
+    params: { pageIndex, pageSize: MY_REQUESTS_PAGE_SIZE },
+    signal
+  })
+}
+
 export const bmtConsultationApi = {
   listConsultantsPage,
+  listMyRequestsPage,
   /**
    * Lấy DANH SÁCH KTS (một trang đầu), không kéo toàn bộ KTS về như trước. Mở hồ sơ
    * một KTS bất kỳ đã có `getConsultant` riêng nên không cần cả danh sách trong tay.

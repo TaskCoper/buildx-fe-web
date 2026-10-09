@@ -61,11 +61,24 @@ export function useBookConsultation() {
     onSuccess: (booking) => {
       queryClient.invalidateQueries({ queryKey: consultationKeys.availability(booking.consultantId) })
       queryClient.invalidateQueries({ queryKey: consultationKeys.myBookings() })
+      queryClient.invalidateQueries({ queryKey: consultationKeys.myRequests() })
       toast.success(t('successToast'))
     },
     onError: (error) => {
       toast.error(isApiError(error) ? error.message : tErrors('generic'))
     }
+  })
+}
+
+/** Yêu cầu tư vấn của chính khách (`GET /me/consultation-requests`), tải thêm từng trang. */
+export function useMyConsultationRequests(enabled = true) {
+  return useInfiniteQuery({
+    queryKey: consultationKeys.myRequests(),
+    queryFn: ({ pageParam, signal }) => consultationApi.listMyRequestsPage(pageParam, signal),
+    initialPageParam: 1,
+    getNextPageParam: (page) => (page.hasNextPage && page.items.length > 0 ? page.pageIndex + 1 : undefined),
+    enabled,
+    retry: false
   })
 }
 

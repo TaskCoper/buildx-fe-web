@@ -19,16 +19,15 @@ import { cn } from '@/shared/lib/utils'
 import { formatNumber } from '@/shared/utils'
 import { COMPARE_CRITERIA, MAX_INVITATIONS, MIN_COMPARE } from '../constants/contractors.constants'
 import { useBrief } from '../hooks/use-brief'
-import { useContractors, useContractorsByIds } from '../hooks/use-contractors'
+import { useContractor, useContractorsCompare } from '../hooks/use-contractors'
 import { useInvitations } from '../hooks/use-invitations'
 import {
   betterByCriterion,
   compareLegalVerified,
   compareNumber,
-  mergeForCompare,
   type CompareNumberCriterion
 } from '../services/contractor-compare.service'
-import { isInvited, withDistanceFrom } from '../services/contractor-list.service'
+import { isInvited } from '../services/contractor-list.service'
 import { useContractorsStore } from '../store/contractors.store'
 import type { Contractor } from '../types/contractor.types'
 import { ContractorLogo } from './contractor-logo'
@@ -93,16 +92,17 @@ export function ContractorCompare({ projectId }: ContractorCompareProps) {
   /** Xem thử — chưa gắn hồ sơ dự án nào (xem `CONTRACTOR_PREVIEW_ID`). */
   const preview = projectId === CONTRACTOR_PREVIEW_ID
 
-  const { data: brief } = useBrief(projectId)
-  const { data: contractors, isPending: listPending } = useContractors(projectId)
+  const { data: brief, isPending: briefPending } = useBrief(projectId)
   const { data: invitations, remaining } = useInvitations(projectId)
 
   const compareIds = useContractorsStore((s) => s.compareIds)
   const toggleCompare = useContractorsStore((s) => s.toggleCompare)
   const startInviteQueue = useContractorsStore((s) => s.startInviteQueue)
-  // Bảng so sánh lấy hồ sơ THEO TỪNG MÃ đã tick, không dựa vào danh sách đề xuất: nhà thầu tick từ hồ sơ riêng hoặc nằm
-  // ngoài danh sách đang hiện vẫn phải có cột.
-  const { contractors: details, isPending: detailsPending, failedIds, refetchFailed } = useContractorsByIds(compareIds)
+  // Bảng so sánh gửi DANH SÁCH MÃ đã tick lên `GET /contractors/compare` (kèm công trình đang làm việc để BE tính khoảng cách
+  // và dự án tương tự), không dựa vào danh sách đề xuất: nhà thầu tick từ hồ sơ riêng hoặc nằm ngoài danh sách đang hiện vẫn
+  // có cột. Chờ biết công trình rồi mới hỏi; xem thử (chưa có dự án) thì hỏi ngay, không kèm công trình.
+  const siteId = brief?.constructionSiteId
+  const compareQuery = useContractorsCompare(compareIds, siteId, preview || !briefPending)
 
   const [picked, setPicked] = useState<string[]>([])
   /** Làm nổi ô giá trị tốt hơn — công tắc tắt/mở (mục 4). */
@@ -114,6 +114,7 @@ export function ContractorCompare({ projectId }: ContractorCompareProps) {
   const [exceedShakeId, setExceedShakeId] = useState<string | null>(null)
   /** M06 dạng bảng bên, không rời khỏi bảng so sánh phía sau. */
   const [profileContractor, setProfileContractor] = useState<Contractor | null>(null)
+  const fullProfile = useContractor(profileContractor?.id ?? '')
   const [leavingBack, setLeavingBack] = useState(false)
 
   /** Nút "Mời" thở một nhịp ngay khi vừa có nhà thầu đầu tiên được chọn (mục 6). */
@@ -129,20 +130,21 @@ export function ContractorCompare({ projectId }: ContractorCompareProps) {
     wasAnyPickedRef.current = picked.length > 0
   }, [picked.length])
 
-  const isPending = listPending || detailsPending
-  const site = brief?.constructionSite
-  const siteCoords = site ? { latitude: site.latitude, longitude: site.longitude } : undefined
+  const isPending = (!preview && briefPending) || compareQuery.isPending
 
-  /* `compareIds` giữ thứ tự người dùng thêm. Cột mới vì thế luôn vào từ mép phải. Hồ sơ chi tiết ghép với số liệu theo dự án
-     (dự án tương tự, khoảng cách, giờ khảo sát) của danh sách đề xuất khi nhà thầu có trong đó. */
-  const rows = compareIds.flatMap((id, index) => {
-    const merged = mergeForCompare(
-      details[index],
-      (contractors ?? []).find((contractor) => contractor.id === id)
-    )
-    return merged ? [withDistanceFrom(merged, siteCoords)] : []
-  })
-  const unavailableCount = compareIds.length - rows.length
+  /* `compareIds` giữ thứ tự người dùng thêm và BE trả đúng thứ tự đó. Cột mới vì thế luôn vào từ mép phải. */
+  const rows = compareQuery.data?.contractors ?? []
+  // Mã BE báo không dùng được (không còn hoặc đang ẩn); lỗi cả request thì coi mọi mã chưa tải được.
+  const unavailableCount = compareQuery.isError ? compareIds.length : (compareQuery.data?.missingIds.length ?? 0)
+  // Hồ sơ mở ở sheet = dòng so sánh + phần giới thiệu và dự án tiêu biểu của hồ sơ đầy đủ khi đã tải xong.
+  const profileView = profileContractor
+    ? {
+        ...profileContractor,
+        intro: fullProfile.data?.intro ?? '',
+        strengths: fullProfile.data?.strengths ?? [],
+        featuredProjects: fullProfile.data?.featuredProjects ?? []
+      }
+    : null
   const room = remaining
 
   const togglePick = (contractorId: string) =>
@@ -260,8 +262,8 @@ export function ContractorCompare({ projectId }: ContractorCompareProps) {
           className='bg-muted/50 mx-auto flex w-fit max-w-3xl flex-wrap items-center justify-center gap-3 rounded-xl border px-4 py-3 text-sm'
         >
           <span>{t('loadFailed', { count: unavailableCount })}</span>
-          {failedIds.length > 0 ? (
-            <Button size='sm' variant='outline' onClick={() => void refetchFailed()}>
+          {compareQuery.isError ? (
+            <Button size='sm' variant='outline' onClick={() => void compareQuery.refetch()}>
               {t('retry')}
             </Button>
           ) : null}
@@ -592,19 +594,19 @@ export function ContractorCompare({ projectId }: ContractorCompareProps) {
         </>
       )}
 
-      <Sheet open={Boolean(profileContractor)} onOpenChange={(open) => !open && setProfileContractor(null)}>
+      <Sheet open={Boolean(profileView)} onOpenChange={(open) => !open && setProfileContractor(null)}>
         <SheetContent className='w-[94vw] overflow-y-auto sm:max-w-lg'>
-          {profileContractor ? (
+          {profileView ? (
             <>
               <SheetHeader className='pr-10'>
                 <div className='flex items-center gap-3'>
-                  <ContractorLogo contractor={profileContractor} className='size-14 shrink-0 rounded-xl' />
+                  <ContractorLogo contractor={profileView} className='size-14 shrink-0 rounded-xl' />
                   <div className='min-w-0'>
                     <SheetTitle className='flex items-center gap-1.5'>
-                      <span className='truncate'>{profileContractor.name}</span>
-                      {profileContractor.verified ? <BadgeCheck className='text-primary size-4 shrink-0' /> : null}
+                      <span className='truncate'>{profileView.name}</span>
+                      {profileView.verified ? <BadgeCheck className='text-primary size-4 shrink-0' /> : null}
                     </SheetTitle>
-                    <SheetDescription className='sr-only'>{profileContractor.name}</SheetDescription>
+                    <SheetDescription className='sr-only'>{profileView.name}</SheetDescription>
                   </div>
                 </div>
               </SheetHeader>
@@ -614,20 +616,20 @@ export function ContractorCompare({ projectId }: ContractorCompareProps) {
                   <div className='bg-muted/40 rounded-xl p-3'>
                     <dt className='text-muted-foreground text-xs'>{t('criteria.rating')}</dt>
                     <dd className='mt-1 font-semibold'>
-                      {compareNumber('rating', profileContractor) === null ? (
+                      {compareNumber('rating', profileView) === null ? (
                         <span className='text-muted-foreground font-normal'>{t('notUpdated')}</span>
                       ) : (
-                        <>{formatNumber(profileContractor.rating, locale, { minimumFractionDigits: 1 })}/5</>
+                        <>{formatNumber(profileView.rating, locale, { minimumFractionDigits: 1 })}/5</>
                       )}
                     </dd>
                   </div>
                   <div className='bg-muted/40 rounded-xl p-3'>
                     <dt className='text-muted-foreground text-xs'>{t('criteria.similarProjects')}</dt>
                     <dd className='mt-1 font-semibold'>
-                      {compareNumber('similarProjects', profileContractor) === null ? (
+                      {compareNumber('similarProjects', profileView) === null ? (
                         <span className='text-muted-foreground font-normal'>{t('notUpdated')}</span>
                       ) : (
-                        profileContractor.similarProjects
+                        profileView.similarProjects
                       )}
                     </dd>
                   </div>
@@ -636,10 +638,14 @@ export function ContractorCompare({ projectId }: ContractorCompareProps) {
                 <section>
                   <h3 className='font-semibold'>{tFirm('introTitle')}</h3>
                   <p className='text-muted-foreground mt-2 text-sm leading-relaxed text-pretty'>
-                    {profileContractor.intro || <span className='italic'>{t('notUpdated')}</span>}
+                    {fullProfile.isPending ? (
+                      <Skeleton className='h-16 w-full' />
+                    ) : (
+                      profileView.intro || <span className='italic'>{t('notUpdated')}</span>
+                    )}
                   </p>
                   <div className='mt-3 flex flex-wrap gap-2'>
-                    {profileContractor.strengths.map((strength) => (
+                    {profileView.strengths.map((strength) => (
                       <span key={strength} className='bg-primary/10 text-primary-strong rounded-md px-2.5 py-1 text-xs'>
                         {strength}
                       </span>
@@ -650,7 +656,7 @@ export function ContractorCompare({ projectId }: ContractorCompareProps) {
                 <section>
                   <h3 className='font-semibold'>{tFirm('featured')}</h3>
                   <ul className='mt-2 space-y-2'>
-                    {profileContractor.featuredProjects.map((project) => (
+                    {profileView.featuredProjects.map((project) => (
                       <li
                         key={project.id}
                         className='bg-muted/40 flex items-center justify-between gap-3 rounded-xl p-3'

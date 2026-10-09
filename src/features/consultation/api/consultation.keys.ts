@@ -6,5 +6,6 @@ export const consultationKeys = {
   consultantDetail: (id: string) => [...consultationKeys.consultants(), 'detail', id] as const,
 
   availability: (consultantId: string) => [...consultationKeys.all, 'availability', consultantId] as const,
-  myBookings: () => [...consultationKeys.all, 'my-bookings'] as const
+  myBookings: () => [...consultationKeys.all, 'my-bookings'] as const,
+  myRequests: () => [...consultationKeys.all, 'my-requests'] as const
 } as const

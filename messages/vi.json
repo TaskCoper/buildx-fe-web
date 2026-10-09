@@ -2234,6 +2234,31 @@
   },
   "account": {
     "title": "Tài khoản của tôi",
+    "consultationRequests": {
+      "note": "Yêu cầu tư vấn 1:1 là miễn phí. Giờ ghi dưới đây là giờ bạn mong muốn; kiến trúc sư hoặc BuildX sẽ gọi lại vào số liên lạc để thống nhất lịch.",
+      "bookNew": "Gửi yêu cầu tư vấn mới",
+      "total": "{count} yêu cầu đã gửi",
+      "desired": "Giờ mong muốn",
+      "contactPhone": "Số liên lạc",
+      "yourNote": "Nội dung bạn đã ghi",
+      "sentAt": "Gửi lúc {time}",
+      "status": {
+        "Pending": "Chờ liên hệ",
+        "Resolved": "Đã xử lý"
+      },
+      "loadMore": "Xem thêm",
+      "loadingMore": "Đang tải…",
+      "empty": {
+        "title": "Bạn chưa gửi yêu cầu tư vấn nào",
+        "description": "Chọn một kiến trúc sư và gửi giờ bạn mong muốn, BuildX sẽ gọi lại để thống nhất lịch.",
+        "action": "Chọn kiến trúc sư"
+      },
+      "error": {
+        "title": "Không tải được lịch tư vấn",
+        "description": "Có lỗi khi lấy danh sách yêu cầu của bạn. Vui lòng thử lại.",
+        "retry": "Thử lại"
+      }
+    },
     "pending": {
       "title": "Tính năng đang hoàn thiện",
       "description": "Phần này sẽ sớm được cập nhật khi hệ thống sẵn sàng. Cảm ơn bạn đã kiên nhẫn chờ."

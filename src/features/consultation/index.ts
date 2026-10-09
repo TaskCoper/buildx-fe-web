@@ -8,6 +8,8 @@ export { ConsultantDetail } from './components/consultant-detail'
 export { ConsultantCard } from './components/consultant-card'
 export { ConsultantHighlights } from './components/consultant-highlights'
 export { ConsultationHistory } from './components/consultation-history'
+export { ConsultationAccountPanel } from './components/consultation-account-panel'
+export { MyConsultationRequests } from './components/my-consultation-requests'
 export { ConsultTransitionStateProvider } from './components/consult-transition-state'
 export {
   useConsultants,
@@ -15,6 +17,7 @@ export {
   useAvailability,
   useBookConsultation,
   useMyConsultations,
+  useMyConsultationRequests,
   useCancelConsultation
 } from './hooks/use-consultation'
 export {
@@ -44,6 +47,8 @@ export type {
   ConsultationBookingStatus,
   ConsultationHistoryBooking,
   ConsultationHistoryStatus,
+  ConsultationRequestItem,
+  ConsultationRequestStatus,
   ConsultationDay,
   ConsultationSession,
   ConsultationSlot

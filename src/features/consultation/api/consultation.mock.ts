@@ -9,6 +9,7 @@ import type {
   ConsultationDay,
   ConsultationHistory,
   ConsultationHistoryBooking,
+  ConsultationRequestItem,
   ConsultationSlot
 } from '../types/consultation.types'
 
@@ -246,6 +247,19 @@ export const mockConsultationApi = {
 
     return booking
   },
+
+  /** Chế độ mock dùng màn lịch sử cũ (`getMyBookings`); hàm này chỉ để giữ cùng hình dạng với bản API thật. */
+  listMyRequestsPage: async (
+    _pageIndex: number,
+    _signal?: AbortSignal
+  ): Promise<PagedResult<ConsultationRequestItem>> => ({
+    items: [],
+    pageIndex: 1,
+    pageSize: 10,
+    totalCount: 0,
+    hasNextPage: false,
+    hasPreviousPage: false
+  }),
 
   getMyBookings: async (): Promise<ConsultationHistory> => {
     await mockDelay(220)

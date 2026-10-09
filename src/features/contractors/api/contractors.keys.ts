@@ -11,6 +11,9 @@ export const contractorKeys = {
     [...contractorKeys.all, 'list', projectId, filters] as const,
   /** Hồ sơ một nhà thầu (S13, S14). */
   detail: (contractorId: string) => [...contractorKeys.all, 'detail', contractorId] as const,
+  /** Bảng so sánh S15: danh sách mã đã chọn (và công trình nếu có). */
+  compare: (ids: readonly string[], constructionSiteId?: string) =>
+    [...contractorKeys.all, 'compare', [...ids], constructionSiteId ?? null] as const,
   /** Chi tiết một dự án trong hồ sơ nhà thầu (S13, hộp thoại dự án). */
   project: (contractorId: string, projectId: string) =>
     [...contractorKeys.all, 'project', contractorId, projectId] as const,

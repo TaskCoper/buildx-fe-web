@@ -252,6 +252,23 @@ export const mockContractorsApi = {
     return contractor ? publicProfile(contractor) : notFound(`nhà thầu ${contractorId}`)
   },
 
+  /** Mock của `GET /contractors/compare`: ghép từng hồ sơ theo mã; mã không có vào `missingIds` (không có công trình/khoảng cách). */
+  compareContractors: async (
+    ids: readonly string[],
+    _constructionSiteId?: string,
+    _signal?: AbortSignal
+  ): Promise<{ contractors: Contractor[]; missingIds: string[] }> => {
+    await mockDelay(200)
+    const contractors: Contractor[] = []
+    const missingIds: string[] = []
+    for (const id of ids) {
+      const contractor = cmsDb.find('contractors', id)
+      if (contractor && !contractor.hidden) contractors.push(publicProfile(contractor))
+      else missingIds.push(id)
+    }
+    return { contractors, missingIds }
+  },
+
   createBrief: async (): Promise<ProjectBrief> => {
     await mockDelay(200)
     const store = loadStore()

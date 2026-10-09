@@ -2234,6 +2234,31 @@
   },
   "account": {
     "title": "My account",
+    "consultationRequests": {
+      "note": "One-to-one consultation requests are free. The time shown below is the time you asked for; the architect or BuildX will call the contact number to agree on a schedule.",
+      "bookNew": "Send a new consultation request",
+      "total": "{count} requests sent",
+      "desired": "Preferred time",
+      "contactPhone": "Contact number",
+      "yourNote": "Your message",
+      "sentAt": "Sent {time}",
+      "status": {
+        "Pending": "Awaiting contact",
+        "Resolved": "Handled"
+      },
+      "loadMore": "Load more",
+      "loadingMore": "Loading…",
+      "empty": {
+        "title": "You have not sent any consultation request",
+        "description": "Pick an architect and send the time you prefer; BuildX will call back to agree on a schedule.",
+        "action": "Choose an architect"
+      },
+      "error": {
+        "title": "Could not load your consultations",
+        "description": "Something went wrong while fetching your requests. Please try again.",
+        "retry": "Retry"
+      }
+    },
     "pending": {
       "title": "Coming soon",
       "description": "This section will be available once the system is ready. Thanks for your patience."
