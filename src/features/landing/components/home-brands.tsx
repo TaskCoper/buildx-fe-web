@@ -1,10 +1,12 @@
 'use client'
 
+import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 
 import { useHomeSections } from '@/shared/cms/home-content'
 import { itemText, sectionItems, sectionText } from '@/shared/cms/home-sections'
+import { canOptimizeImage } from '@/shared/lib/image-src'
 import { cn } from '@/shared/lib/utils'
 import { HOME_BRAND_LOGOS, HOME_BRANDS } from '../constants/landing.constants'
 
@@ -62,16 +64,29 @@ export function HomeBrands() {
   )
 }
 
+const BRAND_IMAGE_CLASS = 'max-h-full max-w-full object-contain transition-transform duration-300 hover:scale-105'
+
 function BrandItem({ src, label, duplicate }: { src: string; label: string; duplicate: boolean }) {
+  const alt = duplicate ? '' : label
+
   return (
     <span className='flex h-14 w-36 shrink-0 items-center justify-center' aria-hidden={duplicate || undefined}>
-      {/* eslint-disable-next-line @next/next/no-img-element -- logo thương hiệu có nhiều tỉ lệ khác nhau */}
-      <img
-        src={src}
-        alt={duplicate ? '' : label}
-        loading='lazy'
-        className='max-h-full max-w-full object-contain transition-transform duration-300 hover:scale-105'
-      />
+      {canOptimizeImage(src) ? (
+        // Logo có nhiều tỉ lệ nên chưa biết kích thước: width/height = 0 kèm `auto` là cách Next hướng dẫn để ảnh giữ cỡ
+        // tự nhiên như thẻ `<img>`, mà vẫn qua bộ tối ưu — nhận AVIF/WebP đúng cỡ khung 144 px thay vì tải bản gốc.
+        <Image
+          src={src}
+          alt={alt}
+          width={0}
+          height={0}
+          sizes='144px'
+          style={{ width: 'auto', height: 'auto' }}
+          className={BRAND_IMAGE_CLASS}
+        />
+      ) : (
+        // eslint-disable-next-line @next/next/no-img-element -- URL admin dán ở host lạ không qua được next/image
+        <img src={src} alt={alt} loading='lazy' className={BRAND_IMAGE_CLASS} />
+      )}
     </span>
   )
 }

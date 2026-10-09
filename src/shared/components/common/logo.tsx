@@ -4,7 +4,7 @@ import { useSiteImage } from '@/shared/cms'
 import { cn } from '@/shared/lib/utils'
 
 /** Logo BuildX bản ngang (biểu tượng nhà + chữ BuildX), nền trong suốt. */
-const BUILDX_LOGO = '/images/brand/buildx-logo.png'
+const BUILDX_LOGO = '/images/brand/buildx-logo.avif'
 
 interface LogoProps {
   className?: string

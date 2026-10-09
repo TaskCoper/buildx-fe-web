@@ -314,7 +314,7 @@ export function PurchaseHistory({ onCancelOrder }: PurchaseHistoryProps = {}) {
           ...(user?.phone ? { buyerPhone: user.phone } : {}),
           buyerEmail: user?.email ?? receipt.customerEmail,
           planName: receipt.planName ?? t(`tier.${receipt.tier}`),
-          planDetail: t(`receiptDialog.planDetail.${receipt.tier}`),
+          planDetail: receipt.planName ? '' : t(`receiptDialog.planDetail.${receipt.tier}`),
           subtotal: amount,
           discount: t('receiptDialog.noDiscount'),
           total: amount,
@@ -617,9 +617,13 @@ export function PurchaseHistory({ onCancelOrder }: PurchaseHistoryProps = {}) {
                     <ReceiptRow label={t('table.plan')}>
                       <div className='space-y-0.5'>
                         <p className='font-semibold'>{receipt.planName ?? t(`tier.${receipt.tier}`)}</p>
-                        <p className='text-muted-foreground text-xs font-normal'>
-                          {t(`receiptDialog.planDetail.${receipt.tier}`)}
-                        </p>
+                        {/* Đơn thật chỉ có tên gói, không có hạng cố định: mô tả theo `tier` là giá trị đệm và sẽ ghi
+                            sai (vd. "Gói thiết kế BASIC" dưới gói PLUS) nên chỉ hiện cho dữ liệu mock. */}
+                        {receipt.planName ? null : (
+                          <p className='text-muted-foreground text-xs font-normal'>
+                            {t(`receiptDialog.planDetail.${receipt.tier}`)}
+                          </p>
+                        )}
                       </div>
                     </ReceiptRow>
 

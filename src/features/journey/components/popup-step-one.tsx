@@ -8,8 +8,8 @@ import { JourneyChoiceCard } from './journey-choice-card'
 import { JourneyDialogShell } from './journey-dialog-shell'
 
 /** Ảnh hai thẻ chọn (góp ý BuildX: bộ ảnh mới thay ảnh nhà phố / bản vẽ cũ). */
-const NO_DRAWING_IMAGE = '/images/journey/popup-no-drawing.jpg'
-const HAS_DRAWING_IMAGE = '/images/journey/popup-has-drawing.jpg'
+const NO_DRAWING_IMAGE = '/images/journey/popup-no-drawing.avif'
+const HAS_DRAWING_IMAGE = '/images/journey/popup-has-drawing.avif'
 
 interface PopupStepOneProps {
   open: boolean

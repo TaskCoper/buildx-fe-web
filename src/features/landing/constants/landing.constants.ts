@@ -20,10 +20,10 @@ export type HomeStat = (typeof HOME_STATS)[number]
  * 01–04). Thứ tự mảng là thứ tự trình chiếu.
  */
 export const HERO_SLIDES = [
-  '/images/home/hero-banner-01.webp',
-  '/images/home/hero-banner-02.webp',
-  '/images/home/hero-banner-03.webp',
-  '/images/home/hero-banner-04.webp'
+  '/images/home/hero-banner-01.avif',
+  '/images/home/hero-banner-02.avif',
+  '/images/home/hero-banner-03.avif',
+  '/images/home/hero-banner-04.avif'
 ] as const
 
 /** Mỗi ảnh hero đứng bao lâu trước khi chuyển (ms). */
@@ -69,21 +69,21 @@ export const HOME_BRANDS = [
 
 /** Ảnh logo của từng thương hiệu. */
 export const HOME_BRAND_LOGOS: Record<(typeof HOME_BRANDS)[number], string> = {
-  hoaphat: '/images/partners/hoa-phat.png',
-  inax: '/images/partners/inax.png',
-  viglacera: '/images/partners/viglacera.png',
-  dulux: '/images/partners/dulux.png',
-  cadivi: '/images/partners/cadivi.png',
-  scg: '/images/partners/scg.png',
-  kova: '/images/partners/kova.png',
+  hoaphat: '/images/partners/hoa-phat.avif',
+  inax: '/images/partners/inax.avif',
+  viglacera: '/images/partners/viglacera.avif',
+  dulux: '/images/partners/dulux.avif',
+  cadivi: '/images/partners/cadivi.avif',
+  scg: '/images/partners/scg.avif',
+  kova: '/images/partners/kova.avif',
   dongtam: '/images/partners/dong-tam-group.png',
-  jotun: '/images/partners/jotun.png',
-  toto: '/images/partners/toto.png',
-  vinhtuong: '/images/partners/vinh-tuong.png',
-  eurowindow: '/images/partners/eurowindow.png',
-  tienphong: '/images/partners/nhua-tien-phong.png',
-  hoasen: '/images/partners/hoa-sen-group.png',
-  hatien: '/images/partners/xi-mang-ha-tien.png'
+  jotun: '/images/partners/jotun.avif',
+  toto: '/images/partners/toto.avif',
+  vinhtuong: '/images/partners/vinh-tuong.avif',
+  eurowindow: '/images/partners/eurowindow.avif',
+  tienphong: '/images/partners/nhua-tien-phong.avif',
+  hoasen: '/images/partners/hoa-sen-group.avif',
+  hatien: '/images/partners/xi-mang-ha-tien.avif'
 }
 
 export type HomeBrand = (typeof HOME_BRANDS)[number]

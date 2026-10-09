@@ -975,14 +975,14 @@ function JourneyCard({ step, number, delay }: { step: SupervisionContentItem; nu
       {/* Ô tên cao cố định bằng HAI dòng: tên một dòng và tên hai dòng đều
           chiếm chỗ như nhau, nhờ vậy icon và mô tả của tám bước nằm thẳng hàng
           thay vì chỗ lồi chỗ lõm. */}
-      <p className='flex min-h-9 w-full items-center text-left text-sm leading-tight font-medium text-pretty transition-colors duration-200 group-hover/journey-card:text-brand-orange motion-reduce:transition-none'>
+      <p className='flex min-h-9 w-full items-center justify-center text-center text-sm leading-tight font-medium text-pretty transition-colors duration-200 group-hover/journey-card:text-brand-orange motion-reduce:transition-none'>
         {step.title}
       </p>
       <CmsContentIcon
         name={step.icon ?? ''}
         className='supervision-journey-icon text-primary my-3 size-8 shrink-0 transition-colors duration-200 group-hover/journey-card:text-brand-orange motion-reduce:transition-none'
       />
-      <p className='text-muted-foreground max-md:text-xs mt-1 w-full text-left text-sm leading-snug text-pretty'>
+      <p className='text-muted-foreground max-md:text-xs mt-1 w-full text-center text-sm leading-snug text-pretty'>
         {step.description}
       </p>
     </motion.div>

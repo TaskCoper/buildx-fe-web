@@ -253,18 +253,21 @@ export function BriefReview({ projectId }: BriefReviewProps) {
             changedKeys={changedFields}
           />
 
-          <SummaryCard
-            title={t('needsTitle')}
-            editHref={`${contractorBriefRoute(projectId)}?focus=needs`}
-            editLabel={t('edit')}
-            rows={[
-              // Hình S11: giá trị "Phạm vi" là VIÊN NHÃN nền xanh nhạt, không
-              // phải chữ trơn như các dòng khác.
-              { key: 'scope', label: t('scopeLabel'), value: scopes.label(brief.scope, brief.scopeName), chip: true },
-              { key: 'scopeNote', label: t('noteLabel'), value: brief.scopeNote }
-            ]}
-            changedKeys={changedFields}
-          />
+          {/* Form hồ sơ không còn ô nhu cầu thi công (case 31), nên thẻ này chỉ hiện với hồ sơ cũ đã lưu phạm vi/ghi chú. */}
+          {brief.scope || brief.scopeNote ? (
+            <SummaryCard
+              title={t('needsTitle')}
+              editHref={`${contractorBriefRoute(projectId)}?focus=site`}
+              editLabel={t('edit')}
+              rows={[
+                // Hình S11: giá trị "Phạm vi" là VIÊN NHÃN nền xanh nhạt, không
+                // phải chữ trơn như các dòng khác.
+                { key: 'scope', label: t('scopeLabel'), value: scopes.label(brief.scope, brief.scopeName), chip: true },
+                { key: 'scopeNote', label: t('noteLabel'), value: brief.scopeNote }
+              ]}
+              changedKeys={changedFields}
+            />
+          ) : null}
 
           <section className='bg-card rounded-2xl border p-5'>
             <div className='flex items-center justify-between gap-3'>

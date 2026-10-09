@@ -8,12 +8,13 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link } from '@/i18n/navigation'
 import { useAuthStore } from '@/shared/auth'
 import { useCmsCollection, type HandbookTemplate } from '@/shared/cms'
-import { Photo, PopupBrandLogo } from '@/shared/components/common'
+import { PopupBrandLogo } from '@/shared/components/common'
 import { Button } from '@/shared/components/ui/button'
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from '@/shared/components/ui/dialog'
 import { JOURNEY_POPUP_TEST_MODE } from '@/shared/constants'
 import { designCreateRoute, ROUTES } from '@/shared/constants/routes'
 import { TOPIC_IMAGE, cn } from '@/shared/lib'
+import { Picture } from './template-figure'
 
 const TEMPLATE_POPUP_SESSION_KEY = 'savico.page-popup.template'
 const TRIGGER_DELAY_MS = 8_000
@@ -258,7 +259,7 @@ function TemplatePopupCard({
               ease: [0.22, 1, 0.36, 1]
             }}
           >
-            <Photo
+            <Picture
               src={image}
               alt={imageAlt}
               fit={imageFit}

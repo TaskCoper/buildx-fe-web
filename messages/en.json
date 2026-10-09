@@ -6554,7 +6554,7 @@
       "leaveWithoutSaving": "Don't save",
       "keepEditing": "Keep editing",
       "title": "Create your project brief",
-      "subtitle": "Complete the build details and what you need done, and BuildX will suggest matching contractors.",
+      "subtitle": "Complete the build details, and BuildX will suggest matching contractors.",
       "draftSaved": "Draft saved - {time}",
       "steps": {
         "one": "Details & needs",
@@ -7238,9 +7238,9 @@
       "findLocation": "Find location from address",
       "locating": "Finding location…",
       "locationHint": "Enter the full address, search and choose the matching location to confirm coordinates.",
-      "addressFirst": "Enter a province, ward and house number / street first.",
-      "noLocation": "No address found. Check the house number and street, then retry.",
-      "chooseLocation": "Search and choose a location for the current address before continuing.",
+      "addressFirst": "Enter the construction site address first.",
+      "noLocation": "No address found. Check the address and try again.",
+      "chooseLocation": "Choose an address from the suggestions before continuing.",
       "locationConfirmed": "Location confirmed: {address}",
       "budget": "Expected budget (VND)",
       "budgetError": "Enter a positive integer VND amount, up to 28 digits. Thousands separators are allowed.",
@@ -7265,7 +7265,8 @@
       "checkCreation": "Check creation result",
       "notCreated": "No construction site matching the last request was found. Review the data and continue again.",
       "files": {
-        "title": "Existing documents",
+        "title": "Provide documents for BuildX to review and advise (if any)",
+        "example": "e.g. technical drawings, photos of the current condition, ...",
         "hint": "{count}/9 files. Each file is limited to 10 MB (10,000,000 bytes) and stored privately.",
         "Drawing": "Drawings",
         "ConditionPhoto": "Site photos",
@@ -7311,7 +7312,10 @@
       "mapHint": "Type an address to see suggestions. Select a result, then drag the pin or click the map to adjust the construction site location.",
       "mapReadOnly": "Construction site location on the map. Location editing is disabled for this profile.",
       "mapAdjustHint": "Drag the pin or click the map to adjust the location. The address updates to match the pin.",
-      "addressSearchHint": "Enter the street address, then select a suggested address. The map will show its location for you to check and adjust."
+      "addressSearchHint": "Enter the full address (house number, street, ward, province), then select a suggested address. The map will show its location for you to check and adjust.",
+      "address": "Construction site address",
+      "addressPlaceholder": "Example: 12 Nguyen Tat Thanh, Xom Chieu Ward, Ho Chi Minh City",
+      "regionNotFound": "Could not determine the ward and province from this address. Choose another suggestion or add the ward and province to the address."
     },
     "rfq": {
       "title": "Quotation invitations",

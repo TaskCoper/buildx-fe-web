@@ -166,3 +166,19 @@ export function formatMoneyInput(value?: string | number | null): string {
 export function parseMoneyInput(value?: string): string {
   return (value ?? '').replace(/\D/g, '')
 }
+
+/**
+ * Vị trí con trỏ trong chuỗi đã nhóm, ngay SAU chữ số thứ `digits`.
+ *
+ * Ô nhập tiền được định dạng lại mỗi lần gõ (`1850` → `1.850`), React đặt lại giá trị nên con trỏ nhảy về cuối. Đếm số
+ * chữ số nằm trước con trỏ rồi tìm lại đúng chỗ đó trong chuỗi mới thì sửa giữa chừng vẫn gõ tiếp đúng vị trí.
+ */
+export function caretAfterDigits(formatted: string, digits: number): number {
+  if (digits <= 0) return 0
+  let seen = 0
+  for (let index = 0; index < formatted.length; index += 1) {
+    if (/\d/.test(formatted.charAt(index))) seen += 1
+    if (seen === digits) return index + 1
+  }
+  return formatted.length
+}

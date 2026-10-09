@@ -11,7 +11,7 @@ import { ADMIN_ROUTES } from '@/shared/constants'
 const { Text } = Typography
 
 /** Logo ngang mặc định; khi menu thu gọn chỉ cắt lấy biểu tượng ngôi nhà ở bên trái ảnh. */
-const BUILDX_LOGO = '/images/brand/buildx-logo.png'
+const BUILDX_LOGO = '/images/brand/buildx-logo.avif'
 
 /**
  * Nhãn thương hiệu trên đầu menu trái: logo BuildX thật (cùng logo của site, nên admin đặt lại ảnh `brand.logo` thì khu
