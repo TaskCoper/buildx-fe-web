@@ -111,7 +111,7 @@ export function ConsultantCard({ consultant, className, query, onSelectSpecialty
 
           {/* Khung chuyên môn cao CỐ ĐỊNH đúng 2 hàng, luôn chiếm chỗ dù có ít chip: dữ liệu API nhiều/ít chip, tên dài
               ngắn khác nhau nhưng mọi thẻ vẫn cao bằng nhau. Mỗi chip một dòng, cắt "…", rê chuột xem đủ tên. */}
-          <div className='pointer-events-auto flex h-[3.25rem] flex-wrap content-start gap-1.5 overflow-hidden'>
+          <div className='pointer-events-auto flex h-[2.875rem] flex-wrap content-start gap-1.5 overflow-hidden'>
             {consultant.specialties.map((specialty) => (
               <button
                 key={specialty.id}
@@ -131,7 +131,9 @@ export function ConsultantCard({ consultant, className, query, onSelectSpecialty
             {t('projects', { count: consultant.projectCount })}
           </p>
 
-          <p className='text-muted-foreground line-clamp-2 text-xs leading-relaxed'>{consultant.headline}</p>
+          <p className='text-muted-foreground line-clamp-2 min-h-[2.5rem] text-xs leading-relaxed'>
+            {consultant.headline}
+          </p>
 
           {/* mt-auto: nút luôn dính mép dưới thẻ, bất kể phần trên cao thấp ra sao. */}
           <div className='mt-auto'>
