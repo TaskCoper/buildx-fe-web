@@ -4,6 +4,7 @@ import { useState } from 'react'
 
 import { Photo, PlanDrawing } from '@/shared/components/common'
 import { cn } from '@/shared/lib/utils'
+import { libraryImageSrcSet, libraryImageUrl } from '@/shared/media/library-image.logic'
 import { isProtectedContentUrl } from '../api/handbook.library.logic'
 import type { HandbookFloor, HandbookTemplate } from '../types/handbook.types'
 
@@ -165,9 +166,13 @@ interface PictureProps {
  * Ảnh của mẫu. Ảnh công khai đi qua `Photo` (next/image) như trước. Ảnh lấy từ route nội dung
  * của BMT API (`/api/v1/library-versions/.../content`) chỉ cấp cho người đã mở mẫu, xác thực
  * bằng COOKIE PHIÊN — mà `next/image` tải ảnh phía máy chủ Next nên không mang cookie của khách
- * và sẽ nhận 401/403. Với ảnh loại này dùng thẻ `<img>` thường để chính trình duyệt tải.
+ * và sẽ nhận 401/403; nó còn lưu cache DÙNG CHUNG nên càng không được dùng cho nội dung trả phí.
+ * Với ảnh loại này dùng thẻ `<img>` thường để chính trình duyệt tải, qua `/api/media/library/…`
+ * (đổi sang AVIF/WebP đúng cỡ, cache riêng của người xem). Route đó lỗi thì quay về `contentUrl` gốc.
  */
 export function Picture({ src, alt, className, sizes, priority, fit = 'cover', imageClassName, onLoad }: PictureProps) {
+  const [failedSrc, setFailedSrc] = useState<string | null>(null)
+
   if (!isProtectedContentUrl(src)) {
     return (
       <Photo
@@ -183,14 +188,20 @@ export function Picture({ src, alt, className, sizes, priority, fit = 'cover', i
     )
   }
 
+  // Ảnh đã đổi cỡ (nếu đúng dạng `contentUrl` thư viện và chưa lỗi); `1280` là cỡ dự phòng cho trình duyệt không đọc srcset.
+  const optimized = failedSrc === src ? null : libraryImageUrl(src, 1280)
+
   return (
     <div className={cn('bg-muted relative overflow-hidden', className)}>
       {/* eslint-disable-next-line @next/next/no-img-element -- route nội dung cần cookie phiên, next/image không mang cookie */}
       <img
-        src={src}
+        src={optimized ?? src}
+        srcSet={optimized ? libraryImageSrcSet(src) : undefined}
+        sizes={optimized ? sizes : undefined}
         alt={alt}
         loading={priority ? 'eager' : 'lazy'}
         decoding='async'
+        onError={optimized ? () => setFailedSrc(src) : undefined}
         onLoad={onLoad}
         ref={(img) => {
           if (img?.complete && img.naturalWidth > 0) onLoad?.()
