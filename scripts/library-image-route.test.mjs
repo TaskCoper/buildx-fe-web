@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { randomBytes } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
 import { test } from 'node:test'
 import sharp from 'sharp'
@@ -31,7 +32,11 @@ const picture = await sharp({ create: { width: 1000, height: 1500, channels: 3, 
   .png()
   .toBuffer()
 const source = () => new Response(picture, { headers: { 'Content-Type': 'image/png' } })
-const handler = (fetchSource) => createLibraryImageHandler({ apiOrigin: 'https://api.example.test', fetchSource })
+// Các test chuyển định dạng/cỡ dùng ảnh trắng nhỏ, nên tắt chế độ trả nguyên file của nguồn nhỏ (có test riêng bên dưới).
+const handler = (fetchSource) =>
+  createLibraryImageHandler({ apiOrigin: 'https://api.example.test', fetchSource, passThroughMaxBytes: 0 })
+const defaultHandler = (fetchSource) =>
+  createLibraryImageHandler({ apiOrigin: 'https://api.example.test', fetchSource })
 function privateResponse(response, status) {
   assert.equal(response.status, status)
   assert.equal(response.headers.get('cache-control'), 'private, no-store')
@@ -143,4 +148,37 @@ test('unsupported browser formats keep original bytes after authorization', asyn
   const response = await handler(async () => source())(request('w=640', 'allowed', 'image/png'), context)
   privateResponse(response, 200)
   assert.deepEqual(Buffer.from(await response.arrayBuffer()), picture)
+})
+
+test('small sources are returned untouched after authorization; wide ones are still resized', async () => {
+  const run = defaultHandler(async (_url, options) =>
+    options.headers.Cookie === 'allowed' ? source() : new Response(null, { status: 403 })
+  )
+  // Ảnh trắng 1000px, vài KB, w=960: nhỏ và không rộng quá 1,5 lần cỡ xin → trả nguyên file, không mã hoá lại.
+  const small = await run(request('w=960', 'allowed', 'image/avif'), context)
+  privateResponse(small, 200)
+  assert.equal(small.headers.get('content-type'), 'image/png')
+  assert.equal(small.headers.get('content-length'), String(picture.length))
+  assert.deepEqual(Buffer.from(await small.arrayBuffer()), picture)
+  // Trả nguyên vẫn phải qua kiểm quyền của backend.
+  privateResponse(await run(request('w=960', 'denied', 'image/avif'), context), 403)
+  // Ảnh rộng hơn 1,5 lần cỡ xin (1000px so với 640) vẫn được đổi cỡ.
+  const resized = await run(request('w=640', 'allowed', 'image/avif'), context)
+  privateResponse(resized, 200)
+  const metadata = await sharp(Buffer.from(await resized.arrayBuffer())).metadata()
+  assert.equal(metadata.width, 640)
+  assert.equal(metadata.format, 'heif')
+})
+
+test('a large source is still converted when pass-through is on', async () => {
+  const noise = randomBytes(1200 * 1200 * 3) // nhiễu thật nên PNG không nén được, chắc chắn lớn hơn ngưỡng
+  const large = await sharp(noise, { raw: { width: 1200, height: 1200, channels: 3 } })
+    .png()
+    .toBuffer()
+  assert.ok(large.length > 300_000)
+  const run = defaultHandler(async () => new Response(large, { headers: { 'Content-Type': 'image/png' } }))
+  const response = await run(request('w=1280', 'allowed', 'image/avif'), context)
+  privateResponse(response, 200)
+  assert.equal(response.headers.get('content-type'), 'image/avif')
+  assert.ok(Number(response.headers.get('content-length')) < large.length)
 })

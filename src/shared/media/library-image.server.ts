@@ -5,8 +5,10 @@ import {
   isGuid,
   parseLibraryImageWidth,
   LIBRARY_IMAGE_MAX_SOURCE_BYTES,
+  LIBRARY_IMAGE_PASSTHROUGH_MAX_BYTES,
   negotiateLibraryImageFormat,
-  libraryImageQuality
+  libraryImageQuality,
+  shouldServeLibraryImageOriginal
 } from './library-image.logic'
 
 const PRIVATE_HEADERS = {
@@ -53,10 +55,13 @@ async function readImage(response: Response): Promise<Buffer | null> {
 /** Presentation-only adapter: .NET checks session, version access and asset membership before any bytes are read. */
 export function createLibraryImageHandler({
   apiOrigin,
-  fetchSource = fetch
+  fetchSource = fetch,
+  passThroughMaxBytes = LIBRARY_IMAGE_PASSTHROUGH_MAX_BYTES
 }: {
   apiOrigin: string
   fetchSource?: typeof fetch
+  /** Nguồn nhỏ hơn mức này (byte) được trả nguyên file; đặt 0 để luôn mã hoá lại (dùng trong test). */
+  passThroughMaxBytes?: number
 }) {
   // Share only overlapping reads of the SAME source with the EXACT same session cookies.
   // Delete on completion (including errors): later requests must check .NET again. No image/auth cache.
@@ -116,7 +121,15 @@ export function createLibraryImageHandler({
       // MIME declarations are not sufficient: refuse SVG/PDF/CAD or other decoders even if labelled image/png.
       if (!metadata.format || !['jpeg', 'png', 'webp'].includes(metadata.format)) return failure(415)
       const format = negotiateLibraryImageFormat(request.headers.get('accept'))
-      if (format === 'original')
+      if (
+        format === 'original' ||
+        shouldServeLibraryImageOriginal({
+          bytes: source.bytes.length,
+          sourceWidth: metadata.width,
+          width,
+          maxBytes: passThroughMaxBytes
+        })
+      )
         return new Response(new Uint8Array(source.bytes), {
           headers: {
             ...PRIVATE_HEADERS,

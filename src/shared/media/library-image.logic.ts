@@ -85,3 +85,27 @@ export function libraryImageQuality(mediaType: string | null | undefined): {
 
 /** Trần dung lượng file gốc mà route chịu đổi (byte); lớn hơn thì trả lỗi 413 và trình duyệt tự dùng file gốc. */
 export const LIBRARY_IMAGE_MAX_SOURCE_BYTES = 30_000_000
+
+/**
+ * Nguồn nhỏ thì trả nguyên file, không mã hoá lại. Ảnh thư viện thật chỉ khoảng 50–110 KB; mã hoá AVIF lại chỉ bớt vài chục KB
+ * nhưng tốn 1,2–2,5 giây CPU mỗi ảnh trên máy chủ Dev (4 ảnh tải cùng lúc chờ tới ~12 giây), trong khi chờ tải thêm vài chục KB
+ * chỉ vài chục mili giây. Việc kiểm quyền vẫn xảy ra trước khi đọc byte nào.
+ */
+export const LIBRARY_IMAGE_PASSTHROUGH_MAX_BYTES = 300_000
+
+/** Nguồn chỉ được trả nguyên khi không rộng hơn cỡ xin quá hệ số này (tránh bắt trình duyệt giải mã ảnh lớn cho ô nhỏ). */
+export const LIBRARY_IMAGE_PASSTHROUGH_WIDTH_SLACK = 1.5
+
+export function shouldServeLibraryImageOriginal({
+  bytes,
+  sourceWidth,
+  width,
+  maxBytes = LIBRARY_IMAGE_PASSTHROUGH_MAX_BYTES
+}: {
+  bytes: number
+  sourceWidth: number | undefined
+  width: number
+  maxBytes?: number
+}): boolean {
+  return bytes <= maxBytes && sourceWidth !== undefined && sourceWidth <= width * LIBRARY_IMAGE_PASSTHROUGH_WIDTH_SLACK
+}
