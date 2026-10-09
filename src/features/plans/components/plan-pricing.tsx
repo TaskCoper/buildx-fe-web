@@ -78,9 +78,9 @@ const DESIGN_OFFER_KEY = 'Month'
  * không thể lệch choreography.
  */
 const PRICE_COUNT_DURATION_MS: Record<PlanTier, number> = {
-  basic: 1080,
-  advanced: 1320,
-  pro: 1560
+  basic: 540,
+  advanced: 660,
+  pro: 780
 }
 const PRICE_SETTLE_PULSE_MS = 240
 
@@ -170,7 +170,7 @@ function PlanPricingContent() {
         initial={reduceMotion ? false : { opacity: 0, y: 14 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.5 }}
-        transition={{ duration: reduceMotion ? 0.01 : 0.6, delay: reduceMotion ? 0 : 0.55, ease: pricingEase }}
+        transition={{ duration: reduceMotion ? 0.01 : 0.3, delay: reduceMotion ? 0 : 0.275, ease: pricingEase }}
       >
         {/* Góp ý BuildX (BG07): dải giữa trang không còn đẩy thẳng vào thanh toán gói
             PLUS — mời tư vấn chọn gói qua tổng đài hoặc trợ lý AI. */}
@@ -233,7 +233,7 @@ function PlanPricingContent() {
             <li
               key={note.key}
               className='plan-note-chip flex items-center gap-3'
-              style={{ '--note-delay': `${1.6 + index * 0.24}s` } as CSSProperties}
+              style={{ '--note-delay': `${0.8 + index * 0.12}s` } as CSSProperties}
             >
               <span className='plan-note-icon-wrap bg-accent text-primary flex size-8 shrink-0 items-center justify-center rounded-full'>
                 <note.icon aria-hidden className='plan-note-icon size-4' />
@@ -294,7 +294,7 @@ function ComparisonTable({ plans }: { plans: PlanView[] }) {
         initial={{ opacity: 0, y: 10 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.7 }}
-        transition={{ duration: 0.5, ease: pricingEase }}
+        transition={{ duration: 0.25, ease: pricingEase }}
       >
         {copy('title', t('comparison.title'))}
       </motion.h2>
@@ -304,7 +304,7 @@ function ComparisonTable({ plans }: { plans: PlanView[] }) {
         initial={{ opacity: 0, y: 10 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.04 }}
-        transition={{ duration: 0.5, delay: 0.22, ease: pricingEase }}
+        transition={{ duration: 0.25, delay: 0.11, ease: pricingEase }}
       >
         <table
           data-hovering={hoveredRow || hoveredColumn ? 'true' : undefined}
@@ -368,8 +368,8 @@ function ComparisonTable({ plans }: { plans: PlanView[] }) {
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true, amount: 0.18 }}
                       transition={{
-                        duration: reduceMotion ? 0.01 : 0.52,
-                        delay: reduceMotion ? 0 : Math.min(rowIndex, 5) * 0.075,
+                        duration: reduceMotion ? 0.01 : 0.26,
+                        delay: reduceMotion ? 0 : Math.min(rowIndex, 5) * 0.0375,
                         ease: pricingEase
                       }}
                       onMouseEnter={() => setHoveredRow(row.id)}
@@ -423,8 +423,8 @@ function ComparisonTable({ plans }: { plans: PlanView[] }) {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, amount: 0.65 }}
                     transition={{
-                      duration: 0.52,
-                      delay: (entranceOrder[TIERS.indexOf(tier)] ?? 0) * 0.16,
+                      duration: 0.26,
+                      delay: (entranceOrder[TIERS.indexOf(tier)] ?? 0) * 0.08,
                       ease: pricingEase
                     }}
                   >
@@ -469,7 +469,7 @@ function ValueTable() {
         initial={reduceMotion ? false : { opacity: 0, y: 10 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.8 }}
-        transition={{ duration: reduceMotion ? 0.01 : 0.55, ease: pricingEase }}
+        transition={{ duration: reduceMotion ? 0.01 : 0.275, ease: pricingEase }}
         className='text-primary-strong text-center text-2xl font-bold tracking-wide uppercase'
       >
         {copy('title', t('title'))}
@@ -480,7 +480,7 @@ function ValueTable() {
           initial={reduceMotion ? false : { opacity: 0, y: 8 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.12 }}
-          transition={{ duration: reduceMotion ? 0.01 : 0.52, delay: reduceMotion ? 0 : 0.2, ease: pricingEase }}
+          transition={{ duration: reduceMotion ? 0.01 : 0.26, delay: reduceMotion ? 0 : 0.1, ease: pricingEase }}
           className='bg-card mt-5 overflow-x-auto overflow-y-hidden rounded-2xl border'
         >
           <table className='plan-value-table w-full min-w-[640px] table-fixed text-sm'>
@@ -505,11 +505,11 @@ function ValueTable() {
                   }}
                   viewport={{ once: true, amount: 0.05 }}
                   transition={{
-                    duration: reduceMotion ? 0.01 : 0.56,
-                    delay: reduceMotion ? 0 : 0.32 + Math.min(index, 5) * 0.14,
+                    duration: reduceMotion ? 0.01 : 0.28,
+                    delay: reduceMotion ? 0 : 0.16 + Math.min(index, 5) * 0.07,
                     ease: pricingEase
                   }}
-                  style={{ '--value-row-delay': `${0.32 + Math.min(index, 5) * 0.14}s` } as CSSProperties}
+                  style={{ '--value-row-delay': `${0.16 + Math.min(index, 5) * 0.07}s` } as CSSProperties}
                 >
                   <th className='bg-[color-mix(in_srgb,var(--accent)_40%,var(--card))] sticky left-0 z-10 p-3.5 text-left text-sm font-medium'>
                     <span className='text-primary-strong flex items-center gap-2.5'>
@@ -544,8 +544,8 @@ function GroupRow({ label, highlight = false }: { label: string; highlight?: boo
       whileInView={{ opacity: 1, scaleX: 1 }}
       viewport={{ once: true, amount: 0.5 }}
       transition={{
-        duration: reduceMotion ? 0.01 : highlight ? 0.68 : 0.58,
-        delay: reduceMotion ? 0 : 0.18,
+        duration: reduceMotion ? 0.01 : highlight ? 0.34 : 0.29,
+        delay: reduceMotion ? 0 : 0.09,
         ease: pricingEase
       }}
       style={{ transformOrigin: 'left center' }}
@@ -569,7 +569,7 @@ function GroupRow({ label, highlight = false }: { label: string; highlight?: boo
 function Cell({ value, label, index }: { value: PlanCell; label: (key: PlanValueKey) => string; index: number }) {
   if (value === true)
     return (
-      <span className='plan-table-tick inline-flex' style={{ '--tick-delay': `${index * 0.07}s` } as CSSProperties}>
+      <span className='plan-table-tick inline-flex' style={{ '--tick-delay': `${index * 0.035}s` } as CSSProperties}>
         <Check className='text-primary mx-auto size-4' strokeWidth={2.5} />
       </span>
     )
@@ -884,7 +884,7 @@ function PlanCard({
   const visible = useInView(ref)
   const imageScale = useMotionValue(1)
   const zoom = useRef<ReturnType<typeof animate> | null>(null)
-  const delay = (entranceOrder[index] ?? index) * 0.19
+  const delay = (entranceOrder[index] ?? index) * 0.095
   useEffect(() => () => zoom.current?.stop(), [])
   return (
     <li
@@ -971,8 +971,8 @@ function PlanCard({
                   initial={{ opacity: 0, filter: 'blur(4px)', scale: 0.985 }}
                   animate={imagesReady ? { opacity: 1, filter: 'blur(0px)', scale: 1 } : undefined}
                   transition={{
-                    duration: reduceMotion ? 0 : 0.82,
-                    delay: reduceMotion ? 0 : 0.28 + index * 0.22,
+                    duration: reduceMotion ? 0 : 0.41,
+                    delay: reduceMotion ? 0 : 0.14 + index * 0.11,
                     ease: pricingEase
                   }}
                 >
@@ -1038,7 +1038,7 @@ function PlanCard({
                 {highlights(plan).map((feature, i) => (
                   <li
                     key={feature}
-                    style={{ '--line-delay': `${0.05 + delay * 0.4 + i * 0.05}s` } as CSSProperties}
+                    style={{ '--line-delay': `${0.025 + delay * 0.4 + i * 0.025}s` } as CSSProperties}
                     className='plan-feature-line flex items-start gap-[2cqw] text-sm leading-snug'
                   >
                     <CheckCircle2
@@ -1068,7 +1068,11 @@ function PlanCard({
                 viewport={{ once: true }}
                 initial={reduceMotion ? false : { opacity: 0, y: 14 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: reduceMotion ? 0.01 : 0.55, delay: reduceMotion ? 0 : 0.65, ease: pricingEase }}
+                transition={{
+                  duration: reduceMotion ? 0.01 : 0.275,
+                  delay: reduceMotion ? 0 : 0.325,
+                  ease: pricingEase
+                }}
                 className='plan-gift border-brand-orange/30 bg-brand-orange-soft/60 hover:bg-brand-orange-soft mt-4 w-full rounded-xl border p-2.5 text-left transition-colors'
               >
                 <span className='flex items-center gap-2'>
