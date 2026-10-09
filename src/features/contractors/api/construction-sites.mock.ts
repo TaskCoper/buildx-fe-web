@@ -163,7 +163,18 @@ export const mockConstructionSitesApi: typeof bmtConstructionSitesApi = {
     provinceCode,
     wards: [{ code: '4', name: 'Phường Ba Đình' }]
   }),
-  search: async (address) => [{ refId: 'mock-place', name: address, address, display: address }],
+  // Giống VietMap: `name` là số nhà, đường; `address` là "phường/xã, tỉnh/thành" khớp với danh mục ở trên.
+  search: async (address) => {
+    const street = address.split(',')[0]?.trim() || address
+    return [
+      {
+        refId: 'mock-place',
+        name: street,
+        address: 'Phường Ba Đình, Thành phố Hà Nội',
+        display: `${street}, Phường Ba Đình, Thành phố Hà Nội`
+      }
+    ]
+  },
   place: async (refId) => ({ refId, display: 'Phường Ba Đình, Hà Nội', latitude: 21.04, longitude: 105.83 }),
   upload: async (file, attachmentGroup) => {
     customer()

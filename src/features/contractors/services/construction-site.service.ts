@@ -69,8 +69,7 @@ export function toSiteProfile(values: SiteFormValues, catalog: SiteCatalog): Sit
 }
 export function createSiteFormSchema(
   catalog: SiteCatalog | undefined,
-  messages: { required: string; area: string; budget: string; max: (n: number) => string },
-  scopeIds: readonly string[] = []
+  messages: { required: string; area: string; budget: string; max: (n: number) => string }
 ) {
   return z
     .object({
@@ -89,11 +88,9 @@ export function createSiteFormSchema(
       hasTum: z.boolean().nullable(),
       architectureStyleId: z.string().nullable(),
       interiorStyleId: z.string().nullable(),
-      scope: z
-        .string()
-        .min(1, messages.required)
-        .refine((id) => scopeIds.includes(id), messages.required),
-      scopeNote: z.string().trim().min(1, messages.required).max(1000, messages.max(1000))
+      // Form không còn ô nhập nhu cầu thi công (case 31); hai giá trị chỉ giữ lại những gì hồ sơ cũ đã lưu, nên không bắt buộc.
+      scope: z.string(),
+      scopeNote: z.string().trim().max(1000, messages.max(1000))
     })
     .superRefine((values, context) => {
       const type = catalog?.types.find((item) => item.id === values.buildingTypeId)

@@ -6308,7 +6308,7 @@
       "leaveWithoutSaving": "Không lưu",
       "keepEditing": "Tiếp tục nhập",
       "title": "Tự tạo hồ sơ dự án",
-      "subtitle": "Hoàn tất thông tin công trình và nhu cầu thi công, BuildX đề xuất nhà thầu phù hợp.",
+      "subtitle": "Hoàn tất thông tin công trình, BuildX đề xuất nhà thầu phù hợp.",
       "draftSaved": "Đã lưu nháp - {time}",
       "steps": {
         "one": "Thông tin & nhu cầu",
@@ -6992,9 +6992,9 @@
       "findLocation": "Tra vị trí từ địa chỉ",
       "locating": "Đang xác định vị trí…",
       "locationHint": "Nhập đủ địa chỉ, tra vị trí và chọn kết quả phù hợp để xác nhận tọa độ.",
-      "addressFirst": "Vui lòng nhập đủ tỉnh/thành, phường/xã và số nhà, đường.",
-      "noLocation": "Không tìm thấy địa chỉ. Kiểm tra số nhà, đường rồi tra lại.",
-      "chooseLocation": "Vui lòng tra và chọn vị trí cho địa chỉ hiện tại trước khi tiếp tục.",
+      "addressFirst": "Vui lòng nhập địa chỉ cụ thể của công trình.",
+      "noLocation": "Không tìm thấy địa chỉ. Kiểm tra lại địa chỉ rồi thử lại.",
+      "chooseLocation": "Vui lòng chọn một địa chỉ trong danh sách gợi ý trước khi tiếp tục.",
       "locationConfirmed": "Đã xác nhận vị trí: {address}",
       "budget": "Ngân sách dự kiến (VND)",
       "budgetError": "Nhập số nguyên VND lớn hơn 0, tối đa 28 chữ số. Có thể dùng dấu phân cách nhóm nghìn.",
@@ -7019,7 +7019,8 @@
       "checkCreation": "Kiểm tra kết quả tạo",
       "notCreated": "Chưa tìm thấy công trình khớp với lần tạo vừa rồi. Bạn có thể kiểm tra dữ liệu và tiếp tục lại.",
       "files": {
-        "title": "Tài liệu hiện có",
+        "title": "Cung cấp tài liệu để BuildX nghiên cứu và tư vấn (Nếu có)",
+        "example": "VD: Bản vẽ kỹ thuật, hình ảnh hiện trạng,...",
         "hint": "{count}/9 tệp. Mỗi tệp tối đa 10 MB (10.000.000 byte), được lưu riêng tư.",
         "Drawing": "Bản vẽ",
         "ConditionPhoto": "Ảnh hiện trạng",
@@ -7065,7 +7066,10 @@
       "mapHint": "Gõ địa chỉ để xem danh sách gợi ý. Chọn một kết quả, sau đó kéo ghim hoặc bấm trên bản đồ để chỉnh vị trí công trình.",
       "mapReadOnly": "Vị trí công trình trên bản đồ. Hồ sơ này không cho phép thay đổi vị trí.",
       "mapAdjustHint": "Kéo ghim hoặc bấm trên bản đồ để chỉnh vị trí — địa chỉ sẽ tự cập nhật theo ghim.",
-      "addressSearchHint": "Nhập số nhà, đường rồi chọn địa chỉ trong danh sách gợi ý, bản đồ sẽ hiện vị trí để bạn kiểm tra và kéo ghim cho đúng."
+      "addressSearchHint": "Nhập địa chỉ cụ thể (số nhà, đường, phường/xã, tỉnh/thành) rồi chọn một địa chỉ trong danh sách gợi ý, bản đồ sẽ hiện vị trí để bạn kiểm tra và kéo ghim cho đúng.",
+      "address": "Địa chỉ công trình",
+      "addressPlaceholder": "VD: 12 Nguyễn Tất Thành, Phường Xóm Chiếu, Thành phố Hồ Chí Minh",
+      "regionNotFound": "Chưa xác định được phường/xã và tỉnh/thành từ địa chỉ này. Hãy chọn một gợi ý khác hoặc nhập thêm phường/xã, tỉnh/thành."
     },
     "rfq": {
       "title": "Lời mời báo giá",

@@ -165,6 +165,8 @@ export interface SiteDraft {
   catalog?: SiteCatalog
   source?: SiteSource
   location?: { addressKey: string; latitude: number; longitude: number; display: string }
+  /** Chữ trong ô địa chỉ duy nhất (gồm cả phường/xã, tỉnh/thành); `values.addressDetail` chỉ giữ phần số nhà, đường. */
+  addressInput?: string
   uploads: PendingSiteFile[]
   /** Write before POST; an interrupted response must be reconciled before retry. */
   pendingCreation?: { request: CreateSiteRequest; startedAt: string }
