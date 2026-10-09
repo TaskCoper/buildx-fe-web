@@ -370,7 +370,7 @@ export function DiscountManager() {
       renderForm={(form) => (
         <>
           <Row gutter={16}>
-            <Col xs={24} sm={14}>
+            <Col xs={24} sm={12}>
               <Form.Item
                 name='code'
                 label={t('discounts.code')}
@@ -384,22 +384,18 @@ export function DiscountManager() {
                 <Input placeholder='KHAITRUONG' maxLength={50} disabled={storedUsage(form) > 0} />
               </Form.Item>
             </Col>
-            <Col xs={24} sm={10}>
-              <Form.Item name='enabled' label={t('discounts.enabled')} valuePropName='checked'>
-                <Switch />
+            <Col xs={24} sm={12}>
+              <Form.Item name='type' label={t('discounts.type')}>
+                <Radio.Group
+                  optionType='button'
+                  options={[
+                    { value: 'percent', label: t('discounts.typePercent') },
+                    { value: 'amount', label: t('discounts.typeAmount') }
+                  ]}
+                />
               </Form.Item>
             </Col>
           </Row>
-
-          <Form.Item name='type' label={t('discounts.type')}>
-            <Radio.Group
-              optionType='button'
-              options={[
-                { value: 'percent', label: t('discounts.typePercent') },
-                { value: 'amount', label: t('discounts.typeAmount') }
-              ]}
-            />
-          </Form.Item>
 
           <Form.Item noStyle shouldUpdate={(prev, next) => prev.type !== next.type}>
             {() => {
@@ -471,6 +467,13 @@ export function DiscountManager() {
           <Form.Item name='note' label={t('discounts.note')} extra={t('discounts.noteHint')}>
             <Input.TextArea rows={2} />
           </Form.Item>
+
+          <div className='flex items-center gap-3'>
+            <Text>{t('discounts.enabled')}</Text>
+            <Form.Item name='enabled' valuePropName='checked' noStyle>
+              <Switch aria-label={t('discounts.enabled')} />
+            </Form.Item>
+          </div>
         </>
       )}
     />

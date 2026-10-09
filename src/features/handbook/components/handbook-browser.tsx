@@ -8,6 +8,8 @@ import { usePathname, useRouter } from '@/i18n/navigation'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs'
 import { usePageEntrance } from '@/shared/hooks'
 import { cn } from '@/shared/lib/utils'
+import { sectionText } from '../api/handbook.cms.logic'
+import { useHandbookPageSections } from '../hooks/use-handbook'
 import type { HandbookPageTab } from '../types/handbook.types'
 import { ArticleList } from './article-list'
 import { FoundationBlock } from './foundation-block'
@@ -33,6 +35,10 @@ const TAB_ORDER: Record<HandbookPageTab, number> = { news: 0, library: 1 }
  */
 export function HandbookBrowser() {
   const t = useTranslations('handbook.page')
+  // Tên hai tab do admin biên tập (BR-HB-003); chưa biên tập thì dùng bản dịch sẵn có.
+  const pageSections = useHandbookPageSections()
+  const tabLabel = (value: 'news' | 'library') =>
+    sectionText(pageSections, 'tabs', value === 'news' ? 'newsLabel' : 'libraryLabel') ?? t(`tabs.${value}`)
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -290,7 +296,7 @@ export function HandbookBrowser() {
               className='text-muted-foreground hover:text-foreground data-[state=active]:text-primary-foreground dark:data-[state=active]:text-primary-foreground relative z-10 h-auto flex-none rounded-full border-0 bg-transparent px-7 py-2.5 text-base font-semibold transition-colors data-[state=active]:bg-transparent data-[state=active]:shadow-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-transparent'
             >
               <span className='inline-flex items-center gap-2'>
-                {t(`tabs.${value}`)}
+                {tabLabel(value)}
                 {value === 'library' ? (
                   <span className='relative inline-flex size-5 shrink-0 items-center justify-center'>
                     {visualTab !== 'library' ? (

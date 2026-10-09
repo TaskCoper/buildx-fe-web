@@ -29,6 +29,8 @@ export const quotationApi = {
     status?: QuotationStatus
     contractorId?: string
     siteId?: string
+    /** Một phần mã hồ sơ công trình; BE so không phân biệt hoa thường và bỏ qua dấu gạch. */
+    siteCode?: string
   }) => quotationPageSchema.parse(await http.get('/admin/quotation-requests', { params })),
   adminDetail: async (id: string) =>
     quotationAdminDetailSchema.parse(await http.get(`/admin/quotation-requests/${id}`)),

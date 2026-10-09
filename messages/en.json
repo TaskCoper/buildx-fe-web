@@ -254,6 +254,263 @@
       "viewPurchases": "View plan history"
     }
   },
+  "apiErrors": {
+    "status": {
+      "network": "Can't reach the server. Check your connection and try again.",
+      "timeout": "The server took too long to respond. Please try again.",
+      "badRequest": "The request was invalid. Please check your information.",
+      "unauthorized": "Your session has expired. Please sign in again.",
+      "forbidden": "You don't have permission to do this.",
+      "notFound": "We couldn't find what you asked for.",
+      "conflict": "The data was just changed elsewhere. Reload the page and try again.",
+      "gone": "This content is no longer available.",
+      "tooLarge": "The data you sent is too large.",
+      "unprocessable": "Some information is not valid. Please check the fields.",
+      "tooManyRequests": "You're going too fast. Please try again in a few minutes.",
+      "server": "The system ran into a problem. Please try again later.",
+      "unavailable": "The service is temporarily unavailable. Please try again in a few minutes.",
+      "other": "That didn't go through. Please try again."
+    },
+    "codes": {
+      "MissingAccessToken": "You are not signed in or your session has expired. Please sign in again.",
+      "InvalidAccessToken": "Your session is not valid. Please sign in again.",
+      "ExpiredAccessToken": "Your session has expired. Please sign in again.",
+      "InvalidRefreshToken": "Your session has expired. Please sign in again.",
+      "Unauthorized": "Please sign in to continue.",
+      "AuthStateUnavailable": "We couldn't verify your session. Please try again in a few minutes.",
+      "CsrfInvalid": "The request was rejected because its origin could not be verified. Reload the page and try again.",
+      "AccessForbidden": "You don't have permission to do this.",
+      "CustomerOnly": "This feature is only available to customer accounts.",
+      "MustChangePassword": "You are using a temporary password. Change it before continuing.",
+      "InvalidCredentials": "The email or password is incorrect.",
+      "AccountLocked": "This account is locked. Please contact support.",
+      "UserNotExisted": "No account was found for this email.",
+      "EmailAlreadyUsed": "This email is already used by another account.",
+      "EmailChangeNotAllowed": "The account's email can't be changed.",
+      "InvalidVerificationCode": "The verification code is incorrect or has expired.",
+      "GoogleEmailVerificationInvalid": "The email verification code is incorrect or has expired.",
+      "GoogleIdentityInvalid": "We couldn't verify your Google account. Please try again.",
+      "GoogleLinkConflict": "This Google account is already linked to another account.",
+      "GoogleLoginAttemptInvalid": "The Google sign-in session is invalid or has expired. Please try again.",
+      "GoogleLoginConcurrentChange": "The account was just changed. Please sign in again.",
+      "GoogleLoginNotAllowed": "This account can't sign in with Google.",
+      "GoogleLoginRateLimited": "Too many sign-in attempts. Please try again later.",
+      "GoogleSignInCancelled": "You cancelled Google sign-in.",
+      "GoogleSignInUnavailable": "Google sign-in is temporarily unavailable.",
+      "PermissionCodeUnknown": "That permission is not in the catalogue.",
+      "PermissionNotHeldByActor": "You don't have enough permission for this action, or your account isn't an active staff account.",
+      "SelfPrivilegeEscalation": "You can't raise your own privileges.",
+      "CannotLockSelf": "You can't lock your own account.",
+      "LastAdminProtected": "At least one active administrator must remain.",
+      "RoleInUse": "This role is still assigned, so it can't be deleted.",
+      "RoleIsSystem": "System roles can't be edited or deleted.",
+      "RoleNameDuplicated": "A role with this name already exists.",
+      "StaffNotFound": "Staff account not found.",
+      "StaffHasActiveAssignments": "This staff member is still handling supervision packages. Reassign them first.",
+      "EstimateNotFound": "Estimate not found.",
+      "ResourceNotFound": "Estimate or task not found.",
+      "EstimateAlreadyGenerated": "This estimate already has a result. Start a new estimate.",
+      "EstimateNameVersionConflict": "The estimate name was just changed elsewhere. Reload the page.",
+      "InputVersionConflict": "The estimate input was changed elsewhere. Reload the page to get the latest version.",
+      "InvalidEstimateInput": "The estimate information is not valid. Please check the fields.",
+      "InvalidEstimateListQuery": "The estimate list filter is not valid.",
+      "InvalidEstimateDeleteRequest": "The estimate couldn't be deleted because the request was invalid.",
+      "InvalidGenerationInput": "The estimate is missing or has invalid information, so it can't be sent to AI yet. Please complete it.",
+      "GenerationInProgress": "AI is already working on this estimate. Please wait for the result.",
+      "GenerationNotFound": "No AI task was found for this estimate.",
+      "ResultNotReady": "The estimate result is not ready yet. Please wait a little longer.",
+      "Processing": "The estimate is still being processed, so it can't be changed yet.",
+      "EntitlementMissing": "Your plan doesn't include AI estimates. Please upgrade or buy a plan.",
+      "SubscriptionInactive": "Your plan has expired or is not active. Please renew or buy a new plan.",
+      "SubscriptionVersionConflict": "Your plan was just changed. Reload the page and try again.",
+      "QuotaUnavailable": "You've used all your allowance for this period. Please upgrade or buy another plan.",
+      "LocationDatasetChanged": "The province/ward list was just updated. Please pick the address again.",
+      "DependencyUnavailable": "A system service is temporarily unavailable. Please try again in a few minutes.",
+      "ExportNotFound": "Export or result file not found.",
+      "ExportNotReady": "The file is still being prepared and can't be downloaded yet.",
+      "InvalidExportFormat": "This export format is not supported.",
+      "InvalidExpiryDate": "The expiry date is invalid or already past.",
+      "InvalidRecipient": "The recipient email address is not valid.",
+      "InvalidShareRequest": "The share request is not valid. Please try again.",
+      "ShareUnavailable": "This share link does not exist, has expired or was revoked.",
+      "EmailRequestNotFound": "Email request not found.",
+      "IdempotencyConflict": "This request was already sent with different content. Reload the page and try again.",
+      "ConstructionSiteNotFound": "Construction site not found.",
+      "ConstructionSiteNameRequired": "Please enter a site name.",
+      "ConstructionSiteNameTooLong": "The site name can be at most 200 characters.",
+      "ConstructionSiteNameTaken": "You already have a site with this name. Please choose another.",
+      "ConstructionSiteAddressRequired": "Please enter the site address.",
+      "ConstructionSiteAddressTooLong": "The site address can be at most 500 characters.",
+      "ConstructionSiteCoordinatesRequired": "Please pick the site location on the map.",
+      "ConstructionSiteCoordinatesInvalid": "The map location is not valid. Please pick it again.",
+      "ConstructionSiteCoordinatesUnavailable": "This site has no map location yet. Pick one and save.",
+      "ConstructionSiteVersionRequired": "The site version is missing. Reload the page and try again.",
+      "ConstructionSiteVersionConflict": "The site has changed. Reload the page to see the latest version before editing.",
+      "ConstructionSiteHasSupervision": "This site has a reserved supervision package, so its details and files can no longer be edited.",
+      "ConstructionSiteInUse": "This site has a supervision package, so it can't be deleted.",
+      "ConstructionSiteAlreadyHasSupervision": "This site already has a reserved supervision package.",
+      "ConstructionSiteNotInScope": "This site is outside your assigned scope.",
+      "ConstructionSiteCatalogChanged": "The catalogue changed. Re-check the building type, floors and style, then save.",
+      "ConstructionSiteConditionUnavailable": "The selected condition is no longer available. Please choose again.",
+      "ConstructionSiteSourceUnavailable": "That estimate is already used or not eligible. Please choose another source.",
+      "ConstructionSiteSourceNotFound": "Source estimate not found.",
+      "ConstructionSiteSourceDataInvalid": "The source estimate is incomplete. Choose another source or enter it manually.",
+      "ConstructionSiteSourceLocked": "Information inherited from the source estimate can't be changed.",
+      "ConstructionSiteUploadUnavailable": "The file is not ready, expired or already used. Remove it and upload again.",
+      "ConstructionSiteAttachmentLimitExceeded": "A site can have at most 9 files.",
+      "ConstructionSiteFileTooLarge": "The file is larger than allowed.",
+      "ConstructionSiteFileInspectionUnavailable": "We can't check this drawing's format right now. Please try again later.",
+      "ContractorNotFound": "Contractor not found or its profile is hidden.",
+      "ContractorProjectNotFound": "That project isn't in the contractor's profile.",
+      "ContractorProfileIncomplete": "The contractor profile is missing required information, so it can't be shown yet.",
+      "ContractorCategoryUnavailable": "The selected category or scope is no longer available.",
+      "ContractorAssetNotFound": "Contractor file not found.",
+      "ContractorAssetInUse": "The file is in use, so it can't be deleted.",
+      "ContractorFileUnavailable": "The contractor's file can't be loaded right now. Please try again later.",
+      "ContractorRangeNotSatisfiable": "The requested part of the file can't be read.",
+      "ContractorVersionConflict": "The contractor profile was just updated. Reload the page and try again.",
+      "InvalidContractorFilter": "The contractor filter is not valid.",
+      "InvalidContractorInput": "The contractor information is not valid. Please check the fields.",
+      "InvalidContractorProject": "The contractor project is missing a name, photo, building type or scope.",
+      "QuotationAlreadyInvited": "You already invited this contractor.",
+      "QuotationLimitReached": "You've reached the limit of invited contractors.",
+      "QuotationContractorUnavailable": "This contractor is hidden and not accepting new invitations.",
+      "QuotationTimeNotFuture": "The preferred date and time must be in the future.",
+      "QuotationContactRequired": "Please add a valid contact phone number.",
+      "QuotationIdempotencyConflict": "This doesn't match your earlier submission. Reload the page to check the previous request.",
+      "QuotationVersionConflict": "The quotation request was just changed. Reload the page and try again.",
+      "SupervisionNotFound": "Supervision package not found.",
+      "SupervisionGrantNotFound": "Your supervision package was not found.",
+      "SupervisionGrantNotAssignedToActor": "You aren't assigned to this supervision package.",
+      "SupervisionAlreadyActive": "This site already has another supervision package in progress.",
+      "SupervisionStateConflict": "The supervision package just changed state. Reload the page and try again.",
+      "AnotherPackageActive": "Another package already holds this site, so it can't be reopened.",
+      "PackageNotFound": "Package not found.",
+      "PackageStateConflict": "The package isn't in a state that allows this.",
+      "PackageVersionConflict": "The package was updated elsewhere. Reload the page and try again.",
+      "PackageExpired": "The design period has expired, so there is nothing to cancel.",
+      "PackageSuperseded": "The design period was replaced by a newer purchase.",
+      "PackageMutationInvalid": "The package change is not valid. Please check the reason and try again.",
+      "ReopenReasonRequired": "Please enter a reason for reopening.",
+      "GrantStateConflict": "The supervision package is no longer awaiting assignment.",
+      "GrantVersionConflict": "The supervision package was just updated. Reload the page and try again.",
+      "AssignmentNotFound": "Assignment not found.",
+      "AssignmentAlreadyEnded": "The assignment has ended and can't be changed.",
+      "AssignmentDeadlinePassed": "The deadline to assign this supervision package has passed.",
+      "AssignmentInputInvalid": "The assignment information is not valid.",
+      "AssignmentResourceNotFound": "The supervision package to assign was not found.",
+      "AssignmentTargetInvalid": "The assignee must be an active staff member.",
+      "AssigneeLacksPermission": "The assignee doesn't have permission to complete supervision.",
+      "DuplicateAssignment": "This person is already handling this package.",
+      "ResourceAlreadyAssigned": "This package already has an assignee.",
+      "ResourceNotAssignable": "The package has no site or was cancelled, so it can't be assigned.",
+      "ResourceTypeUnknown": "The resource type to assign is not valid.",
+      "PlanNotFound": "Plan not found.",
+      "PlanNotPurchasable": "This plan is not on sale or has been discontinued.",
+      "PlanCodeConflict": "This plan code already exists.",
+      "PlanConfigurationInvalid": "The plan configuration is not valid. Check the price, quota and benefits.",
+      "PlanCoverImageRequired": "A design plan needs a cover image before publishing.",
+      "PlanDescriptionRequired": "A supervision plan needs a service description before publishing.",
+      "PlanHasNoBenefits": "A design plan needs at least one benefit before publishing.",
+      "PlanListFilterInvalid": "The plan list filter is not valid.",
+      "PlanStateConflict": "The plan isn't in a state that allows this.",
+      "PlanStorageUnavailable": "Image storage isn't ready, so the plan image can't be saved.",
+      "PlanVersionConflict": "The plan was just updated. Reload the page and try again.",
+      "PendingDesignOrderExists": "You already have a design order awaiting payment. Complete or cancel it first.",
+      "PaymentInputInvalid": "The order information is not valid. Please try again.",
+      "PaymentOrderNotFound": "Order not found.",
+      "PaymentOrderCannotCancel": "The order has been paid or is no longer pending, so it can't be cancelled.",
+      "PaymentOrderVersionConflict": "The order was just changed. Reload the page and try again.",
+      "PaymentUnavailable": "Payment is temporarily unavailable. Please try again later.",
+      "PaymentConnectionNotFound": "Payment connection not found.",
+      "PaymentConnectionInputInvalid": "The payment connection information is not valid.",
+      "PaymentConnectionInUse": "This payment connection is in use, so it can't be turned off.",
+      "PaymentConnectionNotReady": "This payment connection isn't ready to become the active one.",
+      "PaymentConnectionAccountLocked": "This connection already has orders or transactions, so its receiving account can't be changed.",
+      "PaymentConnectionVersionConflict": "The payment connection was just updated. Reload the page and try again.",
+      "CommerceQueryInvalid": "The transaction filter is not valid.",
+      "CommerceRecordNotFound": "Record not found.",
+      "InvalidRequest": "The request is not valid. Please check your information.",
+      "ConsultationContactRequired": "Please enter a valid contact phone number.",
+      "ConsultationTimeNotFuture": "The preferred time must be in the future.",
+      "ConsultationInputInvalid": "The architect or consultation information is not valid. Please check the fields.",
+      "ConsultationIdempotencyConflict": "This consultation request was already sent with different content. Reload the page and try again.",
+      "ConsultationTemporarilyUnavailable": "Consultation is busy right now. Please try again in a few minutes.",
+      "ConsultationRequestNotFound": "Consultation request not found.",
+      "ArchitectNotFound": "Architect not found.",
+      "ArchitectUnavailable": "This architect is not accepting new requests.",
+      "ArchitectCategoriesRequired": "Please choose at least one valid, non-duplicate specialty.",
+      "ArchitectCategoryInUse": "This specialty is assigned to architects, so it can't be deleted.",
+      "ArchitectCategoryNameRequired": "Please enter a specialty name.",
+      "ArchitectCategoryNotFound": "Specialty not found.",
+      "InvalidLibraryMatchCriteria": "Not enough estimate information to find matching templates.",
+      "InvalidLibraryContent": "The library template content is not valid. Please check the fields.",
+      "UnsupportedLibraryFile": "The template file is not supported or its link is not valid.",
+      "LibraryNotFound": "Template or template version not found.",
+      "LibraryHidden": "This template is currently hidden.",
+      "LibraryConfirmationRequired": "Please confirm using an allowance before opening this template.",
+      "LibraryPositionConflict": "That resource position is already taken. Choose another.",
+      "LibraryStorageUnavailable": "Library storage is temporarily unavailable. Please try again later.",
+      "LibraryVersionChanged": "The template was just updated. Reopen it to see the latest version.",
+      "LibraryVersionConflict": "The template was just edited by someone else. Reload the page and try again.",
+      "LibraryVersionReadOnly": "This version was replaced or published, so it can't be edited.",
+      "GuideNotFound": "Guide not found.",
+      "GuideContentInvalid": "The guide content is not valid or is missing required fields.",
+      "GuideMoveInvalid": "The guide can't be moved there.",
+      "GuideOrderConflict": "The guide order just changed. Reload the page and try again.",
+      "GuideStateConflict": "The guide isn't in a state that allows this.",
+      "GuideVersionConflict": "The guide was just updated. Reload the page and try again.",
+      "GuideVideoTypeUnsupported": "Live or upcoming videos can't be attached.",
+      "GuideVideoUnavailable": "The video doesn't exist, can't be embedded or has no valid duration.",
+      "GuideYoutubeUrlInvalid": "The YouTube link is not valid.",
+      "YoutubeUnavailable": "We can't check the YouTube video right now. Please try again later.",
+      "NewsArticleNotFound": "Article not found.",
+      "InvalidNewsContent": "The article content is not valid. Check the title, body and links.",
+      "InvalidNewsCategory": "The article category is not valid.",
+      "NewsCategoryNotFound": "Article category not found.",
+      "NewsCategoryCycle": "A category can't be moved into itself or its own child.",
+      "NewsCategoryInUse": "This category has child categories or articles, so it can't be deleted.",
+      "NewsCategoryNameConflict": "A category with this name already exists under the same parent.",
+      "NewsStateConflict": "The article isn't in a state that allows this.",
+      "NewsStorageUnavailable": "Image storage isn't ready, so the article image can't be saved.",
+      "NewsVersionConflict": "The article was just updated. Reload the page and try again.",
+      "InvalidMediaUpload": "The upload is not valid. Check the file name, format or size.",
+      "MediaUploadNotFound": "Upload not found.",
+      "MediaUploadNotReady": "The file hasn't finished uploading. Wait a moment and try again.",
+      "MediaUploadExpired": "The upload expired. Please upload the file again.",
+      "MediaUploadLeaseLost": "The file check expired. Please try again.",
+      "MediaImageGone": "This image was deleted and cannot be used.",
+      "MediaImageNotReady": "The image isn't ready. Wait for it to finish uploading and try again.",
+      "MediaIdempotencyConflict": "This upload clashes with a different request. Please try again.",
+      "MediaReferenceUnavailable": "The image can't be attached right now. Please try again later.",
+      "MediaStorageUnavailable": "Image storage is temporarily unavailable. Please try again later.",
+      "CatalogItemNotFound": "Catalogue item not found.",
+      "CatalogVersionConflict": "The catalogue was just updated. Reload the page and try again.",
+      "InvalidCatalogConfiguration": "The catalogue configuration is not valid. Check the enabled items, names and images.",
+      "ConstructionScopeNotFound": "Construction scope not found.",
+      "ConstructionScopeInUse": "This construction scope is in use, so it can't be deleted.",
+      "ConstructionScopeNameTaken": "A construction scope with this name already exists.",
+      "ConstructionScopeVersionConflict": "The construction scope was just updated. Reload the page and try again.",
+      "MapAddressRequired": "Please enter an address.",
+      "MapAddressTooLong": "The address is too long (500 characters max).",
+      "MapRefIdRequired": "The place ID is missing. Please pick the place again.",
+      "MapRefIdTooLong": "The place ID is not valid. Please pick the place again.",
+      "VietMapNotConfigured": "The map service is not configured.",
+      "VietMapTimeout": "The map service took too long to respond. Please try again.",
+      "VietMapUnavailable": "The map service is temporarily unavailable. Please try again later.",
+      "VietMapInvalidResponse": "The map service returned invalid data. Please try again.",
+      "ValidationFailure": "Some information is not valid. Please check the fields.",
+      "BadRequest": "The request was invalid. Please check your information.",
+      "ConcurrencyConflict": "Someone acted at the same time. Please try again.",
+      "RequestTooLarge": "The data you sent is too large.",
+      "AuditLogNotFound": "Audit log entry not found.",
+      "StoragePutFailed": "The file couldn't be sent to storage. Please try again.",
+      "StillValidating": "The file is taking longer than expected to check. Please try again in a few minutes.",
+      "TooLarge": "The file is larger than allowed.",
+      "ExportFailed": "The export file couldn't be created. Please try again.",
+      "AuditLogImmutable": "Audit logs can't be edited or deleted."
+    }
+  },
   "validation": {
     "required": "This field is required",
     "requiredField": "{field} is required",
@@ -487,15 +744,6 @@
     "aboutTitle": "About BuildX",
     "emailLabel": "Email",
     "addressLabel": "Address"
-  },
-  "favorite": {
-    "add": "Save template",
-    "saved": "Saved",
-    "remove": "Remove from saved",
-    "savedToast": "Template saved",
-    "removedToast": "Removed from saved",
-    "viewSaved": "View saved templates",
-    "undo": "Undo"
   },
   "landing": {
     "hero": {
@@ -862,7 +1110,8 @@
       "viewAll": "See all articles",
       "newBadge": "New",
       "readTime": "{minutes} min read",
-      "titleMobile": "Home-building handbook"
+      "titleMobile": "Home-building handbook",
+      "loadError": "Could not load the latest articles. Try reloading the page."
     },
     "card": {
       "imageCount": "{count} 3D images",
@@ -885,7 +1134,7 @@
       },
       "filterLabels": {
         "buildingType": "Building type",
-        "floors": "Number of floors",
+        "floors": "Project scale",
         "tum": "Rooftop room",
         "architecture": "Architectural style",
         "interior": "Interior style"
@@ -894,6 +1143,8 @@
       "allStyles": "All styles",
       "buildingTypePrefix": "Building type: {value}",
       "floorOption": "{count} floors",
+      "floorGround": "Ground floor",
+      "floorUpper": "Ground + {count, plural, one {# floor} other {# floors}}",
       "searchPlaceholder2d": "Search by name or lot size…",
       "searchPlaceholder3d": "Search by name or style…",
       "resultCount": "Showing {shown} of {total} templates",
@@ -995,12 +1246,14 @@
       "articleCount": "({count} articles)",
       "readingTime": "{minutes} min read",
       "topicEmpty": "No article in this topic yet.",
-      "openStage": "Open handbook"
+      "openStage": "Open handbook",
+      "loadError": "Could not load the handbook steps. Try reloading the page."
     },
     "newsletter": {
       "title": "BuildX newsletter",
       "featured": "Featured article",
       "related": "Related articles",
+      "loadError": "Could not load the newsletter. Try reloading the page.",
       "seeAllRelated": "See all related articles",
       "readingTime": "{minutes} min read",
       "categories": {
@@ -1011,6 +1264,9 @@
       }
     },
     "articles": {
+      "uncategorized": "Uncategorized",
+      "loadError": "Could not load the article list. Try reloading the page.",
+
       "eyebrow": "BuildX handbook",
       "title": "Explore building knowledge",
       "subtitle": "Useful insights to stay in control at every step of building your home.",
@@ -1076,18 +1332,6 @@
         "valuePlan": "Uses a credit from your {plan} plan",
         "valueFree": "Design plans from 399,000 VND",
         "action": "Design now"
-      },
-      "save": {
-        "imageAlt": "Design template saved to your account",
-        "title": "Save template",
-        "subtitle": "Save it to your account and come back later.",
-        "p1": "Appears in your Saved templates",
-        "p2": "Compare templates you have saved",
-        "p3": "Start a new design or ask an architect later",
-        "value": "Free · does not use a lookup credit",
-        "action": "Save template",
-        "savedAction": "Saved",
-        "alreadySaved": "This template is already in Saved templates"
       },
       "consult": {
         "imageAlt": "BuildX architect reviewing drawings",
@@ -1493,8 +1737,7 @@
           "0": "Read your photo / description",
           "1": "Analysing quantities…",
           "2": "Pricing against {province} unit rates"
-        },
-        "processing": "Processing"
+        }
       },
       "dossier": {
         "title": "Rendering your construction dossier…",
@@ -1519,8 +1762,7 @@
           "drawings": "Processing drawings ({done}/{total})",
           "renders": "Rendering views ({done}/{total})",
           "package": "Packaging PDF"
-        },
-        "processing": "Preparing the dossier file…"
+        }
       }
     },
     "estimate": {
@@ -1532,7 +1774,6 @@
         "interior": "Interior"
       },
       "sectionTotal": "{section} total:",
-      "viewDetail": "VIEW DETAILS",
       "downloadXlsx": "Download the estimate (.xlsx)",
       "breakdownTitle": "Cost breakdown",
       "advisoryTitle": "Advice from BuildX",
@@ -1696,7 +1937,8 @@
       "downloadPdf": "Download PDF dossier",
       "downloadXlsx": "Download Excel estimate",
       "downloading": "Preparing the file…",
-      "downloadFailed": "Couldn't download the file. Try again in a few minutes — the link may also have expired."
+      "downloadFailed": "Couldn't download the file. Try again in a few minutes — the link may also have expired.",
+      "codeLabel": "Estimate code"
     },
     "help": {
       "label": "View guide",
@@ -1819,7 +2061,8 @@
         "ConstructionSiteInUse": "The estimate is used by a construction site and cannot be deleted."
       },
       "createdAt": "Created {date}",
-      "progressLabel": "Design & estimate progress"
+      "progressLabel": "Design & estimate progress",
+      "codeLabel": "Estimate code"
     },
     "phonePrompt": {
       "title": "Add your phone number",
@@ -2012,7 +2255,14 @@
       },
       "addressHint": "Type the address then pick a suggestion — coordinates are needed to find nearby contractors.",
       "coordinatesReady": "Coordinates found for this address.",
-      "needCoordinates": "Please pick the address from the suggestion list to get coordinates."
+      "needCoordinates": "Please pick the address from the suggestion list to get coordinates.",
+      "codeLabel": "Site record code",
+      "search": {
+        "label": "Search sites by record code",
+        "placeholder": "Search by record code, e.g. T4W8NC",
+        "emptyTitle": "No sites found",
+        "emptyDescription": "No site has a record code containing “{code}”."
+      }
     },
     "info": {
       "title": "Account information",
@@ -2049,22 +2299,8 @@
       },
       "progressLabel": "Design & estimate progress",
       "stepShort": "Step {step}",
-      "floorArea": "{area} m²"
-    },
-    "favorites": {
-      "title": "Saved favorites",
-      "remove": "Remove from favorites",
-      "kind": {
-        "2d": "2D plan",
-        "3d": "3D interior"
-      },
-      "empty": {
-        "title": "You haven't saved any templates",
-        "description": "Tap ♡ on a template to save it here."
-      },
-      "savedAt": "Saved {date}",
-      "description": "Templates you saved.",
-      "count": "{count} samples"
+      "floorArea": "{area} m²",
+      "codeLabel": "Estimate code"
     },
     "dossiers": {
       "title": "Project dossiers",
@@ -2101,7 +2337,17 @@
         "create": "Create project dossier — free",
         "viewDesignPlans": "View design plans"
       },
-      "note": "Statuses are updated by the BuildX support team. Select “View details” to track invitations, surveys and processing progress."
+      "note": "Statuses are updated by the BuildX support team. Select “View details” to track invitations, surveys and processing progress.",
+      "delete": "Delete",
+      "deleteBlocked": "This dossier has invited contractors, so it cannot be deleted.",
+      "deleteConfirmTitle": "Delete this project dossier?",
+      "deleteConfirmDescription": "The dossier \"{name}\" will be removed from your account and cannot be restored.",
+      "deleteConfirmAction": "Delete dossier",
+      "deleteCancel": "Keep it",
+      "deleteSuccess": "Project dossier deleted.",
+      "deleteInUse": "This dossier has a supervision package, so it cannot be deleted.",
+      "deleteFailed": "Could not delete the dossier. Please try again.",
+      "codeLabel": "Site record code"
     },
     "purchaseHistory": {
       "title": "Purchase history",
@@ -2311,6 +2557,8 @@
     },
     "popular": "Most popular",
     "popularShort": "Popular",
+    "prevPlan": "Previous plan",
+    "nextPlan": "Next plan",
     "oneTime": "One-time payment",
     "featuresTitleByTier": {
       "basic": "Includes these features",
@@ -2599,6 +2847,9 @@
       "regionsHint": "Directory coverage — a thin region makes quote invitations there hard to match."
     },
     "nav": {
+      "handbookNewsletter": "Handbook newsletter",
+      "handbookContent": "Handbook page content",
+
       "dashboard": "To-do",
       "templates": "Template library",
       "styles": "Styles",
@@ -2671,6 +2922,7 @@
       "created": "Record added.",
       "saved": "Saved. The public site is updated.",
       "deleted": "Record deleted.",
+      "recordNotFound": "This record was not found. It may have been deleted or is no longer in the list.",
       "apiError": "The server returned an error. Please try again."
     },
     "table": {
@@ -3049,7 +3301,9 @@
         "start": "Planned start",
         "documents": "Attachments",
         "surveyNote": "Survey note"
-      }
+      },
+      "siteCode": "Site record code",
+      "searchBySiteCode": "Search by site record code"
     },
     "invitationStatus": {
       "sent": "Sent",
@@ -4913,7 +5167,16 @@
       "effectiveNote": "People holding this role get the new permissions within {minutes} minutes at the latest, when their session is reissued. To apply it now, force them to log out on the Staff accounts screen."
     },
     "newsArticles": {
-      "description": "Handbook news articles. New articles always start as Draft and can be saved incomplete; publishing requires a title, cover image, content and at least one category. Deleting is permanent.",
+      "slug": "URL slug",
+      "slugHint": "Leave empty to generate it from the title. Editing the title does not change the slug. After you change the slug, the old one keeps working and redirects to the new one.",
+      "slugPlaceholder": "generated from the title",
+      "slugInvalid": "Lowercase letters without accents, digits and hyphens only; it cannot start or end with a hyphen.",
+      "previousSlugs": "Previous slugs",
+      "locale": "Language",
+      "localeLocked": "The language can only be chosen when the article is created.",
+      "locales": { "vi": "Vietnamese", "en": "English" },
+
+      "description": "Handbook news articles. New articles always start as Draft and can be saved incomplete; publishing requires a title, cover image, reading time, content and a slug; categories are optional. Deleting is permanent.",
       "manageCategories": "Manage categories",
       "states": {
         "all": "All",
@@ -4926,7 +5189,7 @@
       "readingTimeMinutes": "Reading time (min)",
       "cover": "Cover image",
       "categories": "Categories",
-      "categoriesHint": "Pick one or more categories at any level — picking a child does not require its parent.",
+      "categoriesHint": "Optional. Pick one or more categories at any level — picking a child does not require its parent. An article with no category shows an “uncategorized” label on the public site.",
       "categoryRequired": "A published article needs at least one category.",
       "pickCategories": "Pick categories",
       "content": "Content",
@@ -4936,7 +5199,7 @@
       "createdAt": "Created",
       "modifiedAt": "Last edited",
       "draftHint": "Drafts can be saved incomplete. Readers cannot see the article until you press Publish in the table.",
-      "publishedEditHint": "This article is live: saving shows the new content to readers immediately, so the edit must keep a title, cover image, content and at least one category.",
+      "publishedEditHint": "This article is live: saving shows the new content to readers immediately, so the edit must keep a title, cover image, reading time, content and a slug. Categories are optional.",
       "publish": "Publish",
       "publishTitle": "Publish “{name}”?",
       "publishBody": "The article appears on the News page right away. The first-published date is kept if it was published before.",
@@ -4951,16 +5214,22 @@
       "parts": {
         "title": "title",
         "cover": "cover image",
-        "category": "category"
+        "slug": "slug"
       },
       "editor": {
         "edit": "Compose",
         "preview": "Preview",
         "count": "{count}/{max} characters",
-        "hint": "Images must be https links on the system image store. Disallowed tags are stripped on save.",
+        "hint": "Use the image button to add an image frame, then choose or drag and drop a picture into it (JPG, PNG, WebP). Disallowed tags are stripped on save.",
         "urlPlaceholder": "Paste an https link…",
         "urlAdd": "Insert",
-        "imagePlaceholder": "Paste an https image link…",
+        "imageDropTitle": "Click to choose an image or drag and drop it here",
+        "imageDropHint": "JPG, PNG or WebP. The image will sit exactly where this frame is.",
+        "imageUploading": "Uploading image…",
+        "imageLoading": "Loading image…",
+        "imageRemove": "Remove image frame",
+        "imageDelete": "Delete image",
+        "imageResize": "Drag to resize the image",
         "tools": {
           "bold": "Bold",
           "italic": "Italic",
@@ -4972,7 +5241,7 @@
           "numberList": "Numbered list",
           "quote": "Quote",
           "link": "Link",
-          "image": "Insert image (paste link)"
+          "image": "Insert image"
         }
       }
     },
@@ -5056,6 +5325,75 @@
       "reopenTitle": "Reopen {name}'s request?",
       "reopenBody": "The request goes back to Pending for follow-up. The internal note is kept."
     },
+    "handbookNewsletter": {
+      "description": "Choose and order the featured articles of the newsletter block on the handbook page. You decide the order, not the publication date. Add a few spare articles: hidden or draft articles are skipped on the page and the ones after them move up, but they keep their place, so republishing puts them back where they were. The related articles next to the block are picked automatically from the category of the first one.",
+      "listTitle": "Featured articles — the page shows the first {count} published",
+      "title": "Featured articles",
+      "addPlaceholder": "Search for an article to add…",
+      "addButton": "Add article",
+      "addTitle": "Add articles to the Newsletter block",
+      "addNote": "Only published articles appear on the page. After adding, press Save to update the page.",
+      "addRow": "Add",
+      "added": "Added",
+      "addDone": "Done",
+      "noResult": "No matching article",
+      "untitled": "(untitled)",
+      "empty": "No article in the block yet",
+      "position": "Position",
+      "article": "Article",
+      "state": "Status",
+      "display": "Shown on the page",
+      "shownAs": "No. {number}",
+      "reserve": "Spare",
+      "notShown": "Not shown",
+      "hiddenHint": "The article is hidden or a draft, so it is skipped. Republish it and it returns to this position.",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "remove": "Remove from block",
+      "discard": "Discard changes",
+      "notShownEmpty": "The block has no articles, so the handbook page is hiding the whole newsletter strip. Add a published article to show it.",
+      "notShownAllHidden": "None of the articles in the block is published, so the handbook page is hiding the whole newsletter strip. Republish one of them or add another article.",
+      "states": { "Draft": "Draft", "Published": "Published", "Hidden": "Hidden" }
+    },
+    "handbookContent": {
+      "description": "Manage the handbook page content in two tabs, News and Template library, in the order readers see it on the page. The text cards are edited per language: a block you have not edited uses the page's built-in translation, so the form opens with the text currently shown, and an unedited language never borrows another language's text. The three steps, topics and featured articles are shared by every language.",
+      "locales": { "vi": "Vietnamese", "en": "English" },
+      "groups": { "news": "News", "library": "Template library" },
+      "newsGroups": {
+        "top": {
+          "title": "Top of the page and the three steps",
+          "hint": "The opening and the three building steps at the top of the News tab. The steps and topics are shared by every language."
+        },
+        "newsletter": {
+          "title": "BuildX newsletter",
+          "hint": "The Newsletter block sits right below the three steps: featured and related articles."
+        },
+        "articles": { "title": "Article list", "hint": "The articles block sits at the bottom of the News tab." }
+      },
+      "edited": "Edited",
+      "usingDefault": "Using the default",
+      "restore": "Restore default",
+      "restoreConfirm": "Delete this block's edited version? The page will go back to its built-in translation.",
+      "restored": "Default restored.",
+      "unchanged": "The text is the same as the default, so there is nothing to save.",
+      "sections": {
+        "hero": { "title": "Opening" },
+        "stagesHeading": { "title": "Heading of the three steps" },
+        "articlesHeading": { "title": "Articles block" },
+        "newsletterHeading": { "title": "Newsletter block" },
+        "libraryBanner": { "title": "Template library tab banner" },
+        "tabs": { "title": "The two tab names" }
+      },
+      "fields": {
+        "eyebrow": "Line above the title",
+        "title": "Title",
+        "description": "Description",
+        "ctaLabel": "Button label",
+        "backgroundImageUrl": "Background image (optional — leave empty to use the default image)",
+        "newsLabel": "News tab name",
+        "libraryLabel": "Template library tab name"
+      }
+    },
     "handbookSteps": {
       "description": "The three fixed Handbook steps: Structure, Finishing, Interior. Only the image, name and description can change — no adding, deleting or reordering.",
       "step": "Step",
@@ -5080,7 +5418,9 @@
       "inUse": "{count} articles remain — move or remove them before deleting.",
       "deleteConfirm": "Delete group \"{name}\"?",
       "deletedToast": "Group {name} deleted.",
-      "hint": "Renaming or changing the icon does not change its articles. Groups cannot move to another step."
+      "hint": "Renaming or changing the icon does not change its articles. Groups cannot move to another step.",
+      "moveUp": "Move group up",
+      "moveDown": "Move group down"
     },
     "costGroups": {
       "description": "Estimate results are grouped by these cost groups; the grand total equals the sum of groups. Groups with items cannot be deleted.",
@@ -5197,6 +5537,8 @@
       "resolveFailed": "Could not get coordinates for this address, please pick again"
     },
     "imageUpload": {
+      "dropHint": "Drop the file here to upload",
+      "orDrop": "or drag and drop an image here",
       "button": "Upload image",
       "done": "Image uploaded",
       "errors": {
@@ -5271,7 +5613,9 @@
       "fileGroups": {
         "Drawing": "Drawing",
         "ConditionPhoto": "Site photo"
-      }
+      },
+      "code": "Record code",
+      "searchByCode": "Search by record code"
     }
   },
   "contractors": {
@@ -5304,6 +5648,7 @@
       "surveyHours": "within {hours}h",
       "acceptingLabel": "Accepting",
       "acceptingSuffix": "projects",
+      "notAcceptingLabel": "Paused accepting",
       "informationUnknown": "Not provided",
       "ratingUnknown": "No rating yet",
       "projectAvailability": "Project availability",
@@ -5415,7 +5760,13 @@
         "unsupported": "Filtering by this criterion is not yet supported.",
         "loadError": "Could not load filter options. Please try again.",
         "distanceNeedsRadius": "Choose a project and a radius to sort by nearest contractors.",
-        "configureRadius": "Choose a radius"
+        "configureRadius": "Choose a radius",
+        "surveyOptions": {
+          "h24": "Within 24h",
+          "h48": "Within 48h",
+          "h72": "Within 72h",
+          "over72": "Over 72h"
+        }
       },
       "ranking": {
         "stickyNudge": "Create a project brief - free",
@@ -5598,7 +5949,8 @@
         "address": "Address",
         "budget": "Expected budget",
         "startWindow": "Expected start"
-      }
+      },
+      "codeLabel": "Site record code"
     },
     "rating": {
       "action": "Rate this contractor",
@@ -5944,6 +6296,11 @@
         "buildingType": "Building type",
         "scope": "Scope of work"
       },
+      "photoKinds": {
+        "Cover": "Company photo",
+        "Office": "Workplace",
+        "Team": "Our team"
+      },
       "loadFailed": "Unable to load the contractor profile. It may be hidden or access may have changed.",
       "retry": "Retry"
     },
@@ -6092,7 +6449,7 @@
       "updateToast": "The invitation to {name} is now {status}",
       "profilePanelDescription": "Contractor profile · Quick view",
       "profileRating": "Rating",
-      "profileSimilar": "Similar projects",
+      "profileCompleted": "Completed projects",
       "dossierPanelDescription": "Sent dossier version · Read only",
       "noPriceBadge": "No pricing included",
       "rejectedLine": "This invitation was rejected. Reason: {reason}",
@@ -6247,8 +6604,8 @@
       "searchLength": "Enter 1 to 500 characters for location search. You may shorten the query and choose the matching place.",
       "mapHint": "Type an address to see suggestions. Select a result, then drag the pin or click the map to adjust the construction site location.",
       "mapReadOnly": "Construction site location on the map. Location editing is disabled for this profile.",
-      "mapAdjustHint": "Drag the pin or click the map to adjust the location.",
-      "addressSearchHint": "Enter the street address, then select a suggested address."
+      "mapAdjustHint": "Drag the pin or click the map to adjust the location. The address updates to match the pin.",
+      "addressSearchHint": "Enter the street address, then select a suggested address. The map will show its location for you to check and adjust."
     },
     "rfq": {
       "title": "Quotation invitations",
@@ -6331,7 +6688,8 @@
           "Within3To6Months": "Within 3–6 months",
           "Undecided": "Undecided"
         },
-        "site": "Construction site name"
+        "site": "Construction site name",
+        "siteCode": "Site record code"
       },
       "privacy": "Your phone is saved with the invitation so support can arrange the appointment.",
       "phoneInvalid": "Use up to 20 characters with at least one digit: numbers, a leading +, spaces, dots, hyphens or parentheses.",
@@ -6910,7 +7268,8 @@
     }
   },
   "meta": {
-    "home": "AI house design and cost estimates from a photo of your plot | BuildX",
+    "siteTitle": "AI PLATFORM FOR CONSTRUCTION PLANNING & DELIVERY | BuildX",
+    "siteDescription": "A platform for planning and delivering construction projects: generate design options and cost estimates, compare your choices, find the right contractor and track progress, all in one place.",
     "design": "Design & Estimate",
     "designInput": "Project details",
     "designEstimate": "Estimate result",
@@ -6924,17 +7283,17 @@
     "contractorInvitations": "Quote invitations",
     "contractorBrief": "Project profile",
     "contractorReview": "Review project profile",
-    "handbook": "Building handbook",
+    "handbook": "Handbook",
     "handbookArticle": "Handbook article",
     "handbookTemplate": "Design template",
-    "guide": "User guide",
+    "guide": "Guide",
     "plans": "Pricing",
     "plansSupervision": "Construction supervision",
     "consult": "1:1 consultation",
     "consultDetail": "Architect profile",
+    "consultantName": "Architect - {name}",
     "account": "My account",
     "accountProjects": "My projects",
-    "accountFavorites": "Saved templates",
     "accountDossiers": "My dossiers",
     "accountPurchases": "Purchase history",
     "accountConsultations": "Consultation history",

@@ -15,6 +15,9 @@ const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts')
 const BMT_API_ORIGIN = (process.env.BMT_API_ORIGIN ?? 'https://bmt-api.vnzdna.com').replace(/\/$/, '')
 
 const nextConfig: NextConfig = {
+  output: 'standalone',
+  outputFileTracingRoot: process.cwd(),
+  turbopack: { root: process.cwd() },
   reactStrictMode: true,
   async rewrites() {
     return [{ source: '/api/v1/:path*', destination: `${BMT_API_ORIGIN}/api/v1/:path*` }]

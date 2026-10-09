@@ -87,7 +87,7 @@ function ProjectPagination({
  */
 export function ProjectBoard() {
   const t = useTranslations('design.projects')
-  const { data: projects, isPending, isError, refetch } = useProjects()
+  const { data: projects, isPending, isError, error, refetch } = useProjects()
 
   const [query, setQuery] = useState('')
   const [status, setStatus] = useState<ProjectStatus | null>(null)
@@ -104,6 +104,11 @@ export function ProjectBoard() {
 
   const [renaming, setRenaming] = useState<Project | null>(null)
   const [deleting, setDeleting] = useState<Project | null>(null)
+
+  function changePage(nextPage: number) {
+    setPage(nextPage)
+    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })
+  }
 
   // `?? []` tạo mảng mới mỗi lần render nên phải ghim lại, nếu không hai
   // `useMemo` bên dưới tính lại ở mọi lần render.
@@ -130,7 +135,7 @@ export function ProjectBoard() {
     )
   }
 
-  if (isError) return <DesignLoadError onRetry={() => void refetch()} />
+  if (isError) return <DesignLoadError error={error} onRetry={() => void refetch()} />
 
   // Chưa có dự án nào: bỏ hẳn thẻ đếm và bộ lọc. Không kèm nút — nút "Tạo dự án
   // mới" duy nhất của trang nằm giữa đầu trang (góp ý BuildX).
@@ -190,7 +195,7 @@ export function ProjectBoard() {
 
                 <div className='flex flex-wrap items-center justify-between gap-3 pt-1'>
                   <p className='text-muted-foreground text-[13px]'>{t('count', { count: matchedCount })}</p>
-                  <ProjectPagination page={page} pageCount={pageCount} onChange={setPage} />
+                  <ProjectPagination page={page} pageCount={pageCount} onChange={changePage} />
                 </div>
               </>
             </motion.div>

@@ -17,7 +17,10 @@ export function useMatchCriteria(projectId: string): MatchCriteria | null {
     queryKey: designKeys.estimateDetail(projectId),
     queryFn: () => estimateInputApi.getEstimate(projectId),
     enabled: real,
-    staleTime: 60_000
+    staleTime: 60_000,
+    // Bản trong cache có thể còn là `Draft` từ Bước 1 (vừa lưu chưa đầy 60 giây) dù AI đã tiếp nhận: không đọc lại thì
+    // `accepted` sai và panel không gọi API ghép mẫu. Vào màn nào dùng điều kiện này cũng đọc lại trạng thái thật.
+    refetchOnMount: 'always'
   })
   const accepted = Boolean(detail.data && detail.data.state !== 'Draft')
   const catalog = useQuery({

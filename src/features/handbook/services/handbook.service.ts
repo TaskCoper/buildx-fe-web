@@ -221,19 +221,32 @@ function normalizeTemplateSearch(value: string): string {
     .trim()
 }
 
-/** Số bài của từng chủ đề — nguồn của dòng "(6 bài)" trên bảng chủ đề (Hình 10). */
+/**
+ * Các chủ đề mà một bài thuộc về. Bài đến từ API mang `topicIds` suy từ danh mục nên có thể thuộc NHIỀU chủ đề
+ * (BR-HB-001 khoản 7); bài mock chỉ có một `topicId`.
+ */
+export function topicIdsOf(article: HandbookArticle & { topicIds?: readonly string[] }): readonly string[] {
+  if (article.topicIds) return article.topicIds
+  return article.topicId ? [article.topicId] : []
+}
+
+/**
+ * Số bài của từng chủ đề — nguồn của dòng "(6 bài)" trên bảng chủ đề (Hình 10). Bài thuộc nhiều chủ đề được đếm ở
+ * mỗi chủ đề.
+ */
 export function countArticlesByTopic(articles: readonly HandbookArticle[]): Record<string, number> {
   const counts: Record<string, number> = {}
   for (const article of articles) {
-    if (!article.topicId) continue
-    counts[article.topicId] = (counts[article.topicId] ?? 0) + 1
+    for (const topicId of topicIdsOf(article)) {
+      counts[topicId] = (counts[topicId] ?? 0) + 1
+    }
   }
   return counts
 }
 
 /** Bài của một chủ đề, mới nhất trước. */
 export function articlesOfTopic(articles: readonly HandbookArticle[], topicId: string): HandbookArticle[] {
-  return articles.filter((article) => article.topicId === topicId).sort(byNewest)
+  return articles.filter((article) => topicIdsOf(article).includes(topicId)).sort(byNewest)
 }
 
 /** Bài đẩy lên Bản tin, xếp theo `featuredRank` (1 = bài nổi bật lớn). */
@@ -278,7 +291,8 @@ export function selectRelatedArticles(
   count = RELATED_ARTICLE_COUNT
 ): HandbookArticle[] {
   const others = articles.filter((article) => article.id !== current.id)
-  const sameTopic = others.filter((article) => article.topicId && article.topicId === current.topicId)
+  const currentTopics = topicIdsOf(current)
+  const sameTopic = others.filter((article) => topicIdsOf(article).some((id) => currentTopics.includes(id)))
   const sameCategory = others.filter((article) => article.category === current.category && !sameTopic.includes(article))
   return [...sameTopic, ...sameCategory].slice(0, count)
 }

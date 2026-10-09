@@ -17,6 +17,7 @@ import {
   recallOperation,
   sleep as sleepMs,
   waitForExport as pollExport,
+  type EstimateResultRaw,
   type ResultFile,
   type ShareLink
 } from './estimate-generation.api'
@@ -25,6 +26,8 @@ import {
 
 interface BmtEstimateListItem {
   estimateId: string
+  /** Mã dự toán `BUILDX-YYYYMMDD-XXXXXX`; thiếu khi API chưa trả. */
+  code?: string | null
   name: string
   buildingType?: { id: string; name: string } | null
   /** Draft, Processing, Failed, Succeeded — trạng thái tác vụ tạo thiết kế gần nhất. */
@@ -69,10 +72,29 @@ interface BmtEstimateDetail {
   missingFields?: string[]
 }
 
-function toProject(item: BmtEstimateListItem): Project {
-  const currentStep = stepOfState(item.state)
+/** Tệp PDF hồ sơ đã xuất xong (`exportAvailability`) — dấu hiệu duy nhất BE có cho "hồ sơ sẵn sàng". */
+const readyPdfOf = (result: EstimateResultRaw) =>
+  result.exportAvailability?.find((item) => item.format === 'Pdf' && item.state === 'Ready' && item.exportId)
+
+/**
+ * Bước đang dừng của một bản dự toán. Đã có kết quả mà chưa xuất hồ sơ PDF thì khách mới ở Bước 2 (xem dự toán); xuất
+ * xong mới là Bước 3 hoàn tất. Không đọc được tệp xuất thì coi là chưa xuất, vì sai theo hướng này chỉ làm thẻ hiện
+ * "Bước 2" thay vì báo hoàn tất oan.
+ */
+async function resolveStep(estimateId: string, state: string): Promise<1 | 2 | 3> {
+  const step = stepOfState(state)
+  if (estimateStateKind(state) !== 'succeeded') return step
+  try {
+    return readyPdfOf(await estimateGenerationApi.getResult(estimateId)) ? 3 : 2
+  } catch {
+    return 2
+  }
+}
+
+function toProject(item: BmtEstimateListItem, currentStep: 1 | 2 | 3): Project {
   return {
     id: item.estimateId,
+    code: item.code ?? null,
     name: item.name,
     createdAt: item.createdAtUtc,
     updatedAt: item.modifiedAtUtc,
@@ -110,7 +132,11 @@ export const bmtDesignApi = {
       const page = await http.get<PagedResult<BmtEstimateListItem>>('/estimates', {
         params: { pageIndex, pageSize: 100 }
       })
-      items.push(...page.items.map(toProject))
+      items.push(
+        ...(await Promise.all(
+          page.items.map(async (item) => toProject(item, await resolveStep(item.estimateId, item.state)))
+        ))
+      )
       if (!page.hasNextPage) return [...new Map(items.map((item) => [item.id, item])).values()]
       pageIndex++
     }
@@ -128,9 +154,14 @@ export const bmtDesignApi = {
     }
   },
 
-  /** Tạo dự toán thật `POST /estimates` → trả receipt {estimateId,inputVersion,nameVersion}. */
+  /** Tạo dự toán thật `POST /estimates` → trả receipt {estimateId,code,inputVersion,nameVersion}. */
   createProject: async (payload: CreateProjectPayload, key?: string): Promise<Project> => {
-    const saved = await http.post<{ estimateId: string; inputVersion: number; nameVersion: number }>(
+    const saved = await http.post<{
+      estimateId: string
+      code?: string | null
+      inputVersion: number
+      nameVersion: number
+    }>(
       '/estimates',
       {
         name: payload.name.trim(),
@@ -144,6 +175,7 @@ export const bmtDesignApi = {
     )
     return {
       id: saved.estimateId,
+      code: saved.code ?? null,
       name: payload.name.trim(),
       ...(payload.description ? { description: payload.description } : {}),
       createdAt: nowIso(),
@@ -159,9 +191,10 @@ export const bmtDesignApi = {
   /** `GET /estimates/{id}`. DTO không có mốc thời gian → tạm dùng hiện tại (thẻ danh sách lấy mốc thật từ `/estimates`). */
   getProject: async (projectId: string): Promise<Project> => {
     const e = await estimateInputApi.getEstimate(projectId)
-    const step = stepOfState(e.state)
+    const step = await resolveStep(projectId, e.state)
     return {
       id: e.estimateId,
+      code: e.code ?? null,
       name: e.name,
       createdAt: nowIso(),
       updatedAt: nowIso(),
@@ -180,9 +213,10 @@ export const bmtDesignApi = {
       name,
       nameVersion: e.nameVersion
     })
-    const step = stepOfState(e.state)
+    const step = await resolveStep(projectId, e.state)
     return {
       id: projectId,
+      code: e.code ?? null,
       name: res.name,
       createdAt: nowIso(),
       updatedAt: nowIso(),
@@ -215,9 +249,7 @@ export const bmtDesignApi = {
     const detail = await estimateInputApi.getEstimate(projectId)
     if (estimateStateKind(detail.state) !== 'succeeded') return idleDossier(projectId)
     const [result, share] = await Promise.all([estimateGenerationApi.getResult(projectId), activeShare(projectId)])
-    const pdf = result.exportAvailability?.find(
-      (item) => item.format === 'Pdf' && item.state === 'Ready' && item.exportId
-    )
+    const pdf = readyPdfOf(result)
     return {
       ...idleDossier(projectId),
       status: pdf ? 'ready' : 'idle',
@@ -287,6 +319,7 @@ export const bmtDesignApi = {
       const mapped = mapEstimateContent(shared.dossier?.content, { projectId: shareId, areaM2: 0 })
       return {
         projectName: shared.estimateName,
+        projectCode: shared.estimateCode ?? null,
         // DTO chia sẻ không có địa chỉ và ngày tạo: bỏ trống, màn xem tự ẩn.
         address: '',
         createdAt: '',

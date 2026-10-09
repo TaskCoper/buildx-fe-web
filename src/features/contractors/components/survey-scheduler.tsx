@@ -64,7 +64,7 @@ import {
   type SurveyFormValues
 } from '../schemas/survey.schema'
 import { fullAddress } from '../services/brief.service'
-import { remainingInvites } from '../services/contractor-list.service'
+import { isNotAccepting, remainingInvites, withDistanceFrom } from '../services/contractor-list.service'
 import { useContractorsStore } from '../store/contractors.store'
 import type { SurveyBooking } from '../types/contractor.types'
 import { ContractorLogo } from './contractor-logo'
@@ -124,6 +124,9 @@ export function SurveyScheduler({ projectId, contractorId }: SurveySchedulerProp
 
   const { data: brief, error: briefError } = useBrief(projectId)
   const { data: contractor, error: contractorError } = useContractor(contractorId)
+  // Vào thẳng đường dẫn mời một nhà thầu đã ngưng nhận dự án cũng không gửi được lời mời.
+  const tFirm = useTranslations('contractors.firm')
+  const stoppedAccepting = contractor ? isNotAccepting(contractor) : false
   const { data: invitations, limit, remaining, error: invitationError } = useInvitations(projectId)
   const send = useSendInvitations(projectId, {
     navigateDelayMs: reduceMotion ? 0 : 1200,
@@ -388,8 +391,9 @@ export function SurveyScheduler({ projectId, contractorId }: SurveySchedulerProp
                 'ConstructionSiteNotFound',
                 'DependencyUnavailable'
               ] as const
-            ).find((item) => isApiError(error) && item === error.code)
-            toast.error(code ? rfq(`errors.${code}`) : rfq('sendFailed'))
+            ).find((item) => isApiError(error) && (item === error.code || item === error.messageCode))
+            // Mã ngoài danh sách: câu BE đã dịch theo mã/status (vd. hệ thống bận) thay vì "gửi thất bại" chung.
+            toast.error(code ? rfq(`errors.${code}`) : isApiError(error) ? error.message : rfq('sendFailed'))
           }
         }
       )
@@ -447,6 +451,14 @@ export function SurveyScheduler({ projectId, contractorId }: SurveySchedulerProp
     )
   }
 
+  // API chi tiết nhà thầu không trả khoảng cách (chỉ API danh sách kèm công trình mới trả), nên tự tính từ toạ độ
+  // công trình của dự án tới trụ sở nhà thầu. Thiếu toạ độ một bên thì vẫn là "chưa tính", không đoán.
+  const site = brief?.constructionSite
+  const withDistance = withDistanceFrom(
+    contractor,
+    site ? { latitude: site.latitude, longitude: site.longitude } : undefined
+  )
+
   /** Dải chỉ số cạnh tên nhà thầu — ba ô, đúng ảnh S16 (không có phạm vi phục vụ). */
   const facts = [
     {
@@ -458,9 +470,12 @@ export function SurveyScheduler({ projectId, contractorId }: SurveySchedulerProp
     {
       key: 'distance',
       icon: MapPin,
-      value: tCommon('distanceShort', {
-        km: formatNumber(contractor.distanceKm, locale, { minimumFractionDigits: 1 })
-      }),
+      value:
+        withDistance.distanceKnown === false
+          ? tCommon('distanceUnknown')
+          : tCommon('distanceShort', {
+              km: formatNumber(withDistance.distanceKm, locale, { minimumFractionDigits: 1 })
+            }),
       hint: tCommon('distanceSuffix')
     },
     {
@@ -1033,6 +1048,7 @@ export function SurveyScheduler({ projectId, contractorId }: SurveySchedulerProp
                         setFlightOrigin({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 })
                       }}
                       disabled={
+                        stoppedAccepting ||
                         ((room <= 0 || invitations?.some((item) => item.contractorId === contractorId)) &&
                           !uncertain) ||
                         (real && (!brief?.constructionSiteId || Boolean(invitationError))) ||
@@ -1056,6 +1072,7 @@ export function SurveyScheduler({ projectId, contractorId }: SurveySchedulerProp
                     </Button>
                   </motion.span>
                 </div>
+                {stoppedAccepting ? <p className='text-destructive text-xs'>{tFirm('notAcceptingNotice')}</p> : null}
                 <p className='text-muted-foreground flex items-center gap-2 text-xs'>
                   <Lock className='size-3.5' />
                   {real ? rfq('privacy') : t('privacy')}

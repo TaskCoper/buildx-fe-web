@@ -1,4 +1,5 @@
 import { useAuthStore } from '@/shared/auth'
+import { sampleRecordCode } from '@/shared/utils'
 import type { bmtConstructionSitesApi } from './construction-sites.api'
 import type { SiteCatalog, SiteDetail, PendingSiteFile } from '../types/construction-site.types'
 
@@ -85,6 +86,7 @@ export const mockConstructionSitesApi: typeof bmtConstructionSitesApi = {
     const type = catalog.types.find((item) => item.id === request.profile?.buildingTypeId)
     const site: SiteDetail = {
       constructionSiteId: crypto.randomUUID(),
+      code: sampleRecordCode('site', now),
       name: request.name,
       address: `${request.profile.addressDetail}, Phường Ba Đình, Thành phố Hà Nội`,
       latitude: request.latitude,
@@ -144,6 +146,10 @@ export const mockConstructionSitesApi: typeof bmtConstructionSitesApi = {
     return site
   },
   detail: async (id) => find(id),
+  remove: async (id) => {
+    find(id)
+    write(read().filter((site) => site.constructionSiteId !== id))
+  },
   list: async (pageIndex) => ({
     items: read().slice((pageIndex - 1) * 100, pageIndex * 100),
     pageIndex,

@@ -27,14 +27,17 @@ import {
 } from '@/shared/components/ui/breadcrumb'
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import { ROUTES, handbookArticleRoute } from '@/shared/constants/routes'
-import { usePageEntrance } from '@/shared/hooks'
+import { useDocumentTitle, usePageEntrance } from '@/shared/hooks'
 import { cn } from '@/shared/lib/utils'
 import { formatDisplayDate } from '@/shared/utils'
 import { ARTICLE_META_ICON, ARTICLE_META_TEXT } from '../constants/article-meta'
 import { useArticleLabels } from '../hooks/use-article-labels'
-import { useHandbookArticle, useHandbookArticles, useHandbookStages } from '../hooks/use-handbook'
-import { selectRelatedArticles } from '../services/handbook.service'
-import { ArticleCompactCta, ArticleEndExperience } from './article-action-experience'
+import { useHandbookArticle, useHandbookStages, useHandbookTopicArticles } from '../hooks/use-handbook'
+import { selectRelatedArticles, topicIdsOf } from '../services/handbook.service'
+import { ArticleEndExperience } from './article-action-experience'
+// [ARTICLE-CTA] Tạm ẩn khối mời "Áp dụng ngay cho dự án của bạn?" (giữa bài) — bỏ comment dòng dưới (và thêm
+// `ArticleCompactCta` vào import ở trên) để bật lại. Khối "Sẵn sàng áp dụng…" cuối bài vẫn hiện.
+// import { ArticleCompactCta } from './article-action-experience'
 import { ConsultButton } from './consult-button'
 
 interface ArticleDetailProps {
@@ -56,7 +59,9 @@ export function ArticleDetail({ slug, onCreateProject }: ArticleDetailProps) {
   const router = useRouter()
 
   const { data: article, isPending, isError, refetch } = useHandbookArticle(slug)
-  const { data: articles } = useHandbookArticles()
+  useDocumentTitle(article?.title)
+  // Danh sách bài đã gắn `topicIds`: bài chi tiết không mang chủ đề nên lấy bản cùng id trong danh sách.
+  const { data: articles } = useHandbookTopicArticles()
   const { data: stages } = useHandbookStages()
   const { rootRef, entranceState, entranceStyle } = usePageEntrance(`handbook.article.${slug}`, {
     enabled: !isPending && Boolean(article),
@@ -64,10 +69,15 @@ export function ArticleDetail({ slug, onCreateProject }: ArticleDetailProps) {
     replayOnMount: true
   })
 
-  const stage = stages?.find((item) => item.id === article?.stage)
-  const topic = stage?.topics.find((item) => item.id === article?.topicId)
+  // Bài có thể thuộc nhiều chủ đề (BR-HB-001 khoản 7); dòng chỉ đường lấy chủ đề đầu tiên khớp.
+  const current = useMemo(() => articles?.find((item) => item.id === article?.id) ?? article, [articles, article])
+  const currentTopicIds = current ? topicIdsOf(current) : []
+  const stage =
+    stages?.find((item) => item.id === article?.stage) ??
+    stages?.find((item) => item.topics.some((candidate) => currentTopicIds.includes(candidate.id)))
+  const topic = stage?.topics.find((item) => currentTopicIds.includes(item.id))
 
-  const related = useMemo(() => (article ? selectRelatedArticles(articles ?? [], article) : []), [articles, article])
+  const related = useMemo(() => (current ? selectRelatedArticles(articles ?? [], current) : []), [articles, current])
   const articleRef = useRef<HTMLElement>(null)
   const navigationLockedRef = useRef(false)
   const exitAnimationRef = useRef<Animation | null>(null)
@@ -431,7 +441,9 @@ export function ArticleDetail({ slug, onCreateProject }: ArticleDetailProps) {
                     className='space-y-4 text-sm leading-relaxed [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-4 [&_blockquote]:border-primary/40 [&_blockquote]:text-muted-foreground [&_blockquote]:border-l-2 [&_blockquote]:pl-4 [&_h2]:text-primary [&_h2]:mt-5 [&_h2]:text-lg [&_h2]:font-semibold [&_h3]:mt-4 [&_h3]:font-semibold [&_img]:my-3 [&_img]:rounded-lg [&_ol]:list-decimal [&_ol]:space-y-1 [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-5'
                     dangerouslySetInnerHTML={{ __html: article.contentHtml }}
                   />
+                  {/* [ARTICLE-CTA] Tạm ẩn — bỏ comment để bật lại.
                   <ArticleCompactCta article={article} onCreateProject={onCreateProject} />
+                  */}
                 </>
               ) : (
                 article.body.map((section, index) => (
@@ -475,9 +487,11 @@ export function ArticleDetail({ slug, onCreateProject }: ArticleDetailProps) {
                       </div>
                     </section>
 
+                    {/* [ARTICLE-CTA] Tạm ẩn — bỏ comment để bật lại.
                     {index === Math.max(0, Math.floor(article.body.length / 2) - 1) ? (
                       <ArticleCompactCta article={article} onCreateProject={onCreateProject} />
                     ) : null}
+                    */}
                   </div>
                 ))
               )}
@@ -527,7 +541,10 @@ export function ArticleDetail({ slug, onCreateProject }: ArticleDetailProps) {
                         </span>
                         <span className={cn(ARTICLE_META_TEXT, 'block text-xs')}>
                           {[
-                            stages?.find((s) => s.id === item.stage)?.title,
+                            (
+                              stages?.find((s) => s.id === item.stage) ??
+                              stages?.find((s) => s.topics.some((c) => topicIdsOf(item).includes(c.id)))
+                            )?.title,
                             t('readingTime', { minutes: item.readingMinutes })
                           ]
                             .filter(Boolean)

@@ -797,10 +797,20 @@
     box-shadow: var(--header-shadow-scrolled);
   }
 
-  /* The mobile header stays 64px tall even after the desktop compact state is
-     entered. Keep sticky page controls below that unchanged height as well. */
+  /* Mobile: keep the shared header pinned and visible while the page scrolls.
+     The component still tracks scroll direction for desktop, but mobile must
+     not translate the header away from the top of the viewport. */
   @media (max-width: 767px) {
-    :root:has(.site-header-shell):not(:has(.site-header-shell[data-hidden='true'])) {
+    .site-header-shell {
+      position: sticky;
+      top: 0;
+    }
+
+    .site-header-shell[data-hidden='true'] {
+      transform: translateY(0) !important;
+    }
+
+    :root:has(.site-header-shell) {
       --public-header-offset: 64px !important;
     }
   }
@@ -1270,56 +1280,6 @@
     animation: handbook-template-blocked-shake 420ms ease-out 1;
   }
 
-  [data-favorite-button] {
-    transition:
-      border-color 180ms ease,
-      transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
-      background-color 180ms ease;
-  }
-  [data-favorite-button]:hover {
-    border-color: color-mix(in oklch, var(--primary) 58%, var(--border));
-    transform: scale(1.07);
-  }
-  [data-favorite-fill] {
-    transition: clip-path 300ms cubic-bezier(0.22, 1, 0.36, 1);
-  }
-  [data-favorite-button][data-favorite-pulse='save'] [data-favorite-heart] {
-    animation: handbook-favorite-pop 430ms cubic-bezier(0.22, 1, 0.36, 1) 1;
-  }
-  [data-favorite-button][data-favorite-pulse='remove'] [data-favorite-heart] {
-    animation: handbook-favorite-unpop 260ms ease-out 1;
-  }
-  [data-favorite-particle] {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 3px;
-    height: 3px;
-    border-radius: 999px;
-    background: var(--primary);
-    opacity: 0;
-    pointer-events: none;
-  }
-  [data-favorite-button][data-favorite-pulse='save'] [data-favorite-particle] {
-    animation: handbook-favorite-particle 420ms ease-out 1;
-  }
-  [data-favorite-particle][data-index='0'] {
-    --particle-x: 11px;
-    --particle-y: -11px;
-  }
-  [data-favorite-particle][data-index='1'] {
-    --particle-x: -10px;
-    --particle-y: -9px;
-  }
-  [data-favorite-particle][data-index='2'] {
-    --particle-x: 12px;
-    --particle-y: 7px;
-  }
-  [data-favorite-particle][data-index='3'] {
-    --particle-x: -11px;
-    --particle-y: 8px;
-  }
-
   [data-read-badge] {
     animation: handbook-read-badge-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
   }
@@ -1377,24 +1337,6 @@
   }
   [data-detail-tag] {
     --entrance-y: -9px;
-  }
-
-  [data-favorite-button][data-favorite-variant='full'] {
-    transform: none;
-    transition:
-      border-color 180ms ease,
-      background-color 180ms ease,
-      box-shadow 180ms ease;
-  }
-  [data-favorite-button][data-favorite-variant='full']:hover,
-  [data-favorite-button][data-favorite-variant='full']:focus-visible,
-  [data-favorite-button][data-favorite-variant='full'][data-favorite-active='true'] {
-    border-color: color-mix(in oklch, var(--primary) 48%, var(--border));
-    background: color-mix(in oklch, var(--primary) 9%, var(--background));
-    transform: none;
-  }
-  [data-favorite-label] {
-    animation: handbook-template-label-crossfade 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 
   [data-floor-tab-pill] {
@@ -1466,7 +1408,6 @@
   html.handbook-detail-inplace-transition::view-transition-group(handbook-detail-tag-style),
   html.handbook-detail-inplace-transition::view-transition-group(handbook-detail-tag-floors),
   html.handbook-detail-inplace-transition::view-transition-group(handbook-detail-tag-size),
-  html.handbook-detail-inplace-transition::view-transition-group(handbook-detail-favorite),
   html.handbook-detail-inplace-transition::view-transition-group(handbook-detail-info-title),
   html.handbook-detail-inplace-transition::view-transition-group(handbook-detail-info-row-0),
   html.handbook-detail-inplace-transition::view-transition-group(handbook-detail-info-row-1),
@@ -1485,7 +1426,6 @@
   html.handbook-detail-inplace-transition::view-transition-old(handbook-detail-tag-style),
   html.handbook-detail-inplace-transition::view-transition-old(handbook-detail-tag-floors),
   html.handbook-detail-inplace-transition::view-transition-old(handbook-detail-tag-size),
-  html.handbook-detail-inplace-transition::view-transition-old(handbook-detail-favorite),
   html.handbook-detail-inplace-transition::view-transition-old(handbook-detail-info-title),
   html.handbook-detail-inplace-transition::view-transition-old(handbook-detail-info-row-0),
   html.handbook-detail-inplace-transition::view-transition-old(handbook-detail-info-row-1),
@@ -1520,10 +1460,6 @@
   }
   html.handbook-detail-inplace-transition::view-transition-new(handbook-detail-tag-size) {
     animation: detail-vt-chip-in 170ms cubic-bezier(0.22, 1, 0.36, 1) 172ms both;
-    mix-blend-mode: normal;
-  }
-  html.handbook-detail-inplace-transition::view-transition-new(handbook-detail-favorite) {
-    animation: detail-vt-copy-in 160ms cubic-bezier(0.22, 1, 0.36, 1) 96ms both;
     mix-blend-mode: normal;
   }
   html.handbook-detail-inplace-transition::view-transition-new(handbook-detail-info-title) {
@@ -1886,43 +1822,6 @@
     }
     82% {
       transform: translateX(2px);
-    }
-  }
-
-  @keyframes handbook-favorite-pop {
-    0%,
-    100% {
-      transform: scale(1);
-    }
-    48% {
-      transform: scale(1.34);
-    }
-    72% {
-      transform: scale(0.94);
-    }
-  }
-
-  @keyframes handbook-favorite-unpop {
-    0%,
-    100% {
-      transform: scale(1);
-    }
-    52% {
-      transform: scale(0.82);
-    }
-  }
-
-  @keyframes handbook-favorite-particle {
-    0% {
-      opacity: 0;
-      transform: translate(-50%, -50%) scale(0.4);
-    }
-    30% {
-      opacity: 0.82;
-    }
-    100% {
-      opacity: 0;
-      transform: translate(calc(-50% + var(--particle-x)), calc(-50% + var(--particle-y))) scale(1);
     }
   }
 
@@ -2951,10 +2850,6 @@ body main {
 }
 [data-estimate-row]:hover {
   transition-duration: 0ms;
-}
-[data-estimate-detail-row] {
-  animation: design-table-row-in 280ms var(--ease-out-soft) both;
-  animation-delay: var(--detail-row-delay, 0ms);
 }
 [data-estimate-total-row] {
   opacity: 0;
@@ -4048,8 +3943,6 @@ body main {
   [data-template-secondary-label],
   [data-template-select-content],
   [data-template-card][data-template-blocked='true'],
-  [data-favorite-heart],
-  [data-favorite-particle],
   [data-read-badge],
   [data-read-check] path,
   [data-quota-number],
@@ -4060,14 +3953,11 @@ body main {
   [data-template-info-value],
   [data-template-info-divider],
   [data-similar-card],
-  [data-consult-cta],
-  [data-favorite-label] {
+  [data-consult-cta] {
     animation: none !important;
   }
   [data-template-card],
   [data-template-card-figure] .template-card-figure-motion,
-  [data-favorite-button],
-  [data-favorite-fill],
   [data-template-page-dot],
   [data-template-search],
   [data-template-select],
@@ -4094,8 +3984,7 @@ body main {
   [data-template-card]:hover,
   [data-template-card]:has([data-template-card-open]:focus-visible),
   [data-template-card][data-template-pressing='true'],
-  [data-template-card][data-template-preview='true'] [data-template-card-figure] .template-card-figure-motion,
-  [data-favorite-button]:hover {
+  [data-template-card][data-template-preview='true'] [data-template-card-figure] .template-card-figure-motion {
     transform: none !important;
   }
   [data-article-search][data-flash='true'] {
@@ -4802,17 +4691,17 @@ body main {
   stroke-dasharray: 18;
   stroke-dashoffset: 18;
 }
-.plan-slide[data-prices-done='true'] .plan-features[data-seen='true'] .plan-feature-title {
-  animation: plan-reveal 0.46s var(--entry-delay) cubic-bezier(0.2, 0.72, 0.3, 1) both;
+.plan-features[data-seen='true'] .plan-feature-title {
+  animation: plan-reveal 0.46s calc(var(--entry-delay) * 0.4) cubic-bezier(0.2, 0.72, 0.3, 1) both;
 }
-.plan-slide[data-prices-done='true'] .plan-features[data-seen='true'] .plan-feature-line > span {
-  animation: plan-reveal 0.52s calc(var(--line-delay) + 0.38s) cubic-bezier(0.2, 0.72, 0.3, 1) both;
+.plan-features[data-seen='true'] .plan-feature-line > span {
+  animation: plan-reveal 0.52s calc(var(--line-delay) + 0.15s) cubic-bezier(0.2, 0.72, 0.3, 1) both;
 }
-.plan-slide[data-prices-done='true'] .plan-features[data-seen='true'] .plan-feature-line svg circle {
+.plan-features[data-seen='true'] .plan-feature-line svg circle {
   animation: plan-draw 0.3s var(--line-delay) ease-out both;
 }
-.plan-slide[data-prices-done='true'] .plan-features[data-seen='true'] .plan-feature-line svg path {
-  animation: plan-draw 0.28s calc(var(--line-delay) + 0.28s) ease-out both;
+.plan-features[data-seen='true'] .plan-feature-line svg path {
+  animation: plan-draw 0.28s calc(var(--line-delay) + 0.15s) ease-out both;
 }
 @keyframes plan-draw {
   to {
@@ -5127,10 +5016,10 @@ body main {
   opacity: 0;
 }
 .supervision-inspection-band[data-seen='true'] .supervision-inspection-text {
-  animation: supervision-band-text-in 0.38s 0.88s ease-out forwards;
+  animation: supervision-band-text-in 0.38s 0.3s ease-out forwards;
 }
 .supervision-inspection-band[data-control='true'][data-seen='true'] .supervision-inspection-text {
-  animation-delay: 1.26s;
+  animation-delay: 0.45s;
 }
 .supervision-inspection-band[data-empty='true'][data-seen='true'] .supervision-inspection-text {
   animation-delay: 0.24s;
@@ -5169,10 +5058,11 @@ body main {
   transform: scaleX(1);
 }
 .supervision-benefits[data-seen='true'] .supervision-benefit {
-  animation: supervision-benefit-in 0.48s calc(1s + var(--benefit-index) * 0.09s) cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: supervision-benefit-in 0.48s calc(0.35s + var(--benefit-index) * 0.09s) cubic-bezier(0.16, 1, 0.3, 1)
+    forwards;
 }
 .supervision-benefits[data-seen='true'] .supervision-benefit svg * {
-  animation: plan-value-icon-draw 0.42s calc(0.92s + var(--benefit-index) * 0.09s) ease-out forwards;
+  animation: plan-value-icon-draw 0.42s calc(0.45s + var(--benefit-index) * 0.09s) ease-out forwards;
 }
 .supervision-benefits[data-empty='true'][data-seen='true'] .supervision-benefit {
   animation-delay: calc(0.42s + var(--benefit-index) * 0.09s);
@@ -5232,7 +5122,7 @@ body main {
   }
 }
 .supervision-price {
-  animation: supervision-price-settle 0.28s 3.05s ease-out;
+  animation: supervision-price-settle 0.28s 0.7s ease-out;
 }
 @keyframes supervision-price-settle {
   50% {
@@ -6483,7 +6373,7 @@ html[data-pricing-scrolling='true'] .supervision-journey-flow-dot {
   .supervision-journey-track {
     flex-direction: column;
     align-items: stretch;
-    gap: 0;
+    gap: 24px;
     overflow: hidden;
   }
   .supervision-journey-card {

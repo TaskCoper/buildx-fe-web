@@ -1,5 +1,6 @@
 import type { ApiError, ApiResponse } from '@/shared/types'
 import type { AxiosRequestConfig, AxiosResponse } from 'axios'
+import { displayMessage } from './api-error'
 import { httpClient } from './http-client'
 
 /**
@@ -11,11 +12,17 @@ function unwrap<T>(res: AxiosResponse<ApiResponse<T> | T>): T {
   const body = res.data as ApiResponse<T> | T | undefined
   if (body && typeof body === 'object' && 'isSuccess' in body) {
     if (!body.isSuccess) {
+      const code = body.error?.code || undefined
+      const messageCode = body.error?.messageCode ?? undefined
+      const serverMessage = body.error?.message || undefined
       const error: ApiError = {
         status: res.status,
-        code: body.error?.code || undefined,
-        messageCode: body.error?.messageCode ?? undefined,
-        message: body.error?.message || 'Something went wrong. Please try again.'
+        code,
+        messageCode,
+        message: displayMessage(
+          { status: res.status, code, messageCode, serverMessage },
+          serverMessage || 'Something went wrong. Please try again.'
+        )
       }
       throw error
     }

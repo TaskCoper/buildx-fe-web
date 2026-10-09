@@ -3,18 +3,20 @@ import { bmtHandbookApi } from './handbook.bmt'
 import { mockHandbookApi } from './handbook.mock'
 
 /**
- * Chức năng đã nối BMT API — GIỮ MOCK LÀM NỀN. DB backend đang rỗng nên mọi hàm
- * ở đây TỰ VỀ MOCK khi API trả rỗng / lỗi / 404 / chưa đăng nhập (xem
- * `handbook.bmt.ts`), để demo không bị trống và giao diện đã chốt vẫn chạy đúng
- * với cả dữ liệu mock cũ lẫn API mới.
+ * Chức năng đã nối BMT API — GIỮ MOCK LÀM NỀN cho các hàm CHƯA đổi sang đọc thẳng BE: chúng tự về mock khi API trả
+ * rỗng / lỗi / 404 / chưa đăng nhập (xem `handbook.bmt.ts`), để demo không bị trống và giao diện đã chốt vẫn chạy
+ * đúng với cả dữ liệu mock cũ lẫn API mới.
  *
  * Đã nối:
- *   - Bài viết: `listArticles` (`GET /news/articles`), `getArticle`
- *     (`GET /news/articles/{id}`, kèm `contentHtml`). Panel tư vấn theo `topic`
- *     không có API → luôn mock.
+ *   - Bài viết: `listArticles` (`GET /news/articles`), `getArticle` (`GET /news/articles/{id}`, kèm `contentHtml`) —
+ *     KHÔNG fallback mock: rỗng là hợp lệ, 404 của chi tiết là `null`, lỗi khác để màn hiện trạng thái lỗi. Chỉ
+ *     panel tư vấn theo `topic` không có API nên vẫn dùng mock.
  *   - Thư viện mẫu: `listTemplates` (`GET /design-templates`, KHÔNG fallback mock), `getTemplate`
  *     (chi tiết CẦN ĐĂNG NHẬP: access-info → open trừ 1 lượt → library-versions +
  *     assets), `getQuota` (`catalog.detail` của `/me/design-subscription`).
+ *
+ *   - Ba bước (`listStages`), khối Bản tin (`getNewsletter`) và khối chữ cố định (`listPageSections`): đọc BE và
+ *     KHÔNG fallback mock — lỗi là sự cố cần thấy, rỗng là trạng thái hợp lệ.
  *
  *   - Mẫu liên quan lúc tạo dự toán: `matchTemplates` (`POST /design-templates/matches`) — không có mock, rỗng là rỗng.
  *   - Chi tiết mẫu đọc THEO SECTION (`/library-versions/{id}/sections` → tệp từng section):
@@ -23,10 +25,14 @@ import { mockHandbookApi } from './handbook.mock'
  *     (`listNewsCategories`, `getNewsCategory`, `listNewsCategoryTree`) — công khai; không có
  *     dữ liệu thì mock trả `null`/rỗng để giao diện tự suy tuỳ chọn từ danh sách đang có.
  *
- * Giữ mock: `listStages` (không có API); lượt TRA lưới của `getQuota` (API chỉ có
+ * Giữ mock: lượt TRA lưới của `getQuota` (API chỉ có
  * `catalog.detail`); `/me/library-history` không có màn UI tiêu thụ.
  */
 const BmtHandbookApi = {
+  // Ba bước, khối Bản tin và khối chữ cố định: đọc BE, KHÔNG rơi về mock khi lỗi (TDD-HB-001/002/003).
+  listStages: bmtHandbookApi.listStages,
+  getNewsletter: bmtHandbookApi.getNewsletter,
+  listPageSections: bmtHandbookApi.listPageSections,
   listArticles: bmtHandbookApi.listArticles,
   getArticle: bmtHandbookApi.getArticle,
   // Trang /handbook: danh sách bài viết (khối dưới cùng) và THƯ VIỆN MẪU (lưới, bộ lọc, chi tiết) lấy BE; các khối còn

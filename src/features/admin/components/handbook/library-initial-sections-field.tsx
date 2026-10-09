@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl'
 
 import type { FormSection } from '../../api/bmt/library-create-flow'
 import { LIBRARY_ACCEPT, checkFile } from '../../api/bmt/library-sections.logic'
+import { FileDropZone } from '../common/file-drop-zone'
 
 const { Text } = Typography
 
@@ -118,23 +119,25 @@ export function LibraryInitialSectionsField({ value = [], onChange, disabled }: 
                 </Tooltip>
               }
             >
-              <Upload
-                multiple
-                listType='picture'
-                accept={LIBRARY_ACCEPT}
-                fileList={fileList}
-                disabled={disabled}
-                // Giữ tệp trong form (không POST đi đâu): chỉ tải lên sau khi bấm Lưu.
-                beforeUpload={(file, list) => {
-                  if (file === list[0]) addFiles(section.key, list as File[])
-                  return Upload.LIST_IGNORE
-                }}
-                onRemove={(file) => removeFile(section, file.uid)}
-              >
-                <Button icon={<UploadOutlined />} disabled={disabled}>
-                  {l('addImage')}
-                </Button>
-              </Upload>
+              <FileDropZone multiple disabled={disabled} onFiles={(files) => addFiles(section.key, files)}>
+                <Upload
+                  multiple
+                  listType='picture'
+                  accept={LIBRARY_ACCEPT}
+                  fileList={fileList}
+                  disabled={disabled}
+                  // Giữ tệp trong form (không POST đi đâu): chỉ tải lên sau khi bấm Lưu.
+                  beforeUpload={(file, list) => {
+                    if (file === list[0]) addFiles(section.key, list as File[])
+                    return Upload.LIST_IGNORE
+                  }}
+                  onRemove={(file) => removeFile(section, file.uid)}
+                >
+                  <Button icon={<UploadOutlined />} disabled={disabled}>
+                    {l('addImage')}
+                  </Button>
+                </Upload>
+              </FileDropZone>
             </Card>
           )
         })}

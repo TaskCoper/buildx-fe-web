@@ -1,10 +1,9 @@
 'use client'
 
-import { ArrowRight, Check, FilePlus2, Heart, UserRoundPlus, X, type LucideIcon } from 'lucide-react'
+import { ArrowRight, Check, FilePlus2, UserRoundPlus, X, type LucideIcon } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
 import { useTranslations } from 'next-intl'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { toast } from 'sonner'
 
 import { Link } from '@/i18n/navigation'
 import { useAuthStore } from '@/shared/auth'
@@ -14,7 +13,6 @@ import { Button } from '@/shared/components/ui/button'
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from '@/shared/components/ui/dialog'
 import { JOURNEY_POPUP_TEST_MODE } from '@/shared/constants'
 import { designCreateRoute, ROUTES } from '@/shared/constants/routes'
-import { useFavoriteStore, useIsFavorite } from '@/shared/favorite'
 import { TOPIC_IMAGE, cn } from '@/shared/lib'
 
 const TEMPLATE_POPUP_SESSION_KEY = 'savico.page-popup.template'
@@ -46,7 +44,6 @@ interface TemplatePopupCardProps {
  */
 export function TemplateDetailCtaPopup({ template }: TemplateDetailCtaPopupProps) {
   const t = useTranslations('handbook.templatePopup')
-  const favoriteT = useTranslations('favorite')
   const reduceMotion = useReducedMotion()
   const [open, setOpen] = useState(false)
   const triggeredRef = useRef(false)
@@ -61,17 +58,6 @@ export function TemplateDetailCtaPopup({ template }: TemplateDetailCtaPopupProps
       subscription.status === 'active'
   )
   const planLabel = activeSubscription?.tier ? activeSubscription.tier.toUpperCase() : null
-
-  const favorite = useIsFavorite(template.id)
-  const toggleFavorite = useFavoriteStore((state) => state.toggle)
-
-  const favoriteItem = {
-    templateId: template.id,
-    kind: template.kind,
-    name: template.name,
-    imageUrl: template.imageUrl ?? template.floors[0]?.imageUrl ?? '',
-    tagLabel: template.styleLabel
-  }
 
   useEffect(() => {
     const seenKey = `${TEMPLATE_POPUP_SESSION_KEY}.${template.id}`
@@ -127,18 +113,7 @@ export function TemplateDetailCtaPopup({ template }: TemplateDetailCtaPopupProps
     }
   }, [template.id])
 
-  const saveTemplate = () => {
-    if (!favorite) {
-      toggleFavorite(favoriteItem)
-      toast.success(favoriteT('savedToast'), { description: favoriteT('viewSaved') })
-    } else {
-      toast.success(t('save.alreadySaved'))
-    }
-    setOpen(false)
-  }
-
   const primaryImage = template.imageUrl ?? template.floors[0]?.imageUrl ?? TOPIC_IMAGE.blueprint
-  const saveImage = template.floors[1]?.imageUrl ?? template.floors[0]?.imageUrl ?? primaryImage
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -175,7 +150,7 @@ export function TemplateDetailCtaPopup({ template }: TemplateDetailCtaPopupProps
           </motion.div>
         </div>
 
-        <div className='grid gap-4 px-4 pt-5 sm:px-6 min-[900px]:grid-cols-3 max-[899px]:min-h-0 max-[899px]:flex-1 max-[899px]:overflow-y-auto max-[899px]:overscroll-contain max-[899px]:pt-2 max-[899px]:pb-4'>
+        <div className='grid gap-4 px-4 pt-5 sm:px-6 min-[900px]:grid-cols-2 max-[899px]:min-h-0 max-[899px]:flex-1 max-[899px]:overflow-y-auto max-[899px]:overscroll-contain max-[899px]:pt-2 max-[899px]:pb-4'>
           <TemplatePopupCard
             tone='orange'
             image={primaryImage}
@@ -199,28 +174,6 @@ export function TemplateDetailCtaPopup({ template }: TemplateDetailCtaPopupProps
 
           <TemplatePopupCard
             tone='green'
-            image={saveImage}
-            imageAlt={t('save.imageAlt')}
-            Icon={Heart}
-            title={t('save.title')}
-            subtitle={t('save.subtitle')}
-            points={[t('save.p1'), t('save.p2'), t('save.p3')]}
-            value={t('save.value')}
-            order={1}
-            actions={
-              <Button
-                type='button'
-                onClick={saveTemplate}
-                className='brand-green-button group/button relative h-12 w-full rounded-full text-[15px] font-bold'
-              >
-                <span>{favorite ? t('save.savedAction') : t('save.action')}</span>
-                <ArrowRight className='absolute right-4 size-4 transition-transform duration-150 group-hover/button:translate-x-1' />
-              </Button>
-            }
-          />
-
-          <TemplatePopupCard
-            tone='green'
             image={TOPIC_IMAGE.blueprint}
             imageAlt={t('consult.imageAlt')}
             Icon={UserRoundPlus}
@@ -228,7 +181,7 @@ export function TemplateDetailCtaPopup({ template }: TemplateDetailCtaPopupProps
             subtitle={t('consult.subtitle')}
             points={[t('consult.p1'), t('consult.p2'), t('consult.p3')]}
             value={t('consult.value')}
-            order={2}
+            order={1}
             actions={
               <Button asChild className='brand-green-button h-12 w-full rounded-full text-[15px] font-bold'>
                 <Link

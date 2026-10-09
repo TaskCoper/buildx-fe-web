@@ -61,16 +61,15 @@ import {
   contractorInviteRoute,
   contractorMatchesRoute
 } from '@/shared/constants/routes'
-import { useCountUp } from '@/shared/hooks'
+import { useCountUp, useDocumentTitle } from '@/shared/hooks'
 import { cn } from '@/shared/lib/utils'
 import { formatDate, formatDisplayDate, formatNumber } from '@/shared/utils'
 import { mergeProjectDetail } from '../api/contractors.logic'
-import { env } from '@/shared/config/env'
 import { CONTRACTOR_TABS, MAX_INVITATIONS, type ContractorTab } from '../constants/contractors.constants'
 import { useBrief } from '../hooks/use-brief'
 import { useContractor, useContractorProject } from '../hooks/use-contractors'
 import { useInvitations } from '../hooks/use-invitations'
-import { isInvited } from '../services/contractor-list.service'
+import { isInvited, isNotAccepting, withDistanceFrom } from '../services/contractor-list.service'
 import { useContractorsStore } from '../store/contractors.store'
 import type { Contractor, ContractorPhoto, ContractorProject } from '../types/contractor.types'
 import { MATCHES_LAST_VIEWED_KEY } from './contractor-matches'
@@ -181,9 +180,9 @@ function InviteButton({
   const { limit } = useInvitations(projectId)
   const rfq = useTranslations('contractors.rfq')
 
-  if (env.NEXT_PUBLIC_USE_MOCK_API && !contractor.acceptingProjects) {
+  if (isNotAccepting(contractor)) {
     return (
-      <Button size={size} className='w-full opacity-50' disabled>
+      <Button size={size} className='w-full opacity-50' disabled title={tCommon('notAccepting')}>
         <Send className='size-4' />
         {tCommon('invite')}
       </Button>
@@ -260,6 +259,7 @@ export function ContractorProfile({ projectId, contractorId, tab }: ContractorPr
 
   const { data: brief } = useBrief(projectId)
   const { data: contractor, isPending, isError, refetch } = useContractor(contractorId)
+  useDocumentTitle(contractor?.name)
   const { data: invitations, remaining } = useInvitations(projectId)
 
   const compareIds = useContractorsStore((s) => s.compareIds)
@@ -341,6 +341,13 @@ export function ContractorProfile({ projectId, contractorId, tab }: ContractorPr
   }
 
   const areas = contractor.serviceAreas.slice(0, 3).join(', ')
+  // API chi tiết nhà thầu không trả khoảng cách (chỉ API danh sách kèm công trình mới trả), nên tự tính từ toạ độ
+  // công trình của dự án tới trụ sở nhà thầu. Thiếu toạ độ một bên thì vẫn là "chưa tính", không đoán.
+  const site = brief?.constructionSite
+  const withDistance = withDistanceFrom(
+    contractor,
+    site ? { latitude: site.latitude, longitude: site.longitude } : undefined
+  )
 
   /** Dải chỉ số trong thẻ nhận diện — xem thử chưa chọn dự án nên ẩn khoảng cách. */
   const headerFacts = [
@@ -359,11 +366,11 @@ export function ContractorProfile({ projectId, contractorId, tab }: ContractorPr
       key: 'distance',
       icon: MapPin,
       value:
-        contractor.distanceKnown === false ? (
+        withDistance.distanceKnown === false ? (
           tCommon('distanceUnknown')
         ) : (
           <CountedMetric
-            value={Math.round(contractor.distanceKm * 10)}
+            value={Math.round(withDistance.distanceKm * 10)}
             format={(value) =>
               tCommon('distanceShort', {
                 km: formatNumber(value / 10, locale, { minimumFractionDigits: 1 })
@@ -408,10 +415,17 @@ export function ContractorProfile({ projectId, contractorId, tab }: ContractorPr
     {
       key: 'accepting',
       icon: Briefcase,
-      label: contractor.acceptingProjects ? tCommon('acceptingLabel') : tCommon('notAccepting'),
+      label: contractor.acceptingProjects ? tCommon('acceptingLabel') : tCommon('notAcceptingLabel'),
       value: tCommon('acceptingSuffix')
     },
-    { key: 'areas', icon: MapIcon, label: tCommon('serviceAreas'), value: areas }
+    // `value` chỉ in 3 nơi đầu cho gọn; `fullValue` là cả danh sách, hiện ở tooltip khi hover (dòng bị cắt "…").
+    {
+      key: 'areas',
+      icon: MapIcon,
+      label: tCommon('serviceAreas'),
+      value: areas,
+      fullValue: contractor.serviceAreas.join(', ')
+    }
   ]
 
   return (
@@ -614,7 +628,20 @@ export function ContractorProfile({ projectId, contractorId, tab }: ContractorPr
                   />
                   <div className='min-w-0'>
                     <p className='text-muted-foreground max-md:text-xs text-[11px] leading-tight'>{row.label}</p>
-                    <p className='mt-0.5 truncate text-sm font-semibold'>{row.value}</p>
+                    {'fullValue' in row && row.fullValue ? (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <p className='mt-0.5 truncate text-sm font-semibold' tabIndex={0}>
+                            {row.value}
+                          </p>
+                        </TooltipTrigger>
+                        <TooltipContent side='top' className='max-w-xs'>
+                          {row.fullValue}
+                        </TooltipContent>
+                      </Tooltip>
+                    ) : (
+                      <p className='mt-0.5 truncate text-sm font-semibold'>{row.value}</p>
+                    )}
                   </div>
                 </motion.li>
               ))}
@@ -728,6 +755,21 @@ function IntroCard({ contractor, onOpenPhoto }: { contractor: Contractor; onOpen
 
   const [lead, ...rest] = contractor.photos
 
+  // Bản API mang sẵn tên danh mục; dữ liệu mẫu chỉ có mã nên đổi sang nhãn qua CMS / bản dịch.
+  const cmsBuildingTypes = useCmsCollection('buildingTypes')
+  const scopeT = useTranslations('contractors.firm.projects.detail')
+  const buildingTypeTags =
+    contractor.buildingTypeNames ??
+    (contractor.buildingTypeIds ?? [])
+      .map((id) => cmsBuildingTypes.find((type) => type.id === id)?.label)
+      .filter((label): label is string => Boolean(label))
+  const scopeTags =
+    contractor.scopeNames ?? (contractor.scopes ?? []).map((scope) => scopeT(`constructionScopes.${scope}`))
+  const tagGroups = [
+    { key: 'buildingType', label: t('introTags.buildingType'), values: [...new Set(buildingTypeTags)] },
+    { key: 'scope', label: t('introTags.scope'), values: [...new Set(scopeTags)] }
+  ].filter((group) => group.values.length > 0)
+
   return (
     <section className='bg-card grid gap-x-[1.5%] gap-y-5 rounded-2xl border p-4 lg:grid-cols-[37%_minmax(0,1fr)]'>
       <motion.div
@@ -756,18 +798,28 @@ function IntroCard({ contractor, onOpenPhoto }: { contractor: Contractor; onOpen
           ))}
         </motion.ul>
 
-        {/* Hai thẻ mặc định, CHỈ ĐỂ XEM — không bấm được và không chuyển tab. */}
-        <motion.ul variants={revealContainerVariants} className='mt-4 flex flex-wrap gap-2'>
-          {(['buildingType', 'scope'] as const).map((tag) => (
-            <motion.li
-              variants={revealItemVariants}
-              key={tag}
-              className='border-primary/40 text-primary-strong rounded-md border px-2.5 py-1 text-xs'
-            >
-              {t(`introTags.${tag}`)}
-            </motion.li>
-          ))}
-        </motion.ul>
+        {/* Loại công trình và Phạm vi thi công nhà thầu nhận — CHỈ ĐỂ XEM, không bấm được và không chuyển tab. */}
+        {tagGroups.length ? (
+          <motion.ul variants={revealContainerVariants} className='mt-4 space-y-2'>
+            {tagGroups.map((group) => (
+              <motion.li
+                variants={revealItemVariants}
+                key={group.key}
+                className='flex flex-wrap items-center gap-x-2 gap-y-1.5'
+              >
+                <span className='text-muted-foreground text-xs'>{group.label}</span>
+                {group.values.map((value) => (
+                  <span
+                    key={value}
+                    className='border-primary/40 text-primary-strong rounded-md border px-2.5 py-1 text-xs'
+                  >
+                    {value}
+                  </span>
+                ))}
+              </motion.li>
+            ))}
+          </motion.ul>
+        ) : null}
       </motion.div>
 
       {/* Ô lớn KHÔNG khóa tỉ lệ: trong ảnh mẫu bộ ảnh cao đúng bằng khối chữ bên
@@ -780,12 +832,13 @@ function IntroCard({ contractor, onOpenPhoto }: { contractor: Contractor; onOpen
           animate='show'
           className='grid min-h-52 min-w-0 gap-[1.8%] sm:grid-cols-[58.6%_minmax(0,1fr)]'
         >
-          <CollagePhoto photo={lead} onOpen={() => onOpenPhoto(0)} />
+          <CollagePhoto photo={lead} index={0} onOpen={() => onOpenPhoto(0)} />
           <div className='flex flex-col gap-2'>
             {rest.slice(0, 2).map((photo, index) => (
               <CollagePhoto
-                key={photo.caption}
+                key={photo.url ?? index}
                 photo={photo}
+                index={index + 1}
                 className='min-h-24 flex-1'
                 onOpen={() => onOpenPhoto(index + 1)}
               />
@@ -805,15 +858,31 @@ function IntroCard({ contractor, onOpenPhoto }: { contractor: Contractor; onOpen
  * biệt thự có hồ bơi, "Đội ngũ nhân sự" hóa ra một người thợ điện — trông như
  * đã có ảnh nên không ai biết là còn thiếu.
  */
+/** Loại ảnh BE trả cho bộ ảnh hồ sơ; ảnh API không có chú thích chữ nên chú thích lấy theo loại. */
+const PHOTO_KINDS = ['Cover', 'Office', 'Team'] as const
+
+function usePhotoCaption() {
+  const t = useTranslations('contractors.firm.photoKinds')
+  return (photo: ContractorPhoto): string => {
+    const kind = PHOTO_KINDS.find((item) => item === photo.kind)
+    return photo.caption || (kind ? t(kind) : '')
+  }
+}
+
 function CollagePhoto({
   photo,
+  index,
   className,
   onOpen
 }: {
   photo: ContractorPhoto
+  /** Thứ tự trong bộ ảnh: khoá nhận diện ảnh, vì chú thích có thể trống hoặc trùng nhau (ảnh từ API). */
+  index: number
   className?: string
   onOpen?: () => void
 }) {
+  const captionOf = usePhotoCaption()
+  const caption = captionOf(photo)
   if (!photo.url) {
     return (
       <motion.div
@@ -824,7 +893,7 @@ function CollagePhoto({
         )}
       >
         <ImageIcon aria-hidden className='size-5 shrink-0' />
-        <p className='text-xs'>{photo.caption}</p>
+        <p className='text-xs'>{caption}</p>
       </motion.div>
     )
   }
@@ -833,7 +902,7 @@ function CollagePhoto({
     <motion.button
       type='button'
       variants={revealItemVariants}
-      layoutId={`firm-photo-${photo.caption}`}
+      layoutId={`firm-photo-${index}`}
       onClick={onOpen}
       className={cn('group relative min-w-0 overflow-hidden rounded-xl border text-left', className)}
     >
@@ -845,9 +914,11 @@ function CollagePhoto({
       <span className='absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-[background-color,opacity] duration-200 group-hover:bg-black/30 group-hover:opacity-100'>
         <Eye className='size-6 text-white' />
       </span>
-      <p className='pointer-events-none absolute inset-x-0 bottom-0 bg-linear-to-t from-black/75 to-transparent px-3 pt-6 pb-2 text-xs font-medium text-white'>
-        {photo.caption}
-      </p>
+      {caption ? (
+        <p className='pointer-events-none absolute inset-x-0 bottom-0 bg-linear-to-t from-black/75 to-transparent px-3 pt-6 pb-2 text-xs font-medium text-white'>
+          {caption}
+        </p>
+      ) : null}
     </motion.button>
   )
 }
@@ -871,6 +942,7 @@ function PhotoLightbox({
   onNavigate: (nextIndex: number) => void
 }) {
   const reduceMotion = useReducedMotion()
+  const captionOf = usePhotoCaption()
   useEffect(() => {
     if (index === null) return
     const handleKey = (event: KeyboardEvent) => {
@@ -899,7 +971,7 @@ function PhotoLightbox({
         >
           <motion.div
             key={index}
-            layoutId={`firm-photo-${photo.caption}`}
+            layoutId={`firm-photo-${index}`}
             initial={reduceMotion ? false : { opacity: 0.65, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={reduceMotion ? undefined : { opacity: 0.65, scale: 0.98 }}
@@ -914,9 +986,11 @@ function PhotoLightbox({
             className='relative aspect-video w-full max-w-3xl overflow-hidden rounded-2xl'
           >
             <Photo src={photo.url} alt='' className='size-full' sizes='90vw' />
-            <p className='absolute inset-x-0 bottom-0 bg-linear-to-t from-black/75 to-transparent px-4 pt-8 pb-3 text-sm font-medium text-white'>
-              {photo.caption}
-            </p>
+            {captionOf(photo) ? (
+              <p className='absolute inset-x-0 bottom-0 bg-linear-to-t from-black/75 to-transparent px-4 pt-8 pb-3 text-sm font-medium text-white'>
+                {captionOf(photo)}
+              </p>
+            ) : null}
           </motion.div>
 
           <button

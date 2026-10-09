@@ -55,6 +55,10 @@ export const bmtConstructionSitesApi = {
   update: async (siteId: string, body: UpdateSiteRequest) =>
     siteSavedSchema.parse(await http.put(`${base}/${siteId}`, body)),
   detail: async (siteId: string) => siteDetailSchema.parse(await http.get(`${base}/${siteId}`)),
+  /** `DELETE /me/construction-sites/{siteId}` → 204. 409 khi công trình đang có gói giám sát giữ chỗ (BR-SITE-002). */
+  remove: async (siteId: string) => {
+    await http.delete<void>(`${base}/${siteId}`)
+  },
   list: async (pageIndex: number) => pageSchema.parse(await http.get(base, { params: { pageIndex, pageSize: 100 } })),
   provinces: async () => locationsSchema.parse(await http.get('/estimate-locations/provinces')),
   wards: async (provinceCode: string, datasetVersion: string) =>

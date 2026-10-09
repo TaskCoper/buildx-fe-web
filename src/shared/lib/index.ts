@@ -25,4 +25,5 @@ export {
   type HandbookQuotaReturnMarker
 } from './handbook-quota-return'
 export { scrollToAndFlash } from './scroll-flash'
+export { TITLE_BRAND, TITLE_TEMPLATE, titleWithBrand } from './page-title'
 export { cn } from './utils'

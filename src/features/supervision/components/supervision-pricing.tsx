@@ -3,6 +3,8 @@
 import {
   ArrowRight,
   Check,
+  ChevronLeft,
+  ChevronRight,
   CircleCheck,
   ClipboardCheck,
   Construction,
@@ -23,7 +25,7 @@ import { Fragment, useEffect, useRef, useState, type CSSProperties } from 'react
 import { Link } from '@/i18n/navigation'
 import type { Locale } from '@/i18n/routing'
 import type { SupervisionPackage, SupervisionTier } from '@/shared/cms'
-import { Photo, PricingMotionProvider, pricingEase, usePricingMotion } from '@/shared/components/common'
+import { Photo, PricingMotionProvider, pricingEase } from '@/shared/components/common'
 import { Button } from '@/shared/components/ui/button'
 import { checkoutConfirmRoute } from '@/shared/constants/routes'
 import { usePageEntrance } from '@/shared/hooks'
@@ -81,6 +83,37 @@ function SupervisionPricingContent({ projectId }: SupervisionPricingProps) {
   const titleAccent = splitAt > 0 ? title.slice(splitAt + 1) : ''
   const [hoveredTier, setHoveredTier] = useState<SupervisionTier | null>(null)
   const cardsRef = useRef<HTMLUListElement>(null)
+  const tPlans = useTranslations('plans')
+  const [slide, setSlide] = useState(1)
+
+  useEffect(() => {
+    const track = cardsRef.current
+    if (!track) return
+    const onScroll = () => {
+      const middle = track.scrollLeft + track.clientWidth / 2
+      const cards = [...track.children] as HTMLElement[]
+      let nearest = 0
+      let best = Infinity
+      cards.forEach((card, i) => {
+        const distance = Math.abs(card.offsetLeft + card.clientWidth / 2 - middle)
+        if (distance < best) {
+          best = distance
+          nearest = i
+        }
+      })
+      setSlide(nearest)
+    }
+    track.addEventListener('scroll', onScroll, { passive: true })
+    onScroll()
+    return () => track.removeEventListener('scroll', onScroll)
+  }, [packages.length])
+
+  function goTo(index: number) {
+    const track = cardsRef.current
+    const card = track?.children[index] as HTMLElement | undefined
+    if (track && card)
+      track.scrollTo({ left: card.offsetLeft - (track.clientWidth - card.clientWidth) / 2, behavior: 'smooth' })
+  }
 
   useEffect(() => {
     const track = cardsRef.current
@@ -136,25 +169,56 @@ function SupervisionPricingContent({ projectId }: SupervisionPricingProps) {
         {/* pt đủ chỗ cho ruy-băng "Khuyến nghị" NẰM TRÊN viên nhãn nhóm gói: viên
             nhãn cưỡi lên mép trên thẻ (-mt-8) nên hai thứ này từng chồng chữ lên
             nhau ở thẻ được khuyến nghị. */}
-        <ul
-          ref={cardsRef}
-          data-entrance-step='4'
-          data-entrance-from='right'
-          data-hovering={hoveredTier ? 'true' : undefined}
-          className='supervision-card-track grid items-stretch gap-6 md:grid-cols-3'
-        >
-          {packages.map((item, index) => (
-            <PackageCard
-              key={item.tier}
-              item={item}
-              index={index}
-              projectId={projectId}
-              active={hoveredTier === item.tier}
-              onHover={() => setHoveredTier(item.tier)}
-              onLeave={() => setHoveredTier(null)}
-            />
+        {/* Mũi tên hai bên báo còn gói để vuốt, giống trang Gói thiết kế; chỉ hiện ở điện thoại. */}
+        <div className='relative'>
+          {[
+            { dir: -1, label: tPlans('prevPlan'), Icon: ChevronLeft, side: 'left-1', hidden: slide <= 0 },
+            {
+              dir: 1,
+              label: tPlans('nextPlan'),
+              Icon: ChevronRight,
+              side: 'right-1',
+              hidden: slide >= packages.length - 1
+            }
+          ].map(({ dir, label, Icon, side, hidden }) => (
+            <button
+              key={dir}
+              type='button'
+              aria-label={label}
+              tabIndex={hidden ? -1 : 0}
+              onClick={() => goTo(slide + dir)}
+              className={cn(
+                'bg-card/90 text-primary-strong absolute top-1/2 z-20 flex size-9 -translate-y-1/2 items-center justify-center rounded-full border shadow-md backdrop-blur-sm transition-opacity md:hidden',
+                side,
+                hidden && 'pointer-events-none opacity-0'
+              )}
+            >
+              <Icon className='size-5' />
+            </button>
           ))}
-        </ul>
+          <ul
+            ref={cardsRef}
+            data-entrance-step='4'
+            data-entrance-from='right'
+            data-hovering={hoveredTier ? 'true' : undefined}
+            className='supervision-card-track grid items-stretch gap-6 md:grid-cols-3'
+            // Ở điện thoại track cuộn ngang (overflow-x:auto) nên cắt luôn trục dọc; chừa 20px phía trên cho nhãn
+            // "Khuyến nghị" nhô lên -top-3 của thẻ, margin âm bù lại để khoảng cách với tiêu đề không đổi.
+            style={{ paddingTop: 20, marginTop: -20 }}
+          >
+            {packages.map((item, index) => (
+              <PackageCard
+                key={item.tier}
+                item={item}
+                index={index}
+                projectId={projectId}
+                active={hoveredTier === item.tier}
+                onHover={() => setHoveredTier(item.tier)}
+                onLeave={() => setHoveredTier(null)}
+              />
+            ))}
+          </ul>
+        </div>
       </div>
 
       <ComparisonTable packages={packages} projectId={projectId} />
@@ -239,7 +303,7 @@ function PackageCard({
       className='supervision-package relative flex'
       initial={{ opacity: 0, y: item.recommended ? 28 : 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.62, delay: 1.02 + index * 0.17, ease: pricingEase }}
+      transition={{ duration: 0.62, delay: 0.15 + index * 0.1, ease: pricingEase }}
       onMouseEnter={onHover}
       onMouseLeave={onLeave}
       onFocusCapture={onHover}
@@ -252,7 +316,7 @@ function PackageCard({
           className='supervision-control-label supervision-control-label-top bg-brand-orange text-brand-orange-foreground absolute -top-3 left-1/2 z-10 inline-flex -translate-x-1/2 items-center gap-1 rounded-full px-4 py-1 text-sm font-semibold tracking-wide uppercase whitespace-nowrap'
           initial={{ opacity: 0, y: -14 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 1.86, ease: pricingEase }}
+          transition={{ duration: 0.5, delay: 0.3, ease: pricingEase }}
         >
           <Star className='size-3' />
           {t('recommended')}
@@ -290,7 +354,7 @@ function PackageCard({
             )}
             initial={item.recommended ? { opacity: 0, y: -12 } : false}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.48, delay: item.recommended ? 2.08 : 1.02 + index * 0.17, ease: pricingEase }}
+            transition={{ duration: 0.48, delay: item.recommended ? 0.25 : 0.15 + index * 0.1, ease: pricingEase }}
           >
             {tTags(item.tier)}
           </motion.p>
@@ -307,7 +371,7 @@ function PackageCard({
               className='mt-4'
               initial={{ opacity: 0, filter: 'blur(5px)', scale: 0.985 }}
               animate={{ opacity: 1, filter: 'blur(0px)', scale: 1 }}
-              transition={{ duration: 0.72, delay: 1.3 + index * 0.17, ease: pricingEase }}
+              transition={{ duration: 0.72, delay: 0.3 + index * 0.1, ease: pricingEase }}
             >
               <Photo src={item.imageUrl} alt='' className='aspect-16/10 w-full rounded-xl' sizes='360px' />
             </motion.div>
@@ -336,7 +400,7 @@ function PackageCard({
                   className='inline-block'
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.48, delay: 1.5, ease: pricingEase }}
+                  transition={{ duration: 0.48, delay: 0.3, ease: pricingEase }}
                 >
                   {t('free')}
                 </motion.span>
@@ -354,7 +418,7 @@ function PackageCard({
                 className='text-muted-foreground block text-sm'
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ duration: 0.42, delay: item.recommended ? 3.05 : 2.8 }}
+                transition={{ duration: 0.42, delay: item.recommended ? 0.55 : 0.5 }}
               >
                 {t('perProject')} · {t('duration', { months: item.durationMonths })}
               </motion.span>
@@ -450,7 +514,7 @@ function InspectionBand({ item }: { item: SupervisionPackage }) {
         done.current = true
         const controls = animate(0, item.inspections, {
           duration: item.recommended ? 0.5 : 0.36,
-          delay: item.recommended ? 1.3 : 0.9,
+          delay: item.recommended ? 0.3 : 0.2,
           ease: 'easeOut',
           onUpdate: (value) => setCount(Math.round(value))
         })
@@ -474,7 +538,7 @@ function SupervisionPrice({ value, index }: { value: number; index: number }) {
       className='supervision-price inline-block tabular-nums'
       initial={{ opacity: 0, y: 6, scale: 0.985 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.42, delay: index === 2 ? 2.05 : 1.84, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.42, delay: index === 2 ? 0.4 : 0.35, ease: [0.22, 1, 0.36, 1] }}
     >
       {final}
     </motion.span>
@@ -806,14 +870,11 @@ const JOURNEY_ICONS: Record<JourneyStepKey, typeof ShieldCheck> = {
   report: FileText,
   handover: House
 }
-const MotionArrowRight = motion.create(ArrowRight)
 
 function Journey() {
   const t = useTranslations('supervision.pricing.journey')
   const ref = useRef<HTMLElement>(null)
   const visible = useInView(ref, { amount: 0.15 })
-  const { isScrolling } = usePricingMotion()
-  const dotActive = visible && !isScrolling
 
   return (
     <section
@@ -831,44 +892,16 @@ function Journey() {
         {t('title')}
       </motion.h2>
 
-      <div className='supervision-journey-track mt-6 flex items-stretch gap-1.5 overflow-x-auto overflow-y-hidden pt-4 pb-2 lg:justify-center'>
+      <div className='supervision-journey-track mt-6 flex items-stretch gap-6 overflow-x-auto overflow-y-hidden pt-4 pb-2 md:gap-8 lg:justify-center'>
         {JOURNEY_STEPS.map((step, index) => (
-          <Fragment key={step}>
-            {index > 0 ? <FlowJoin delay={0.06 + index * 0.2} active={dotActive} /> : null}
-            <JourneyCard step={step} number={index + 1} delay={0.16 + index * 0.2} />
-          </Fragment>
+          <JourneyCard key={step} step={step} number={index + 1} delay={0.16 + index * 0.2} />
         ))}
       </div>
     </section>
   )
 }
 
-/** Mũi tên nối hai bước đi thẳng. */
-function FlowJoin({ delay, active }: { delay: number; active: boolean }) {
-  return (
-    <MotionArrowRight
-      aria-hidden
-      className='supervision-journey-join text-muted-foreground size-4 shrink-0 self-center'
-      initial={{ opacity: 0, scaleX: 0 }}
-      whileInView={{ opacity: 1, scaleX: 1 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.22, delay, ease: pricingEase }}
-    >
-      <motion.circle
-        aria-hidden
-        className='supervision-journey-flow-dot'
-        cx='2'
-        cy='12'
-        r='2.1'
-        initial={false}
-        animate={active ? { opacity: [0, 1, 1, 0], cx: [2, 2, 20, 20] } : { opacity: 0 }}
-        transition={{ duration: 0.7, delay: 2.1 + delay, ease: 'linear', repeat: Infinity, repeatDelay: 8.2 }}
-      />
-    </MotionArrowRight>
-  )
-}
-
-/** Một bước trên dòng chính: số ở mép trên, tên, icon, rồi mô tả. */
+/** Một bước trên dòng chính: số pill ở mép trên, tên, icon, rồi mô tả. */
 function JourneyCard({ step, number, delay }: { step: JourneyStepKey; number: number; delay: number }) {
   const t = useTranslations('supervision.pricing.journey')
   const Icon = JOURNEY_ICONS[step]
@@ -876,20 +909,20 @@ function JourneyCard({ step, number, delay }: { step: JourneyStepKey; number: nu
   return (
     <motion.div
       style={{ '--journey-delay': `${delay}s` } as CSSProperties}
-      className='supervision-journey-card group/journey-card bg-card relative flex w-44 shrink-0 flex-col items-center rounded-xl border px-2.5 pt-5 pb-4 text-center'
+      className='supervision-journey-card group/journey-card bg-card relative flex w-44 shrink-0 flex-col items-center rounded-xl border border-primary/25 px-3 pt-5 pb-4 text-center'
       initial={{ opacity: 0, y: 10 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.44, delay, ease: pricingEase }}
     >
       <motion.span
-        className='bg-primary text-primary-foreground absolute -top-3.5 flex size-7 items-center justify-center rounded-full text-sm font-semibold transition-colors duration-200 group-hover/journey-card:bg-brand-orange motion-reduce:transition-none'
+        className='bg-accent text-accent-foreground absolute -top-4 left-1/2 z-10 inline-flex h-8 w-fit max-w-fit min-w-8 -translate-x-1/2 items-center justify-center rounded-md px-2 text-sm font-semibold tracking-[0.08em] transition-colors duration-200 group-hover/journey-card:bg-brand-orange motion-reduce:transition-none'
         initial={{ scale: 0.55 }}
         whileInView={{ scale: 1 }}
         viewport={{ once: true }}
         transition={{ type: 'spring', stiffness: 360, damping: 20, delay: delay + 0.1 }}
       >
-        {number}
+        {String(number).padStart(2, '0')}
       </motion.span>
       {/* Ô tên cao cố định bằng HAI dòng: tên một dòng và tên hai dòng đều
           chiếm chỗ như nhau, nhờ vậy icon và mô tả của tám bước nằm thẳng hàng
@@ -902,7 +935,7 @@ function JourneyCard({ step, number, delay }: { step: JourneyStepKey; number: nu
         className='supervision-journey-icon text-primary my-3 size-8 shrink-0 transition-colors duration-200 group-hover/journey-card:text-brand-orange motion-reduce:transition-none'
         strokeWidth={1.5}
       />
-      <p className='text-muted-foreground w-full text-center max-md:text-xs text-sm leading-snug text-pretty'>
+      <p className='text-muted-foreground max-md:text-xs mt-1 w-full text-center text-sm leading-snug text-pretty'>
         {t(`${step}Body`)}
       </p>
     </motion.div>

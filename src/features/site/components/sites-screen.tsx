@@ -1,6 +1,6 @@
 'use client'
 
-import { CalendarClock, MapPin, Plus } from 'lucide-react'
+import { CalendarClock, MapPin, Plus, Search } from 'lucide-react'
 import { useLocale, useTranslations } from 'next-intl'
 import { useMemo, useState, type FormEvent } from 'react'
 import { toast } from 'sonner'
@@ -21,6 +21,7 @@ import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select'
 import { Skeleton } from '@/shared/components/ui/skeleton'
+import { useDebouncedValue } from '@/shared/hooks'
 import { isApiError } from '@/shared/lib/api'
 import { formatDisplayDate } from '@/shared/utils'
 import { useAssignGrant, useCreateSite, useDeleteSite, useGrants, useSites, useUpdateSite } from '../hooks/use-sites'
@@ -35,7 +36,11 @@ import type { ConstructionSite, SupervisionGrant } from '../types/site.types'
 export function SitesScreen() {
   const t = useTranslations('account.sites')
   const locale = useLocale() as Locale
-  const sites = useSites()
+  const [codeQuery, setCodeQuery] = useState('')
+  const searchCode = useDebouncedValue(codeQuery, 300).trim()
+  // Lưới hiển thị theo ô tìm mã; ô chọn công trình khi gán gói luôn cần danh sách đầy đủ.
+  const sites = useSites(searchCode)
+  const allSites = useSites()
   const grants = useGrants()
   const createSite = useCreateSite()
   const updateSite = useUpdateSite()
@@ -51,6 +56,7 @@ export function SitesScreen() {
   const [assignChoice, setAssignChoice] = useState<Record<string, string>>({})
 
   const siteItems = sites.data?.items ?? []
+  const assignableSites = allSites.data?.items ?? []
   const unassignedGrants = useMemo(
     () => (grants.data?.items ?? []).filter((g) => g.state === 'Unassigned'),
     [grants.data?.items]
@@ -135,6 +141,20 @@ export function SitesScreen() {
         </Button>
       </div>
 
+      {/* Tìm theo một phần mã hồ sơ; BE so không phân biệt hoa thường và bỏ qua dấu gạch. */}
+      <div className='relative sm:max-w-sm'>
+        <Search className='text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2' />
+        <Input
+          type='search'
+          value={codeQuery}
+          onChange={(event) => setCodeQuery(event.target.value)}
+          placeholder={t('search.placeholder')}
+          aria-label={t('search.label')}
+          maxLength={50}
+          className='h-9 pl-9'
+        />
+      </div>
+
       {sites.isPending ? (
         <div className='grid gap-3 sm:grid-cols-2'>
           <Skeleton className='h-28 rounded-xl' />
@@ -146,6 +166,12 @@ export function SitesScreen() {
             <Card key={site.constructionSiteId}>
               <CardHeader className='pb-2'>
                 <CardTitle className='text-base'>{site.name}</CardTitle>
+                {site.code ? (
+                  <p data-site-code className='text-muted-foreground font-mono text-xs select-all'>
+                    <span className='sr-only'>{t('codeLabel')}: </span>
+                    {site.code}
+                  </p>
+                ) : null}
                 <p className='text-muted-foreground flex items-center gap-1.5 text-sm'>
                   <MapPin className='size-3.5 shrink-0' />
                   {site.address}
@@ -190,6 +216,15 @@ export function SitesScreen() {
             </p>
           </CardContent>
         </Card>
+      ) : searchCode ? (
+        <Card>
+          <CardContent className='py-10 text-center'>
+            <p className='font-semibold'>{t('search.emptyTitle')}</p>
+            <p className='text-muted-foreground mx-auto mt-1 max-w-md text-sm'>
+              {t('search.emptyDescription', { code: searchCode })}
+            </p>
+          </CardContent>
+        </Card>
       ) : (
         <Card>
           <CardContent className='py-10 text-center'>
@@ -224,7 +259,7 @@ export function SitesScreen() {
                     <SelectValue placeholder={t('pickSite')} />
                   </SelectTrigger>
                   <SelectContent>
-                    {siteItems.map((site) => (
+                    {assignableSites.map((site) => (
                       <SelectItem key={site.constructionSiteId} value={site.constructionSiteId}>
                         {site.name}
                       </SelectItem>

@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQueryClient } from '@tanstack/react-query'
-import { ArrowRight, FileUp, Gift, Hammer, LoaderCircle, X } from 'lucide-react'
+import { ArrowRight, Check, FileUp, Gift, Hammer, LoaderCircle, X } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import { useLocale, useTranslations } from 'next-intl'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -33,8 +33,9 @@ import {
   Textarea
 } from '@/shared/components/ui'
 import { contractorReviewRoute, ROUTES } from '@/shared/constants/routes'
-import { isApiError } from '@/shared/lib/api'
-import { LocationMap } from '@/shared/components/common'
+import { errorCodeOf, isApiError } from '@/shared/lib/api'
+import { LocationMap, SearchableSelect } from '@/shared/components/common'
+import { findByName, geocodeApi, parseRegion } from '@/shared/geocode'
 import { cn } from '@/shared/lib/utils'
 import { constructionSitesApi } from '../api/construction-sites.api'
 import { allConstructionSites } from '../api/construction-briefs.api'
@@ -115,6 +116,9 @@ const ERROR_CODES = [
   'MapServiceUnavailable'
 ] as const
 type StringField = Exclude<keyof SiteFormValues, 'floorCount' | 'hasTum'>
+const WARDS_STALE = 30 * 60 * 1000
+/** Tỉnh/phường dài và hay phải tìm: hai ô này dùng ô chọn có tìm (cùng kiểu Bước 1 dự toán). */
+const SEARCHABLE_FIELDS: ReadonlySet<keyof SiteFormValues> = new Set(['provinceCode', 'wardCode'])
 
 /** S10 / STORY-SITE-001,004: browser draft → atomic server creation → S11. */
 export function ConstructionSiteForm({ projectId }: { projectId: string }) {
@@ -223,17 +227,16 @@ export function ConstructionSiteForm({ projectId }: { projectId: string }) {
   const addressText = [values.addressDetail.trim(), addressNames.ward, addressNames.province].filter(Boolean).join(', ')
 
   const explainError = (problem: unknown): string => {
-    const code = isApiError(problem)
-      ? (problem.code ?? problem.messageCode)
-      : problem instanceof Error
-        ? problem.message
-        : undefined
+    const code = isApiError(problem) ? errorCodeOf(problem) : problem instanceof Error ? problem.message : undefined
     const known = ERROR_CODES.find((item) => item === code)
+    // Mã chưa có câu riêng ở form: dùng câu BE đã dịch theo mã/status thay vì câu chung "Đã có lỗi".
     return known
       ? t(`errors.${known}`)
       : isApiError(problem) && problem.status === 403
         ? t('errors.AccessForbidden')
-        : t('errors.generic')
+        : isApiError(problem)
+          ? problem.message
+          : t('errors.generic')
   }
 
   useEffect(() => {
@@ -421,6 +424,75 @@ export function ConstructionSiteForm({ projectId }: { projectId: string }) {
       if (!controller.signal.aborted) setGeoBusy(false)
     }
   }
+  /** Địa chỉ "phường/xã, tỉnh/thành" của VietMap → mã tỉnh/phường của BE; không khớp tỉnh thì `null` (giữ nguyên). */
+  async function resolveRegion(address: string, signal: AbortSignal) {
+    const provinceList = locations.provinces.data
+    const region = parseRegion(address)
+    const province = findByName(provinceList?.provinces, region.province)
+    if (!provinceList || !province) return null
+    const datasetVersion = provinceList.datasetVersion
+    // Cùng khoá với `useSiteLocations`: ô phường có sẵn danh sách ngay khi form đổi sang tỉnh mới.
+    const wardList = await client.fetchQuery({
+      queryKey: [...contractorKeys.all, 'site-wards', province.code, datasetVersion],
+      queryFn: () => constructionSitesApi.wards(province.code, datasetVersion),
+      staleTime: WARDS_STALE
+    })
+    if (signal.aborted) return null
+    const ward = findByName(wardList.wards, region.ward)
+    return {
+      provinceCode: province.code,
+      locationDatasetVersion: datasetVersion,
+      // Phường không khớp: cùng tỉnh thì giữ phường cũ (`undefined`), đổi tỉnh thì bỏ vì phường cũ thuộc tỉnh khác.
+      wardCode: ward ? ward.code : latestValues.current.provinceCode === province.code ? undefined : ''
+    }
+  }
+  /**
+   * Kéo ghim / bấm bản đồ: dời ghim ngay, rồi đổi số nhà đường + tỉnh + phường theo địa chỉ tại ghim (như Bước 1 dự
+   * toán). Toạ độ được gắn lại với địa chỉ MỚI nên không phải chọn lại gợi ý (BR-SITE-001 khoản 8). Chỉ thao tác mới
+   * nhất được áp kết quả: địa chỉ đổi giữa chừng thì kết quả đến muộn bị bỏ (TDD-SITE-002).
+   */
+  async function movePin(latitude: number, longitude: number) {
+    geoController.current?.abort()
+    const controller = new AbortController()
+    geoController.current = controller
+    const addressKey = key
+    const stale = () => controller.signal.aborted || siteAddressKey(latestValues.current) !== addressKey
+    setLocation((current) => (current?.addressKey === addressKey ? { ...current, latitude, longitude } : current))
+    setGeoBusy(true)
+    setGeoError('')
+    try {
+      const found = await geocodeApi.reverse(latitude, longitude, controller.signal)
+      // Quanh ghim không có địa chỉ (giữa đồng, giữa sông…): giữ nguyên chữ đang có thay vì xoá trắng.
+      if (stale() || !found) return
+      const region = found.address ? await resolveRegion(found.address, controller.signal).catch(() => null) : null
+      if (stale()) return
+      const street = found.name.trim()
+      const next: SiteFormValues = {
+        ...latestValues.current,
+        ...(street ? { addressDetail: street } : {}),
+        ...(region
+          ? {
+              provinceCode: region.provinceCode,
+              locationDatasetVersion: region.locationDatasetVersion,
+              ...(region.wardCode !== undefined ? { wardCode: region.wardCode } : {})
+            }
+          : {})
+      }
+      const options = { shouldDirty: true, shouldValidate: true }
+      if (next.addressDetail !== latestValues.current.addressDetail)
+        form.setValue('addressDetail', next.addressDetail, options)
+      if (next.provinceCode !== latestValues.current.provinceCode)
+        form.setValue('provinceCode', next.provinceCode, options)
+      if (next.wardCode !== latestValues.current.wardCode) form.setValue('wardCode', next.wardCode, options)
+      if (next.locationDatasetVersion !== latestValues.current.locationDatasetVersion)
+        form.setValue('locationDatasetVersion', next.locationDatasetVersion, options)
+      setLocation({ addressKey: siteAddressKey(next), latitude, longitude, display: found.display })
+    } catch {
+      if (!stale()) setGeoError(t('errors.MapServiceUnavailable'))
+    } finally {
+      if (!controller.signal.aborted) setGeoBusy(false)
+    }
+  }
   async function refreshSite(id: string) {
     const detail = await constructionSitesApi.detail(id)
     const brief = briefDrafts.put(localBrief(form.getValues(), detail))
@@ -527,27 +599,25 @@ export function ConstructionSiteForm({ projectId }: { projectId: string }) {
           briefDrafts.put({ ...draft, siteDraft: { ...draft.siteDraft, pendingCreation: undefined } })
       }
       if (isApiError(problem)) {
-        if (problem.code === 'ConstructionSiteNameTaken') form.setError('name', { message })
-        if (
-          problem.code === 'ConstructionSiteCatalogChanged' ||
-          problem.code === 'ConstructionSiteConditionUnavailable'
-        ) {
+        const code = errorCodeOf(problem)
+        if (code === 'ConstructionSiteNameTaken') form.setError('name', { message })
+        if (code === 'ConstructionSiteCatalogChanged' || code === 'ConstructionSiteConditionUnavailable') {
           await pinnedOptions.refetch()
           await currentOptions.refetch()
         }
-        if (problem.code === 'LocationDatasetChanged') {
+        if (code === 'LocationDatasetChanged') {
           await locations.provinces.refetch()
           form.setValue('provinceCode', '')
           form.setValue('wardCode', '')
           form.setValue('locationDatasetVersion', '')
           setLocation(undefined)
         }
-        if (problem.code === 'ConstructionSiteSourceUnavailable') {
+        if (code === 'ConstructionSiteSourceUnavailable') {
           await sources.refetch()
           await sourceQuery.refetch()
         }
-        if (problem.code === 'ConstructionSiteVersionConflict') setVersionConflict(true)
-        if (problem.code === 'ConstructionSiteHasSupervision') await briefQuery.refetch()
+        if (code === 'ConstructionSiteVersionConflict') setVersionConflict(true)
+        if (code === 'ConstructionSiteHasSupervision') await briefQuery.refetch()
         for (const [field, messages] of Object.entries(problem.errors ?? {})) {
           const name = field.replace(/^profile\./i, '').replace(/^./, (char) => char.toLowerCase())
           if (name in EMPTY) form.setError(name as FieldPath<SiteFormValues>, { message: messages.join(' ') })
@@ -715,48 +785,61 @@ export function ConstructionSiteForm({ projectId }: { projectId: string }) {
         key={name}
         control={form.control}
         name={name}
-        render={({ field }) => (
-          <FormItem id={`site-field-${name}`}>
-            <FormLabel>
-              {label}
-              <span className='text-destructive' aria-hidden>
-                {' '}
-                *
-              </span>
-            </FormLabel>
-            <Select
-              value={field.value === null ? '' : String(field.value)}
-              disabled={isDisabled}
-              onValueChange={(value) => {
-                field.onChange(name === 'floorCount' ? Number(value) : name === 'hasTum' ? value === 'true' : value)
-                if (name === 'provinceCode') {
-                  form.setValue('wardCode', '')
-                  form.setValue('locationDatasetVersion', locations.provinces.data?.datasetVersion ?? '')
-                }
-                if (name === 'buildingTypeId') {
-                  form.setValue('floorCount', null)
-                  form.setValue('hasTum', null)
-                  form.setValue('architectureStyleId', null)
-                  form.setValue('interiorStyleId', null)
-                }
-              }}
-            >
-              <FormControl>
-                <SelectTrigger className='w-full'>
-                  <SelectValue placeholder={t('select')} />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                {options.map((item) => (
-                  <SelectItem key={item.value} value={item.value}>
-                    {item.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
+        render={({ field, fieldState }) => {
+          const current = field.value === null ? '' : String(field.value)
+          const change = (value: string) => {
+            field.onChange(name === 'floorCount' ? Number(value) : name === 'hasTum' ? value === 'true' : value)
+            if (name === 'provinceCode') {
+              form.setValue('wardCode', '')
+              form.setValue('locationDatasetVersion', locations.provinces.data?.datasetVersion ?? '')
+            }
+            if (name === 'buildingTypeId') {
+              form.setValue('floorCount', null)
+              form.setValue('hasTum', null)
+              form.setValue('architectureStyleId', null)
+              form.setValue('interiorStyleId', null)
+            }
+          }
+          return (
+            <FormItem id={`site-field-${name}`}>
+              <FormLabel>
+                {label}
+                <span className='text-destructive' aria-hidden>
+                  {' '}
+                  *
+                </span>
+              </FormLabel>
+              {SEARCHABLE_FIELDS.has(name) ? (
+                <FormControl>
+                  <SearchableSelect
+                    value={current}
+                    disabled={isDisabled}
+                    options={options}
+                    placeholder={t('select')}
+                    invalid={Boolean(fieldState.error)}
+                    onValueChange={change}
+                  />
+                </FormControl>
+              ) : (
+                <Select value={current} disabled={isDisabled} onValueChange={change}>
+                  <FormControl>
+                    <SelectTrigger className='w-full'>
+                      <SelectValue placeholder={t('select')} />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {options.map((item) => (
+                      <SelectItem key={item.value} value={item.value}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              <FormMessage />
+            </FormItem>
+          )
+        }}
       />
     )
   }
@@ -887,7 +970,8 @@ export function ConstructionSiteForm({ projectId }: { projectId: string }) {
                     <SelectItem value='none'>{t('independent')}</SelectItem>
                     {sourceItems.map((item) => (
                       <SelectItem key={item.estimateId} value={item.estimateId}>
-                        {item.name}
+                        {/* Kèm mã dự toán để phân biệt các bản trùng tên. */}
+                        {item.code ? `${item.name} · ${item.code}` : item.name}
                       </SelectItem>
                     ))}
                     {site?.sourceEstimateId &&
@@ -957,20 +1041,39 @@ export function ConstructionSiteForm({ projectId }: { projectId: string }) {
                         *
                       </span>
                     </FormLabel>
-                    <div role='group' aria-label={t('condition')} className='flex flex-wrap gap-2'>
-                      {activeCatalog?.conditions.map((condition) => (
-                        <Button
-                          type='button'
-                          key={condition.id}
-                          variant={field.value === condition.id ? 'secondary' : 'outline'}
-                          disabled={disabled || (!condition.isSelectable && condition.id !== site?.conditionId)}
-                          aria-pressed={field.value === condition.id}
-                          className='h-auto max-w-full whitespace-normal text-left'
-                          onClick={() => field.onChange(condition.id)}
-                        >
-                          {condition.name}
-                        </Button>
-                      ))}
+                    <div role='group' aria-label={t('condition')} className='grid gap-2 sm:grid-cols-3'>
+                      {activeCatalog?.conditions.map((condition) => {
+                        const selected = field.value === condition.id
+                        return (
+                          <button
+                            type='button'
+                            key={condition.id}
+                            aria-pressed={selected}
+                            disabled={disabled || (!condition.isSelectable && condition.id !== site?.conditionId)}
+                            onClick={() => field.onChange(condition.id)}
+                            className={cn(
+                              'flex min-h-14 min-w-0 items-center gap-2.5 rounded-xl border px-3 py-2 text-left text-sm transition-colors',
+                              'focus-visible:ring-ring/50 outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50',
+                              selected
+                                ? 'border-primary bg-accent text-primary-strong font-medium'
+                                : 'hover:border-primary/50'
+                            )}
+                          >
+                            <span
+                              aria-hidden
+                              className={cn(
+                                'flex size-5 shrink-0 items-center justify-center rounded-full border transition-colors',
+                                selected
+                                  ? 'border-primary bg-primary text-primary-foreground'
+                                  : 'border-muted-foreground/40'
+                              )}
+                            >
+                              {selected ? <Check className='size-3' /> : null}
+                            </span>
+                            <span className='min-w-0'>{condition.name}</span>
+                          </button>
+                        )
+                      })}
                     </div>
                     <FormMessage />
                   </FormItem>
@@ -1118,21 +1221,16 @@ export function ConstructionSiteForm({ projectId }: { projectId: string }) {
                     ))}
                   </ul>
                 ) : null}
-                <LocationMap
-                  latitude={location?.addressKey === key ? location.latitude : null}
-                  longitude={location?.addressKey === key ? location.longitude : null}
-                  onChange={
-                    !disabled && !site?.sourceEstimateId && !geoBusy && location?.addressKey === key
-                      ? (latitude, longitude) => {
-                          setLocation((current) =>
-                            current?.addressKey === siteAddressKey(latestValues.current)
-                              ? { ...current, latitude, longitude }
-                              : current
-                          )
-                        }
-                      : undefined
-                  }
-                />
+                {/* Như Bước 1 dự toán: chưa có vị trí của địa chỉ hiện tại thì chưa vẽ bản đồ, chỉ có dòng gợi ý. */}
+                {location?.addressKey === key ? (
+                  <LocationMap
+                    latitude={location.latitude}
+                    longitude={location.longitude}
+                    onChange={
+                      !locked && !geoBusy ? (latitude, longitude) => void movePin(latitude, longitude) : undefined
+                    }
+                  />
+                ) : null}
                 <p className='text-muted-foreground text-xs'>
                   {t(
                     disabled || site?.sourceEstimateId

@@ -17,6 +17,8 @@ export interface SiteGrant {
 
 export interface ConstructionSite {
   constructionSiteId: string
+  /** Mã hồ sơ công trình `BUILDX-HS-YYYYMMDD-XXXXXX` do BE cấp; thiếu khi API chưa trả. */
+  code?: string | null
   name: string
   address: string
   /**

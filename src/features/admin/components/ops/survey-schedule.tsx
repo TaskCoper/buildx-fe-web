@@ -254,46 +254,49 @@ export function SurveyScheduleManager() {
             ]}
           >
             {(fields, { add, remove }, { errors }) => (
-              <Space orientation='vertical' size={8} style={{ width: '100%' }}>
-                {fields.map((field) => {
-                  const row = form.getFieldValue(['slots', field.name]) as SlotRow | undefined
-                  const booked = row ? everBooked(row.id) : false
-                  return (
-                    <div key={field.key} className='flex flex-wrap items-center gap-3'>
-                      <Form.Item
-                        name={[field.name, 'range']}
-                        noStyle
-                        rules={[
-                          { required: true, message: t('fields.requiredMessage') },
-                          {
-                            validator: (_, value?: [Dayjs, Dayjs]) =>
-                              value && !value[1].isAfter(value[0])
-                                ? Promise.reject(new Error(t('surveySchedule.rangeRule')))
-                                : Promise.resolve()
-                          }
-                        ]}
-                      >
-                        <TimePicker.RangePicker format='HH:mm' minuteStep={15} order={false} />
-                      </Form.Item>
-                      <Form.Item name={[field.name, 'active']} valuePropName='checked' noStyle>
-                        <Switch
-                          checkedChildren={t('surveySchedule.slotOn')}
-                          unCheckedChildren={t('surveySchedule.slotOff')}
-                        />
-                      </Form.Item>
-                      <Tooltip title={booked ? t('surveySchedule.slotInUse') : t('actions.removeRow')}>
-                        <Button
-                          type='text'
-                          danger
-                          disabled={booked}
-                          icon={<DeleteOutlined />}
-                          aria-label={t('actions.removeRow')}
-                          onClick={() => remove(field.name)}
-                        />
-                      </Tooltip>
-                    </div>
-                  )
-                })}
+              <div className='flex flex-col gap-2'>
+                {/* Các khung giờ xếp lưới nhiều cột thay vì một cột dài 400px bên trái và để trống nửa phải. */}
+                <div className='grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(340px,1fr))]'>
+                  {fields.map((field) => {
+                    const row = form.getFieldValue(['slots', field.name]) as SlotRow | undefined
+                    const booked = row ? everBooked(row.id) : false
+                    return (
+                      <div key={field.key} className='flex flex-wrap items-center gap-3'>
+                        <Form.Item
+                          name={[field.name, 'range']}
+                          noStyle
+                          rules={[
+                            { required: true, message: t('fields.requiredMessage') },
+                            {
+                              validator: (_, value?: [Dayjs, Dayjs]) =>
+                                value && !value[1].isAfter(value[0])
+                                  ? Promise.reject(new Error(t('surveySchedule.rangeRule')))
+                                  : Promise.resolve()
+                            }
+                          ]}
+                        >
+                          <TimePicker.RangePicker format='HH:mm' minuteStep={15} order={false} />
+                        </Form.Item>
+                        <Form.Item name={[field.name, 'active']} valuePropName='checked' noStyle>
+                          <Switch
+                            checkedChildren={t('surveySchedule.slotOn')}
+                            unCheckedChildren={t('surveySchedule.slotOff')}
+                          />
+                        </Form.Item>
+                        <Tooltip title={booked ? t('surveySchedule.slotInUse') : t('actions.removeRow')}>
+                          <Button
+                            type='text'
+                            danger
+                            disabled={booked}
+                            icon={<DeleteOutlined />}
+                            aria-label={t('actions.removeRow')}
+                            onClick={() => remove(field.name)}
+                          />
+                        </Tooltip>
+                      </div>
+                    )
+                  })}
+                </div>
                 <Form.ErrorList errors={errors} />
                 <Button
                   type='dashed'
@@ -310,7 +313,7 @@ export function SurveyScheduleManager() {
                 >
                   {t('surveySchedule.addSlot')}
                 </Button>
-              </Space>
+              </div>
             )}
           </Form.List>
         </Form>

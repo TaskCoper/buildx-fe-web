@@ -14,6 +14,7 @@ import {
   Image,
   Input,
   InputNumber,
+  Radio,
   Row,
   Select,
   Space,
@@ -229,7 +230,7 @@ export function PlanManager() {
   const tAdmin = useTranslations('admin')
   const { message, modal } = App.useApp()
   const queryClient = useQueryClient()
-  // Chỉ còn gói thiết kế — không lọc theo loại nữa (đã gỡ gói giám sát khỏi khu tạo).
+  // Bảng liệt kê cả hai loại gói; loại gói chọn lúc tạo (ô "Loại gói" trong form) nên không lọc theo loại ở đây.
   const kind = 'all' as const
   const [saleState, setSaleState] = useState<PlanSaleState | 'all'>('all')
 
@@ -659,10 +660,12 @@ function PlanFields({
       <Form.Item name='expectedVersion' hidden>
         <InputNumber />
       </Form.Item>
-      {/* Chỉ tạo gói thiết kế; giữ giá trị kind để gửi kèm khi tạo (đã gỡ ô chọn loại). */}
-      <Form.Item name='kind' hidden>
-        <Input />
-      </Form.Item>
+      {/* Loại gói chọn MỘT LẦN lúc tạo, không đổi được sau đó (TDD-SUB-001): khi sửa chỉ giữ giá trị ngầm. */}
+      {isNew ? null : (
+        <Form.Item name='kind' hidden>
+          <Input />
+        </Form.Item>
+      )}
       {plan?.saleState === 'Stopped' ? (
         <Alert type='warning' showIcon style={{ marginBottom: 12 }} title={t('stoppedNote')} />
       ) : null}
@@ -672,12 +675,23 @@ function PlanFields({
         {t('basicSection')}
       </Text>
       <Row gutter={16}>
-        <Col xs={24}>
+        {isNew ? (
+          <Col xs={24} md={8}>
+            <Form.Item name='kind' label={t('kind')} tooltip={t('kindHint')}>
+              <Radio.Group
+                optionType='button'
+                buttonStyle='solid'
+                options={(['Design', 'Supervision'] as const).map((value) => ({ value, label: t(`kinds.${value}`) }))}
+              />
+            </Form.Item>
+          </Col>
+        ) : null}
+        <Col xs={24} md={isNew ? 6 : 8}>
           {isNew ? (
             <Form.Item
               name='code'
               label={t('code')}
-              extra={t('codeHint')}
+              tooltip={t('codeHint')}
               rules={[required, { max: CODE_MAX, message: tAdmin('fields.maxLength', { max: CODE_MAX }) }]}
             >
               <Input maxLength={CODE_MAX} />
@@ -688,7 +702,7 @@ function PlanFields({
             </Form.Item>
           )}
         </Col>
-        <Col xs={24}>
+        <Col xs={24} md={isNew ? 10 : 16}>
           <Form.Item
             name='name'
             label={t('name')}
@@ -698,6 +712,14 @@ function PlanFields({
           </Form.Item>
         </Col>
       </Row>
+
+      {/* Gói giám sát không có quyền lợi / nội dung tư vấn: mô tả dịch vụ ở đây là chỗ duy nhất giải thích
+          gói, bắt buộc có nội dung mới Công bố được (lưu nháp thì để trống được — BR-SUB-008). */}
+      {kind === 'Supervision' ? (
+        <Form.Item name='description' label={t('serviceDescription')} extra={t('serviceDescriptionHint')}>
+          <Input.TextArea rows={4} />
+        </Form.Item>
+      ) : null}
 
       <Text strong style={sectionTitle}>
         {t('priceQuotaSection')}
@@ -722,7 +744,7 @@ function PlanFields({
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'minmax(150px, 1.3fr) minmax(140px, 1fr) minmax(170px, 1fr)',
+                gridTemplateColumns: 'minmax(150px, 190px) minmax(150px, 1fr) minmax(170px, 1fr)',
                 columnGap: 16,
                 alignItems: 'center',
                 minWidth: 520
@@ -838,17 +860,21 @@ function PlanFields({
         </>
       )}
 
-      <ImageUrlField name='coverImageUrl' label={t('coverImage')} />
-      <Text type='secondary' style={{ display: 'block', marginTop: -8, marginBottom: 16, fontSize: 12 }}>
-        {t('coverImageHint')}
-      </Text>
       <Row gutter={16}>
-        <Col xs={24} md={8}>
-          <Form.Item name='isHighlighted' label={t('isHighlighted')} valuePropName='checked'>
-            <Switch />
-          </Form.Item>
+        <Col xs={24} md={12}>
+          <ImageUrlField name='coverImageUrl' label={t('coverImage')} />
+          <Text type='secondary' style={{ display: 'block', marginTop: -8, marginBottom: 16, fontSize: 12 }}>
+            {t('coverImageHint')}
+          </Text>
         </Col>
-        <Col xs={24} md={16}>
+        <Col xs={24} md={12}>
+          {/* Nhãn + công tắc cùng một dòng: hai khối cạnh nhau cao gần bằng nhau, không để trống dưới ô ảnh bìa. */}
+          <div className='mb-4 flex items-center gap-3'>
+            <Text>{t('isHighlighted')}</Text>
+            <Form.Item name='isHighlighted' valuePropName='checked' noStyle>
+              <Switch aria-label={t('isHighlighted')} />
+            </Form.Item>
+          </div>
           <Form.Item
             name='highlightLabel'
             label={t('highlightLabel')}

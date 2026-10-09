@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import { AnimatePresence, motion, useReducedMotion, type Variants } from 'motion/react'
 import { useTranslations } from 'next-intl'
@@ -8,6 +8,7 @@ import { useTranslations } from 'next-intl'
 import { Link } from '@/i18n/navigation'
 import { ErrorState, revealEase } from '@/shared/components/common'
 import { ROUTES } from '@/shared/constants/routes'
+import { useDocumentTitle } from '@/shared/hooks'
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import { useAvailability, useConsultant, useConsultants } from '../hooks/use-consultation'
 import { ConsultantProfile } from './consultant-profile'
@@ -32,8 +33,8 @@ export function ConsultantDetail({ consultantId }: ConsultantDetailProps) {
   const t = useTranslations('consult.directory')
   const tProfile = useTranslations('consult.profile')
   const tRail = useTranslations('consult.rail')
+  const tMeta = useTranslations('meta')
   const reduceMotion = useReducedMotion()
-  const profilePanelRef = useRef<HTMLDivElement>(null)
   const { selectedDate, setSelectedDate, profileDirection } = useConsultTransitionState()
   const [timeChoice, setTimeChoice] = useState({ consultantId, time: '' })
   const selectedTime = timeChoice.consultantId === consultantId ? timeChoice.time : ''
@@ -43,21 +44,7 @@ export function ConsultantDetail({ consultantId }: ConsultantDetailProps) {
   const { data: consultant, isPending, isError } = useConsultant(consultantId)
   const { data: days, isPending: daysPending } = useAvailability(consultantId)
   const visibleConsultant = consultant ?? consultants?.find((item) => item.id === consultantId)
-
-  useEffect(() => {
-    // On small screens the rail is stacked above the profile. Keep the selected
-    // profile from being left below the fold after navigating from the directory.
-    const frame = requestAnimationFrame(() => {
-      if (window.matchMedia('(max-width: 1023px)').matches) {
-        profilePanelRef.current?.scrollIntoView({
-          behavior: reduceMotion ? 'auto' : 'smooth',
-          block: 'start'
-        })
-      }
-    })
-
-    return () => cancelAnimationFrame(frame)
-  }, [consultantId, reduceMotion])
+  useDocumentTitle(visibleConsultant ? tMeta('consultantName', { name: visibleConsultant.name }) : null)
 
   return (
     <div className='mx-auto w-full max-w-[90rem] space-y-5 lg:space-y-6 px-4 py-5 lg:px-8'>
@@ -82,10 +69,7 @@ export function ConsultantDetail({ consultantId }: ConsultantDetailProps) {
           {...(visibleConsultant ? { activeConsultant: visibleConsultant } : {})}
         />
 
-        <div
-          ref={profilePanelRef}
-          className='bg-card scroll-mt-20 relative min-w-0 overflow-hidden rounded-xl border p-4 sm:p-6'
-        >
+        <div className='bg-card scroll-mt-20 relative min-w-0 overflow-hidden rounded-xl border p-4 sm:p-6'>
           <AnimatePresence mode='wait' initial={false} custom={profileDirection}>
             <motion.div
               key={consultantId}

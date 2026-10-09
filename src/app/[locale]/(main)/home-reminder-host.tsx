@@ -494,7 +494,7 @@ export function HomeReminderHost() {
                 setCollapsed(false)
                 setCollapseCycle((value) => value + 1)
               }}
-              className='fixed right-6 bottom-6 z-[55] inline-flex h-[48px] items-center gap-2.5 rounded-full brand-green-button px-4 pr-5 text-[14px] font-bold text-white shadow-[0_14px_32px_-14px_rgba(42,117,63,.55)] transition-[background-color,box-shadow] duration-200 ease-out hover:shadow-[0_16px_36px_-14px_rgba(42,117,63,.62)] min-[900px]:right-[calc(1.5rem+3.5rem+15px)] min-[900px]:bottom-7 max-[899px]:right-0 max-[899px]:left-0 max-[899px]:mx-auto max-[899px]:w-fit'
+              className='fixed right-[96px] bottom-7 z-[55] inline-flex h-[48px] items-center gap-2.5 rounded-full brand-green-button px-4 pr-5 text-[14px] font-bold text-white shadow-[0_14px_32px_-14px_rgba(42,117,63,.55)] transition-[background-color,box-shadow] duration-200 ease-out hover:shadow-[0_16px_36px_-14px_rgba(42,117,63,.62)] min-[900px]:right-[calc(1.5rem+3.5rem+15px)] max-[899px]:right-[80px]'
             >
               <span className='flex size-6 items-center justify-center rounded-full bg-[#f36a16] text-xs font-extrabold text-white'>
                 1

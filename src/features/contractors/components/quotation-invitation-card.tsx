@@ -9,6 +9,7 @@ import { cn } from '@/shared/lib/utils'
 import { QUOTATION_STATUSES, type QuotationItem } from '@/shared/quotations'
 import { useContractor } from '../hooks/use-contractors'
 import { useQuotationDetail } from '../hooks/use-quotations'
+import { withDistanceFrom } from '../services/contractor-list.service'
 import type { Contractor } from '../types/contractor.types'
 import { ContractorLogo } from './contractor-logo'
 import { ContractorStats } from './contractor-stats'
@@ -32,8 +33,12 @@ export function QuotationInvitationCard({
   const common = useTranslations('contractors.common')
   const rating = useTranslations('contractors.rating')
   const locale = useLocale() as Locale
-  const { data: contractor } = useContractor(item.contractorId)
+  const { data: loadedContractor } = useContractor(item.contractorId)
   const detail = useQuotationDetail(item.id)
+  // API chi tiết nhà thầu không trả khoảng cách: tính từ toạ độ công trình trong bản chụp của yêu cầu tới trụ sở nhà thầu.
+  const contractor = loadedContractor
+    ? withDistanceFrom(loadedContractor, detail.data?.snapshot.profile.address)
+    : undefined
   const stamp = (value: string) => formatDisplayDateTime(value, locale)
   const day = formatDisplayDate(item.appointmentAtUtc, locale, { weekday: true })
   const clock = formatDisplayTime(item.appointmentAtUtc, locale)
@@ -44,19 +49,22 @@ export function QuotationInvitationCard({
       className={cn('bg-card relative space-y-4 overflow-hidden rounded-2xl border p-4 sm:p-5', completed && 'pt-5')}
     >
       {completed ? <span aria-hidden className='bg-primary absolute inset-x-0 top-0 h-1' /> : null}
-      <div className='flex flex-wrap items-start gap-4'>
-        <ContractorLogo contractor={contractor ?? { name: item.contractorName }} />
-        <div className='min-w-0 flex-1'>
-          <h2 className='flex items-center gap-2 font-semibold'>
-            <span className='break-words'>{item.contractorName}</span>
-            {contractor?.verified ? <BadgeCheck className='text-primary size-4 shrink-0' /> : null}
-          </h2>
-          {contractor?.officeAddress ? (
-            <p className='text-muted-foreground mt-1 text-sm'>
-              {[contractor.kind, contractor.officeAddress].filter(Boolean).join(' · ')}
-            </p>
-          ) : null}
-          {contractor ? <ContractorStats contractor={contractor} dense className='mt-2' /> : null}
+      <div className='flex flex-wrap items-start gap-x-4 gap-y-3'>
+        {/* Logo + tên đi chung một khối để màn hẹp đẩy cụm trạng thái xuống dòng dưới, thay vì bóp cột tên. */}
+        <div className='flex min-w-0 flex-[1_1_16rem] items-start gap-4'>
+          <ContractorLogo contractor={contractor ?? { name: item.contractorName }} className='shrink-0' />
+          <div className='min-w-0 flex-1'>
+            <h2 className='flex items-center gap-2 font-semibold'>
+              <span className='break-words'>{item.contractorName}</span>
+              {contractor?.verified ? <BadgeCheck className='text-primary size-4 shrink-0' /> : null}
+            </h2>
+            {contractor?.officeAddress ? (
+              <p className='text-muted-foreground mt-1 text-sm'>
+                {[contractor.kind, contractor.officeAddress].filter(Boolean).join(' · ')}
+              </p>
+            ) : null}
+            {contractor ? <ContractorStats contractor={contractor} dense className='mt-2' /> : null}
+          </div>
         </div>
         <div className='flex flex-wrap items-center gap-2'>
           <span className='bg-primary/10 text-primary-strong inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium'>

@@ -42,12 +42,26 @@ export function SiteHeader({ UserMenu, onCreateProject }: SiteHeaderProps = {}) 
   const authed = mounted && isAuthenticated
   const reduceMotion = useReducedMotion()
   const [hidden, setHidden] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
   const [accountMenuOpen, setAccountMenuOpen] = useState(false)
   const [pastTitle, setPastTitle] = useState(false)
   const onHome = pathname === ROUTES.HOME
   const onContractors = pathname === ROUTES.CONTRACTORS || pathname.startsWith(`${ROUTES.CONTRACTORS}/`)
   const onHandbook = pathname === ROUTES.HANDBOOK || pathname.startsWith(`${ROUTES.HANDBOOK}/`)
   const onHandbookArticle = pathname.startsWith(`${ROUTES.HANDBOOK}/bai-viet/`)
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(max-width: 767px)')
+    const updateMobileState = () => {
+      const mobile = mediaQuery.matches
+      setIsMobile(mobile)
+      if (mobile) setHidden(false)
+    }
+
+    updateMobileState()
+    mediaQuery.addEventListener('change', updateMobileState)
+    return () => mediaQuery.removeEventListener('change', updateMobileState)
+  }, [])
 
   useEffect(() => {
     let previousY = window.scrollY
@@ -80,6 +94,11 @@ export function SiteHeader({ UserMenu, onCreateProject }: SiteHeaderProps = {}) 
         const hasPassedTitle = currentY > titleThreshold
 
         setPastTitle(hasPassedTitle)
+        if (window.matchMedia('(max-width: 767px)').matches) {
+          setHidden(false)
+          return
+        }
+
         if (!hasPassedTitle) {
           direction = 0
           distance = 0
@@ -109,7 +128,7 @@ export function SiteHeader({ UserMenu, onCreateProject }: SiteHeaderProps = {}) 
   }, [onHome, pathname])
 
   // Dropdown không khóa cuộn body (tránh làm mất sticky); giữ header hiện khi thao tác menu.
-  const isHidden = hidden && !accountMenuOpen
+  const isHidden = !isMobile && hidden && !accountMenuOpen
 
   useEffect(() => {
     const style = document.documentElement.style

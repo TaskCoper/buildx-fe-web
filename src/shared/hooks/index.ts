@@ -1,5 +1,7 @@
+export { useApiErrorText } from './use-api-error-text'
 export { useCountUp } from './use-count-up'
 export { useDebouncedValue } from './use-debounced-value'
+export { useDocumentTitle } from './use-document-title'
 export { useDwellNudge } from './use-dwell-nudge'
 export { useIsScrolling } from './use-is-scrolling'
 export { useGetProvinces } from './use-get-provinces'

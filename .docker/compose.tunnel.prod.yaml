@@ -1,0 +1,27 @@
+# Standalone production infrastructure. Copy this file to the server.
+# Set CLOUDFLARE_TUNNEL_TOKEN, then run: docker compose -f compose.tunnel.prod.yaml up -d
+# Cloudflare route: thietkeai.com.vn -> http://buildx-fe-web-prod:3000
+name: bmt-infra-prod
+
+services:
+  bmt-cloudflare-prod:
+    image: cloudflare/cloudflared:latest
+    container_name: bmt-cloudflare-prod
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:?Set CLOUDFLARE_TUNNEL_TOKEN to the production tunnel token}
+    networks:
+      bmt-network-prod:
+        ipv4_address: 10.47.20.10
+
+networks:
+  bmt-network-prod:
+    name: bmt-network-prod
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.47.20.0/24
+          ip_range: 10.47.20.128/25
+          gateway: 10.47.20.1

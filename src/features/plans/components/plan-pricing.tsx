@@ -8,6 +8,8 @@ import {
   CheckCircle2,
   Building2,
   Check,
+  ChevronLeft,
+  ChevronRight,
   Clock,
   Headphones,
   HardHat,
@@ -58,9 +60,11 @@ import {
 import { usePlanHighlights } from '../hooks/use-plan-highlights'
 import type { PlanView } from '../types/plan.types'
 import { usePlans } from '../hooks/use-plans'
-import { hasYearOffer, maxYearlySaving, planForCycle } from '../services/plan-cycle'
-import type { PlanCycle } from '../types/plan.types'
-import { PlanCycleToggle } from './plan-cycle-toggle'
+import { planForCycle } from '../services/plan-cycle'
+// [CYCLE-TOGGLE] Tạm ẩn công tắc Tháng / Năm — bỏ comment ba dòng dưới (và thay dòng import ở trên bằng
+// `import { hasYearOffer, maxYearlySaving, planForCycle } from '../services/plan-cycle'`) để bật lại.
+// import type { PlanCycle } from '../types/plan.types'
+// import { PlanCycleToggle } from './plan-cycle-toggle'
 
 const TIERS: readonly PlanTier[] = ['basic', 'advanced', 'pro'] as const
 
@@ -124,10 +128,13 @@ function PlanPricingContent() {
 
   // Chu kỳ đang xem. Công tắc chỉ hiện khi có gói bán theo năm; không thì luôn là tháng. Dựng
   // bản "nhìn theo chu kỳ" ngay từ đây để thẻ, bảng so sánh và nút mua dùng nguyên price / hạn mức.
-  const [cycle, setCycle] = useState<PlanCycle>('Month')
-  const showCycleToggle = hasYearOffer(plans ?? [])
-  const activeCycle: PlanCycle = showCycleToggle ? cycle : 'Month'
-  const cyclePlans = useMemo(() => (plans ?? []).map((plan) => planForCycle(plan, activeCycle)), [plans, activeCycle])
+  //
+  // [CYCLE-TOGGLE] TẠM ẨN công tắc Tháng / Năm (khách yêu cầu): trang chỉ bán theo tháng. Để bật lại,
+  // bỏ comment ba dòng dưới, xoá dòng `cyclePlans` tạm và đổi `'Month'` thành `activeCycle`.
+  // const [cycle, setCycle] = useState<PlanCycle>('Month')
+  // const showCycleToggle = hasYearOffer(plans ?? [])
+  // const activeCycle: PlanCycle = showCycleToggle ? cycle : 'Month'
+  const cyclePlans = useMemo(() => (plans ?? []).map((plan) => planForCycle(plan, 'Month')), [plans])
 
   const { reduceMotion } = usePricingMotion()
 
@@ -147,9 +154,11 @@ function PlanPricingContent() {
             đề trong CMS thì phần tô màu vẫn tự bám chữ cuối. */}
         <PlanHeading />
 
+        {/* [CYCLE-TOGGLE] Tạm ẩn công tắc Tháng / Năm — bỏ comment để bật lại.
         {showCycleToggle ? (
           <PlanCycleToggle value={activeCycle} onChange={setCycle} saving={maxYearlySaving(plans ?? [])} />
         ) : null}
+        */}
 
         {isPending ? (
           <div className='grid gap-5 md:grid-cols-3'>
@@ -694,6 +703,8 @@ function PlanCards({ plans }: { plans: PlanView[] }) {
   const progress = useMotionValue(1)
   const dotOffset = useDotOffset(progress)
   const { reduceMotion } = usePricingMotion()
+  const [slide, setSlide] = useState(1)
+  useEffect(() => progress.on('change', (value) => setSlide(Math.round(value))), [progress])
 
   useEffect(() => {
     const root = track.current
@@ -827,40 +838,72 @@ function PlanCards({ plans }: { plans: PlanView[] }) {
     }
   }, [plans, progress, reduceMotion])
 
+  function goTo(index: number) {
+    const root = track.current,
+      card = root?.children[index] as HTMLElement | undefined
+    if (root && card)
+      root.scrollTo({
+        left: card.offsetLeft - (root.clientWidth - card.clientWidth) / 2,
+        behavior: reduceMotion ? 'instant' : 'smooth'
+      })
+  }
+
   return (
     <>
-      <ul
-        ref={track}
-        data-entrance-step='4'
-        data-entrance-from='soft-scale'
-        className='plan-track'
-        aria-label={t('title')}
-        onMouseLeave={() => setHovered(null)}
-        onBlur={(e) => {
-          if (!e.currentTarget.contains(e.relatedTarget)) setHovered(null)
-        }}
-      >
-        {plans.map((plan, index) => (
-          <PlanCard
-            key={plan.id}
-            plan={plan}
-            index={index}
-            imagesReady={readyImages}
-            pricesStarted={pricesStarted}
-            pricesDone={pricesDone}
-            pricesInstant={pricesInstant}
-            dimmed={(selected ?? hovered) !== null && (selected ?? hovered) !== plan.id}
-            onHover={() => setHovered(plan.id)}
-            selected={selected}
-            onSelect={setSelected}
-            onGift={(button) => {
-              giftOrigin.current = button
-              setGift(plan)
-              setGiftOpen(true)
-            }}
-          />
+      {/* Mũi tên hai bên báo còn gói để vuốt; chỉ hiện ở điện thoại, ẩn ở đầu/cuối dải. */}
+      <div className='relative'>
+        {[
+          { dir: -1, label: t('prevPlan'), Icon: ChevronLeft, side: 'left-1', hidden: slide <= 0 },
+          { dir: 1, label: t('nextPlan'), Icon: ChevronRight, side: 'right-1', hidden: slide >= plans.length - 1 }
+        ].map(({ dir, label, Icon, side, hidden }) => (
+          <button
+            key={dir}
+            type='button'
+            aria-label={label}
+            tabIndex={hidden ? -1 : 0}
+            onClick={() => goTo(slide + dir)}
+            className={cn(
+              'bg-card/90 text-primary-strong absolute top-1/2 z-20 flex size-9 -translate-y-1/2 items-center justify-center rounded-full border shadow-md backdrop-blur-sm transition-opacity md:hidden',
+              side,
+              hidden && 'pointer-events-none opacity-0'
+            )}
+          >
+            <Icon className='size-5' />
+          </button>
         ))}
-      </ul>
+        <ul
+          ref={track}
+          data-entrance-step='4'
+          data-entrance-from='soft-scale'
+          className='plan-track'
+          aria-label={t('title')}
+          onMouseLeave={() => setHovered(null)}
+          onBlur={(e) => {
+            if (!e.currentTarget.contains(e.relatedTarget)) setHovered(null)
+          }}
+        >
+          {plans.map((plan, index) => (
+            <PlanCard
+              key={plan.id}
+              plan={plan}
+              index={index}
+              imagesReady={readyImages}
+              pricesStarted={pricesStarted}
+              pricesDone={pricesDone}
+              pricesInstant={pricesInstant}
+              dimmed={(selected ?? hovered) !== null && (selected ?? hovered) !== plan.id}
+              onHover={() => setHovered(plan.id)}
+              selected={selected}
+              onSelect={setSelected}
+              onGift={(button) => {
+                giftOrigin.current = button
+                setGift(plan)
+                setGiftOpen(true)
+              }}
+            />
+          ))}
+        </ul>
+      </div>
       <div className='plan-dots mx-auto -mt-4! flex w-fit gap-3 md:hidden' aria-label={t('title')}>
         {plans.map((plan, index) => (
           <button
@@ -868,15 +911,7 @@ function PlanCards({ plans }: { plans: PlanView[] }) {
             type='button'
             aria-label={plan.name}
             className='relative size-5 rounded-full bg-primary/15'
-            onClick={() => {
-              const root = track.current,
-                card = root?.children[index] as HTMLElement | undefined
-              if (root && card)
-                root.scrollTo({
-                  left: card.offsetLeft - (root.clientWidth - card.clientWidth) / 2,
-                  behavior: reduceMotion ? 'instant' : 'smooth'
-                })
-            }}
+            onClick={() => goTo(index)}
           />
         ))}
         <motion.span
@@ -1084,7 +1119,7 @@ function PlanCard({
                 {highlights(plan).map((feature, i) => (
                   <li
                     key={feature}
-                    style={{ '--line-delay': `${0.2 + delay + i * 0.09}s` } as CSSProperties}
+                    style={{ '--line-delay': `${0.05 + delay * 0.4 + i * 0.05}s` } as CSSProperties}
                     className='plan-feature-line flex items-start gap-[2cqw] text-sm leading-snug'
                   >
                     <CheckCircle2

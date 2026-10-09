@@ -160,8 +160,9 @@ export function RegisterForm({ embedded = false, onSwitchToLogin }: RegisterForm
                   {/* `block`: FormLabel mặc định là `flex`, biến câu chữ và hai đường link thành các ô rời nhau nên
                       "Tôi đồng ý với" bị tách khỏi "Điều khoản…". Để chữ chảy liền như một đoạn văn, hết bề
                       ngang mới xuống dòng. */}
-                  {/* Giữ toàn bộ câu đồng ý trên một dòng kể cả ở màn hình điện thoại hẹp. */}
-                  <FormLabel className='block whitespace-nowrap text-xs leading-snug font-normal sm:text-sm'>
+                  {/* Chữ nhỏ lại ở điện thoại và cho phép xuống dòng (`min-w-0 flex-1`) để câu đồng ý không
+                      tràn ngang làm form bị kéo được. */}
+                  <FormLabel className='block min-w-0 flex-1 text-sm leading-snug font-normal'>
                     {t.rich('agree', {
                       terms: (chunks) => (
                         <Link
@@ -176,7 +177,7 @@ export function RegisterForm({ embedded = false, onSwitchToLogin }: RegisterForm
                         <Link
                           href={ROUTES.PRIVACY}
                           target='_blank'
-                          className='text-foreground font-medium whitespace-nowrap underline underline-offset-2'
+                          className='text-foreground font-medium underline underline-offset-2'
                         >
                           {chunks}
                         </Link>

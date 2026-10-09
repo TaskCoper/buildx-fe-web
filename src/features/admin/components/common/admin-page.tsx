@@ -27,12 +27,15 @@ export function AdminPage({
   description,
   actions,
   sticky,
+  compact,
   children
 }: {
   title: string
   description?: string
   actions?: ReactNode
   sticky?: boolean
+  /** Tiêu đề cấp nhỏ, dùng khi màn được nhúng làm một phần của màn khác thay vì là cả trang. */
+  compact?: boolean
   children: ReactNode
 }) {
   return (
@@ -43,7 +46,9 @@ export function AdminPage({
     <div className='flex w-full flex-col gap-4'>
       <div
         className={cn(
-          'flex flex-wrap items-start gap-4',
+          // Có dòng mô tả (nhiều dòng) thì canh đầu; không có (vd. trang form) thì canh giữa để tiêu đề thẳng hàng với nút.
+          'flex flex-wrap gap-4',
+          description ? 'items-start' : 'items-center',
           // `top-15` = 60px = chiều cao Header (xem `headerHeight` ở AntdProvider).
           // Nền phải ĐỤC, nếu không chữ bên dưới cuộn xuyên qua khối dính.
           sticky &&
@@ -51,7 +56,7 @@ export function AdminPage({
         )}
       >
         <div className='min-w-60 flex-1'>
-          <Title level={4} style={{ margin: 0 }}>
+          <Title level={compact ? 5 : 4} style={{ margin: 0 }}>
             {title}
           </Title>
           {description ? (

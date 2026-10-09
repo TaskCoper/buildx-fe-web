@@ -22,8 +22,7 @@ export function AccountNav() {
   const reduceMotion = useReducedMotion()
   const tabs: Array<{ href: string; icon: LucideIcon; label: string; badge?: string }> = [
     { href: ROUTES.ACCOUNT_PROJECTS, icon: LayoutGrid, label: t('projects.title') },
-    // Tab "Dự án yêu thích" và "Công trình của tôi" tạm ẩn: route `/account/favorites`, `/account/sites` vẫn còn, chỉ
-    // không hiện trên thanh điều hướng.
+    // Tab "Công trình của tôi" tạm ẩn: route `/account/sites` vẫn còn, chỉ không hiện trên thanh điều hướng.
     { href: ROUTES.ACCOUNT_DOSSIERS, icon: FolderOpen, label: t('dossiers.title') },
     { href: ROUTES.ACCOUNT_PURCHASES, icon: CreditCard, label: t('purchaseHistory.title') },
     { href: ROUTES.ACCOUNT_CONSULTATIONS, icon: CalendarDays, label: t('consultationHistory.title') }
@@ -33,7 +32,7 @@ export function AccountNav() {
     <LayoutGroup id='account-route-tabs'>
       <nav
         aria-label={t('title')}
-        className='bg-card flex h-auto w-full justify-start gap-1 overflow-x-auto rounded-xl border p-1'
+        className='bg-card flex h-auto w-full max-w-full min-w-0 touch-pan-x justify-start gap-1 overflow-x-auto overscroll-x-contain rounded-xl border p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
       >
         {tabs.map(({ href, icon: Icon, label, badge }) => {
           const active = pathname === href
@@ -43,6 +42,10 @@ export function AccountNav() {
               key={href}
               href={href}
               aria-current={active ? 'page' : undefined}
+              // Tab đang chọn luôn nằm trong vùng nhìn thấy khi thanh phải cuộn ngang.
+              ref={(node) => {
+                if (active) node?.scrollIntoView({ inline: 'center', block: 'nearest' })
+              }}
               className={cn(
                 'group relative inline-flex shrink-0 items-center justify-center rounded-lg px-3 py-2 text-xs font-medium transition-colors xl:px-4',
                 active ? 'text-primary-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'

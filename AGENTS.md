@@ -66,7 +66,7 @@ Quality gate to run before considering work done (CI mirrors this):
 pnpm typecheck && pnpm lint && pnpm format:check
 ```
 
-`pnpm test:auth` runs pure routing policy tests with Node's built-in runner and is included in CI. There is no general React test framework; `services/` (pure domain logic) remains the intended target for broader unit coverage.
+`pnpm test:auth` runs pure routing policy tests with Node's built-in runner and is included in CI. `pnpm test:api-error` does the same for the BE error-message mapping (not in CI yet). There is no general React test framework; `services/` (pure domain logic) remains the intended target for broader unit coverage.
 
 ## Running without the backend
 
@@ -93,7 +93,7 @@ app/ (routes)  →  features/ (business)  →  shared/ (reusable infra & UI)
 
 Current features: `auth`, `design` (luồng 3 bước), `handbook` (Cẩm nang + panel cá nhân hóa), `guide` (Hướng dẫn), `landing` (trang chủ), `consultation` (Tư vấn 1:1), `plans` (Gói đăng ký), `account`, `chatbot`, `admin` (khu quản trị).
 
-**Composing across features**: two features that must appear together are joined at the **app layer**, never by importing each other. Two patterns in use — a `ReactNode` slot prop (the Bước 2/3 waiting screen takes `sidePanel`, the app passes `features/handbook`'s panel), and a page composing both barrels (`/account` renders `features/account` + `features/design`'s `MyProjects`). Genuinely cross-cutting state goes to `shared/` instead: `shared/auth`, `shared/favorite` (the ♥ toggle, mục VI) and `shared/cms` — the content store `features/admin` writes to and the public features read from (localStorage while there is no backend; swap the body of `cmsDb` for HTTP calls when the API lands).
+**Composing across features**: two features that must appear together are joined at the **app layer**, never by importing each other. Two patterns in use — a `ReactNode` slot prop (the Bước 2/3 waiting screen takes `sidePanel`, the app passes `features/handbook`'s panel), and a page composing both barrels (`/account` renders `features/account` + `features/design`'s `MyProjects`). Genuinely cross-cutting state goes to `shared/` instead: `shared/auth` and `shared/cms` — the content store `features/admin` writes to and the public features read from (localStorage while there is no backend; swap the body of `cmsDb` for HTTP calls when the API lands).
 
 **Admin area**: `app/[locale]/(admin)` is an isolated route group — its layout wraps `AntdProvider` → `ProtectedRoute` → `AdminGuard`, so **Ant Design is only bundled there** and the public site stays Tailwind + shadcn. New admin screens are declarations, not layouts: `ResourceManager` (table + search + drawer form) for collections, `DocumentEditor` for single documents, `OverrideEditor` for the flat key→value documents.
 
@@ -111,7 +111,7 @@ Operational screens follow two patterns: `ResourceManager` with `allowEdit={fals
 
 Usage limits live in one CMS document, `quotas`: free-tier credits, the daily AI-chat allowance and the daily handbook lookup allowance. They used to be three separate hardcoded constants (`chatbot.constants`, `handbook.mock`, and nowhere at all for the free tier) — `useChat` and the handbook mock now read `quotas`, so operations can change them without a deploy. Paid-plan limits stay per-row in the `plans` collection.
 
-Every i18n namespace is **owned by exactly one page** via `copyNamespaces` in `admin-pages.config.ts`, so there is no catch-all key-table screen sitting outside the by-page structure: a page's copy tab shows its curated "frequently edited" list first, then an "everything else on this page" group holding the rest of its namespaces. Namespaces belonging to no single page (`common`, `auth`, `validation`, `theme`, `language`, `favorite`) live on the "Shared copy" page. `ContentWorkspace` warns in development if a namespace is left unclaimed — that is the check keeping the "every string is editable inside its own page" promise honest.
+Every i18n namespace is **owned by exactly one page** via `copyNamespaces` in `admin-pages.config.ts`, so there is no catch-all key-table screen sitting outside the by-page structure: a page's copy tab shows its curated "frequently edited" list first, then an "everything else on this page" group holding the rest of its namespaces. Namespaces belonging to no single page (`common`, `auth`, `validation`, `theme`, `language`) live on the "Shared copy" page. `ContentWorkspace` warns in development if a namespace is left unclaimed — that is the check keeping the "every string is editable inside its own page" promise honest.
 
 **State**: server state → TanStack Query (each feature owns a hierarchical key factory for safe invalidation); client/UI state → feature-scoped Zustand. The only cross-cutting store is auth (`shared/auth`).
 
@@ -121,6 +121,7 @@ Every i18n namespace is **owned by exactly one page** via `copyNamespaces` in `a
 
 ## Conventions
 
+- **API error messages are mapped centrally, not per screen.** `normalizeApiError`/`unwrap` turn a BE error into `ApiError.message` through `apiErrors` in `messages/*.json` (`codes.<messageCode>` from the TDD "Error Codes" sections, `status.<kind>` for HTTP status, network and timeout). Vietnamese keeps the BE's own Vietnamese sentence when it has one (it names the exact field); English always uses the table because the BE has no translation. So call sites show `error.message` (or `useApiErrorText()` for errors that are not `ApiError`, e.g. `MediaUploadError` or `new Error('ExportNotReady')`); only add a per-screen sentence for a code that needs different copy in context, and never fall back to a generic "something went wrong" when an `ApiError` is in hand. A new BE code means one new key in **both** locales under `apiErrors.codes`; `pnpm test:api-error` checks the two stay in step.
 - **Never hardcode UI text.** All strings live in `messages/vi.json` + `messages/en.json` — add to **both**. i18n is next-intl, locales `vi` (default) / `en`, routes are locale-prefixed (`/vi`, `/en`) via `src/proxy.ts`. Use the locale-aware `Link`/`useRouter` from `@/i18n/navigation`; server pages call `setRequestLocale(locale)`.
 - **Forms**: React Hook Form + `zodResolver` + shadcn `Form`. Schemas are built by factories that take resolved localized messages (see `createLoginSchema`) so validation copy is never hardcoded.
 - **Styling**: Tailwind v4 with semantic design tokens only (`bg-primary`, `text-muted-foreground`) — never raw hex. Tokens are OKLCH CSS variables in `src/app/globals.css` exposed via `@theme inline`. Every reusable variant uses CVA.

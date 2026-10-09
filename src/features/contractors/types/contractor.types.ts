@@ -41,6 +41,9 @@ export type RatingLevel = 'any' | 'good' | 'great'
 /** Mốc khởi công dự kiến (S10). */
 export type StartWindow = 'asap' | 'in-1-3-months' | 'in-3-6-months' | 'undecided'
 
+/** Thời gian nhà thầu khảo sát được (`surveyHours` của hồ sơ) — bộ lọc "Lịch nhận việc & thời gian khảo sát" ở landing (S09). */
+export type SurveyWindow = 'h24' | 'h48' | 'h72' | 'over72'
+
 /**
  * Trạng thái hồ sơ dự án trong luồng tìm nhà thầu.
  *

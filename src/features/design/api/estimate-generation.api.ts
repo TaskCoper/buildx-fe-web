@@ -1,5 +1,5 @@
 import { env } from '@/shared/config/env'
-import { http, httpClient } from '@/shared/lib/api'
+import { apiErrorFromResponse, http, httpClient } from '@/shared/lib/api'
 import { generationSchema } from '../schemas/estimate-api.schema'
 
 /**
@@ -37,6 +37,8 @@ export interface EstimateResultRaw {
   operationId: string
   contractVersion: string
   estimateName: string
+  /** Mã dự toán `BUILDX-YYYYMMDD-XXXXXX`; thiếu khi API chưa trả. */
+  estimateCode?: string | null
   dossier: { content?: unknown; files?: ResultFile[] }
   exportAvailability?: ExportAvailability[]
 }
@@ -134,7 +136,8 @@ const apiBase = () => env.NEXT_PUBLIC_API_BASE_URL.replace(/\/$/, '')
  */
 export async function fetchSharedBlob(path: string, token: string): Promise<{ blob: Blob; fileName: string | null }> {
   const response = await fetch(`${apiBase()}${path}`, { headers: { [SHARE_TOKEN_HEADER]: token }, credentials: 'omit' })
-  if (!response.ok) throw new Error(`SharedFile${response.status}`)
+  // Giữ mã lỗi BE (link hết hạn/bị thu hồi, tệp chưa sẵn sàng…) để báo đúng lý do thay vì một mã trần.
+  if (!response.ok) throw apiErrorFromResponse(response.status, await response.json().catch(() => undefined))
   const disposition = response.headers.get('Content-Disposition') ?? ''
   const encoded = /filename\*=UTF-8''([^;]+)/i.exec(disposition)?.[1]
   const plain = /filename="?([^";]+)"?/i.exec(disposition)?.[1]
@@ -216,6 +219,7 @@ export const estimateGenerationApi = {
     http.get<{
       shareId: string
       estimateName: string
+      estimateCode?: string | null
       dossier: { content?: unknown; files?: ResultFile[] }
       exportAvailability?: ExportAvailability[]
     }>(`/public/estimate-shares/${shareId}`, { withCredentials: false, headers: { 'X-Estimate-Share-Token': token } }),

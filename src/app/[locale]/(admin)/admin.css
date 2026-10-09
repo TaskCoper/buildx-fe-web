@@ -148,6 +148,13 @@
   }
 }
 
+/* Tiêu đề mục trong form (Divider có chữ đặt ở đầu, vd. "Thông tin chung"): antd thụt chữ vào 16px nên nó
+   lệch khỏi mép trái các ô nhập bên dưới. Về 0 để chữ thẳng hàng với nhãn và ô. Đặc hiệu (0,4,0) hơn rule
+   gốc của antd (đã bọc `:where`) nên thắng dù nạp trước. */
+.ant-card .ant-divider-horizontal.ant-divider-with-text-start > .ant-divider-inner-text {
+  padding-inline-start: 0;
+}
+
 /* Trình soạn rich text (TipTap) của bài viết — khung + kiểu chữ khớp bản render
    trên site. Là vùng contenteditable do mình dựng nên style thẳng ở đây. */
 .admin-richtext {

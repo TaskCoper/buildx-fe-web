@@ -50,7 +50,7 @@ interface MyProjectsProps {
  */
 export function MyProjects({ renderSupervision }: MyProjectsProps = {}) {
   const t = useTranslations('account.projects')
-  const { data: projects, isPending, isError, refetch } = useProjects()
+  const { data: projects, isPending, isError, error, refetch } = useProjects()
 
   const [renaming, setRenaming] = useState<Project | null>(null)
   const [deleting, setDeleting] = useState<Project | null>(null)
@@ -72,7 +72,7 @@ export function MyProjects({ renderSupervision }: MyProjectsProps = {}) {
     )
   }
 
-  if (isError) return <DesignLoadError onRetry={() => void refetch()} />
+  if (isError) return <DesignLoadError error={error} onRetry={() => void refetch()} />
 
   if (!projects?.length) {
     return <EmptyState title={t('empty.title')} description={t('empty.description')} />
@@ -141,6 +141,13 @@ export function MyProjects({ renderSupervision }: MyProjectsProps = {}) {
                         dòng, ngăn bằng dấu chấm giữa. Hai vế sau chỉ có sau khi
                         khách qua Bước 1 và Bước 2, thiếu vế nào thì bỏ luôn cả
                         dấu ngăn của vế đó. */}
+                    {project.code ? (
+                      <p data-project-code className='text-muted-foreground font-mono text-xs select-all'>
+                        <span className='sr-only'>{t('codeLabel')}: </span>
+                        {project.code}
+                      </p>
+                    ) : null}
+
                     <ProjectMeta project={project} />
 
                     {/* Hình S24: nhãn + ba CHẤM có số và tên bước, không phải ba

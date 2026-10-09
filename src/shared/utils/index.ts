@@ -10,5 +10,7 @@ export {
   formatNumber,
   formatPriceTag
 } from './formatters'
+export { haversineKm, type GeoPoint } from './distance'
 export { formatPhoneDisplay, isValidPhone, normalizePhone } from './phone'
+export { sampleRecordCode } from './record-code'
 export { getInitials, truncate } from './string'
