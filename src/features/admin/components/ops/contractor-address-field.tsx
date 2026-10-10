@@ -9,6 +9,16 @@ import { useDebouncedValue } from '@/shared/hooks'
 import { locationApi } from '@/shared/locations'
 
 const text = (v: unknown) => (typeof v === 'string' ? v.normalize('NFC').trim() : '')
+const inRange = (v: unknown, limit: number) => typeof v === 'number' && Number.isFinite(v) && Math.abs(v) <= limit
+
+/**
+ * Ô đặt trong `Form.Item name='address'` ở nhánh địa chỉ cũ: chỉ hiện địa chỉ đã lưu, để lỗi bắt buộc
+ * của `Form.Item` hiện ngay dưới nó. `value` là địa chỉ cũ; `onChange` không dùng vì ô này chỉ đọc.
+ */
+function LegacyAddressNotice({ value, title, empty }: { value?: unknown; title: string; empty: string }) {
+  return <Alert type='info' title={title} description={text(value) || empty} />
+}
+
 export function contractorAddressKey(values: Record<string, unknown>): string {
   return JSON.stringify([
     text(values.provinceCode),
@@ -139,7 +149,22 @@ export function ContractorAddressField({ form, visible }: { form: FormInstance; 
     <Space orientation='vertical' style={{ width: '100%' }}>
       {!active ? (
         <>
-          <Alert type='info' title={t('legacy')} description={text(form.getFieldValue('address')) || t('noAddress')} />
+          {/* BE đòi địa chỉ + toạ độ mới cho Hiện; hồ sơ cũ thiếu thì phải bổ sung địa chỉ tách riêng. */}
+          <Form.Item
+            name='address'
+            rules={[
+              {
+                validator: async () => {
+                  const v = form.getFieldsValue(true)
+                  if (v._structuredAddress) return
+                  if (!text(v.address) || !inRange(v.latitude, 90) || !inRange(v.longitude, 180))
+                    throw new Error(t('legacyRequired'))
+                }
+              }
+            ]}
+          >
+            <LegacyAddressNotice title={t('legacy')} empty={t('noAddress')} />
+          </Form.Item>
           <Button onClick={activate} disabled={provinces.isPending || provinces.isError}>
             {t('add')}
           </Button>
@@ -147,7 +172,11 @@ export function ContractorAddressField({ form, visible }: { form: FormInstance; 
       ) : (
         <>
           <div className='grid gap-x-3 sm:grid-cols-2'>
-            <Form.Item name='provinceCode' label={t('province')}>
+            <Form.Item
+              name='provinceCode'
+              label={t('province')}
+              rules={[{ required: true, message: t('provinceRequired') }]}
+            >
               <Select
                 allowClear
                 showSearch
@@ -164,7 +193,7 @@ export function ContractorAddressField({ form, visible }: { form: FormInstance; 
                 }}
               />
             </Form.Item>
-            <Form.Item name='wardCode' label={t('ward')}>
+            <Form.Item name='wardCode' label={t('ward')} rules={[{ required: true, message: t('wardRequired') }]}>
               <Select
                 allowClear
                 showSearch
@@ -179,32 +208,23 @@ export function ContractorAddressField({ form, visible }: { form: FormInstance; 
           <Form.Item
             name='addressDetail'
             label={t('street')}
+            required
             dependencies={['provinceCode', 'wardCode', '_addressCoordinateKey', 'latitude', 'longitude']}
             rules={[
               {
+                // BE đòi địa chỉ + toạ độ mới cho Hiện hồ sơ nên luôn bắt buộc, không chỉ khi đang Hiện.
                 validator: async () => {
                   const v = form.getFieldsValue(true)
                   if (!v._structuredAddress) return
-                  const entered = [v.provinceCode, v.wardCode, v.addressDetail].some((x) => Boolean(text(x)))
-                  if (!entered) {
-                    if (visible) throw new Error(t('required'))
-                    return
-                  }
-                  if (
-                    ![v.provinceCode, v.wardCode, v.locationDatasetVersion, v.addressDetail].every((x) =>
-                      Boolean(text(x))
-                    )
-                  )
-                    throw new Error(t('required'))
+                  if (!text(v.addressDetail)) throw new Error(t('streetRequired'))
                   if (text(v.addressDetail).length > 500) throw new Error(t('tooLong'))
+                  // Thiếu tỉnh hoặc phường thì hai ô đó đã báo lỗi riêng.
+                  if (!text(v.provinceCode) || !text(v.wardCode)) return
+                  if (!text(v.locationDatasetVersion)) throw new Error(t('required'))
                   if (
                     v._addressCoordinateKey !== contractorAddressKey(v) ||
-                    typeof v.latitude !== 'number' ||
-                    !Number.isFinite(v.latitude) ||
-                    Math.abs(v.latitude) > 90 ||
-                    typeof v.longitude !== 'number' ||
-                    !Number.isFinite(v.longitude) ||
-                    Math.abs(v.longitude) > 180
+                    !inRange(v.latitude, 90) ||
+                    !inRange(v.longitude, 180)
                   )
                     throw new Error(t('coordinatesRequired'))
                 }
@@ -324,9 +344,12 @@ export function ContractorAddressField({ form, visible }: { form: FormInstance; 
       <Form.Item name='locationDatasetVersion' hidden>
         <Input />
       </Form.Item>
-      <Form.Item name='address' hidden>
-        <Input />
-      </Form.Item>
+      {/* Nhánh địa chỉ cũ đã có ô `address` hiện ra ở trên; ô ẩn này chỉ cần khi dùng địa chỉ tách riêng. */}
+      {active ? (
+        <Form.Item name='address' hidden>
+          <Input />
+        </Form.Item>
+      ) : null}
       <Form.Item name='latitude' hidden>
         <InputNumber />
       </Form.Item>

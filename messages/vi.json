@@ -4090,7 +4090,7 @@
       "inspectionsRule": "Số lượt kiểm tra là số nguyên từ 1."
     },
     "contractorsAdmin": {
-      "description": "Quản lý hồ sơ nhà thầu: thông tin, năng lực (loại công trình × phạm vi), liên hệ, pháp lý. Hồ sơ mới lưu Ẩn; muốn Hiện cần đủ tên + địa chỉ + toạ độ + ≥1 loại công trình + ≥1 phạm vi.",
+      "description": "Quản lý hồ sơ nhà thầu: thông tin, năng lực (loại công trình × phạm vi), liên hệ, pháp lý. Bắt buộc có tên, địa chỉ kèm vị trí trên bản đồ, ít nhất một loại công trình và một phạm vi thi công. Hồ sơ mới lưu ở trạng thái Ẩn; bấm Hiện hồ sơ để công khai.",
       "name": "Tên nhà thầu",
       "address": "Địa chỉ",
       "statusLabel": "Trạng thái",
@@ -4099,7 +4099,8 @@
       "hidden": "Đang ẩn",
       "hide": "Ẩn hồ sơ",
       "show": "Hiện hồ sơ",
-      "requiredForVisible": "Bắt buộc để hiển thị công khai.",
+      "buildingTypesRequired": "Chọn ít nhất một loại công trình.",
+      "scopesRequired": "Chọn ít nhất một phạm vi thi công.",
       "ratingHint": "Điểm do admin nhập, 0–5. Để trống cả điểm và số lượt thì không hiện đánh giá.",
       "contactNote": "Thông tin liên hệ chỉ admin thấy, không lộ ra trang khách.",
       "sections": {
@@ -4276,6 +4277,10 @@
         "mapError": "Chưa tra được vị trí. Vui lòng thử lại.",
         "coordinatesRequired": "Chọn một địa chỉ gợi ý để xác định vị trí trước khi lưu.",
         "required": "Nhập đủ tỉnh/thành, phường/xã và số nhà/đường.",
+        "provinceRequired": "Chọn tỉnh/thành phố.",
+        "wardRequired": "Chọn phường/xã.",
+        "streetRequired": "Nhập số nhà/đường.",
+        "legacyRequired": "Cần có địa chỉ và vị trí trên bản đồ. Bấm \"Bổ sung địa chỉ tách riêng\" để nhập lại.",
         "tooLong": "Số nhà/đường tối đa 500 ký tự.",
         "clear": "Xóa toàn bộ địa chỉ",
         "catalogError": "Không tải được danh mục tỉnh/phường. Dữ liệu đã nhập được giữ lại.",

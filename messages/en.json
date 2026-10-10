@@ -4090,7 +4090,7 @@
       "inspectionsRule": "Inspections must be a whole number from 1."
     },
     "contractorsAdmin": {
-      "description": "Manage contractor profiles: info, capability (building type × scope), contact, legal. New profiles are Hidden; going Visible needs name + address + coordinates + ≥1 building type + ≥1 scope.",
+      "description": "Manage contractor profiles: info, capability (building type × scope), contact, legal. A name, an address with a map location, at least one building type and one construction scope are required. New profiles are saved as Hidden; use Show profile to publish.",
       "name": "Contractor name",
       "address": "Address",
       "statusLabel": "Status",
@@ -4099,7 +4099,8 @@
       "hidden": "Hidden",
       "hide": "Hide profile",
       "show": "Show profile",
-      "requiredForVisible": "Required to be publicly visible.",
+      "buildingTypesRequired": "Select at least one building type.",
+      "scopesRequired": "Select at least one construction scope.",
       "ratingHint": "Admin-entered score, 0–5. Leave both score and count empty to hide the rating.",
       "contactNote": "Contact details are admin-only and never shown on the public site.",
       "sections": {
@@ -4276,6 +4277,10 @@
         "mapError": "Unable to find the location. Please try again.",
         "coordinatesRequired": "Select an address suggestion to determine the location before saving.",
         "required": "Enter the province/city, ward/commune and house number/street.",
+        "provinceRequired": "Select a province/city.",
+        "wardRequired": "Select a ward/commune.",
+        "streetRequired": "Enter the house number/street.",
+        "legacyRequired": "An address and a map location are required. Press \"Add separate address fields\" to enter them again.",
         "tooLong": "House number/street must not exceed 500 characters.",
         "clear": "Clear the entire address",
         "catalogError": "Unable to load provinces/wards. Your input has been preserved.",
