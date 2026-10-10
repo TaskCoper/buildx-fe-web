@@ -253,17 +253,26 @@ export function BriefReview({ projectId }: BriefReviewProps) {
             changedKeys={changedFields}
           />
 
-          {/* Form hồ sơ không còn ô nhu cầu thi công (case 31), nên thẻ này chỉ hiện với hồ sơ cũ đã lưu phạm vi/ghi chú. */}
+          {/* Form không còn ô chọn phạm vi (case 31) nên dòng "Phạm vi" chỉ hiện với hồ sơ cũ đã lưu; mô tả nhu cầu lấy từ BE. */}
           {brief.scope || brief.scopeNote ? (
             <SummaryCard
               title={t('needsTitle')}
-              editHref={`${contractorBriefRoute(projectId)}?focus=site`}
+              editHref={`${contractorBriefRoute(projectId)}?focus=description`}
               editLabel={t('edit')}
               rows={[
                 // Hình S11: giá trị "Phạm vi" là VIÊN NHÃN nền xanh nhạt, không
                 // phải chữ trơn như các dòng khác.
-                { key: 'scope', label: t('scopeLabel'), value: scopes.label(brief.scope, brief.scopeName), chip: true },
-                { key: 'scopeNote', label: t('noteLabel'), value: brief.scopeNote }
+                ...(brief.scope
+                  ? [
+                      {
+                        key: 'scope',
+                        label: t('scopeLabel'),
+                        value: scopes.label(brief.scope, brief.scopeName),
+                        chip: true
+                      }
+                    ]
+                  : []),
+                { key: 'scopeNote', label: t('noteLabel'), value: brief.scopeNote, multiline: true }
               ]}
               changedKeys={changedFields}
             />
@@ -517,7 +526,7 @@ function SummaryCard({
   changedKeys
 }: {
   title: string
-  rows: { key: string; label: string; value: string; chip?: boolean }[]
+  rows: { key: string; label: string; value: string; chip?: boolean; multiline?: boolean }[]
   editHref: string
   editLabel: string
   /** Dòng vừa đổi sau khi sửa xong quay lại — hiện chéo + nền vàng mờ dần (mục 4). */
@@ -541,7 +550,12 @@ function SummaryCard({
           return (
             <div key={row.key} className='grid gap-1 sm:grid-cols-[160px_minmax(0,1fr)] sm:gap-4'>
               <dt className='text-muted-foreground text-xs sm:text-sm'>{row.label}</dt>
-              <dd className='relative isolate text-sm text-pretty'>
+              <dd
+                className={cn(
+                  'relative isolate text-sm text-pretty',
+                  row.multiline && 'break-words whitespace-pre-line'
+                )}
+              >
                 <motion.span
                   key={row.value}
                   initial={changed ? { opacity: 0, x: 10, y: -6 } : false}

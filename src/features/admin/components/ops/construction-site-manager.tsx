@@ -179,6 +179,16 @@ function SiteDetail({ item }: { item: AdminConstructionSite }) {
           { key: 'province', label: c('province'), children: site.provinceName || '—' },
           { key: 'ward', label: c('ward'), children: site.wardName || '—' },
           { key: 'street', label: c('street'), span: 2, children: site.profile.addressDetail || '—' },
+          {
+            key: 'needs',
+            label: c('needs'),
+            span: 'filled',
+            children: site.description ? (
+              <Text style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{site.description}</Text>
+            ) : (
+              <Text type='secondary'>{c('noNeeds')}</Text>
+            )
+          },
           { key: 'area', label: c('area'), children: `${formatSiteDecimal(site.profile.areaM2, locale)} m²` },
           { key: 'condition', label: c('condition'), children: site.conditionName || '—' },
           { key: 'budget', label: c('budget'), children: `${formatSiteDecimal(site.budgetVnd, locale)} ₫` },

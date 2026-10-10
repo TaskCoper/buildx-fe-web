@@ -88,6 +88,7 @@ export const mockConstructionSitesApi: typeof bmtConstructionSitesApi = {
       constructionSiteId: crypto.randomUUID(),
       code: sampleRecordCode('site', now),
       name: request.name,
+      description: request.description?.trim() || null,
       address: `${request.profile.addressDetail}, Phường Ba Đình, Thành phố Hà Nội`,
       latitude: request.latitude,
       longitude: request.longitude,
@@ -132,6 +133,8 @@ export const mockConstructionSitesApi: typeof bmtConstructionSitesApi = {
     const site = {
       ...current,
       ...request,
+      // Giống BE: PUT thay toàn bộ nên thiếu mô tả nghĩa là xóa mô tả đã lưu.
+      description: request.description?.trim() || null,
       profile,
       conditionName: catalog.conditions.find((item) => item.id === request.conditionId)?.name ?? current.conditionName,
       buildingTypeName:

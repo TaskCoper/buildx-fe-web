@@ -357,6 +357,7 @@
       "ConstructionSiteNameTaken": "Bạn đã có công trình mang tên này. Vui lòng chọn tên khác.",
       "ConstructionSiteAddressRequired": "Vui lòng nhập địa chỉ công trình.",
       "ConstructionSiteAddressTooLong": "Địa chỉ công trình tối đa 500 ký tự.",
+      "ConstructionSiteDescriptionTooLong": "Mô tả nhu cầu tối đa 1.000 ký tự.",
       "ConstructionSiteCoordinatesRequired": "Vui lòng chọn vị trí công trình trên bản đồ.",
       "ConstructionSiteCoordinatesInvalid": "Vị trí công trình trên bản đồ chưa hợp lệ. Vui lòng chọn lại.",
       "ConstructionSiteCoordinatesUnavailable": "Công trình chưa có vị trí trên bản đồ. Vui lòng chọn vị trí rồi lưu lại.",
@@ -6361,7 +6362,9 @@
         "ConditionPhoto": "Ảnh hiện trạng"
       },
       "code": "Mã hồ sơ",
-      "searchByCode": "Tìm theo mã hồ sơ"
+      "searchByCode": "Tìm theo mã hồ sơ",
+      "needs": "Mô tả nhu cầu",
+      "noNeeds": "Khách chưa nhập mô tả."
     }
   },
   "contractors": {
@@ -7293,11 +7296,10 @@
       "budgetError": "Nhập số nguyên VND lớn hơn 0, tối đa 28 chữ số. Có thể dùng dấu phân cách nhóm nghìn.",
       "start": "Dự kiến khởi công",
       "needsTitle": "Nhu cầu thi công",
-      "needsSubtitle": "Cho BuildX biết phạm vi và yêu cầu chính của dự án.",
+      "needsSubtitle": "Cho BuildX biết yêu cầu chính của công trình. Phần này không bắt buộc.",
       "scope": "Phạm vi thi công",
       "description": "Mô tả nhu cầu",
       "descriptionPlaceholder": "VD: Cần nhà thầu thi công trọn gói nhà phố 2 tầng, có kinh nghiệm và có thể khảo sát cuối tuần.",
-      "needsLocal": "Nhu cầu thi công được lưu trên trình duyệt này; hiện chưa gửi đến nhà thầu.",
       "scopeLoadError": "Không tải được danh mục phạm vi thi công. Vui lòng thử lại.",
       "scopeEmpty": "Chưa có phạm vi thi công đang dùng trong danh mục.",
       "scopeHistorical": "Lựa chọn đã lưu trước đây",

@@ -41,6 +41,7 @@ Giữ form hai cột, chọn phạm vi, mô tả nhu cầu, nút đóng và bư�
 
 - Thêm chọn dự toán nguồn, tầng/tum, phong cách kiến trúc/nội thất theo loại công trình, và tra/chọn vị trí. Nội dung tra vị trí có thể rút gọn về tối đa 500 ký tự mà không sửa địa chỉ công trình.
 - Hai nhóm phong cách nằm ở cột phải, phía trên Nhu cầu thi công, thay dropdown bằng thẻ chọn có ảnh từ danh mục API. Chưa chọn loại thì hiện lời nhắc; nhóm không áp dụng hiện Không áp dụng. Mỗi nhóm chọn một phong cách; hồ sơ có nguồn giữ lựa chọn và khóa thao tác. Nếu danh mục chưa có ảnh, thẻ hiển thị Chưa có ảnh minh họa.
+- **Mô tả nhu cầu (10/10/2026):** ô Mô tả (tùy chọn, tối đa 1.000 ký tự) nằm ở cột phải, dưới nhóm Phong cách, gửi lên backend dưới tên `description`. Ô rỗng thì không gửi khóa này; PUT thay toàn bộ nên thiếu `description` nghĩa là xóa mô tả đã lưu. Công trình tạo từ dự toán vẫn nhập và sửa được mô tả; công trình có gói giữ chỗ thì khóa như các trường khác. Phạm vi thi công vẫn không có ô nhập (case 31). Thẻ "Nhu cầu thi công" ở S11 đọc mô tả từ backend và có nút Chỉnh sửa quay về ô này.
 - Hiện trạng và danh mục lấy từ backend, thay lựa chọn CMS trong phần ghi SITE. Khi chọn nguồn, các trường kế thừa được khóa; chỉ có thể đổi/bỏ nguồn trước khi tạo.
 - Gộp Bản vẽ và Ảnh hiện trạng thành một vùng chọn tệp ở S10. Khi gửi backend, PDF/DWG/DXF thuộc nhóm Bản vẽ; JPG/JPEG/PNG/WebP thuộc nhóm Ảnh hiện trạng. Tệp đã lưu giữ nguyên nhóm. Bỏ hỗ trợ XLSX ở S10; thêm DWG/DXF/WebP theo contract SITE. S11 có nút tải tệp qua API có xác thực.
 - Bản nhập liệu chưa đủ vẫn tự lưu khi rời trường. Hộp thoại khi đóng form vẫn có lựa chọn lưu rồi rời trang. Backend không có trạng thái nháp SITE.
@@ -64,7 +65,7 @@ Typecheck, lint, format:check và build production đã đạt. Build lần đ�
 
 Chưa kiểm chứng POST bằng tài khoản và dữ liệu thử trên backend thật; chưa kiểm chứng parser CAD/PDF và chính sách riêng tư/CORS của bucket thật. Swagger chứng minh endpoint được công bố, không chứng minh toàn bộ luồng đã chạy thành công.
 
-Phạm vi và mô tả nhu cầu thi công không thuộc DTO SITE. Hai trường vẫn được giữ và lưu trên thiết bị, chưa đồng bộ giữa thiết bị hoặc gửi cho nhà thầu. Luồng mời/khảo sát RFQ đã nối API riêng; xem [Tích hợp lời mời báo giá](TICH_HOP_LOI_MOI_BAO_GIA.md). Đăng ký triển khai và giám sát ngoài S10/S11 giữ mức tích hợp hiện có. Tạo công trình không có nghĩa lời mời đã được gửi. Chưa deploy thay đổi lên Vercel.
+Phạm vi thi công không thuộc DTO SITE và không còn ô nhập; giá trị cũ của hồ sơ đã lưu chỉ nằm trên thiết bị. Mô tả nhu cầu thuộc DTO SITE từ 10/10/2026 (`description`, BR-SITE-001 khoản 17) nên đồng bộ giữa thiết bị và admin xem được; chưa gửi cho nhà thầu. Luồng mời/khảo sát RFQ đã nối API riêng; xem [Tích hợp lời mời báo giá](TICH_HOP_LOI_MOI_BAO_GIA.md). Đăng ký triển khai và giám sát ngoài S10/S11 giữ mức tích hợp hiện có. Tạo công trình không có nghĩa lời mời đã được gửi. Chưa deploy thay đổi lên Vercel.
 
 ## Bản đồ và tìm địa chỉ (03/10/2026)
 
@@ -76,7 +77,7 @@ Ngày 04/10/2026: gộp tìm địa chỉ vào ô Số nhà, đường; bỏ ô 
 
 ## Hồ sơ công trình phía quản trị (04/10/2026)
 
-`/vi/admin/construction-sites` đã bổ sung chi tiết diện tích đất, hiện trạng, địa chỉ ba phần, ngân sách, khởi công, loại, tầng/tum, phong cách, tham chiếu dự toán nguồn, tệp và VietMap chỉ đọc. Dữ liệu lấy từ hai GET `/admin/construction-sites` và `/admin/construction-sites/{id}` theo STORY-SITE-002 AC-011–013, BR-SITE-003/007, TDD-SITE-003/005 và `Response.StaffConstructionSiteItem`. Số tiền dùng chuỗi decimal và BigInt khi định dạng để không mất độ chính xác. Trường không áp dụng hiện rõ; không suy thành giá trị 0.
+`/vi/admin/construction-sites` đã bổ sung chi tiết diện tích đất, hiện trạng, địa chỉ ba phần, ngân sách, khởi công, loại, tầng/tum, phong cách, tham chiếu dự toán nguồn, tệp và VietMap chỉ đọc. Từ 10/10/2026 còn có dòng Mô tả nhu cầu (`description`), hiện "Khách chưa nhập mô tả." khi trống. Dữ liệu lấy từ hai GET `/admin/construction-sites` và `/admin/construction-sites/{id}` theo STORY-SITE-002 AC-011–013, BR-SITE-003/007, TDD-SITE-003/005 và `Response.StaffConstructionSiteItem`. Số tiền dùng chuỗi decimal và BigInt khi định dạng để không mất độ chính xác. Trường không áp dụng hiện rõ; không suy thành giá trị 0.
 
 Tải tệp qua GET `/construction-sites/{siteId}/attachments/{attachmentId}/content` bằng HTTP client có cookie/refresh; kiểm số byte trước tải, không sử dụng URL kho công khai. API kiểm quyền từng lần. Chỉ hiển thị mã dự toán nguồn, không mở route kết quả riêng của khách. Lỗi đọc chi tiết 403/404 hoặc lỗi khác ẩn dữ liệu cũ và cho thử lại. Không thêm sửa/xóa hồ sơ hay tệp trong admin.
 

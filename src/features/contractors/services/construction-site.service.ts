@@ -88,8 +88,9 @@ export function createSiteFormSchema(
       hasTum: z.boolean().nullable(),
       architectureStyleId: z.string().nullable(),
       interiorStyleId: z.string().nullable(),
-      // Form không còn ô nhập nhu cầu thi công (case 31); hai giá trị chỉ giữ lại những gì hồ sơ cũ đã lưu, nên không bắt buộc.
+      // `scope` không còn ô nhập (case 31): chỉ giữ giá trị hồ sơ cũ đã lưu nên không bắt buộc.
       scope: z.string(),
+      // `scopeNote` là mô tả nhu cầu thi công, tùy chọn; gửi lên BE dưới tên `description` (BR-SITE-001 khoản 17).
       scopeNote: z.string().trim().max(1000, messages.max(1000))
     })
     .superRefine((values, context) => {

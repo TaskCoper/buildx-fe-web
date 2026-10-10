@@ -64,6 +64,8 @@ export const siteDetailSchema = z.object({
   code: recordCode,
   name: z.string(),
   address: z.string(),
+  /** Mô tả nhu cầu thi công do khách nhập (BR-SITE-001 khoản 17); `null` khi chưa nhập, thiếu khi BE chưa trả trường này. */
+  description: z.string().nullable().optional(),
   latitude: z.number().finite().min(-90).max(90),
   longitude: z.number().finite().min(-180).max(180),
   version: z.number().int().positive(),
@@ -137,6 +139,8 @@ export interface SiteFields {
   conditionId: string
   budgetVnd: string
   plannedStart: PlannedStart
+  /** Tùy chọn, tối đa 1.000 ký tự. PUT thay toàn bộ: không gửi hoặc `null` thì BE xóa mô tả đã lưu. */
+  description?: string | null
 }
 export type CreateSiteRequest = SiteFields & { latitude: number; longitude: number; uploadIds: string[] } & (
     | { sourceEstimateId: string; profile?: never; expectedCatalogRevisionId?: never }

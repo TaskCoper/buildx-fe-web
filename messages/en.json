@@ -357,6 +357,7 @@
       "ConstructionSiteNameTaken": "You already have a site with this name. Please choose another.",
       "ConstructionSiteAddressRequired": "Please enter the site address.",
       "ConstructionSiteAddressTooLong": "The site address can be at most 500 characters.",
+      "ConstructionSiteDescriptionTooLong": "The description can be at most 1,000 characters.",
       "ConstructionSiteCoordinatesRequired": "Please pick the site location on the map.",
       "ConstructionSiteCoordinatesInvalid": "The map location is not valid. Please pick it again.",
       "ConstructionSiteCoordinatesUnavailable": "This site has no map location yet. Pick one and save.",
@@ -6361,7 +6362,9 @@
         "ConditionPhoto": "Site photo"
       },
       "code": "Record code",
-      "searchByCode": "Search by record code"
+      "searchByCode": "Search by record code",
+      "needs": "Customer description",
+      "noNeeds": "The customer has not entered a description."
     }
   },
   "contractors": {
@@ -7293,11 +7296,10 @@
       "budgetError": "Enter a positive integer VND amount, up to 28 digits. Thousands separators are allowed.",
       "start": "Expected construction start",
       "needsTitle": "Construction needs",
-      "needsSubtitle": "Tell BuildX the scope and main requirements of your project.",
+      "needsSubtitle": "Tell BuildX the main requirements of your site. This part is optional.",
       "scope": "Construction scope",
       "description": "Describe your needs",
       "descriptionPlaceholder": "Example: Looking for an experienced contractor for a turnkey two-storey townhouse, available for a weekend survey.",
-      "needsLocal": "Construction needs are saved in this browser; they have not been sent to a contractor.",
       "scopeLoadError": "Unable to load construction scopes. Please retry.",
       "scopeEmpty": "There are no active construction scopes in the catalog.",
       "scopeHistorical": "Previously saved selection",
