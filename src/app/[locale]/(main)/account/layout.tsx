@@ -28,7 +28,7 @@ export default async function AccountLayout({ children, params }: AccountLayoutP
   return (
     <ProtectedRoute>
       <div className='mx-auto w-full max-w-[90rem] px-4 lg:px-8 py-5'>
-        <div className='grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)] xl:grid-cols-[340px_minmax(0,1fr)]'>
+        <div className='grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[320px_minmax(0,1fr)] xl:grid-cols-[340px_minmax(0,1fr)]'>
           <aside className='space-y-5 lg:sticky lg:top-24 lg:self-start'>
             <AccountSide />
             <AccountSupervision />

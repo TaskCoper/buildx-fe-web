@@ -10,6 +10,7 @@ import type { Locale } from '@/i18n/routing'
 import { useAuth, useAuthDialogStore } from '@/shared/auth'
 import { ImageLightbox, Photo, revealEase, type LightboxPhoto } from '@/shared/components/common'
 import { Button } from '@/shared/components/ui/button'
+import { Card } from '@/shared/components/ui/card'
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import { ROUTES } from '@/shared/constants/routes'
 import { cn } from '@/shared/lib/utils'
@@ -78,7 +79,13 @@ export function ConsultantProfile({
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
   const lightboxPhotos: LightboxPhoto[] = [
     ...(consultant.avatarUrl ? [{ url: consultant.avatarUrl, caption: consultant.name }] : []),
-    ...consultant.works.map((work) => ({ url: work.imageUrl, caption: work.label }))
+    ...consultant.works.map((work) => ({ url: work.imageUrl, caption: work.label })),
+    ...(consultant.designProjects ?? []).flatMap((project) =>
+      project.imageUrls.map((url, index) => ({
+        url,
+        caption: t('designImage', { name: project.name, index: index + 1 })
+      }))
+    )
   ]
   const avatarOffset = consultant.avatarUrl ? 1 : 0
 
@@ -234,6 +241,12 @@ export function ConsultantProfile({
               </motion.li>
             </ul>
 
+            {consultant.headline && (
+              <p className='text-muted-foreground text-sm leading-relaxed whitespace-pre-line sm:text-base'>
+                {consultant.headline}
+              </p>
+            )}
+
             <motion.div {...entrance(5)} className='space-y-0.5'>
               {consultant.bio.map((line) => (
                 <p key={line} className='text-sm max-md:text-base leading-relaxed break-words'>
@@ -284,6 +297,57 @@ export function ConsultantProfile({
             </motion.figure>
           ))}
         </div>
+
+        {!!consultant.designProjects?.length && (
+          <section className='space-y-5' aria-label={t('designProjects')}>
+            <h2 className='text-lg font-semibold'>{t('designProjects')}</h2>
+            <ul className='flex snap-x snap-proximity gap-4 overflow-x-auto pb-3'>
+              {consultant.designProjects.map((project, projectIndex) => {
+                const coverUrl = project.imageUrls[0]
+                if (!coverUrl) return null
+                const remainingCount = project.imageUrls.length - 1
+                const offset =
+                  avatarOffset +
+                  consultant.works.length +
+                  (consultant.designProjects ?? [])
+                    .slice(0, projectIndex)
+                    .reduce((count, previous) => count + previous.imageUrls.length, 0)
+                return (
+                  <li key={projectIndex} className='w-64 max-w-full shrink-0 snap-start sm:w-72 xl:w-80'>
+                    <Card className='group/project h-full overflow-hidden border-border bg-card p-0 shadow-sm transition-shadow hover:shadow-md motion-reduce:transition-none'>
+                      <figure>
+                        <button
+                          type='button'
+                          className='relative block w-full cursor-zoom-in overflow-hidden focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset'
+                          aria-label={t('viewLarger', { label: project.name })}
+                          onClick={() => setLightboxIndex(offset)}
+                        >
+                          <Photo
+                            src={coverUrl}
+                            alt={t('designImage', { name: project.name, index: 1 })}
+                            className='aspect-4/3 w-full'
+                            sizes='(max-width: 640px) 256px, (max-width: 1280px) 288px, 320px'
+                          />
+                          {remainingCount > 0 && (
+                            <span className='pointer-events-none absolute inset-0 flex items-center justify-center bg-muted/70 text-foreground opacity-0 transition-opacity duration-200 group-hover/project:opacity-100 group-focus-within/project:opacity-100 group-active/project:opacity-100 motion-reduce:transition-none'>
+                              <span aria-hidden className='text-3xl font-semibold'>
+                                {remainingCount}+
+                              </span>
+                              <span className='sr-only'>{t('moreDesignImages', { count: remainingCount })}</span>
+                            </span>
+                          )}
+                        </button>
+                        <figcaption className='border-t border-border px-4 py-3'>
+                          <h3 className='font-medium break-words'>{project.name}</h3>
+                        </figcaption>
+                      </figure>
+                    </Card>
+                  </li>
+                )
+              })}
+            </ul>
+          </section>
+        )}
 
         <ImageLightbox
           photos={lightboxPhotos}

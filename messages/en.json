@@ -10,6 +10,21 @@
     "search": "Search",
     "submit": "Submit",
     "close": "Close",
+    "imageViewer": {
+      "title": "Image viewer",
+      "close": "Close",
+      "previous": "Previous image",
+      "next": "Next image",
+      "counter": "{current} / {total}",
+      "toolbar": "Image tools",
+      "zoomIn": "Zoom in",
+      "zoomOut": "Zoom out",
+      "rotateLeft": "Rotate left",
+      "rotateRight": "Rotate right",
+      "reset": "Reset",
+      "loading": "Loading full-quality image…",
+      "loadFailed": "Could not load the full-quality image"
+    },
     "hotlinePopover": {
       "title": "BuildX hotline",
       "hint": "Call this number from your phone, or message BuildX on Zalo.",
@@ -96,7 +111,7 @@
       "title": "Welcome back",
       "subtitle": "Sign in to your account to continue",
       "emailLabel": "Email",
-      "emailPlaceholder": "you@company.com",
+      "emailPlaceholder": "Enter your email",
       "passwordLabel": "Password",
       "passwordPlaceholder": "Enter your password",
       "rememberMe": "Remember me",
@@ -130,7 +145,7 @@
       "nameLabel": "Full name",
       "namePlaceholder": "John Doe",
       "emailLabel": "Email",
-      "emailPlaceholder": "you@company.com",
+      "emailPlaceholder": "Enter your email",
       "passwordLabel": "Password",
       "passwordPlaceholder": "At least 8 characters",
       "confirmPasswordLabel": "Confirm password",
@@ -146,7 +161,7 @@
       "title": "Forgot password",
       "subtitle": "Enter your email to receive a reset code",
       "emailLabel": "Email",
-      "emailPlaceholder": "you@company.com",
+      "emailPlaceholder": "Enter your email",
       "submit": "Send reset code",
       "backToLogin": "Back to sign in",
       "requestError": "Couldn't send the reset code. Please try again.",
@@ -251,7 +266,8 @@
       "AccessForbidden": "Only customer accounts can buy plans. Admin accounts cannot be used to purchase.",
       "IdempotencyConflict": "Duplicate request. Reload the page and try again.",
       "PaymentInputInvalid": "The plan or billing cycle is invalid. Reload the page and pick the plan again.",
-      "viewPurchases": "View plan history"
+      "viewPurchases": "View plan history",
+      "continuePending": "Continue payment"
     }
   },
   "apiErrors": {
@@ -298,7 +314,7 @@
       "GoogleSignInCancelled": "You cancelled Google sign-in.",
       "GoogleSignInUnavailable": "Google sign-in is temporarily unavailable.",
       "PermissionCodeUnknown": "That permission is not in the catalogue.",
-      "PermissionNotHeldByActor": "You can't grant a permission you don't have.",
+      "PermissionNotHeldByActor": "You don't have enough permission for this action, or your account isn't an active staff account.",
       "SelfPrivilegeEscalation": "You can't raise your own privileges.",
       "CannotLockSelf": "You can't lock your own account.",
       "LastAdminProtected": "At least one active administrator must remain.",
@@ -325,7 +341,7 @@
       "SubscriptionVersionConflict": "Your plan was just changed. Reload the page and try again.",
       "QuotaUnavailable": "You've used all your allowance for this period. Please upgrade or buy another plan.",
       "LocationDatasetChanged": "The province/ward list was just updated. Please pick the address again.",
-      "DependencyUnavailable": "The AI service is temporarily unavailable. Please try again in a few minutes.",
+      "DependencyUnavailable": "A system service is temporarily unavailable. Please try again in a few minutes.",
       "ExportNotFound": "Export or result file not found.",
       "ExportNotReady": "The file is still being prepared and can't be downloaded yet.",
       "InvalidExportFormat": "This export format is not supported.",
@@ -433,7 +449,7 @@
       "InvalidRequest": "The request is not valid. Please check your information.",
       "ConsultationContactRequired": "Please enter a valid contact phone number.",
       "ConsultationTimeNotFuture": "The preferred time must be in the future.",
-      "ConsultationInputInvalid": "The consultation request is not valid. Please check it.",
+      "ConsultationInputInvalid": "The architect or consultation information is not valid. Please check the fields.",
       "ConsultationIdempotencyConflict": "This consultation request was already sent with different content. Reload the page and try again.",
       "ConsultationTemporarilyUnavailable": "Consultation is busy right now. Please try again in a few minutes.",
       "ConsultationRequestNotFound": "Consultation request not found.",
@@ -508,7 +524,9 @@
       "StillValidating": "The file is taking longer than expected to check. Please try again in a few minutes.",
       "TooLarge": "The file is larger than allowed.",
       "ExportFailed": "The export file couldn't be created. Please try again.",
-      "AuditLogImmutable": "Audit logs can't be edited or deleted."
+      "AuditLogImmutable": "Audit logs can't be edited or deleted.",
+      "InvalidCmsCacheTarget": "The page or language to refresh is invalid.",
+      "CmsAuthorizationUnavailable": "Unable to verify content refresh permissions. Please try again."
     }
   },
   "validation": {
@@ -1110,7 +1128,8 @@
       "viewAll": "See all articles",
       "newBadge": "New",
       "readTime": "{minutes} min read",
-      "titleMobile": "Home-building handbook"
+      "titleMobile": "Home-building handbook",
+      "loadError": "Could not load the latest articles. Try reloading the page."
     },
     "card": {
       "imageCount": "{count} 3D images",
@@ -1133,7 +1152,7 @@
       },
       "filterLabels": {
         "buildingType": "Building type",
-        "floors": "Number of floors",
+        "floors": "Project scale",
         "tum": "Rooftop room",
         "architecture": "Architectural style",
         "interior": "Interior style"
@@ -1142,6 +1161,8 @@
       "allStyles": "All styles",
       "buildingTypePrefix": "Building type: {value}",
       "floorOption": "{count} floors",
+      "floorGround": "Ground floor",
+      "floorUpper": "Ground + {count, plural, one {# floor} other {# floors}}",
       "searchPlaceholder2d": "Search by name or lot size…",
       "searchPlaceholder3d": "Search by name or style…",
       "resultCount": "Showing {shown} of {total} templates",
@@ -1243,12 +1264,14 @@
       "articleCount": "({count} articles)",
       "readingTime": "{minutes} min read",
       "topicEmpty": "No article in this topic yet.",
-      "openStage": "Open handbook"
+      "openStage": "Open handbook",
+      "loadError": "Could not load the handbook steps. Try reloading the page."
     },
     "newsletter": {
       "title": "BuildX newsletter",
       "featured": "Featured article",
       "related": "Related articles",
+      "loadError": "Could not load the newsletter. Try reloading the page.",
       "seeAllRelated": "See all related articles",
       "readingTime": "{minutes} min read",
       "categories": {
@@ -1259,6 +1282,8 @@
       }
     },
     "articles": {
+      "uncategorized": "Uncategorized",
+      "loadError": "Could not load the article list. Try reloading the page.",
       "eyebrow": "BuildX handbook",
       "title": "Explore building knowledge",
       "subtitle": "Useful insights to stay in control at every step of building your home.",
@@ -1929,7 +1954,8 @@
       "downloadPdf": "Download PDF dossier",
       "downloadXlsx": "Download Excel estimate",
       "downloading": "Preparing the file…",
-      "downloadFailed": "Couldn't download the file. Try again in a few minutes — the link may also have expired."
+      "downloadFailed": "Couldn't download the file. Try again in a few minutes — the link may also have expired.",
+      "codeLabel": "Estimate code"
     },
     "help": {
       "label": "View guide",
@@ -2052,7 +2078,8 @@
         "ConstructionSiteInUse": "The estimate is used by a construction site and cannot be deleted."
       },
       "createdAt": "Created {date}",
-      "progressLabel": "Design & estimate progress"
+      "progressLabel": "Design & estimate progress",
+      "codeLabel": "Estimate code"
     },
     "phonePrompt": {
       "title": "Add your phone number",
@@ -2207,6 +2234,29 @@
   },
   "account": {
     "title": "My account",
+    "consultationRequests": {
+      "total": "{count} requests sent",
+      "desired": "Preferred time",
+      "contactPhone": "Contact number",
+      "yourNote": "Your message",
+      "sentAt": "Sent {time}",
+      "status": {
+        "Pending": "Awaiting contact",
+        "Resolved": "Handled"
+      },
+      "loadMore": "Load more",
+      "loadingMore": "Loading…",
+      "empty": {
+        "title": "You have not sent any consultation request",
+        "description": "Pick an architect and send the time you prefer; BuildX will call back to agree on a schedule.",
+        "action": "Choose an architect"
+      },
+      "error": {
+        "title": "Could not load your consultations",
+        "description": "Something went wrong while fetching your requests. Please try again.",
+        "retry": "Retry"
+      }
+    },
     "pending": {
       "title": "Coming soon",
       "description": "This section will be available once the system is ready. Thanks for your patience."
@@ -2245,7 +2295,14 @@
       },
       "addressHint": "Type the address then pick a suggestion — coordinates are needed to find nearby contractors.",
       "coordinatesReady": "Coordinates found for this address.",
-      "needCoordinates": "Please pick the address from the suggestion list to get coordinates."
+      "needCoordinates": "Please pick the address from the suggestion list to get coordinates.",
+      "codeLabel": "Site record code",
+      "search": {
+        "label": "Search sites by record code",
+        "placeholder": "Search by record code, e.g. T4W8NC",
+        "emptyTitle": "No sites found",
+        "emptyDescription": "No site has a record code containing “{code}”."
+      }
     },
     "info": {
       "title": "Account information",
@@ -2282,7 +2339,8 @@
       },
       "progressLabel": "Design & estimate progress",
       "stepShort": "Step {step}",
-      "floorArea": "{area} m²"
+      "floorArea": "{area} m²",
+      "codeLabel": "Estimate code"
     },
     "dossiers": {
       "title": "Project dossiers",
@@ -2328,10 +2386,12 @@
       "deleteCancel": "Keep it",
       "deleteSuccess": "Project dossier deleted.",
       "deleteInUse": "This dossier has a supervision package, so it cannot be deleted.",
-      "deleteFailed": "Could not delete the dossier. Please try again."
+      "deleteFailed": "Could not delete the dossier. Please try again.",
+      "codeLabel": "Site record code"
     },
     "purchaseHistory": {
       "title": "Purchase history",
+      "projectUnavailable": "Project information unavailable",
       "description": "Your active plans, remaining allowances and complete payment history.",
       "viewPlans": "View plans",
       "designPlan": "Design plan",
@@ -2357,16 +2417,57 @@
       "filter": {
         "all": "All",
         "paid": "Paid",
-        "pending": "Verifying",
+        "pending": "Awaiting payment",
         "refunded": "Refunded"
       },
       "table": {
         "code": "Order",
+        "order": "Order",
+        "project": "Project",
         "date": "Date",
         "plan": "Plan",
         "amount": "Amount",
         "status": "Status",
-        "receipt": "Receipt"
+        "receipt": "Receipt",
+        "actions": "Actions"
+      },
+      "projectLine": "Project: {project}",
+      "orderCode": "Order #{code}",
+      "phase": {
+        "awaiting": "Awaiting payment",
+        "partial": "Partial payment received",
+        "paid": "Paid",
+        "expired": "Expired",
+        "canceled": "Canceled",
+        "failed": "Payment failed",
+        "refunded": "Refunded"
+      },
+      "phaseReason": {
+        "awaiting": "This order is waiting for your transfer. Choose Continue payment to reopen the QR code.",
+        "partial": "BuildX has received part of the payment. Transfer the remaining amount before the order expires.",
+        "expired": "This order ran out of time to be paid. You can create a new order.",
+        "canceled": "This order was canceled. You can create a new order.",
+        "failed": "The payment did not go through. You can create a new order.",
+        "refunded": "This order was refunded."
+      },
+      "actions": {
+        "viewDetail": "Order details",
+        "receipt": "Payment receipt",
+        "cancel": "Cancel order",
+        "confirmCancel": "Confirm cancel",
+        "keep": "Keep order",
+        "cancelling": "Canceling…",
+        "cancelled": "Order canceled. You can create a new order.",
+        "partialNote": "Part of the payment was received, so it can't be canceled yet.",
+        "cancelFailed": "Could not cancel the order. Please try again."
+      },
+      "detailDialog": {
+        "title": "Order details",
+        "titleWithCode": "Order #{code} details",
+        "heading": "Order details · #{code}",
+        "description": "Order information and payment status.",
+        "state": "Status",
+        "note": "Need help with this order? Contact BuildX support and include order #{code}."
       },
       "tier": {
         "basic": "BASIC plan",
@@ -2378,8 +2479,8 @@
       },
       "status": {
         "paid": "Paid",
-        "pending": "Verifying",
-        "failed": "Failed",
+        "pending": "Awaiting payment",
+        "failed": "Payment failed",
         "refunded": "Refunded"
       },
       "receipt": "Receipt",
@@ -2536,6 +2637,8 @@
     },
     "popular": "Most popular",
     "popularShort": "Popular",
+    "prevPlan": "Previous plan",
+    "nextPlan": "Next plan",
     "oneTime": "One-time payment",
     "featuresTitleByTier": {
       "basic": "Includes these features",
@@ -2555,7 +2658,8 @@
       "title": "Not sure which plan to pick? Get free advice",
       "subtitle": "Call our hotline or ask the AI assistant for the plan that fits your project.",
       "call": "Call {hotline}",
-      "chat": "Chat with the AI assistant"
+      "chat": "Chat with the AI assistant",
+      "hotline": "0934 888 881"
     },
     "gift": {
       "badge": "Special gift",
@@ -2622,6 +2726,11 @@
         "advisoryOnline": "Online advisory",
         "advisoryPriority": "Priority advisory",
         "advisoryExpert": "One-on-one with an expert"
+      },
+      "buttons": {
+        "basic": "Choose BASIC",
+        "advanced": "Choose PLUS",
+        "pro": "Choose PRO"
       }
     },
     "value": {
@@ -2700,7 +2809,12 @@
     },
     "rail": {
       "searchPlaceholder": "Search architects...",
-      "backToList": "Architect list"
+      "backToList": "Architect list",
+      "empty": "No matching architects in the loaded list.",
+      "loadError": "Unable to load architects. Please try again.",
+      "loadingMore": "Loading more architects…",
+      "loadMore": "Load more architects",
+      "retry": "Try again"
     },
     "profile": {
       "reviews": "({count} reviews)",
@@ -2714,7 +2828,10 @@
       "lightboxClose": "Close",
       "lightboxPrev": "Previous photo",
       "lightboxNext": "Next photo",
-      "viewLarger": "View larger: {label}"
+      "viewLarger": "View larger: {label}",
+      "designProjects": "Design projects",
+      "designImage": "{name} · Image {index}",
+      "moreDesignImages": "{count} more images"
     },
     "slots": {
       "title": "Choose a consultation slot",
@@ -2803,6 +2920,7 @@
       "consult": "1:1 consultation",
       "people": "Customers",
       "library": "Library",
+      "content": "Content",
       "catalog": "Construction catalogue",
       "packages": "Plans",
       "access": "Staff & access"
@@ -2824,6 +2942,11 @@
       "regionsHint": "Directory coverage — a thin region makes quote invitations there hard to match."
     },
     "nav": {
+      "handbookNewsletter": "Handbook newsletter",
+      "homeContent": "Home",
+      "footerContent": "Footer",
+      "contractorsContent": "Find contractors",
+      "handbookContent": "Handbook",
       "dashboard": "To-do",
       "templates": "Template library",
       "styles": "Styles",
@@ -2862,7 +2985,9 @@
       "roles": "Roles & permissions",
       "staff": "Staff accounts",
       "assignments": "Supervision assignments",
-      "constructionSites": "Construction sites"
+      "constructionSites": "Construction sites",
+      "plansContent": "Consultation packages",
+      "supervisionContent": "Supervision packages"
     },
     "actions": {
       "create": "Add new",
@@ -2896,6 +3021,7 @@
       "created": "Record added.",
       "saved": "Saved. The public site is updated.",
       "deleted": "Record deleted.",
+      "recordNotFound": "This record was not found. It may have been deleted or is no longer in the list.",
       "apiError": "The server returned an error. Please try again."
     },
     "table": {
@@ -3105,7 +3231,7 @@
       "overdueBy": "Overdue by {minutes} minutes."
     },
     "customers": {
-      "description": "Customer accounts. Plans, credits, orders, transactions and Ban / Unban live on the detail page.",
+      "description": "Customer accounts. Each customer's purchased packages, orders and transactions are on the detail page.",
       "name": "Full name",
       "email": "Email",
       "phone": "Phone",
@@ -3130,7 +3256,7 @@
       "plan": "Plan",
       "notFound": "This account was not found.",
       "backToList": "Back to list",
-      "detailDescription": "Read-only. Plans and credits follow the purchased order snapshot — admins cannot change plans, expiry, credits or activation.",
+      "detailDescription": "Read-only. Admins cannot change a customer's packages, expiry or credits.",
       "profileTitle": "Profile",
       "emailVerified": "Email verification",
       "verifiedYes": "Verified",
@@ -3205,7 +3331,11 @@
         "timeout": "Timed out"
       },
       "quotaRef": "Reference",
-      "libraryView": "Template detail view"
+      "libraryView": "Template detail view",
+      "searchPlaceholder": "Search by name, email or phone number",
+      "retry": "Retry",
+      "commerceForbidden": "You need the commerce permission (commerce.read) to see this customer's packages, orders and transactions.",
+      "listTruncated": "Showing the latest {shown} of {total} rows."
     },
     "transactions": {
       "description": "The payment ledger — read only. Search by code / name / email; filter by status, plan and method.",
@@ -3274,7 +3404,9 @@
         "start": "Planned start",
         "documents": "Attachments",
         "surveyNote": "Survey note"
-      }
+      },
+      "siteCode": "Site record code",
+      "searchBySiteCode": "Search by site record code"
     },
     "invitationStatus": {
       "sent": "Sent",
@@ -3961,6 +4093,7 @@
       "name": "Contractor name",
       "address": "Address",
       "statusLabel": "Status",
+      "allStatuses": "All",
       "visible": "Visible",
       "hidden": "Hidden",
       "hide": "Hide profile",
@@ -3988,8 +4121,7 @@
       "buildingTypes": "Building types",
       "scopes": "Construction scopes",
       "foundedYear": "Founded year",
-      "architectCount": "Architects",
-      "engineerCount": "Engineers",
+      "teamCount": "Architects & engineers",
       "surveyHours": "Survey within (hours)",
       "warrantyMonths": "Warranty (months)",
       "acceptingProjects": "Accepting projects",
@@ -5138,7 +5270,18 @@
       "effectiveNote": "People holding this role get the new permissions within {minutes} minutes at the latest, when their session is reissued. To apply it now, force them to log out on the Staff accounts screen."
     },
     "newsArticles": {
-      "description": "Handbook news articles. New articles always start as Draft and can be saved incomplete; publishing requires a title, cover image, content and at least one category. Deleting is permanent.",
+      "slug": "URL slug",
+      "slugHint": "Leave empty to generate it from the title. Editing the title does not change the slug. After you change the slug, the old one keeps working and redirects to the new one.",
+      "slugPlaceholder": "generated from the title",
+      "slugInvalid": "Lowercase letters without accents, digits and hyphens only; it cannot start or end with a hyphen.",
+      "previousSlugs": "Previous slugs",
+      "locale": "Language",
+      "localeLocked": "The language can only be chosen when the article is created.",
+      "locales": {
+        "vi": "Vietnamese",
+        "en": "English"
+      },
+      "description": "Handbook news articles. New articles always start as Draft and can be saved incomplete; publishing requires a title, cover image, reading time, content and a slug; categories are optional. Deleting is permanent.",
       "manageCategories": "Manage categories",
       "states": {
         "all": "All",
@@ -5148,10 +5291,12 @@
       },
       "title": "Title",
       "untitled": "(Untitled)",
+      "summary": "Short description",
+      "summaryHint": "Optional. Up to 500 characters; you can leave it blank when publishing.",
       "readingTimeMinutes": "Reading time (min)",
       "cover": "Cover image",
       "categories": "Categories",
-      "categoriesHint": "Pick one or more categories at any level — picking a child does not require its parent.",
+      "categoriesHint": "Optional. Pick one or more categories at any level — picking a child does not require its parent. An article with no category shows an “uncategorized” label on the public site.",
       "categoryRequired": "A published article needs at least one category.",
       "pickCategories": "Pick categories",
       "content": "Content",
@@ -5161,7 +5306,7 @@
       "createdAt": "Created",
       "modifiedAt": "Last edited",
       "draftHint": "Drafts can be saved incomplete. Readers cannot see the article until you press Publish in the table.",
-      "publishedEditHint": "This article is live: saving shows the new content to readers immediately, so the edit must keep a title, cover image, content and at least one category.",
+      "publishedEditHint": "This article is live: saving shows the new content to readers immediately, so the edit must keep a title, cover image, reading time, content and a slug. Categories are optional.",
       "publish": "Publish",
       "publishTitle": "Publish “{name}”?",
       "publishBody": "The article appears on the News page right away. The first-published date is kept if it was published before.",
@@ -5176,16 +5321,40 @@
       "parts": {
         "title": "title",
         "cover": "cover image",
-        "category": "category"
+        "slug": "slug"
       },
       "editor": {
         "edit": "Compose",
         "preview": "Preview",
         "count": "{count}/{max} characters",
-        "hint": "Images must be https links on the system image store. Disallowed tags are stripped on save.",
+        "hint": "Use the image button to add an image frame, then choose or drag and drop a picture into it (JPG, PNG, WebP). Disallowed tags are stripped on save.",
         "urlPlaceholder": "Paste an https link…",
         "urlAdd": "Insert",
-        "imagePlaceholder": "Paste an https image link…",
+        "imageDropTitle": "Click to choose an image or drag and drop it here",
+        "imageDropHint": "JPG, PNG or WebP. The image will sit exactly where this frame is.",
+        "imageUploading": "Uploading image…",
+        "imageLoading": "Loading image…",
+        "imageRemove": "Remove image frame",
+        "imageDelete": "Delete image",
+        "imageResize": "Drag to resize the image",
+        "table": {
+          "insert": "Insert table",
+          "rows": "Rows",
+          "columns": "Columns",
+          "withHeaderRow": "First row is a header",
+          "sizeHint": "Insert up to {max} rows and {max} columns at a time. You can add more rows or columns afterwards.",
+          "actions": "Edit table",
+          "addRowBefore": "Add row above",
+          "addRowAfter": "Add row below",
+          "deleteRow": "Delete row",
+          "addColumnBefore": "Add column left",
+          "addColumnAfter": "Add column right",
+          "deleteColumn": "Delete column",
+          "toggleHeaderRow": "Toggle header row",
+          "mergeCells": "Merge selected cells",
+          "splitCell": "Split cell",
+          "deleteTable": "Delete table"
+        },
         "tools": {
           "bold": "Bold",
           "italic": "Italic",
@@ -5197,7 +5366,7 @@
           "numberList": "Numbered list",
           "quote": "Quote",
           "link": "Link",
-          "image": "Insert image (paste link)"
+          "image": "Insert image"
         }
       }
     },
@@ -5227,7 +5396,7 @@
       "name": "Full name",
       "title": "Job title",
       "avatar": "Avatar",
-      "avatarHint": "An https link to an image on the system image store (the same store as estimate images). Links on other domains are rejected.",
+      "avatarHint": "Choose a clear portrait for the architect’s card and profile.",
       "categories": "Expertise",
       "categoriesHint": "Pick at least one. Add new ones with the “Expertise categories” button.",
       "noCategories": "No expertise yet — create some with the “Expertise categories” button first.",
@@ -5244,7 +5413,48 @@
       "hideWarning": "Customers will not be able to send new requests to this architect; existing requests are kept.",
       "companyName": "Company",
       "rating": "Rating",
-      "reviewCount": "Review count"
+      "reviewCount": "Review count",
+      "designImagesUploading": "Design images are uploading. Please wait before saving.",
+      "shortDescription": "Short description",
+      "shortDescriptionHint": "Optional, up to 500 characters. Shown on cards and the public profile.",
+      "designProjects": "Design projects",
+      "designProjectsHint": "The list is optional. Each project needs a name and at least one image.",
+      "designProjectIndex": "Project {index}",
+      "designProjectName": "Design project name",
+      "addDesignProject": "Add design project",
+      "removeDesignProject": "Remove project",
+      "addDesignImage": "Add design image",
+      "removeDesignImage": "Remove image",
+      "designImageIndex": "Design image {index}",
+      "viewProjectImages": "View images of {name}",
+      "designImagesRequired": "Select at least one design image and wait for the upload to finish.",
+      "detailError": "Could not load the profile. Please reopen it to try again.",
+      "optional": "Optional",
+      "noDesignProjects": "No design projects yet",
+      "noDesignProjectsHint": "Add selected projects to help clients explore the architect’s design style and experience.",
+      "sections": {
+        "identity": "Basic information",
+        "identityHint": "The architect’s photo, title and areas of expertise.",
+        "about": "About the architect",
+        "aboutHint": "Describe design strengths and style to help clients choose.",
+        "experience": "Experience and visibility",
+        "experienceHint": "Update profile figures and choose whether to display the profile.",
+        "visibility": "Show on the consultation page",
+        "visibilityHint": "Visible profiles appear in the architect directory for clients."
+      },
+      "placeholders": {
+        "name": "Enter full name",
+        "title": "For example: Lead architect",
+        "company": "Enter company name",
+        "categories": "Select areas of expertise",
+        "shortDescription": "Summarize design strengths or style…",
+        "introduction": "Describe experience, working approach and design philosophy…",
+        "projectName": "For example: An Phu garden villa"
+      },
+      "tabs": {
+        "profile": "Profile information",
+        "projects": "Architect projects"
+      }
     },
     "architectCategories": {
       "title": "Expertise categories",
@@ -5281,6 +5491,655 @@
       "reopenTitle": "Reopen {name}'s request?",
       "reopenBody": "The request goes back to Pending for follow-up. The internal note is kept."
     },
+    "handbookNewsletter": {
+      "description": "Choose and order the featured articles of the newsletter block on the handbook page. You decide the order, not the publication date. Add a few spare articles: hidden or draft articles are skipped on the page and the ones after them move up, but they keep their place, so republishing puts them back where they were. The related articles next to the block are picked automatically from the category of the first one.",
+      "listTitle": "Featured articles — the page shows the first {count} published",
+      "title": "Featured articles",
+      "addPlaceholder": "Search for an article to add…",
+      "addButton": "Add article",
+      "addTitle": "Add articles to the Newsletter block",
+      "addNote": "Only published articles appear on the page. After adding, press Save to update the page.",
+      "addRow": "Add",
+      "added": "Added",
+      "addDone": "Done",
+      "noResult": "No matching article",
+      "untitled": "(untitled)",
+      "empty": "No article in the block yet",
+      "position": "Position",
+      "article": "Article",
+      "state": "Status",
+      "display": "Shown on the page",
+      "shownAs": "No. {number}",
+      "reserve": "Spare",
+      "notShown": "Not shown",
+      "hiddenHint": "The article is hidden or a draft, so it is skipped. Republish it and it returns to this position.",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "remove": "Remove from block",
+      "discard": "Discard changes",
+      "notShownEmpty": "The block has no articles, so the handbook page is hiding the whole newsletter strip. Add a published article to show it.",
+      "notShownAllHidden": "None of the articles in the block is published, so the handbook page is hiding the whole newsletter strip. Republish one of them or add another article.",
+      "states": {
+        "Draft": "Draft",
+        "Published": "Published",
+        "Hidden": "Hidden"
+      }
+    },
+    "cmsCache": {
+      "refreshFailed": "Content was saved, but the public page could not be refreshed. It will update during automatic revalidation."
+    },
+    "homeContent": {
+      "contractorsDescription": "Text, hero image and icons of the Find contractors page, in 5 blocks in scroll order: hero, the four promises, Safe & transparent, FAQ and the closing call to action. Each language is saved separately: a block you have not edited uses the built-in content, so the form opens with exactly what visitors see, and only what differs from the built-in text is saved. Button links are kept by the app and cannot be edited here.",
+      "footerDescription": "Footer contact details, social media links and the content of the five About BuildX pages (Terms of Use, Privacy, AI Terms, E-commerce & Partners, Payment & Refunds). Each language is saved separately: a block you have not edited uses the built-in content, so the form opens with exactly what visitors see, and only what differs from the built-in text is saved.",
+      "description": "Text, images, icons, templates and featured videos of the home page, split into 12 blocks in scroll order. Each language is saved separately: a block you have not edited uses the built-in content, so the form opens with the text visitors currently see, and only what differs from the built-in content is saved. Button links are kept by the app and cannot be edited here.",
+      "locales": {
+        "vi": "Vietnamese",
+        "en": "English"
+      },
+      "edited": "Edited",
+      "usingDefault": "Using default",
+      "restore": "Restore default",
+      "restoreConfirm": "Delete the edited version of this block? The page will return to its built-in content.",
+      "restored": "Default restored.",
+      "saveAll": "Save all",
+      "pendingCount": "{count} blocks with unsaved changes",
+      "noPending": "No changes yet",
+      "changed": "Changed",
+      "savedAll": "Saved {count} blocks.",
+      "savePartial": "Saved {done} blocks, {failed} failed ({names}).",
+      "conflictReloaded": "Block {names} was just changed by someone else and has been reloaded. Review it, then save again.",
+      "fixErrors": "Some fields are invalid. Fix them before saving.",
+      "unsavedTitle": "Discard unsaved changes?",
+      "unsavedBody": "Switching language discards the unsaved changes in the current language.",
+      "discard": "Discard changes",
+      "keepEditing": "Keep editing",
+      "iconHint": "A lucide-react icon name, for example Camera or pencil-ruler. Leave empty to use the default icon.",
+      "iconInvalid": "An icon name contains only letters, digits and hyphens, up to 64 characters.",
+      "iconNotFound": "This icon was not found; the home page will use the default icon.",
+      "iconPreviewFailed": "Could not preview the icon right now. You can still save; try typing it again later.",
+      "pickTemplates": "Pick up to {max} templates",
+      "pickGuides": "Pick up to {max} videos",
+      "pickLoadError": "Could not load the list. Try reloading the page.",
+      "idsHint": "Up to {max}. Shown in the order you pick them; leave empty to let the home page choose as before.",
+      "rowTitle": "Item {index}",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "addRow": "Add item",
+      "maxReached": "Limit of {max} items reached",
+      "sections": {
+        "hero": {
+          "title": "Top of the page",
+          "hint": "The big headline, two buttons (the secondary one opens a guide video), the sample \"Project file\" card on the right and the rotating background images."
+        },
+        "stats": {
+          "title": "Figures strip",
+          "hint": "Five figures right below the top of the page."
+        },
+        "painPoints": {
+          "title": "Common problems",
+          "hint": "The \"Facing these problems too?\" block with five cards."
+        },
+        "journey": {
+          "title": "Project journey",
+          "hint": "The five-step strip from creating a project to construction."
+        },
+        "services": {
+          "title": "Service plans",
+          "hint": "The plan picker by stage, four cards."
+        },
+        "dossiers": {
+          "title": "Template library",
+          "hint": "The \"Template library list\" strip with 2D and 3D drawing tabs."
+        },
+        "articles": {
+          "title": "Handbook articles",
+          "hint": "The \"Home building handbook\" strip with three articles: edit the title and pick the articles."
+        },
+        "guides": {
+          "title": "User guides",
+          "hint": "The guide video strip, up to three videos."
+        },
+        "consult": {
+          "title": "1:1 consultation",
+          "hint": "The booking block with an architect: edit the text and pick up to 3 featured architects."
+        },
+        "brands": {
+          "title": "Partner brands",
+          "hint": "The scrolling strip of brand logos."
+        },
+        "testimonials": {
+          "title": "Customers about BuildX",
+          "hint": "Customer reviews."
+        },
+        "cta": {
+          "title": "Closing call to action",
+          "hint": "The call to create a project at the end of the home page."
+        },
+        "contact": {
+          "title": "Contact details",
+          "hint": "Hotline, email and address in the Contact column of the footer. A field left as the built-in value keeps using the built-in details."
+        },
+        "social": {
+          "title": "Social media",
+          "hint": "Links behind the social media icons in the footer brand column. Only http or https addresses are accepted; one typed without a scheme (for example zalo.me/abc) gets https:// added."
+        },
+        "terms": {
+          "title": "Terms of Use page",
+          "hint": "The /terms page in the About BuildX column of the footer. It opens with exactly what visitors read; edit in place, then press Save all. The title only appears on the browser tab, the large heading of the page is part of the content. Only text, lists, tables and links are accepted; images are not supported."
+        },
+        "privacy": {
+          "title": "Privacy page",
+          "hint": "The /privacy page in the About BuildX column of the footer. It opens with exactly what visitors read; edit in place, then press Save all. The title only appears on the browser tab, the large heading of the page is part of the content. Only text, lists, tables and links are accepted; images are not supported."
+        },
+        "aiTerms": {
+          "title": "AI Terms of Use page",
+          "hint": "The /ai-terms page in the About BuildX column of the footer. It opens with exactly what visitors read; edit in place, then press Save all. The title only appears on the browser tab, the large heading of the page is part of the content. Only text, lists, tables and links are accepted; images are not supported."
+        },
+        "ecommerce": {
+          "title": "E-commerce & Partners page",
+          "hint": "The /ecommerce-partners page in the About BuildX column of the footer. It opens with exactly what visitors read; edit in place, then press Save all. The title only appears on the browser tab, the large heading of the page is part of the content. Only text, lists, tables and links are accepted; images are not supported."
+        },
+        "payment": {
+          "title": "Payment & Refunds page",
+          "hint": "The /payment-policy page in the About BuildX column of the footer. It opens with exactly what visitors read; edit in place, then press Save all. The title only appears on the browser tab, the large heading of the page is part of the content. Only text, lists, tables and links are accepted; images are not supported."
+        },
+        "contractorsHero": {
+          "title": "Hero",
+          "hint": "Two-line title, lead sentence, two buttons and background image at the top of the page. An empty image keeps the built-in one."
+        },
+        "contractorsPromises": {
+          "title": "Four promises",
+          "hint": "The strip of four promises right under the hero: text and icon of each promise."
+        },
+        "contractorsSafety": {
+          "title": "Safe & transparent",
+          "hint": "Three cards under the heading. An empty icon keeps the built-in illustration of the card."
+        },
+        "contractorsFaq": {
+          "title": "FAQ",
+          "hint": "The heading and seven questions with their answers."
+        },
+        "contractorsCta": {
+          "title": "Closing call to action",
+          "hint": "The green strip inviting visitors to create a project, and the line inviting contractors to become partners."
+        },
+        "plans_hero": {
+          "title": "Pricing page heading",
+          "hint": "Title and introduction. The final word in the title is orange."
+        },
+        "plans_advice": {
+          "title": "Package advice",
+          "hint": "Advice copy and hotline. Keep '{hotline}' in the call label to show the configured number. Chat opens the AI assistant."
+        },
+        "plans_comparison": {
+          "title": "Detailed comparison",
+          "hint": "This table is display content only and does not change actual plan permissions or quotas. Each cell can be Yes, No, or custom text/numbers."
+        },
+        "plans_value": {
+          "title": "Customer value",
+          "hint": "Add, edit, remove or reorder items. Choose an icon and enter independent text for each column."
+        },
+        "plans_notes": {
+          "title": "Footer notes",
+          "hint": "The three notes in the pale green band and the dossier scope statement below."
+        },
+        "supervision_comparison": {
+          "title": "Detailed comparison",
+          "hint": "Edit supervision comparison tables and page content. CMS content does not change plan configuration or sale prices.",
+          "fields": {
+            "title": "Title",
+            "criterion": "Item column",
+            "choosePlanRow": "Choose plan row",
+            "buttons_self": "Button — Self-managed",
+            "buttons_check": "Button — Check",
+            "buttons_control": "Button — Control"
+          }
+        },
+        "supervision_addons": {
+          "title": "Additional services and surcharges",
+          "hint": "Edit supervision comparison tables and page content. CMS content does not change plan configuration or sale prices.",
+          "fields": {
+            "title": "Title",
+            "item": "Item column",
+            "price": "Suggested price",
+            "note": "Note",
+            "label": "Item"
+          }
+        },
+        "supervision_scope": {
+          "title": "Service scope principles",
+          "hint": "Edit supervision comparison tables and page content. CMS content does not change plan configuration or sale prices.",
+          "fields": {
+            "title": "Title",
+            "icon": "Heading icon",
+            "text": "Principle"
+          }
+        },
+        "supervision_journey": {
+          "title": "Supervision journey",
+          "hint": "Edit supervision comparison tables and page content. CMS content does not change plan configuration or sale prices.",
+          "fields": {
+            "title": "Title",
+            "description": "Step description",
+            "icon": "Step icon"
+          }
+        },
+        "supervision_value": {
+          "title": "Customer value",
+          "hint": "Edit supervision comparison tables and page content. CMS content does not change plan configuration or sale prices.",
+          "fields": {
+            "title": "Title"
+          }
+        },
+        "supervision_notes": {
+          "title": "Page notes",
+          "hint": "Edit supervision comparison tables and page content. CMS content does not change plan configuration or sale prices.",
+          "fields": {
+            "payment": "Payment",
+            "scope": "Plan scope",
+            "area": "Service area",
+            "paymentIcon": "Payment icon",
+            "scopeIcon": "Scope icon",
+            "areaIcon": "Area icon"
+          }
+        }
+      },
+      "lists": {
+        "hero": {
+          "slides": {
+            "title": "Rotating background images",
+            "hint": "Leave empty to use the default image set. One or more images replace the default set entirely. Up to 8 images."
+          },
+          "guideIds": {
+            "title": "Video for the \"Watch the tour\" button",
+            "hint": "Pick 1 public guide video to open when a visitor clicks the secondary button. Leave empty to use the featured video (or the first one in the list)."
+          }
+        },
+        "stats": {
+          "items": {
+            "title": "Five figures",
+            "hint": "Exactly 5 cards in a fixed order. Leave an icon empty to use the card default."
+          }
+        },
+        "painPoints": {
+          "items": {
+            "title": "Five problem cards",
+            "hint": "Exactly 5 cards in a fixed order. Leave an icon empty to use the default."
+          }
+        },
+        "journey": {
+          "items": {
+            "title": "Five journey steps",
+            "hint": "Exactly 5 steps in a fixed order. Leave the icon empty to use the default step icon."
+          }
+        },
+        "services": {
+          "items": {
+            "title": "Four service plans",
+            "hint": "Exactly 4 cards in a fixed order. Leave an icon empty to use the default."
+          }
+        },
+        "dossiers": {
+          "templateIds2d": {
+            "title": "Featured 2D drawing templates",
+            "hint": "Pick up to 4 2D templates (up to 8 across both tabs). Only public templates are listed. Leave empty and this tab shows the newest templates."
+          },
+          "templateIds3d": {
+            "title": "Featured 3D drawing templates",
+            "hint": "Pick up to 4 3D templates (up to 8 across both tabs). Only public templates are listed. Leave empty and this tab shows the newest templates."
+          }
+        },
+        "articles": {
+          "articleIds": {
+            "title": "Featured articles",
+            "hint": "Pick up to 3 articles, shown in the order you pick them. Only public articles are listed; an article hidden later is skipped automatically. Leave empty and the home page shows the 3 newest."
+          }
+        },
+        "guides": {
+          "guideIds": {
+            "title": "Featured videos",
+            "hint": "Pick up to 3 videos. Only public videos are listed; a video hidden later is skipped automatically. Leave empty to let the home page choose as before."
+          }
+        },
+        "consult": {
+          "architectIds": {
+            "title": "Featured architects",
+            "hint": "Pick up to 3 architects, shown in the order you pick them. Only publicly visible architects are listed. Leave empty to let the home page choose as before (preferring the specialty of the project in progress)."
+          }
+        },
+        "brands": {
+          "logos": {
+            "title": "Brand logos",
+            "hint": "Leave empty to use the default logo set. One or more logos replace it entirely. Up to 30 logos."
+          }
+        },
+        "testimonials": {
+          "reviews": {
+            "title": "Customer reviews",
+            "hint": "Leave empty to use the default reviews. One or more reviews replace them entirely. Up to 12 reviews."
+          }
+        },
+        "contractorsPromises": {
+          "items": {
+            "title": "Four promises",
+            "hint": "Exactly 4 items in a fixed order. Leave an icon empty to use the item default."
+          }
+        },
+        "contractorsSafety": {
+          "items": {
+            "title": "Three cards",
+            "hint": "Exactly 3 cards in a fixed order. Leave an icon empty to keep the built-in illustration."
+          }
+        },
+        "contractorsFaq": {
+          "items": {
+            "title": "Seven questions",
+            "hint": "Exactly 7 questions in a fixed order. Answers are plain text without formatting."
+          }
+        }
+      },
+      "fields": {
+        "eyebrow": "Line above the title",
+        "titleLead": "Title — first part",
+        "titleAccent": "Title — highlighted part",
+        "subtitle": "Short description",
+        "primaryCta": "Main button",
+        "secondaryCta": "Secondary button",
+        "cardTitle": "Project card — title",
+        "cardAreaLabel": "Project card — area label",
+        "cardAreaValue": "Project card — area value",
+        "cardTypeLabel": "Project card — building type label",
+        "cardTypeValue": "Project card — building type value",
+        "cardStyleLabel": "Project card — style label",
+        "cardStyleValue": "Project card — style value",
+        "cardOptionsLabel": "Project card — options label",
+        "cardOptionsValue": "Project card — options value",
+        "cardTotalLabel": "Project card — estimate total label",
+        "cardTotalValue": "Project card — estimate total value",
+        "cardCta": "Project card — button text",
+        "imageUrl": "Image",
+        "icon": "Icon",
+        "value": "Highlighted value",
+        "label": "Description",
+        "title": "Title",
+        "description": "Description",
+        "note": "Question on the left",
+        "cta": "Button text",
+        "currentStepBadge": "\"You are at this step\" label",
+        "labelYouDo": "\"What you do\" label",
+        "labelBuildxDoes": "\"What BuildX does\" label",
+        "labelYouGet": "\"What you get\" label",
+        "youDo": "What you do",
+        "buildxDoes": "What BuildX does",
+        "youGet": "What you get",
+        "viewAll": "\"View all\" link text",
+        "usedAtStep": "Used at step",
+        "action": "Button text",
+        "tab2d": "2D drawings tab name",
+        "tab3d": "3D drawings tab name",
+        "viewOne": "Single template button text",
+        "name": "Name",
+        "meta": "Extra information",
+        "quote": "Quote",
+        "avatarUrl": "Avatar (optional)",
+        "hotline": "Hotline",
+        "email": "Email",
+        "address": "Address",
+        "facebookUrl": "Facebook",
+        "zaloUrl": "Zalo",
+        "youtubeUrl": "YouTube",
+        "tiktokUrl": "TikTok",
+        "instagramUrl": "Instagram",
+        "body": "Page content",
+        "titleLine1": "Title, line 1",
+        "titleLine2": "Title, line 2",
+        "createBrief": "Create project button text",
+        "viewContractors": "View contractors button text",
+        "question": "Question",
+        "answer": "Answer",
+        "partnerText": "Contractor invitation",
+        "partnerAction": "Become a partner link text"
+      },
+      "fieldsBySection": {
+        "hero": {
+          "imageUrl": "Background image"
+        },
+        "stats": {
+          "label": "Short description"
+        },
+        "brands": {
+          "name": "Brand name",
+          "imageUrl": "Logo"
+        },
+        "testimonials": {
+          "name": "Customer name",
+          "meta": "House type · area · location"
+        },
+        "terms": {
+          "title": "Browser tab title"
+        },
+        "privacy": {
+          "title": "Browser tab title"
+        },
+        "aiTerms": {
+          "title": "Browser tab title"
+        },
+        "ecommerce": {
+          "title": "Browser tab title"
+        },
+        "payment": {
+          "title": "Browser tab title"
+        },
+        "contractorsHero": {
+          "imageUrl": "Hero image",
+          "subtitle": "Lead sentence"
+        },
+        "contractorsSafety": {
+          "body": "Short description"
+        },
+        "contractorsCta": {
+          "title": "Create project invitation",
+          "action": "Create project button text"
+        },
+        "plans_hero": {
+          "title": "Title",
+          "subtitle": "Description"
+        },
+        "plans_advice": {
+          "title": "Title",
+          "subtitle": "Description",
+          "call": "Hotline button label",
+          "chat": "Chat button label",
+          "hotline": "Hotline"
+        },
+        "plans_comparison": {
+          "title": "Title",
+          "criterion": "Item",
+          "choosePlanRow": "Choose plan",
+          "groups_core": "Group — Core allowances",
+          "groups_design": "Group — Design & estimate features",
+          "groups_compare": "Group — Comparison & optimisation features",
+          "groups_support": "Group — Support",
+          "groups_proOnly": "Group — PRO exclusive",
+          "core_designOptions": "New design options",
+          "core_libraryCredits": "Template look-ups",
+          "core_optionUnit": "Design option unit",
+          "core_libraryUnit": "Library quota unit",
+          "rows_uploadPhoto": "Row — Upload site / existing photos",
+          "rows_siteInfo": "Row — Enter area, location, scale",
+          "rows_buildingType": "Row — Choose building type",
+          "rows_style": "Row — Choose style / colour",
+          "rows_layout": "Row — Space planning",
+          "rows_renderImages": "Row — Design visuals",
+          "rows_structureEstimate": "Row — Structural estimate",
+          "rows_finishingEstimate": "Row — Finishing estimate",
+          "rows_interiorEstimate": "Row — Interior estimate",
+          "rows_materialList": "Row — Suggested material list",
+          "rows_boq": "Row — Bill of quantities & estimate",
+          "rows_exportDossier": "Row — Export construction dossier",
+          "rows_contractorPack": "Row — Bundle to send contractors",
+          "rows_compareOptions": "Row — Compare design options",
+          "rows_compareCost": "Row — Compare cost between options",
+          "rows_compareMaterial": "Row — Compare material options",
+          "rows_optimizeBudget": "Row — Optimise to a target budget",
+          "rows_costDelta": "Row — Cost-delta analysis on changes",
+          "rows_materialAlternatives": "Row — Alternative materials for the budget",
+          "rows_advisory": "Row — Advisory support",
+          "rows_render3d": "Row — Photoreal 3D renders",
+          "rows_gift": "Row — Special gift",
+          "rows_giftCondition": "Row — Terms",
+          "values_layoutBasic": "Display text — Basic",
+          "values_layout2d3d": "Display text — 2D & 3D",
+          "values_layout2d3dPlus": "Display text — Advanced 2D & 3D",
+          "values_estimateRough": "Display text — Rough",
+          "values_estimateDetailed": "Display text — Detailed",
+          "values_estimateOptimized": "Display text — Detailed & optimised",
+          "values_advisoryOnline": "Display text — Online advisory",
+          "values_advisoryPriority": "Display text — Priority advisory",
+          "values_advisoryExpert": "Display text — One-on-one with an expert",
+          "buttons_basic": "Button — BASIC",
+          "buttons_advanced": "Button — PLUS",
+          "buttons_pro": "Button — PRO"
+        },
+        "plans_value": {
+          "title": "Title",
+          "rows_easy": "Row — Easy",
+          "cells_easy_basic": "Easy — BASIC",
+          "cells_easy_advanced": "Easy — PLUS",
+          "cells_easy_pro": "Easy — PRO",
+          "rows_time": "Row — Saves time",
+          "cells_time_basic": "Saves time — BASIC",
+          "cells_time_advanced": "Saves time — PLUS",
+          "cells_time_pro": "Saves time — PRO",
+          "rows_budget": "Row — Budget control",
+          "cells_budget_basic": "Budget control — BASIC",
+          "cells_budget_advanced": "Budget control — PLUS",
+          "cells_budget_pro": "Budget control — PRO",
+          "rows_ready": "Row — Build ready",
+          "cells_ready_basic": "Build ready — BASIC",
+          "cells_ready_advanced": "Build ready — PLUS",
+          "cells_ready_pro": "Build ready — PRO"
+        },
+        "plans_notes": {
+          "payment": "Payment note",
+          "estimate": "Estimate note",
+          "gift": "Gift note",
+          "scope": "Dossier scope"
+        }
+      },
+      "floors": "{count} floors",
+      "pickMissing": "Hidden or no longer public",
+      "pickArchitects": "Pick up to {max} architects",
+      "pickArticles": "Pick up to {max} articles",
+      "plansDescription": "Edit the pricing page blocks in display order. Prices, quotas, benefits, gifts and the Highlighted flag are managed in Plan pricing. Each language has its own content.",
+      "plansTable": {
+        "label": "Edit the detailed comparison table",
+        "hint": "Edit group headings, row labels and text cells in the table. Level descriptions apply to the matching plan level; quotas, benefits and gifts come from plan settings.",
+        "fromPlan": "From each plan’s settings",
+        "quotaHint": "This text template applies to all three plans. Keep '{count}'; quotas come from each plan’s settings.",
+        "scrollHint": "Swipe horizontally to view and edit all three plan columns.",
+        "dynamicHint": "This table is display content only and does not change actual plan permissions or quotas. Each cell can be Yes, No, or custom text/numbers.",
+        "invalidGroups": "The table contains invalid content or exceeds a limit. Please check its groups and items.",
+        "itemColumn": "Item",
+        "groupName": "Group name",
+        "groupStyle": "Group color",
+        "standard": "Green",
+        "accent": "Orange highlight",
+        "groupUp": "Move group up",
+        "groupDown": "Move group down",
+        "deleteGroup": "Delete group",
+        "deleteGroupConfirm": "Remove this group and all its items from the table draft?",
+        "cancel": "Cancel",
+        "rowName": "Item name",
+        "deleteRow": "Delete item",
+        "addRow": "Add item",
+        "addGroup": "Add group",
+        "newGroup": "Group {index}",
+        "empty": "No groups yet. Select Add group to create table content.",
+        "cellKind": "{tier} cell type",
+        "cellText": "{tier} cell content",
+        "yes": "Yes (✓)",
+        "no": "No (–)",
+        "text": "Custom text"
+      },
+      "valueTable": {
+        "hint": "Add, edit, remove or reorder items. Choose an icon and enter independent text for each column.",
+        "rowName": "Item {index} name",
+        "icon": "Item {index} icon",
+        "cell": "Item {index} — {tier}",
+        "chooseIcon": "Choose an icon",
+        "iconUnavailable": "The icon list is unavailable. Current content is preserved.",
+        "deleteConfirm": "Remove this item?",
+        "empty": "No items yet. Add an item to build the table.",
+        "invalidItems": "Check the content: up to 100 items, with up to 1000 characters per cell."
+      },
+      "supervisionDescription": "Edit supervision comparison tables and page content. CMS content does not change plan configuration or sale prices.",
+      "supervisionActions": "Actions",
+      "packageTabs": {
+        "design": "Design packages",
+        "supervision": "Supervision packages"
+      }
+    },
+    "handbookContent": {
+      "description": "Manage the handbook page content in two tabs, News and Template library, in the order readers see it on the page. The text cards are edited per language: a block you have not edited uses the page's built-in translation, so the form opens with the text currently shown, and an unedited language never borrows another language's text. The three steps, topics and featured articles are shared by every language.",
+      "locales": {
+        "vi": "Vietnamese",
+        "en": "English"
+      },
+      "groups": {
+        "news": "News",
+        "library": "Template library"
+      },
+      "newsGroups": {
+        "top": {
+          "title": "Top of the page and the three steps",
+          "hint": "The opening and the three building steps at the top of the News tab. The steps and topics are shared by every language."
+        },
+        "newsletter": {
+          "title": "BuildX newsletter",
+          "hint": "The Newsletter block sits right below the three steps: featured and related articles."
+        },
+        "articles": {
+          "title": "Article list",
+          "hint": "The articles block sits at the bottom of the News tab."
+        }
+      },
+      "edited": "Edited",
+      "usingDefault": "Using the default",
+      "restore": "Restore default",
+      "restoreConfirm": "Delete this block's edited version? The page will go back to its built-in translation.",
+      "restored": "Default restored.",
+      "unchanged": "The text is the same as the default, so there is nothing to save.",
+      "sections": {
+        "hero": {
+          "title": "Opening"
+        },
+        "stagesHeading": {
+          "title": "Heading of the three steps"
+        },
+        "articlesHeading": {
+          "title": "Articles block"
+        },
+        "newsletterHeading": {
+          "title": "Newsletter block"
+        },
+        "libraryBanner": {
+          "title": "Template library tab banner"
+        },
+        "tabs": {
+          "title": "The two tab names"
+        }
+      },
+      "fields": {
+        "eyebrow": "Line above the title",
+        "title": "Title",
+        "description": "Description",
+        "ctaLabel": "Button label",
+        "backgroundImageUrl": "Background image (optional — leave empty to use the default image)",
+        "newsLabel": "News tab name",
+        "libraryLabel": "Template library tab name"
+      }
+    },
     "handbookSteps": {
       "description": "The three fixed Handbook steps: Structure, Finishing, Interior. Only the image, name and description can change — no adding, deleting or reordering.",
       "step": "Step",
@@ -5305,7 +6164,9 @@
       "inUse": "{count} articles remain — move or remove them before deleting.",
       "deleteConfirm": "Delete group \"{name}\"?",
       "deletedToast": "Group {name} deleted.",
-      "hint": "Renaming or changing the icon does not change its articles. Groups cannot move to another step."
+      "hint": "Renaming or changing the icon does not change its articles. Groups cannot move to another step.",
+      "moveUp": "Move group up",
+      "moveDown": "Move group down"
     },
     "costGroups": {
       "description": "Estimate results are grouped by these cost groups; the grand total equals the sum of groups. Groups with items cannot be deleted.",
@@ -5422,6 +6283,8 @@
       "resolveFailed": "Could not get coordinates for this address, please pick again"
     },
     "imageUpload": {
+      "dropHint": "Drop the file here to upload",
+      "orDrop": "or drag and drop an image here",
       "button": "Upload image",
       "done": "Image uploaded",
       "errors": {
@@ -5496,7 +6359,9 @@
       "fileGroups": {
         "Drawing": "Drawing",
         "ConditionPhoto": "Site photo"
-      }
+      },
+      "code": "Record code",
+      "searchByCode": "Search by record code"
     }
   },
   "contractors": {
@@ -5523,12 +6388,15 @@
       "similarSuffix": "completed",
       "distanceShort": "{km} km",
       "distanceSuffix": "from the site",
+      "distanceFromPlace": "from {place}",
       "surveyEarly": "Can survey early",
       "readyToStart": "Ready to start",
       "surveyLabel": "Can survey",
+      "surveyOnSite": "in person on site",
       "surveyHours": "within {hours}h",
       "acceptingLabel": "Accepting",
       "acceptingSuffix": "projects",
+      "notAcceptingLabel": "Paused accepting",
       "informationUnknown": "Not provided",
       "ratingUnknown": "No rating yet",
       "projectAvailability": "Project availability",
@@ -5729,7 +6597,7 @@
       "leaveWithoutSaving": "Don't save",
       "keepEditing": "Keep editing",
       "title": "Create your project brief",
-      "subtitle": "Complete the build details and what you need done, and BuildX will suggest matching contractors.",
+      "subtitle": "Complete the build details, and BuildX will suggest matching contractors.",
       "draftSaved": "Draft saved - {time}",
       "steps": {
         "one": "Details & needs",
@@ -5829,7 +6697,8 @@
         "address": "Address",
         "budget": "Expected budget",
         "startWindow": "Expected start"
-      }
+      },
+      "codeLabel": "Site record code"
     },
     "rating": {
       "action": "Rate this contractor",
@@ -6002,6 +6871,7 @@
       },
       "introTitle": "About the company",
       "founded": "Founded in {year}",
+      "legalEntity": "Legal entity: {name}",
       "team": "{count} architects & engineers",
       "office": "Office in {address}",
       "serviceAreaCount": "{count} areas",
@@ -6094,8 +6964,8 @@
         "sortOldest": "Oldest",
         "filterLabel": "Filter by project type",
         "filters": {
-          "all": "All {count}",
-          "type": "{label} {count}"
+          "all": "All",
+          "type": "{label}"
         },
         "verifiedBadge": "Verified",
         "featuredBadge": "Featured",
@@ -6198,7 +7068,10 @@
         "warranty": "Warranty",
         "accepting": "Accepting projects"
       },
-      "legalVerified": "Verified",
+      "legalVerified": "Verified by BuildX",
+      "notUpdated": "Not updated yet",
+      "loadFailed": "Could not load {count} selected contractor(s).",
+      "retry": "Retry",
       "select": "Select contractor",
       "selected": "Contractor selected",
       "footerHint": "Pick up to {max} of {total} contractors to invite",
@@ -6301,6 +7174,7 @@
       "back": "Back to the contractor list",
       "emptyAction": "See suggested contractors",
       "code": "Invitation code <b>{code}</b>",
+      "siteCode": "Dossier code <b>{code}</b>",
       "sentAt": "Sent at <b>{time}</b>",
       "dossier": "Dossier <b>{version} · {count} files</b>",
       "updatedBy": "Updated {time} · BuildX support team",
@@ -6411,9 +7285,9 @@
       "findLocation": "Find location from address",
       "locating": "Finding location…",
       "locationHint": "Enter the full address, search and choose the matching location to confirm coordinates.",
-      "addressFirst": "Enter a province, ward and house number / street first.",
-      "noLocation": "No address found. Check the house number and street, then retry.",
-      "chooseLocation": "Search and choose a location for the current address before continuing.",
+      "addressFirst": "Enter the construction site address first.",
+      "noLocation": "No address found. Check the address and try again.",
+      "chooseLocation": "Choose an address from the suggestions before continuing.",
       "locationConfirmed": "Location confirmed: {address}",
       "budget": "Expected budget (VND)",
       "budgetError": "Enter a positive integer VND amount, up to 28 digits. Thousands separators are allowed.",
@@ -6438,7 +7312,8 @@
       "checkCreation": "Check creation result",
       "notCreated": "No construction site matching the last request was found. Review the data and continue again.",
       "files": {
-        "title": "Existing documents",
+        "title": "Provide documents for BuildX to review and advise (if any)",
+        "example": "e.g. technical drawings, photos of the current condition, ...",
         "hint": "{count}/9 files. Each file is limited to 10 MB (10,000,000 bytes) and stored privately.",
         "Drawing": "Drawings",
         "ConditionPhoto": "Site photos",
@@ -6484,7 +7359,10 @@
       "mapHint": "Type an address to see suggestions. Select a result, then drag the pin or click the map to adjust the construction site location.",
       "mapReadOnly": "Construction site location on the map. Location editing is disabled for this profile.",
       "mapAdjustHint": "Drag the pin or click the map to adjust the location. The address updates to match the pin.",
-      "addressSearchHint": "Enter the street address, then select a suggested address. The map will show its location for you to check and adjust."
+      "addressSearchHint": "Enter the full address (house number, street, ward, province), then select a suggested address. The map will show its location for you to check and adjust.",
+      "address": "Construction site address",
+      "addressPlaceholder": "Example: 12 Nguyen Tat Thanh, Xom Chieu Ward, Ho Chi Minh City",
+      "regionNotFound": "Could not determine the ward and province from this address. Choose another suggestion or add the ward and province to the address."
     },
     "rfq": {
       "title": "Quotation invitations",
@@ -6567,12 +7445,12 @@
           "Within3To6Months": "Within 3–6 months",
           "Undecided": "Undecided"
         },
-        "site": "Construction site name"
+        "site": "Construction site name",
+        "siteCode": "Site record code"
       },
       "privacy": "Your phone is saved with the invitation so support can arrange the appointment.",
       "phoneInvalid": "Use up to 20 characters with at least one digit: numbers, a leading +, spaces, dots, hyphens or parentheses.",
       "quotaUnavailable": "Invitation allowance is unavailable.",
-      "displayCodeUnavailable": "Not yet available",
       "updatedBySupport": "Status updated by the BuildX support team",
       "scopeNotRecorded": "Not recorded in the sent profile",
       "floorsCount": "{count} floors",
@@ -6636,6 +7514,21 @@
       "submit": "Proceed to payment",
       "processing": "Creating order...",
       "readyHint": "You will be taken to the QR payment page.",
+      "pending": {
+        "title": "You have a design order waiting for payment",
+        "body": "Each account can have only one pending design order. Continue paying or cancel it before creating a new one.",
+        "partialBody": "BuildX has received part of the payment for this order, so it can't be canceled yet. Transfer the remaining amount or wait for it to expire.",
+        "plan": "Plan",
+        "amount": "Amount",
+        "received": "Received",
+        "expires": "Expires at {time}",
+        "continue": "Continue paying the current order",
+        "cancel": "Cancel current order",
+        "confirmCancel": "Confirm cancel",
+        "keep": "Keep order",
+        "cancelling": "Canceling…",
+        "cancelled": "The old order was canceled. You can pay for the new order now."
+      },
       "refund": "Full refund within {hours} hours if you have not used any credits.",
       "noCardNote": "BuildX never collects or stores your payment details.",
       "terms": "I have read and agree to the <terms>Terms of Use</terms> and <payment>Payment Policy</payment> of BuildX.",
@@ -6717,6 +7610,18 @@
       "reasonContent": "The transfer reference was wrong",
       "reasonIncomplete": "The transfer was not completed",
       "reasonBank": "The bank is processing slowly",
+      "causeTitle": "Cause",
+      "newOrder": "Create a new order",
+      "expired": {
+        "title": "This order has expired",
+        "subtitle": "The order ran out of payment time (15 minutes) and is no longer valid. You can create a new order.",
+        "cause": "Expired: the order was not fully paid within 15 minutes."
+      },
+      "canceled": {
+        "title": "This order was canceled",
+        "subtitle": "This order was canceled and no longer accepts payment. You can create a new order.",
+        "cause": "Canceled: the order was canceled before full payment arrived."
+      },
       "retry": "Try paying again",
       "support": "Contact support",
       "holdNote": "Order {code} stays on the system for {hours} hours."
@@ -6876,6 +7781,11 @@
           "perVisit": "Per visit",
           "everyVisit": "Every visit",
           "full": "Full"
+        },
+        "buttons": {
+          "self": "Choose {tier}",
+          "check": "Choose {tier}",
+          "control": "Choose {tier}"
         }
       },
       "addons": {
@@ -6900,7 +7810,8 @@
         "title": "What the service covers",
         "r1": "BuildX inspects, records, flags, reports and follows up within the plan you choose.",
         "r2": "The contractor remains responsible for the works, quality, site safety and warranty.",
-        "r3": "The plan does not include a full-time engineer on site."
+        "r3": "The plan does not include a full-time engineer on site.",
+        "icon": "ShieldCheck"
       },
       "journey": {
         "title": "Supervision journey",
@@ -6947,7 +7858,10 @@
       "notes": {
         "payment": "Payment by bank-transfer QR.",
         "scope": "Priced per project for homes up to 3 storeys and 300 m² of floor area; beyond that, add-ons apply.",
-        "area": "Standard service area is within 30 km of an engineer base; travel costs apply beyond that."
+        "area": "Standard service area is within 30 km of an engineer base; travel costs apply beyond that.",
+        "paymentIcon": "QrCode",
+        "scopeIcon": "Ruler",
+        "areaIcon": "MapPin"
       }
     },
     "dashboard": {
@@ -7146,7 +8060,8 @@
     }
   },
   "meta": {
-    "home": "AI house design and cost estimates from a photo of your plot | BuildX",
+    "siteTitle": "AI PLATFORM FOR CONSTRUCTION PLANNING & DELIVERY | BuildX",
+    "siteDescription": "A platform for planning and delivering construction projects: generate design options and cost estimates, compare your choices, find the right contractor and track progress, all in one place.",
     "design": "Design & Estimate",
     "designInput": "Project details",
     "designEstimate": "Estimate result",
@@ -7160,14 +8075,15 @@
     "contractorInvitations": "Quote invitations",
     "contractorBrief": "Project profile",
     "contractorReview": "Review project profile",
-    "handbook": "Building handbook",
+    "handbook": "Handbook",
     "handbookArticle": "Handbook article",
     "handbookTemplate": "Design template",
-    "guide": "User guide",
+    "guide": "Guide",
     "plans": "Pricing",
     "plansSupervision": "Construction supervision",
     "consult": "1:1 consultation",
     "consultDetail": "Architect profile",
+    "consultantName": "Architect - {name}",
     "account": "My account",
     "accountProjects": "My projects",
     "accountDossiers": "My dossiers",

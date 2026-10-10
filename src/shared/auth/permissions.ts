@@ -1,6 +1,7 @@
 /** Codes from bmt-be PermissionNames; never infer permissions from a role label. */
 export const PERMISSIONS = {
   COMMERCE_READ: 'commerce.read',
+  CUSTOMER_MANAGE: 'customer.manage',
   PACKAGE_CANCEL: 'package.cancel',
   SUPERVISION_UNASSIGN: 'supervision.unassign',
   SUPERVISION_COMPLETE: 'supervision.complete',

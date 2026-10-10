@@ -1,8 +1,10 @@
 'use client'
 
-import Image from 'next/image'
+import Image, { type ImageLoaderProps } from 'next/image'
+import { useState } from 'react'
 
 import { cn } from '@/shared/lib/utils'
+import { Skeleton } from '@/shared/components/ui/skeleton'
 
 interface PhotoProps {
   /** Local path under `/public` or a remote URL allowed in `next.config.ts`. */
@@ -13,6 +15,11 @@ interface PhotoProps {
   sizes?: string
   /** Render above the fold (hero) — skips lazy loading. */
   priority?: boolean
+  loader?: (props: ImageLoaderProps) => string
+  quality?: number
+  unoptimized?: boolean
+  /** Opt-in skeleton covering the image until it loads or fails. */
+  skeletonClassName?: string
   /**
    * `cover` (mặc định) — ảnh lấp đầy khung, cắt phần thừa.
    * `contain` — ảnh hiện TRỌN trong khung, chừa nền hai bên. Dùng cho bản vẽ mặt
@@ -23,6 +30,7 @@ interface PhotoProps {
   imageClassName?: string
   /** Fires when the underlying next/image element has loaded. */
   onLoad?: () => void
+  onError?: () => void
 }
 
 /**
@@ -32,28 +40,69 @@ interface PhotoProps {
  * image chosen to match its subject (see `shared/lib/imagery.ts`). The wrapper
  * owns the aspect ratio; the image covers it.
  */
-export function Photo({
+export function Photo(props: PhotoProps) {
+  // A new source or fallback starts a fresh loading state, including A → B → A.
+  return <PhotoFrame key={`${props.src}|${Boolean(props.unoptimized)}|${props.quality ?? 75}`} {...props} />
+}
+
+function PhotoFrame({
   src,
   alt,
   className,
   sizes = '(max-width: 768px) 100vw, 400px',
   priority,
+  loader,
+  quality,
+  unoptimized,
+  skeletonClassName,
   fit = 'cover',
   imageClassName,
-  onLoad
+  onLoad,
+  onError
 }: PhotoProps) {
+  const [settled, setSettled] = useState(false)
+  const loading = Boolean(skeletonClassName) && !settled
+
+  function handleLoad() {
+    if (skeletonClassName) setSettled(true)
+    onLoad?.()
+  }
+
+  function handleError() {
+    if (skeletonClassName) setSettled(true)
+    onError?.()
+  }
+
   return (
-    <div className={cn('bg-muted relative overflow-hidden', className)}>
+    <div
+      className={cn('bg-muted relative overflow-hidden', className)}
+      aria-busy={skeletonClassName ? loading : undefined}
+      data-photo-loading={skeletonClassName ? loading : undefined}
+    >
+      {loading ? (
+        <Skeleton
+          data-photo-skeleton
+          aria-hidden='true'
+          style={{ position: 'absolute', inset: 0 }}
+          className={cn('pointer-events-none z-10 rounded-[inherit]', skeletonClassName)}
+        />
+      ) : null}
       <Image
         src={src}
         alt={alt}
         fill
         sizes={sizes}
         priority={priority}
-        onLoad={onLoad}
+        loader={loader}
+        quality={quality}
+        unoptimized={unoptimized}
+        onLoad={handleLoad}
+        onError={handleError}
         // Ảnh tải xong TRƯỚC khi React gắn `onLoad` (cache, hydrate chậm) thì sự kiện không bắn nữa.
         ref={(img) => {
-          if (img?.complete && img.naturalWidth > 0) onLoad?.()
+          if (!img?.complete || !img.currentSrc) return
+          if (img.naturalWidth > 0) handleLoad()
+          else handleError()
         }}
         className={cn(fit === 'contain' ? 'object-contain' : 'object-cover', imageClassName)}
       />

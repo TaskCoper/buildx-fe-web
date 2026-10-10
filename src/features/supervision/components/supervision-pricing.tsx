@@ -1,29 +1,23 @@
 'use client'
 
-import {
-  ArrowRight,
-  Check,
-  CircleCheck,
-  ClipboardCheck,
-  Construction,
-  FileText,
-  House,
-  ImageIcon,
-  MapPin,
-  Minus,
-  QrCode,
-  Ruler,
-  ShieldCheck,
-  Star
-} from 'lucide-react'
-import { animate, AnimatePresence, motion, useInView } from 'motion/react'
+import { ArrowRight, Check, ChevronLeft, ChevronRight, CircleCheck, ImageIcon, Minus, Star } from 'lucide-react'
+import { animate, motion, useInView } from 'motion/react'
 import { useLocale, useTranslations } from 'next-intl'
 import { Fragment, useEffect, useRef, useState, type CSSProperties } from 'react'
 
+import { CmsContentIcon } from '@/shared/components/common/cms-content-icon'
+import {
+  readSupervisionGroups,
+  readSupervisionItems,
+  SUPERVISION_ITEM_FIELDS,
+  supervisionDefaultItems,
+  type SupervisionContentItem
+} from '@/shared/cms/supervision-content'
+import { useSupervisionSections, useSupervisionCopy } from '../hooks/use-supervision-content'
 import { Link } from '@/i18n/navigation'
 import type { Locale } from '@/i18n/routing'
 import type { SupervisionPackage, SupervisionTier } from '@/shared/cms'
-import { Photo, PricingMotionProvider, pricingEase, usePricingMotion } from '@/shared/components/common'
+import { Photo, PricingMotionProvider, pricingEase } from '@/shared/components/common'
 import { Button } from '@/shared/components/ui/button'
 import { checkoutConfirmRoute } from '@/shared/constants/routes'
 import { usePageEntrance } from '@/shared/hooks'
@@ -33,15 +27,10 @@ import { formatCurrency } from '@/shared/utils'
 import type { SupervisionPackageView } from '../api/supervision.merge'
 import { useSupervisionPackages } from '../hooks/use-supervision-packages'
 import {
-  ADDONS,
   SUPERVISION_COMPARISON,
   SUPERVISION_TIERS,
-  SUPERVISION_VALUE_ROWS,
-  JOURNEY_STEPS,
-  type JourneyStepKey,
   type SupervisionCell,
-  type SupervisionValueKey,
-  type SupervisionValueRowKey
+  type SupervisionValueKey
 } from '../constants/supervision.constants'
 
 interface SupervisionPricingProps {
@@ -70,6 +59,7 @@ export function SupervisionPricing({ projectId }: SupervisionPricingProps) {
 }
 
 function SupervisionPricingContent({ projectId }: SupervisionPricingProps) {
+  const notesCopy = useSupervisionCopy('notes')
   const t = useTranslations('supervision.pricing')
   const packages = useSupervisionPackages()
   const { rootRef, entranceState, entranceStyle } = usePageEntrance('plans.supervision', { offsetMs: 120 })
@@ -81,6 +71,37 @@ function SupervisionPricingContent({ projectId }: SupervisionPricingProps) {
   const titleAccent = splitAt > 0 ? title.slice(splitAt + 1) : ''
   const [hoveredTier, setHoveredTier] = useState<SupervisionTier | null>(null)
   const cardsRef = useRef<HTMLUListElement>(null)
+  const tPlans = useTranslations('plans')
+  const [slide, setSlide] = useState(1)
+
+  useEffect(() => {
+    const track = cardsRef.current
+    if (!track) return
+    const onScroll = () => {
+      const middle = track.scrollLeft + track.clientWidth / 2
+      const cards = [...track.children] as HTMLElement[]
+      let nearest = 0
+      let best = Infinity
+      cards.forEach((card, i) => {
+        const distance = Math.abs(card.offsetLeft + card.clientWidth / 2 - middle)
+        if (distance < best) {
+          best = distance
+          nearest = i
+        }
+      })
+      setSlide(nearest)
+    }
+    track.addEventListener('scroll', onScroll, { passive: true })
+    onScroll()
+    return () => track.removeEventListener('scroll', onScroll)
+  }, [packages.length])
+
+  function goTo(index: number) {
+    const track = cardsRef.current
+    const card = track?.children[index] as HTMLElement | undefined
+    if (track && card)
+      track.scrollTo({ left: card.offsetLeft - (track.clientWidth - card.clientWidth) / 2, behavior: 'smooth' })
+  }
 
   useEffect(() => {
     const track = cardsRef.current
@@ -136,25 +157,56 @@ function SupervisionPricingContent({ projectId }: SupervisionPricingProps) {
         {/* pt đủ chỗ cho ruy-băng "Khuyến nghị" NẰM TRÊN viên nhãn nhóm gói: viên
             nhãn cưỡi lên mép trên thẻ (-mt-8) nên hai thứ này từng chồng chữ lên
             nhau ở thẻ được khuyến nghị. */}
-        <ul
-          ref={cardsRef}
-          data-entrance-step='4'
-          data-entrance-from='right'
-          data-hovering={hoveredTier ? 'true' : undefined}
-          className='supervision-card-track grid items-stretch gap-6 md:grid-cols-3'
-        >
-          {packages.map((item, index) => (
-            <PackageCard
-              key={item.tier}
-              item={item}
-              index={index}
-              projectId={projectId}
-              active={hoveredTier === item.tier}
-              onHover={() => setHoveredTier(item.tier)}
-              onLeave={() => setHoveredTier(null)}
-            />
+        {/* Mũi tên hai bên báo còn gói để vuốt, giống trang Gói thiết kế; chỉ hiện ở điện thoại. */}
+        <div className='relative'>
+          {[
+            { dir: -1, label: tPlans('prevPlan'), Icon: ChevronLeft, side: 'left-1', hidden: slide <= 0 },
+            {
+              dir: 1,
+              label: tPlans('nextPlan'),
+              Icon: ChevronRight,
+              side: 'right-1',
+              hidden: slide >= packages.length - 1
+            }
+          ].map(({ dir, label, Icon, side, hidden }) => (
+            <button
+              key={dir}
+              type='button'
+              aria-label={label}
+              tabIndex={hidden ? -1 : 0}
+              onClick={() => goTo(slide + dir)}
+              className={cn(
+                'bg-card/90 text-primary-strong absolute top-1/2 z-20 flex size-9 -translate-y-1/2 items-center justify-center rounded-full border shadow-md backdrop-blur-sm transition-opacity md:hidden',
+                side,
+                hidden && 'pointer-events-none opacity-0'
+              )}
+            >
+              <Icon className='size-5' />
+            </button>
           ))}
-        </ul>
+          <ul
+            ref={cardsRef}
+            data-entrance-step='4'
+            data-entrance-from='right'
+            data-hovering={hoveredTier ? 'true' : undefined}
+            className='supervision-card-track grid items-stretch gap-6 md:grid-cols-3'
+            // Ở điện thoại track cuộn ngang (overflow-x:auto) nên cắt luôn trục dọc; chừa 20px phía trên cho nhãn
+            // "Khuyến nghị" nhô lên -top-3 của thẻ, margin âm bù lại để khoảng cách với tiêu đề không đổi.
+            style={{ paddingTop: 20, marginTop: -20 }}
+          >
+            {packages.map((item, index) => (
+              <PackageCard
+                key={item.tier}
+                item={item}
+                index={index}
+                projectId={projectId}
+                active={hoveredTier === item.tier}
+                onHover={() => setHoveredTier(item.tier)}
+                onLeave={() => setHoveredTier(null)}
+              />
+            ))}
+          </ul>
+        </div>
       </div>
 
       <ComparisonTable packages={packages} projectId={projectId} />
@@ -175,12 +227,12 @@ function SupervisionPricingContent({ projectId }: SupervisionPricingProps) {
           xanh nhạt + chữ xanh đậm cỡ nhỏ — hai trang không lệch nhau. */}
       <ul className='bg-accent/30 text-primary-strong grid gap-x-8 gap-y-4 rounded-2xl border p-5 text-xs font-medium md:grid-cols-3'>
         {[
-          { icon: QrCode, text: t('notes.payment') },
-          { icon: Ruler, text: t('notes.scope') },
-          { icon: MapPin, text: t('notes.area') }
+          { icon: notesCopy('paymentIcon', 'QrCode'), text: notesCopy('payment', t('notes.payment')) },
+          { icon: notesCopy('scopeIcon', 'Ruler'), text: notesCopy('scope', t('notes.scope')) },
+          { icon: notesCopy('areaIcon', 'MapPin'), text: notesCopy('area', t('notes.area')) }
         ].map((note, index) => (
           <motion.li
-            key={note.text}
+            key={index}
             className='hover:bg-accent/70 flex items-center gap-3 rounded-xl transition-colors duration-300'
             initial={{ opacity: 0, y: 9 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -188,7 +240,7 @@ function SupervisionPricingContent({ projectId }: SupervisionPricingProps) {
             transition={{ duration: 0.48, delay: index * 0.14, ease: pricingEase }}
           >
             <span className='bg-accent text-primary flex size-8 shrink-0 items-center justify-center rounded-full'>
-              <note.icon aria-hidden className='supervision-note-glyph size-4' />
+              <CmsContentIcon name={note.icon} className='supervision-note-glyph size-4' />
             </span>
             <span className='text-pretty'>{note.text}</span>
           </motion.li>
@@ -239,7 +291,7 @@ function PackageCard({
       className='supervision-package relative flex'
       initial={{ opacity: 0, y: item.recommended ? 28 : 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.62, delay: 1.02 + index * 0.17, ease: pricingEase }}
+      transition={{ duration: 0.62, delay: 0.15 + index * 0.1, ease: pricingEase }}
       onMouseEnter={onHover}
       onMouseLeave={onLeave}
       onFocusCapture={onHover}
@@ -252,7 +304,7 @@ function PackageCard({
           className='supervision-control-label supervision-control-label-top bg-brand-orange text-brand-orange-foreground absolute -top-3 left-1/2 z-10 inline-flex -translate-x-1/2 items-center gap-1 rounded-full px-4 py-1 text-sm font-semibold tracking-wide uppercase whitespace-nowrap'
           initial={{ opacity: 0, y: -14 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 1.86, ease: pricingEase }}
+          transition={{ duration: 0.5, delay: 0.3, ease: pricingEase }}
         >
           <Star className='size-3' />
           {t('recommended')}
@@ -290,7 +342,7 @@ function PackageCard({
             )}
             initial={item.recommended ? { opacity: 0, y: -12 } : false}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.48, delay: item.recommended ? 2.08 : 1.02 + index * 0.17, ease: pricingEase }}
+            transition={{ duration: 0.48, delay: item.recommended ? 0.25 : 0.15 + index * 0.1, ease: pricingEase }}
           >
             {tTags(item.tier)}
           </motion.p>
@@ -307,7 +359,7 @@ function PackageCard({
               className='mt-4'
               initial={{ opacity: 0, filter: 'blur(5px)', scale: 0.985 }}
               animate={{ opacity: 1, filter: 'blur(0px)', scale: 1 }}
-              transition={{ duration: 0.72, delay: 1.3 + index * 0.17, ease: pricingEase }}
+              transition={{ duration: 0.72, delay: 0.3 + index * 0.1, ease: pricingEase }}
             >
               <Photo src={item.imageUrl} alt='' className='aspect-16/10 w-full rounded-xl' sizes='360px' />
             </motion.div>
@@ -336,7 +388,7 @@ function PackageCard({
                   className='inline-block'
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.48, delay: 1.5, ease: pricingEase }}
+                  transition={{ duration: 0.48, delay: 0.3, ease: pricingEase }}
                 >
                   {t('free')}
                 </motion.span>
@@ -354,7 +406,7 @@ function PackageCard({
                 className='text-muted-foreground block text-sm'
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ duration: 0.42, delay: item.recommended ? 3.05 : 2.8 }}
+                transition={{ duration: 0.42, delay: item.recommended ? 0.55 : 0.5 }}
               >
                 {t('perProject')} · {t('duration', { months: item.durationMonths })}
               </motion.span>
@@ -450,7 +502,7 @@ function InspectionBand({ item }: { item: SupervisionPackage }) {
         done.current = true
         const controls = animate(0, item.inspections, {
           duration: item.recommended ? 0.5 : 0.36,
-          delay: item.recommended ? 1.3 : 0.9,
+          delay: item.recommended ? 0.3 : 0.2,
           ease: 'easeOut',
           onUpdate: (value) => setCount(Math.round(value))
         })
@@ -474,7 +526,7 @@ function SupervisionPrice({ value, index }: { value: number; index: number }) {
       className='supervision-price inline-block tabular-nums'
       initial={{ opacity: 0, y: 6, scale: 0.985 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.42, delay: index === 2 ? 2.05 : 1.84, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.42, delay: index === 2 ? 0.4 : 0.35, ease: [0.22, 1, 0.36, 1] }}
     >
       {final}
     </motion.span>
@@ -484,6 +536,8 @@ function SupervisionPrice({ value, index }: { value: number; index: number }) {
 /** Bảng "So sánh chi tiết 3 lựa chọn". */
 function ComparisonTable({ packages, projectId }: { packages: SupervisionPackageView[]; projectId?: string }) {
   const t = useTranslations('supervision.pricing.comparison')
+  const copy = useSupervisionCopy('comparison')
+  const groups = readSupervisionGroups(useSupervisionSections().comparison?.groups)
   const tTiers = useTranslations('supervision.tiers')
   const tRows = useTranslations('supervision.pricing.comparison.rows')
   const tValues = useTranslations('supervision.pricing.comparison.values')
@@ -491,29 +545,8 @@ function ComparisonTable({ packages, projectId }: { packages: SupervisionPackage
   const locale = useLocale() as Locale
   const [hoveredRow, setHoveredRow] = useState<string | null>(null)
   const [hoveredColumn, setHoveredColumn] = useState<SupervisionTier | null>(null)
-  const [headerStuck, setHeaderStuck] = useState(false)
-  const [headerBounds, setHeaderBounds] = useState({ left: 0, width: 0 })
-  const tableRef = useRef<HTMLDivElement>(null)
 
   const byTier = (tier: SupervisionTier) => packages.find((item) => item.tier === tier)
-
-  useEffect(() => {
-    const update = () => {
-      const rect = tableRef.current?.getBoundingClientRect()
-      setHeaderStuck(Boolean(rect && rect.top <= 66 && rect.bottom > 118))
-      if (rect)
-        setHeaderBounds((current) =>
-          current.left === rect.left && current.width === rect.width ? current : { left: rect.left, width: rect.width }
-        )
-    }
-    update()
-    window.addEventListener('scroll', update, { passive: true })
-    window.addEventListener('resize', update)
-    return () => {
-      window.removeEventListener('scroll', update)
-      window.removeEventListener('resize', update)
-    }
-  }, [])
 
   return (
     <section className='supervision-comparison'>
@@ -524,43 +557,10 @@ function ComparisonTable({ packages, projectId }: { packages: SupervisionPackage
         viewport={{ once: true, amount: 0.7 }}
         transition={{ duration: 0.52, ease: pricingEase }}
       >
-        {t('title')}
+        {copy('title', t('title'))}
       </motion.h2>
 
-      <AnimatePresence>
-        {headerStuck ? (
-          <motion.div
-            className='supervision-floating-head bg-card fixed top-16 z-40 hidden grid-cols-[28%_24%_24%_24%] overflow-hidden rounded-b-xl border shadow-md md:grid'
-            style={{ left: headerBounds.left, width: headerBounds.width }}
-            initial={{ opacity: 0, y: -6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -5 }}
-            transition={{ duration: 0.26, ease: pricingEase }}
-          >
-            <span className='px-3 py-2 text-center text-sm font-semibold tracking-wide uppercase'>
-              {t('criterion')}
-            </span>
-            {SUPERVISION_TIERS.map((tier) => (
-              <span
-                key={tier}
-                className={cn(
-                  'border-l px-3 py-2 text-center text-sm font-bold uppercase',
-                  tier === 'control' && 'supervision-control-column bg-brand-orange-soft text-brand-orange'
-                )}
-              >
-                {byTier(tier)?.name || tTiers(tier)}
-                <small className='text-muted-foreground mt-0.5 block max-md:text-xs text-sm font-medium normal-case'>
-                  {formatCurrency(byTier(tier)?.price ?? 0, locale)}
-                </small>
-              </span>
-            ))}
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
-
       <motion.div
-        ref={tableRef}
-        data-stuck={headerStuck || undefined}
         className='supervision-comparison-shell bg-card relative mt-5 rounded-2xl border shadow-[inset_-18px_0_20px_-24px_var(--foreground)]'
         initial={{ opacity: 0, y: 10 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -584,7 +584,7 @@ function ComparisonTable({ packages, projectId }: { packages: SupervisionPackage
           <thead className='supervision-comparison-head bg-card z-20'>
             <tr className='divide-border divide-x'>
               <th className='bg-card text-primary-strong sticky left-0 z-10 border-b px-3 py-2.5 text-center text-sm font-semibold tracking-wide uppercase'>
-                {t('criterion')}
+                {copy('criterion', t('criterion'))}
               </th>
               {SUPERVISION_TIERS.map((tier) => (
                 <th
@@ -604,7 +604,7 @@ function ComparisonTable({ packages, projectId }: { packages: SupervisionPackage
                   >
                     {byTier(tier)?.name || tTiers(tier)}
                   </span>
-                  <span className='supervision-sticky-price text-muted-foreground mt-0.5 max-md:text-xs text-sm font-medium'>
+                  <span className='text-muted-foreground mt-0.5 block max-md:text-xs text-sm font-medium'>
                     {formatCurrency(byTier(tier)?.price ?? 0, locale)}
                   </span>
                 </th>
@@ -613,89 +613,139 @@ function ComparisonTable({ packages, projectId }: { packages: SupervisionPackage
           </thead>
 
           <tbody className='divide-border divide-y'>
-            <GroupRow label={t('groups.core')} />
-            <CoreRow
-              index={0}
-              label={tRows('inspectionCount')}
-              values={SUPERVISION_TIERS.map((tier) => {
-                const item = byTier(tier)
-                return item?.inspections ? String(item.inspections) : '—'
-              })}
-              hoveredRow={hoveredRow}
-              onHoverRow={setHoveredRow}
-              hoveredColumn={hoveredColumn}
-              onHoverColumn={setHoveredColumn}
-            />
-            <CoreRow
-              index={1}
-              label={tRows('duration')}
-              values={SUPERVISION_TIERS.map((tier) => {
-                const item = byTier(tier)
-                return tier === 'self'
-                  ? t('values.unlimited')
-                  : t('values.months', { count: item?.durationMonths ?? 0 })
-              })}
-              hoveredRow={hoveredRow}
-              onHoverRow={setHoveredRow}
-              hoveredColumn={hoveredColumn}
-              onHoverColumn={setHoveredColumn}
-            />
-            <CoreRow
-              index={2}
-              priceRow
-              label={tRows('price')}
-              values={SUPERVISION_TIERS.map((tier) => byTier(tier)?.price ?? 0)}
-              hoveredRow={hoveredRow}
-              onHoverRow={setHoveredRow}
-              hoveredColumn={hoveredColumn}
-              onHoverColumn={setHoveredColumn}
-            />
-
-            {SUPERVISION_COMPARISON.map((group) => (
-              <Fragment key={group.key}>
-                <GroupRow label={t(`groups.${group.key}`)} />
-                {group.rows.map((row, rowIndex) => (
-                  <motion.tr
-                    key={row.key}
-                    data-hovered={hoveredRow === row.key || undefined}
-                    className='supervision-comparison-row divide-border divide-x'
-                    initial={{ opacity: 0, y: 8 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, amount: 0.18 }}
-                    transition={{ duration: 0.52, delay: 0.28 + rowIndex * 0.075, ease: pricingEase }}
-                    onMouseEnter={() => setHoveredRow(row.key)}
-                  >
-                    <th
-                      className={cn(
-                        'bg-card sticky left-0 z-10 px-3 py-2 text-left text-sm font-medium transition-colors',
-                        hoveredRow === row.key && 'bg-accent/80 font-semibold'
-                      )}
-                    >
-                      {tRows(row.key)}
-                    </th>
-                    {SUPERVISION_TIERS.map((tier, tierIndex) => (
-                      <td
-                        key={tier}
-                        onMouseEnter={() => setHoveredColumn(tier)}
-                        className={cn(
-                          'supervision-comparison-cell px-3 py-2 text-center text-sm',
-                          tier === 'control' && 'supervision-control-column bg-brand-orange-soft/60',
-                          hoveredColumn === tier && 'is-column-hovered',
-                          hoveredRow === row.key && hoveredColumn === tier && 'is-intersection font-semibold'
-                        )}
+            {groups !== undefined ? (
+              groups
+                .filter((group) => group.rows.length > 0)
+                .map((group) => (
+                  <Fragment key={group.id}>
+                    <GroupRow label={group.title} />
+                    {group.rows.map((row, index) => (
+                      <tr
+                        key={row.id}
+                        className='supervision-comparison-row divide-border divide-x'
+                        data-hovered={hoveredRow === row.id || undefined}
+                        onMouseEnter={() => setHoveredRow(row.id)}
                       >
-                        <Cell value={row.values[tier]} label={tValues} index={tierIndex} />
-                      </td>
+                        <th
+                          scope='row'
+                          className={cn(
+                            'bg-card sticky left-0 z-10 px-3 py-2 text-left font-medium',
+                            hoveredRow === row.id && 'bg-accent/80'
+                          )}
+                        >
+                          {row.label}
+                        </th>
+                        {SUPERVISION_TIERS.map((tier) => (
+                          <td
+                            key={tier}
+                            onMouseEnter={() => setHoveredColumn(tier)}
+                            className={cn(
+                              'supervision-comparison-cell px-3 py-2 text-center',
+                              tier === 'control' && 'supervision-control-column bg-brand-orange-soft/60',
+                              hoveredColumn === tier && 'is-column-hovered',
+                              hoveredRow === row.id && hoveredColumn === tier && 'is-intersection font-semibold'
+                            )}
+                          >
+                            {row[tier].kind === 'text' ? (
+                              <span className='whitespace-pre-line text-pretty'>{row[tier].text}</span>
+                            ) : (
+                              <Cell value={row[tier].kind === 'yes'} label={tValues} index={index} />
+                            )}
+                          </td>
+                        ))}
+                      </tr>
                     ))}
-                  </motion.tr>
+                  </Fragment>
+                ))
+            ) : (
+              <>
+                <GroupRow label={t('groups.core')} />
+                <CoreRow
+                  index={0}
+                  label={tRows('inspectionCount')}
+                  values={SUPERVISION_TIERS.map((tier) => {
+                    const item = byTier(tier)
+                    return item?.inspections ? String(item.inspections) : '—'
+                  })}
+                  hoveredRow={hoveredRow}
+                  onHoverRow={setHoveredRow}
+                  hoveredColumn={hoveredColumn}
+                  onHoverColumn={setHoveredColumn}
+                />
+                <CoreRow
+                  index={1}
+                  label={tRows('duration')}
+                  values={SUPERVISION_TIERS.map((tier) => {
+                    const item = byTier(tier)
+                    return tier === 'self'
+                      ? t('values.unlimited')
+                      : t('values.months', { count: item?.durationMonths ?? 0 })
+                  })}
+                  hoveredRow={hoveredRow}
+                  onHoverRow={setHoveredRow}
+                  hoveredColumn={hoveredColumn}
+                  onHoverColumn={setHoveredColumn}
+                />
+                <CoreRow
+                  index={2}
+                  priceRow
+                  label={tRows('price')}
+                  values={SUPERVISION_TIERS.map((tier) => byTier(tier)?.price ?? 0)}
+                  hoveredRow={hoveredRow}
+                  onHoverRow={setHoveredRow}
+                  hoveredColumn={hoveredColumn}
+                  onHoverColumn={setHoveredColumn}
+                />
+
+                {SUPERVISION_COMPARISON.map((group) => (
+                  <Fragment key={group.key}>
+                    <GroupRow label={t(`groups.${group.key}`)} />
+                    {group.rows.map((row, rowIndex) => (
+                      <motion.tr
+                        key={row.key}
+                        data-hovered={hoveredRow === row.key || undefined}
+                        className='supervision-comparison-row divide-border divide-x'
+                        initial={{ opacity: 0, y: 8 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, amount: 0.18 }}
+                        transition={{ duration: 0.52, delay: 0.28 + rowIndex * 0.075, ease: pricingEase }}
+                        onMouseEnter={() => setHoveredRow(row.key)}
+                      >
+                        <th
+                          className={cn(
+                            'bg-card sticky left-0 z-10 px-3 py-2 text-left text-sm font-medium transition-colors',
+                            hoveredRow === row.key && 'bg-accent/80 font-semibold'
+                          )}
+                        >
+                          {tRows(row.key)}
+                        </th>
+                        {SUPERVISION_TIERS.map((tier, tierIndex) => (
+                          <td
+                            key={tier}
+                            onMouseEnter={() => setHoveredColumn(tier)}
+                            className={cn(
+                              'supervision-comparison-cell px-3 py-2 text-center text-sm',
+                              tier === 'control' && 'supervision-control-column bg-brand-orange-soft/60',
+                              hoveredColumn === tier && 'is-column-hovered',
+                              hoveredRow === row.key && hoveredColumn === tier && 'is-intersection font-semibold'
+                            )}
+                          >
+                            <Cell value={row.values[tier]} label={tValues} index={tierIndex} />
+                          </td>
+                        ))}
+                      </motion.tr>
+                    ))}
+                  </Fragment>
                 ))}
-              </Fragment>
-            ))}
+              </>
+            )}
           </tbody>
 
           <tfoot>
             <tr className='supervision-choose-row divide-border divide-x'>
-              <th className='bg-card sticky left-0 z-10 p-3 text-left text-sm font-medium'>{t('choosePlanRow')}</th>
+              <th className='bg-card sticky left-0 z-10 p-3 text-left text-sm font-medium'>
+                {copy('choosePlanRow', t('choosePlanRow'))}
+              </th>
               {SUPERVISION_TIERS.map((tier, index) => {
                 const item = byTier(tier)
                 return (
@@ -711,16 +761,14 @@ function ComparisonTable({ packages, projectId }: { packages: SupervisionPackage
                     transition={{ duration: 0.52, delay: index * 0.16, ease: pricingEase }}
                   >
                     {item && item.price > 0 ? (
-                      <Button
-                        asChild
-                        size='sm'
-                        className={cn('supervision-table-buy text-sm', item.recommended && ORANGE_BUTTON)}
-                      >
+                      <Button asChild size='sm' className={cn('text-sm', item.recommended && ORANGE_BUTTON)}>
                         <Link
                           href={checkoutConfirmRoute(item.id, projectId, item.offerKey)}
                           onClick={() => rememberCheckoutReturn(item.id, projectId)}
                         >
-                          {tPricing('choose', { tier: byTier(tier)?.name || tTiers(tier) })}
+                          {copy(`buttons.${tier}`, tPricing('choose', { tier: byTier(tier)?.name || tTiers(tier) }), {
+                            tier: byTier(tier)?.name || tTiers(tier)
+                          })}
                         </Link>
                       </Button>
                     ) : (
@@ -740,8 +788,13 @@ function ComparisonTable({ packages, projectId }: { packages: SupervisionPackage
 /** Bảng "Add-on & phụ phí". */
 function AddonTable() {
   const t = useTranslations('supervision.pricing.addons')
+  const copy = useSupervisionCopy('addons')
+  const sections = useSupervisionSections()
   const packages = useSupervisionPackages()
   const months = packages.find((item) => item.tier === 'check')?.durationMonths ?? 6
+  const items =
+    readSupervisionItems(sections.addons?.items, SUPERVISION_ITEM_FIELDS.addons) ??
+    supervisionDefaultItems('addons', (key, values) => t(key as Parameters<typeof t>[0], values), months)
 
   return (
     // Hình S19: hai khối này là PANEL NỀN MÀU, không viền — kem cho bảng phụ
@@ -761,7 +814,7 @@ function AddonTable() {
         viewport={{ once: true }}
         transition={{ delay: 0.12 }}
       >
-        {t('title')}
+        {copy('title', t('title'))}
       </motion.h2>
 
       {/* Viền ngoài nằm ở lớp bọc chứ không đặt trên <table>: bo góc trên
@@ -772,25 +825,25 @@ function AddonTable() {
             {/* `divide-x` trên hàng kẻ vạch DỌC giữa các ô — bảng phụ phí ở
                 Hình S19 có lưới đủ cả ngang lẫn dọc, khác bảng so sánh phía trên
                 chỉ kẻ ngang. */}
-            <tr className='text-muted-foreground divide-x max-md:text-xs text-sm tracking-wide uppercase'>
-              <th className='border-b p-2 text-left font-bold'>{t('item')}</th>
-              <th className='border-b p-2 text-center font-bold'>{t('price')}</th>
-              <th className='border-b p-2 text-center font-bold'>{t('note')}</th>
+            <tr className='text-foreground divide-x max-md:text-xs text-sm tracking-wide uppercase'>
+              <th className='border-b p-2 text-left font-extrabold'>{copy('item', t('item'))}</th>
+              <th className='border-b p-2 text-center font-extrabold'>{copy('price', t('price'))}</th>
+              <th className='border-b p-2 text-center font-extrabold'>{copy('note', t('note'))}</th>
             </tr>
           </thead>
           <tbody>
-            {ADDONS.map((key, index) => (
+            {items.map((item, index) => (
               <motion.tr
-                key={key}
+                key={index}
                 className='supervision-addon-row divide-x border-b last:border-b-0'
                 initial={{ opacity: 0, y: 6 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.42, delay: 0.26 + index * 0.09, ease: pricingEase }}
               >
-                <td className='p-2 text-sm font-medium'>{key === 'extend' ? t('extend', { months }) : t(key)}</td>
-                <td className='p-2 text-center text-sm font-medium'>{t(`${key}Price`)}</td>
-                <td className='text-muted-foreground p-2 text-center text-sm'>{t(`${key}Note`)}</td>
+                <td className='p-2 text-sm font-normal'>{item.label}</td>
+                <td className='p-2 text-center text-sm font-normal'>{item.price}</td>
+                <td className='text-muted-foreground p-2 text-center text-sm font-semibold'>{item.note}</td>
               </motion.tr>
             ))}
           </tbody>
@@ -803,6 +856,10 @@ function AddonTable() {
 /** Khối "Nguyên tắc phạm vi dịch vụ". */
 function ScopeRules() {
   const t = useTranslations('supervision.pricing.scope')
+  const copy = useSupervisionCopy('scope')
+  const items =
+    readSupervisionItems(useSupervisionSections().scope?.items, SUPERVISION_ITEM_FIELDS.scope) ??
+    supervisionDefaultItems('scope', (key) => t(key as Parameters<typeof t>[0]))
   const [seen, setSeen] = useState(false)
   const ref = useRef<HTMLElement>(null)
 
@@ -829,13 +886,13 @@ function ScopeRules() {
       transition={{ duration: 0.56, delay: 0.28, ease: pricingEase }}
     >
       <h2 className='text-primary-strong flex items-center gap-2.5 text-2xl font-bold'>
-        <ShieldCheck className='supervision-scope-icon size-5 shrink-0' strokeWidth={1.75} />
-        {t('title')}
+        <CmsContentIcon name={copy('icon', 'ShieldCheck')} className='supervision-scope-icon size-5 shrink-0' />
+        {copy('title', t('title'))}
       </h2>
       <ul className='mt-3 flex flex-col gap-3'>
-        {[t('r1'), t('r2'), t('r3')].map((rule, index) => (
+        {items.map((rule, index) => (
           <motion.li
-            key={rule}
+            key={index}
             className='flex items-start gap-3 text-sm'
             initial={{ opacity: 0, y: 6 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -843,7 +900,7 @@ function ScopeRules() {
             transition={{ duration: 0.42, delay: 0.45 + index * 0.1, ease: pricingEase }}
           >
             <span aria-hidden className='bg-foreground/70 mt-2 size-1.5 shrink-0 rounded-[2px]' />
-            <span className='text-pretty'>{rule}</span>
+            <span className='text-pretty'>{rule.text}</span>
           </motion.li>
         ))}
       </ul>
@@ -858,20 +915,14 @@ function ScopeRules() {
  *
  * Mũi tên nối các bước; cả dải cuộn ngang trên màn hẹp thay vì xuống dòng.
  */
-const JOURNEY_ICONS: Record<JourneyStepKey, typeof ShieldCheck> = {
-  choose: ShieldCheck,
-  inspect: Construction,
-  report: FileText,
-  handover: House
-}
-const MotionArrowRight = motion.create(ArrowRight)
-
 function Journey() {
   const t = useTranslations('supervision.pricing.journey')
+  const copy = useSupervisionCopy('journey')
+  const items =
+    readSupervisionItems(useSupervisionSections().journey?.items, SUPERVISION_ITEM_FIELDS.journey) ??
+    supervisionDefaultItems('journey', (key) => t(key as Parameters<typeof t>[0]))
   const ref = useRef<HTMLElement>(null)
   const visible = useInView(ref, { amount: 0.15 })
-  const { isScrolling } = usePricingMotion()
-  const dotActive = visible && !isScrolling
 
   return (
     <section
@@ -880,95 +931,71 @@ function Journey() {
       className='supervision-journey bg-card relative rounded-2xl border p-5'
     >
       <motion.h2
-        className='text-primary-strong text-2xl font-bold tracking-wide uppercase'
+        className='text-primary-strong text-center text-2xl font-bold tracking-wide uppercase'
         initial={{ opacity: 0, y: 8 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.7 }}
         transition={{ duration: 0.48, ease: pricingEase }}
       >
-        {t('title')}
+        {copy('title', t('title'))}
       </motion.h2>
 
-      <div className='supervision-journey-track mt-6 flex items-stretch gap-1.5 overflow-x-auto overflow-y-hidden pt-4 pb-2 lg:justify-center'>
-        {JOURNEY_STEPS.map((step, index) => (
-          <Fragment key={step}>
-            {index > 0 ? <FlowJoin delay={0.06 + index * 0.2} active={dotActive} /> : null}
-            <JourneyCard step={step} number={index + 1} delay={0.16 + index * 0.2} />
-          </Fragment>
+      <div
+        style={{ justifyContent: 'safe center' }}
+        className='supervision-journey-track mt-6 flex items-stretch gap-6 overflow-x-auto overflow-y-hidden pt-4 pb-2 md:gap-8'
+      >
+        {items.map((step, index) => (
+          <JourneyCard key={index} step={step} number={index + 1} delay={0.16 + Math.min(index, 5) * 0.2} />
         ))}
       </div>
     </section>
   )
 }
 
-/** Mũi tên nối hai bước đi thẳng. */
-function FlowJoin({ delay, active }: { delay: number; active: boolean }) {
-  return (
-    <MotionArrowRight
-      aria-hidden
-      className='supervision-journey-join text-muted-foreground size-4 shrink-0 self-center'
-      initial={{ opacity: 0, scaleX: 0 }}
-      whileInView={{ opacity: 1, scaleX: 1 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.22, delay, ease: pricingEase }}
-    >
-      <motion.circle
-        aria-hidden
-        className='supervision-journey-flow-dot'
-        cx='2'
-        cy='12'
-        r='2.1'
-        initial={false}
-        animate={active ? { opacity: [0, 1, 1, 0], cx: [2, 2, 20, 20] } : { opacity: 0 }}
-        transition={{ duration: 0.7, delay: 2.1 + delay, ease: 'linear', repeat: Infinity, repeatDelay: 8.2 }}
-      />
-    </MotionArrowRight>
-  )
-}
-
-/** Một bước trên dòng chính: số ở mép trên, tên, icon, rồi mô tả. */
-function JourneyCard({ step, number, delay }: { step: JourneyStepKey; number: number; delay: number }) {
-  const t = useTranslations('supervision.pricing.journey')
-  const Icon = JOURNEY_ICONS[step]
-
+/** Một bước trên dòng chính: số pill ở mép trên, tên, icon, rồi mô tả. */
+function JourneyCard({ step, number, delay }: { step: SupervisionContentItem; number: number; delay: number }) {
   return (
     <motion.div
       style={{ '--journey-delay': `${delay}s` } as CSSProperties}
-      className='supervision-journey-card bg-card relative flex w-44 shrink-0 flex-col items-center rounded-xl border px-2.5 pt-5 pb-4 text-center'
+      className='supervision-journey-card group/journey-card bg-card relative flex w-44 shrink-0 flex-col items-center rounded-xl border border-primary/25 px-3 pt-5 pb-4 text-center'
       initial={{ opacity: 0, y: 10 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.44, delay, ease: pricingEase }}
     >
       <motion.span
-        className='bg-primary text-primary-foreground absolute -top-3.5 flex size-7 items-center justify-center rounded-full text-sm font-semibold'
+        className='bg-accent text-accent-foreground absolute -top-4 left-1/2 z-10 inline-flex h-8 w-fit max-w-fit min-w-8 -translate-x-1/2 items-center justify-center rounded-md px-2 text-sm font-semibold tracking-[0.08em] transition-colors duration-200 group-hover/journey-card:bg-brand-orange motion-reduce:transition-none'
         initial={{ scale: 0.55 }}
         whileInView={{ scale: 1 }}
         viewport={{ once: true }}
         transition={{ type: 'spring', stiffness: 360, damping: 20, delay: delay + 0.1 }}
       >
-        {number}
+        {String(number).padStart(2, '0')}
       </motion.span>
       {/* Ô tên cao cố định bằng HAI dòng: tên một dòng và tên hai dòng đều
           chiếm chỗ như nhau, nhờ vậy icon và mô tả của tám bước nằm thẳng hàng
           thay vì chỗ lồi chỗ lõm. */}
-      <p className='flex min-h-9 items-center text-sm leading-tight font-medium text-pretty'>{t(step)}</p>
-      <Icon aria-hidden className='supervision-journey-icon text-primary my-3 size-8 shrink-0' strokeWidth={1.5} />
-      <p className='text-muted-foreground max-md:text-xs text-sm leading-snug text-pretty'>{t(`${step}Body`)}</p>
+      <p className='flex min-h-9 w-full items-center justify-center text-center text-sm leading-tight font-medium text-pretty transition-colors duration-200 group-hover/journey-card:text-brand-orange motion-reduce:transition-none'>
+        {step.title}
+      </p>
+      <CmsContentIcon
+        name={step.icon ?? ''}
+        className='supervision-journey-icon text-primary my-3 size-8 shrink-0 transition-colors duration-200 group-hover/journey-card:text-brand-orange motion-reduce:transition-none'
+      />
+      <p className='text-muted-foreground max-md:text-xs mt-1 w-full text-center text-sm leading-snug text-pretty'>
+        {step.description}
+      </p>
     </motion.div>
   )
 }
 
 /** Icon đứng trước tên từng hàng giá trị (Hình S19). */
-const VALUE_ICONS: Record<SupervisionValueRowKey, typeof ShieldCheck> = {
-  calm: ShieldCheck,
-  transparent: FileText,
-  quality: ClipboardCheck,
-  handover: House
-}
-
 function ValueTable() {
   const t = useTranslations('supervision.pricing.value')
+  const copy = useSupervisionCopy('value')
+  const items =
+    readSupervisionItems(useSupervisionSections().value?.items, SUPERVISION_ITEM_FIELDS.value) ??
+    supervisionDefaultItems('value', (key) => t(key as Parameters<typeof t>[0]))
   const tTiers = useTranslations('supervision.tiers')
   const packages = useSupervisionPackages()
   const byTier = (tier: SupervisionTier) => packages.find((item) => item.tier === tier)
@@ -982,73 +1009,75 @@ function ValueTable() {
         viewport={{ once: true, amount: 0.65 }}
         transition={{ duration: 0.5, ease: pricingEase }}
       >
-        {t('title')}
+        {copy('title', t('title'))}
       </motion.h2>
 
-      <div className='bg-card mt-5 overflow-x-auto rounded-2xl border'>
-        <table className='supervision-value-table w-full min-w-[640px] text-sm'>
-          <thead>
-            {/* `divide-x` kẻ vạch dọc giữa các cột, giống bảng phụ phí. */}
-            <tr className='bg-muted/40 divide-x text-sm'>
-              <th className='bg-[color-mix(in_srgb,var(--muted)_40%,var(--card))] sticky left-0 z-10 border-b p-3 text-left font-medium' />
-              {SUPERVISION_TIERS.map((tier) => (
-                <th
-                  key={tier}
-                  className={cn(
-                    'border-b p-3 text-center font-semibold tracking-wide uppercase',
-                    tier === 'control' ? 'text-brand-orange bg-brand-orange-soft/35' : 'text-primary-strong'
-                  )}
-                >
-                  {byTier(tier)?.name || tTiers(tier)}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {SUPERVISION_VALUE_ROWS.map((row, index) => (
-              <motion.tr
-                key={row}
-                className='supervision-value-row divide-x even:bg-muted/20'
-                initial={{ opacity: 0, y: 7 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.44, delay: index * 0.1, ease: pricingEase }}
-              >
-                <th className='bg-card text-primary-strong sticky left-0 z-10 w-52 p-3.5 text-left text-sm font-medium'>
-                  <motion.span
-                    className='flex items-center gap-2.5'
-                    initial={{ opacity: 0, x: -4 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.3, delay: index * 0.1 + 0.18 }}
-                  >
-                    {(() => {
-                      const Icon = VALUE_ICONS[row]
-                      return <Icon aria-hidden className='supervision-value-icon text-primary size-4 shrink-0' />
-                    })()}
-                    {t(`rows.${row}`)}
-                  </motion.span>
-                </th>
-                {SUPERVISION_TIERS.map((tier, tierIndex) => (
-                  <td
+      {items.length > 0 ? (
+        <div className='bg-card mt-5 overflow-x-auto rounded-2xl border'>
+          <table className='supervision-value-table w-full min-w-[640px] text-sm'>
+            <thead>
+              {/* `divide-x` kẻ vạch dọc giữa các cột, giống bảng phụ phí. */}
+              <tr className='bg-muted/40 divide-x text-sm'>
+                <th className='bg-[color-mix(in_srgb,var(--muted)_40%,var(--card))] sticky left-0 z-10 border-b p-3 text-left font-medium' />
+                {SUPERVISION_TIERS.map((tier) => (
+                  <th
                     key={tier}
-                    className={cn('p-3.5 text-center text-sm text-pretty', tier === 'control' && CONTROL_COLUMN)}
+                    className={cn(
+                      'border-b p-3 text-center font-semibold tracking-wide uppercase',
+                      tier === 'control' ? 'text-brand-orange bg-brand-orange-soft/35' : 'text-primary-strong'
+                    )}
                   >
+                    {byTier(tier)?.name || tTiers(tier)}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((row, index) => (
+                <motion.tr
+                  key={index}
+                  className='supervision-value-row divide-x even:bg-muted/20'
+                  initial={{ opacity: 0, y: 7 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.44, delay: index * 0.1, ease: pricingEase }}
+                >
+                  <th className='bg-card text-primary-strong sticky left-0 z-10 w-52 p-3.5 text-left text-sm font-medium'>
                     <motion.span
-                      initial={{ opacity: 0, x: 5 }}
+                      className='flex items-center gap-2.5'
+                      initial={{ opacity: 0, x: -4 }}
                       whileInView={{ opacity: 1, x: 0 }}
                       viewport={{ once: true }}
-                      transition={{ duration: 0.32, delay: index * 0.1 + 0.3 + tierIndex * 0.09 }}
+                      transition={{ duration: 0.3, delay: index * 0.1 + 0.18 }}
                     >
-                      {t(`cells.${row}.${tier}`)}
+                      <CmsContentIcon
+                        name={row.icon ?? ''}
+                        className='supervision-value-icon text-primary size-4 shrink-0'
+                      />
+                      {row.label}
                     </motion.span>
-                  </td>
-                ))}
-              </motion.tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                  </th>
+                  {SUPERVISION_TIERS.map((tier, tierIndex) => (
+                    <td
+                      key={tier}
+                      className={cn('p-3.5 text-center text-sm text-pretty', tier === 'control' && CONTROL_COLUMN)}
+                    >
+                      <motion.span
+                        initial={{ opacity: 0, x: 5 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.32, delay: index * 0.1 + 0.3 + tierIndex * 0.09 }}
+                      >
+                        {row[tier]}
+                      </motion.span>
+                    </td>
+                  ))}
+                </motion.tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : null}
     </section>
   )
 }

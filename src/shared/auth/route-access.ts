@@ -13,8 +13,12 @@ type AdminAccessRule = { anyPermission: readonly PermissionCode[] } | { adminOnl
 export const ADMIN_ROUTE_ACCESS = {
   [ADMIN_ROUTES.ORDERS]: { anyPermission: [P.COMMERCE_READ] },
   [ADMIN_ROUTES.TRANSACTIONS]: { anyPermission: [P.COMMERCE_READ] },
-  [ADMIN_ROUTES.CUSTOMERS]: { anyPermission: [P.COMMERCE_READ] },
+  // `GET /customers` đòi `customer.manage`. Gói, đơn và giao dịch trong trang chi tiết đòi thêm `commerce.read`
+  // (từng khối tự kiểm quyền), nên `commerce.read` một mình không mở được màn này.
+  [ADMIN_ROUTES.CUSTOMERS]: { anyPermission: [P.CUSTOMER_MANAGE] },
   [ADMIN_ROUTES.PLAN_TABLE]: { anyPermission: [P.PLAN_MANAGE] },
+  [ADMIN_ROUTES.PLANS_CONTENT]: { anyPermission: [P.NEWS_MANAGE] },
+  [ADMIN_ROUTES.SUPERVISION_CONTENT]: { anyPermission: [P.NEWS_MANAGE] },
   [ADMIN_ROUTES.GIFTS]: { adminOnly: true },
   [ADMIN_ROUTES.TEMPLATE_VIEWS]: { adminOnly: true },
   [ADMIN_ROUTES.PAYMENT_CONNECTIONS]: { anyPermission: [P.PAYMENT_CONNECTION_MANAGE] },
@@ -26,7 +30,16 @@ export const ADMIN_ROUTE_ACCESS = {
   [ADMIN_ROUTES.ARTICLES]: { anyPermission: [P.NEWS_MANAGE] },
   [ADMIN_ROUTES.ARTICLE_LABELS]: { anyPermission: [P.NEWS_MANAGE] },
   [ADMIN_ROUTES.TESTIMONIALS]: { adminOnly: true },
-  [ADMIN_ROUTES.HANDBOOK_STEPS]: { adminOnly: true },
+  // Đọc và ghi qua API Cẩm nang nên theo quyền `news.manage`, cùng quyền với bài viết (TDD-HB-001).
+  [ADMIN_ROUTES.HANDBOOK_STEPS]: { anyPermission: [P.NEWS_MANAGE] },
+  [ADMIN_ROUTES.HANDBOOK_NEWSLETTER]: { anyPermission: [P.NEWS_MANAGE] },
+  [ADMIN_ROUTES.HANDBOOK_CONTENT]: { anyPermission: [P.NEWS_MANAGE] },
+  // Khối chữ của trang chủ dùng cùng API khối chữ với Cẩm nang nên cùng quyền `news.manage`.
+  [ADMIN_ROUTES.HOME_CONTENT]: { anyPermission: [P.NEWS_MANAGE] },
+  // Chân trang cũng là khối chữ của một trang (`footer`) nên cùng quyền `news.manage`.
+  [ADMIN_ROUTES.FOOTER_CONTENT]: { anyPermission: [P.NEWS_MANAGE] },
+  // Trang Tìm nhà thầu cũng là khối chữ của một trang (`contractors`) nên cùng quyền `news.manage`.
+  [ADMIN_ROUTES.CONTRACTORS_CONTENT]: { anyPermission: [P.NEWS_MANAGE] },
   [ADMIN_ROUTES.GUIDE_VIDEOS]: { anyPermission: [P.GUIDE_MANAGE] },
   [ADMIN_ROUTES.DISCOUNTS]: { adminOnly: true },
   [ADMIN_ROUTES.SUPERVISION_PACKAGES]: { adminOnly: true },

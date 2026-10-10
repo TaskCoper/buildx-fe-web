@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowRight, BadgeCheck, Check, Circle, CircleCheck, FileText, Info, Minus, Star, X } from 'lucide-react'
+import { ArrowRight, BadgeCheck, Check, Circle, FileText, Info, Star, X } from 'lucide-react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { useLocale, useTranslations } from 'next-intl'
 import { useEffect, useRef, useState } from 'react'
@@ -19,8 +19,14 @@ import { cn } from '@/shared/lib/utils'
 import { formatNumber } from '@/shared/utils'
 import { COMPARE_CRITERIA, MAX_INVITATIONS, MIN_COMPARE } from '../constants/contractors.constants'
 import { useBrief } from '../hooks/use-brief'
-import { useContractors } from '../hooks/use-contractors'
+import { useContractor, useContractorsCompare } from '../hooks/use-contractors'
 import { useInvitations } from '../hooks/use-invitations'
+import {
+  betterByCriterion,
+  compareLegalVerified,
+  compareNumber,
+  type CompareNumberCriterion
+} from '../services/contractor-compare.service'
 import { isInvited } from '../services/contractor-list.service'
 import { useContractorsStore } from '../store/contractors.store'
 import type { Contractor } from '../types/contractor.types'
@@ -50,20 +56,14 @@ function SelectedCheckIcon() {
   )
 }
 
-/**
- * Tiêu chí nào "càng thấp càng tốt" — phần còn lại trong {@link NUMERIC_CRITERIA}
- * mặc định càng cao càng tốt. Dùng để tô nổi ô giá trị tốt hơn (mục 4).
- */
-const LOWER_IS_BETTER = new Set(['distance', 'surveyTime'])
-
-/** Tiêu chí có thể so sánh hơn-kém bằng số — bốn tiêu chí còn lại là văn bản/nhị phân. */
-const NUMERIC_CRITERIA = {
-  rating: (c: Contractor) => c.rating,
-  similarProjects: (c: Contractor) => c.similarProjects,
-  distance: (c: Contractor) => c.distanceKm,
-  surveyTime: (c: Contractor) => c.surveyWithinHours,
-  warranty: (c: Contractor) => c.warrantyMonths
-} as const satisfies Partial<Record<(typeof COMPARE_CRITERIA)[number], (c: Contractor) => number>>
+/** Các tiêu chí so được hơn-kém bằng số (mục 4); `legal` là có/không nên không nằm đây. */
+const NUMERIC_CRITERIA = [
+  'rating',
+  'similarProjects',
+  'distance',
+  'surveyTime',
+  'warranty'
+] as const satisfies readonly CompareNumberCriterion[]
 
 interface ContractorCompareProps {
   projectId: string
@@ -92,13 +92,17 @@ export function ContractorCompare({ projectId }: ContractorCompareProps) {
   /** Xem thử — chưa gắn hồ sơ dự án nào (xem `CONTRACTOR_PREVIEW_ID`). */
   const preview = projectId === CONTRACTOR_PREVIEW_ID
 
-  const { data: brief } = useBrief(projectId)
-  const { data: contractors, isPending } = useContractors(projectId)
+  const { data: brief, isPending: briefPending } = useBrief(projectId)
   const { data: invitations, remaining } = useInvitations(projectId)
 
   const compareIds = useContractorsStore((s) => s.compareIds)
   const toggleCompare = useContractorsStore((s) => s.toggleCompare)
   const startInviteQueue = useContractorsStore((s) => s.startInviteQueue)
+  // Bảng so sánh gửi DANH SÁCH MÃ đã tick lên `GET /contractors/compare` (kèm công trình đang làm việc để BE tính khoảng cách
+  // và dự án tương tự), không dựa vào danh sách đề xuất: nhà thầu tick từ hồ sơ riêng hoặc nằm ngoài danh sách đang hiện vẫn
+  // có cột. Chờ biết công trình rồi mới hỏi; xem thử (chưa có dự án) thì hỏi ngay, không kèm công trình.
+  const siteId = brief?.constructionSiteId
+  const compareQuery = useContractorsCompare(compareIds, siteId, preview || !briefPending)
 
   const [picked, setPicked] = useState<string[]>([])
   /** Làm nổi ô giá trị tốt hơn — công tắc tắt/mở (mục 4). */
@@ -110,6 +114,7 @@ export function ContractorCompare({ projectId }: ContractorCompareProps) {
   const [exceedShakeId, setExceedShakeId] = useState<string | null>(null)
   /** M06 dạng bảng bên, không rời khỏi bảng so sánh phía sau. */
   const [profileContractor, setProfileContractor] = useState<Contractor | null>(null)
+  const fullProfile = useContractor(profileContractor?.id ?? '')
   const [leavingBack, setLeavingBack] = useState(false)
 
   /** Nút "Mời" thở một nhịp ngay khi vừa có nhà thầu đầu tiên được chọn (mục 6). */
@@ -125,10 +130,21 @@ export function ContractorCompare({ projectId }: ContractorCompareProps) {
     wasAnyPickedRef.current = picked.length > 0
   }, [picked.length])
 
-  /* `compareIds` giữ thứ tự người dùng thêm. Cột mới vì thế luôn vào từ mép phải. */
-  const rows = compareIds
-    .map((id) => (contractors ?? []).find((contractor) => contractor.id === id))
-    .filter((contractor): contractor is Contractor => Boolean(contractor))
+  const isPending = (!preview && briefPending) || compareQuery.isPending
+
+  /* `compareIds` giữ thứ tự người dùng thêm và BE trả đúng thứ tự đó. Cột mới vì thế luôn vào từ mép phải. */
+  const rows = compareQuery.data?.contractors ?? []
+  // Mã BE báo không dùng được (không còn hoặc đang ẩn); lỗi cả request thì coi mọi mã chưa tải được.
+  const unavailableCount = compareQuery.isError ? compareIds.length : (compareQuery.data?.missingIds.length ?? 0)
+  // Hồ sơ mở ở sheet = dòng so sánh + phần giới thiệu và dự án tiêu biểu của hồ sơ đầy đủ khi đã tải xong.
+  const profileView = profileContractor
+    ? {
+        ...profileContractor,
+        intro: fullProfile.data?.intro ?? '',
+        strengths: fullProfile.data?.strengths ?? [],
+        featuredProjects: fullProfile.data?.featuredProjects ?? []
+      }
+    : null
   const room = remaining
 
   const togglePick = (contractorId: string) =>
@@ -148,17 +164,8 @@ export function ContractorCompare({ projectId }: ContractorCompareProps) {
     toggleCompare(contractorId)
   }
 
-  /** Giá trị tốt hơn theo từng tiêu chí có thể so bằng số (mục 4). */
-  const betterIdByCriterion = new Map<string, string>()
-  for (const [criterion, getValue] of Object.entries(NUMERIC_CRITERIA)) {
-    if (rows.length < 2) continue
-    const values = rows.map((c) => getValue(c))
-    const best = LOWER_IS_BETTER.has(criterion) ? Math.min(...values) : Math.max(...values)
-    // Bằng nhau thì không đánh dấu ai — không phải "tốt hơn" ai cả.
-    if (values.filter((v) => v === best).length > 1) continue
-    const winner = rows.find((c) => getValue(c) === best)
-    if (winner) betterIdByCriterion.set(criterion, winner.id)
-  }
+  /** Giá trị tốt hơn theo từng tiêu chí có thể so bằng số (mục 4); ô chưa cập nhật không tham gia. */
+  const betterIdByCriterion = betterByCriterion(rows, NUMERIC_CRITERIA)
 
   /** Mời hàng loạt: xếp hàng đợi rồi mở màn chọn lịch của nhà thầu đầu tiên (S16). */
   const invitePicked = () => {
@@ -203,7 +210,8 @@ export function ContractorCompare({ projectId }: ContractorCompareProps) {
           <button
             type='button'
             onClick={goBack}
-            className='text-primary-strong inline-flex items-center gap-2 text-sm font-medium lg:absolute lg:top-1 lg:left-0'
+            data-back-navigation
+            className='text-foreground inline-flex items-center gap-2 text-sm font-medium lg:absolute lg:top-1 lg:left-0'
           >
             ← {tCommon('backToList')}
           </button>
@@ -248,13 +256,27 @@ export function ContractorCompare({ projectId }: ContractorCompareProps) {
         </AnimatePresence>
       </motion.p>
 
+      {!isPending && unavailableCount > 0 ? (
+        <div
+          role='alert'
+          className='bg-muted/50 mx-auto flex w-fit max-w-3xl flex-wrap items-center justify-center gap-3 rounded-xl border px-4 py-3 text-sm'
+        >
+          <span>{t('loadFailed', { count: unavailableCount })}</span>
+          {compareQuery.isError ? (
+            <Button size='sm' variant='outline' onClick={() => void compareQuery.refetch()}>
+              {t('retry')}
+            </Button>
+          ) : null}
+        </div>
+      ) : null}
+
       {isPending ? (
         <Skeleton className='h-96 rounded-2xl' />
       ) : rows.length === 0 ? (
         <EmptyState
           title={t('tooFew', { min: MIN_COMPARE })}
           action={
-            <Button variant='outline' onClick={goBack}>
+            <Button data-back-navigation variant='outline' onClick={goBack}>
               {t('back')}
             </Button>
           }
@@ -332,8 +354,14 @@ export function ContractorCompare({ projectId }: ContractorCompareProps) {
                                 {contractor.verified ? <BadgeCheck className='text-primary size-4 shrink-0' /> : null}
                               </span>
                               <span className='mt-1 flex items-center gap-1.5 text-sm'>
-                                <Star className='text-warning size-4 shrink-0 fill-current' />
-                                {formatNumber(contractor.rating, locale, { minimumFractionDigits: 1 })}/5
+                                {compareNumber('rating', contractor) === null ? (
+                                  <span className='text-muted-foreground'>{t('notUpdated')}</span>
+                                ) : (
+                                  <>
+                                    <Star className='text-warning size-4 shrink-0 fill-current' />
+                                    {formatNumber(contractor.rating, locale, { minimumFractionDigits: 1 })}/5
+                                  </>
+                                )}
                               </span>
                               <Button
                                 size='sm'
@@ -548,7 +576,7 @@ export function ContractorCompare({ projectId }: ContractorCompareProps) {
             </div>
 
             <div className='flex flex-wrap gap-2'>
-              <Button variant='outline' onClick={goBack}>
+              <Button data-back-navigation variant='outline' onClick={goBack}>
                 {t('back')}
               </Button>
               <motion.span
@@ -566,19 +594,19 @@ export function ContractorCompare({ projectId }: ContractorCompareProps) {
         </>
       )}
 
-      <Sheet open={Boolean(profileContractor)} onOpenChange={(open) => !open && setProfileContractor(null)}>
+      <Sheet open={Boolean(profileView)} onOpenChange={(open) => !open && setProfileContractor(null)}>
         <SheetContent className='w-[94vw] overflow-y-auto sm:max-w-lg'>
-          {profileContractor ? (
+          {profileView ? (
             <>
               <SheetHeader className='pr-10'>
                 <div className='flex items-center gap-3'>
-                  <ContractorLogo contractor={profileContractor} className='size-14 shrink-0 rounded-xl' />
+                  <ContractorLogo contractor={profileView} className='size-14 shrink-0 rounded-xl' />
                   <div className='min-w-0'>
                     <SheetTitle className='flex items-center gap-1.5'>
-                      <span className='truncate'>{profileContractor.name}</span>
-                      {profileContractor.verified ? <BadgeCheck className='text-primary size-4 shrink-0' /> : null}
+                      <span className='truncate'>{profileView.name}</span>
+                      {profileView.verified ? <BadgeCheck className='text-primary size-4 shrink-0' /> : null}
                     </SheetTitle>
-                    <SheetDescription>{profileContractor.kind}</SheetDescription>
+                    <SheetDescription className='sr-only'>{profileView.name}</SheetDescription>
                   </div>
                 </div>
               </SheetHeader>
@@ -588,22 +616,36 @@ export function ContractorCompare({ projectId }: ContractorCompareProps) {
                   <div className='bg-muted/40 rounded-xl p-3'>
                     <dt className='text-muted-foreground text-xs'>{t('criteria.rating')}</dt>
                     <dd className='mt-1 font-semibold'>
-                      {formatNumber(profileContractor.rating, locale, { minimumFractionDigits: 1 })}/5
+                      {compareNumber('rating', profileView) === null ? (
+                        <span className='text-muted-foreground font-normal'>{t('notUpdated')}</span>
+                      ) : (
+                        <>{formatNumber(profileView.rating, locale, { minimumFractionDigits: 1 })}/5</>
+                      )}
                     </dd>
                   </div>
                   <div className='bg-muted/40 rounded-xl p-3'>
                     <dt className='text-muted-foreground text-xs'>{t('criteria.similarProjects')}</dt>
-                    <dd className='mt-1 font-semibold'>{profileContractor.similarProjects}</dd>
+                    <dd className='mt-1 font-semibold'>
+                      {compareNumber('similarProjects', profileView) === null ? (
+                        <span className='text-muted-foreground font-normal'>{t('notUpdated')}</span>
+                      ) : (
+                        profileView.similarProjects
+                      )}
+                    </dd>
                   </div>
                 </dl>
 
                 <section>
                   <h3 className='font-semibold'>{tFirm('introTitle')}</h3>
                   <p className='text-muted-foreground mt-2 text-sm leading-relaxed text-pretty'>
-                    {profileContractor.intro}
+                    {fullProfile.isPending ? (
+                      <Skeleton className='h-16 w-full' />
+                    ) : (
+                      profileView.intro || <span className='italic'>{t('notUpdated')}</span>
+                    )}
                   </p>
                   <div className='mt-3 flex flex-wrap gap-2'>
-                    {profileContractor.strengths.map((strength) => (
+                    {profileView.strengths.map((strength) => (
                       <span key={strength} className='bg-primary/10 text-primary-strong rounded-md px-2.5 py-1 text-xs'>
                         {strength}
                       </span>
@@ -614,25 +656,13 @@ export function ContractorCompare({ projectId }: ContractorCompareProps) {
                 <section>
                   <h3 className='font-semibold'>{tFirm('featured')}</h3>
                   <ul className='mt-2 space-y-2'>
-                    {profileContractor.featuredProjects.map((project) => (
+                    {profileView.featuredProjects.map((project) => (
                       <li
                         key={project.id}
                         className='bg-muted/40 flex items-center justify-between gap-3 rounded-xl p-3'
                       >
                         <span className='text-sm font-medium text-pretty'>{project.name}</span>
                         <span className='text-muted-foreground shrink-0 text-xs'>{project.year}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-
-                <section>
-                  <h3 className='font-semibold'>{tFirm('legalTitle')}</h3>
-                  <ul className='mt-2 space-y-2'>
-                    {profileContractor.legalChecks.map((check) => (
-                      <li key={check} className='flex items-start gap-2 text-sm'>
-                        <CircleCheck className='text-primary mt-0.5 size-4 shrink-0' />
-                        <span className='text-muted-foreground text-pretty'>{check}</span>
                       </li>
                     ))}
                   </ul>
@@ -661,31 +691,40 @@ function CriterionValue({
   const t = useTranslations('contractors.compare')
   const tCommon = useTranslations('contractors.common')
 
+  // Nhà thầu chưa có dữ liệu cho tiêu chí nào thì ô hiện "Chưa cập nhật", không in số 0 như thể đã khai báo.
+  const notUpdated = <span className='text-muted-foreground'>{t('notUpdated')}</span>
+
   switch (criterion) {
-    case 'rating':
-      return <span>{formatNumber(contractor.rating, locale, { minimumFractionDigits: 1 })}/5</span>
-    case 'similarProjects':
-      return <span>{contractor.similarProjects}</span>
-    case 'distance':
-      return (
+    case 'rating': {
+      const value = compareNumber('rating', contractor)
+      return value === null ? notUpdated : <span>{formatNumber(value, locale, { minimumFractionDigits: 1 })}/5</span>
+    }
+    case 'similarProjects': {
+      const value = compareNumber('similarProjects', contractor)
+      return value === null ? notUpdated : <span>{value}</span>
+    }
+    case 'distance': {
+      const value = compareNumber('distance', contractor)
+      return value === null ? (
+        notUpdated
+      ) : (
         <span>
-          {tCommon('distanceShort', { km: formatNumber(contractor.distanceKm, locale, { minimumFractionDigits: 1 }) })}
+          {tCommon('distanceShort', {
+            km: formatNumber(value, locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+          })}
         </span>
       )
-    case 'surveyTime':
-      return <span>{t('surveyValue', { hours: contractor.surveyWithinHours })}</span>
-    case 'serviceAreas':
-      return <span>{contractor.serviceAreas.join(', ')}</span>
+    }
+    case 'surveyTime': {
+      const value = compareNumber('surveyTime', contractor)
+      return value === null ? notUpdated : <span>{t('surveyValue', { hours: value })}</span>
+    }
     case 'legal':
-      return <span>{t('legalVerified')}</span>
-    case 'warranty':
-      return <span>{t('warrantyValue', { months: contractor.warrantyMonths })}</span>
-    case 'accepting':
-      return contractor.acceptingProjects ? (
-        <CircleCheck className='text-primary mx-auto size-4' />
-      ) : (
-        <Minus className='text-muted-foreground mx-auto size-4' />
-      )
+      return compareLegalVerified(contractor) ? <span>{t('legalVerified')}</span> : notUpdated
+    case 'warranty': {
+      const value = compareNumber('warranty', contractor)
+      return value === null ? notUpdated : <span>{t('warrantyValue', { months: value })}</span>
+    }
   }
 }
 

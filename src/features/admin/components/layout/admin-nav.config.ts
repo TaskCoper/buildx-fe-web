@@ -7,15 +7,18 @@ import {
   BuildOutlined,
   CalendarOutlined,
   DollarOutlined,
+  EditOutlined,
   EnvironmentOutlined,
   FileTextOutlined,
   HistoryOutlined,
+  HomeOutlined,
   GiftOutlined,
-  OrderedListOutlined,
   PlayCircleOutlined,
+  ProfileOutlined,
   SafetyCertificateOutlined,
   SendOutlined,
   SkinOutlined,
+  SolutionOutlined,
   TeamOutlined,
   UserOutlined
 } from '@ant-design/icons'
@@ -33,14 +36,11 @@ import { ADMIN_ROUTES, type AdminRoute } from '@/shared/constants'
  *   · Tư vấn 1:1        — lịch hẹn.
  *   · Khách hàng        — tài khoản, dự án thiết kế, kiểm duyệt review / báo cáo.
  *   · Thư viện          — kho mẫu 2D/3D và video hướng dẫn.
+ *   · Nội dung          — biên tập trang chủ, footer, Tìm nhà thầu, Cẩm nang và Bảng giá.
  *   · Cấu hình          — CON SỐ điều khiển hệ thống: giá gói, hạn mức, danh mục, đơn giá.
  *
  * Nhóm theo LUỒNG của khách chứ không theo kiểu dữ liệu: nhận cuộc gọi "tôi mời
  * nhà thầu rồi mà chưa ai gọi lại" thì mọi thứ của luồng đó nằm cạnh nhau.
- *
- * Nhóm "Nội dung site" (CMS theo trang) tạm GỠ khỏi menu — nội dung trang công
- * khai đang sửa thẳng ở FE. Route `/admin/content/[page]` và `admin-pages.config`
- * vẫn còn nguyên để bật lại khi làm CMS.
  *
  * "Kỳ đăng ký gói" (gia hạn / hủy tay) cũng gỡ khỏi menu: kích hoạt và hết hạn gói do
  * backend xử lý; gói hiện tại của khách xem ở "Tài khoản khách".
@@ -124,9 +124,20 @@ export const ADMIN_NAV = [
       { key: 'templates', href: ADMIN_ROUTES.TEMPLATES, icon: BookOutlined },
       // Đã ẩn "Lượt xem mẫu" (templateViews) khỏi menu theo yêu cầu; route và trang vẫn còn để bật lại.
       { key: 'articles', href: ADMIN_ROUTES.ARTICLES, icon: FileTextOutlined },
-      { key: 'handbookSteps', href: ADMIN_ROUTES.HANDBOOK_STEPS, icon: OrderedListOutlined },
       { key: 'guideVideos', href: ADMIN_ROUTES.GUIDE_VIDEOS, icon: PlayCircleOutlined }
       // Đã ẩn "Đánh giá khách hàng" (testimonials) khỏi menu theo yêu cầu; route và trang vẫn còn để bật lại.
+    ]
+  },
+  {
+    key: 'content',
+    icon: EditOutlined,
+    items: [
+      { key: 'homeContent', href: ADMIN_ROUTES.HOME_CONTENT, icon: HomeOutlined },
+      { key: 'footerContent', href: ADMIN_ROUTES.FOOTER_CONTENT, icon: ProfileOutlined },
+      { key: 'contractorsContent', href: ADMIN_ROUTES.CONTRACTORS_CONTENT, icon: SolutionOutlined },
+      // Các bước và Bản tin của Cẩm nang đã gộp vào tab Tin tức của màn này.
+      { key: 'handbookContent', href: ADMIN_ROUTES.HANDBOOK_CONTENT, icon: EditOutlined },
+      { key: 'plansContent', href: ADMIN_ROUTES.PLANS_CONTENT, icon: EditOutlined }
     ]
   }
   // Đã ẩn "Cấu hình dự toán" (config: nhóm chi phí, hạng mục, đơn giá vật liệu,
@@ -141,5 +152,5 @@ export const ADMIN_NAV = [
 export type AdminNavGroup = (typeof ADMIN_NAV)[number]
 export type AdminNavItem = AdminNavGroup['items'][number]
 
-/** Mọi mục ngoài nhóm nội dung, phẳng — dùng để tra tiêu đề trang theo pathname. */
+/** Mọi mục điều hướng, phẳng — dùng để tra tiêu đề trang theo pathname. */
 export const ADMIN_NAV_ITEMS: readonly AdminNavItem[] = ADMIN_NAV.flatMap<AdminNavItem>((group) => [...group.items])

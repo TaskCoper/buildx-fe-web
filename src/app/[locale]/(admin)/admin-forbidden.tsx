@@ -27,7 +27,9 @@ export function AdminForbidden() {
         extra={
           <Space>
             <Link href={ROUTES.HOME}>
-              <Button type='primary'>{t('backHome')}</Button>
+              <Button data-back-navigation style={{ color: 'var(--foreground)' }}>
+                {t('backHome')}
+              </Button>
             </Link>
             <Button loading={logout.isPending} onClick={() => logout.mutate()}>
               {t('switchAccount')}

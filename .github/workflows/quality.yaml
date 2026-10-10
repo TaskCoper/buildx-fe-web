@@ -56,3 +56,6 @@ jobs:
 
       - name: Build application
         run: pnpm build
+
+      - name: Test production rendering and CMS invalidation
+        run: pnpm test:rendering

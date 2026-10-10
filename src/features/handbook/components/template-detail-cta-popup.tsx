@@ -8,12 +8,13 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link } from '@/i18n/navigation'
 import { useAuthStore } from '@/shared/auth'
 import { useCmsCollection, type HandbookTemplate } from '@/shared/cms'
-import { Photo, PopupBrandLogo } from '@/shared/components/common'
+import { PopupBrandLogo } from '@/shared/components/common'
 import { Button } from '@/shared/components/ui/button'
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from '@/shared/components/ui/dialog'
 import { JOURNEY_POPUP_TEST_MODE } from '@/shared/constants'
 import { designCreateRoute, ROUTES } from '@/shared/constants/routes'
 import { TOPIC_IMAGE, cn } from '@/shared/lib'
+import { Picture } from './template-figure'
 
 const TEMPLATE_POPUP_SESSION_KEY = 'savico.page-popup.template'
 const TRIGGER_DELAY_MS = 8_000
@@ -25,6 +26,8 @@ interface TemplateDetailCtaPopupProps {
 interface TemplatePopupCardProps {
   tone: 'green' | 'orange'
   image: string
+  /** Bản vẽ mẫu phải hiện TRỌN khung (`contain`); ảnh minh hoạ chung thì cắt lấp khung (`cover`). */
+  imageFit?: 'cover' | 'contain'
   imageAlt: string
   Icon: LucideIcon
   badge?: string
@@ -121,17 +124,8 @@ export function TemplateDetailCtaPopup({ template }: TemplateDetailCtaPopupProps
         showCloseButton={false}
         className='max-h-[calc(100dvh-20px)] w-[min(1080px,calc(100vw-24px))] max-w-[1080px] gap-0 overflow-x-hidden overflow-y-auto rounded-[24px] border-0 bg-background p-0 shadow-2xl sm:max-w-[1080px] max-[899px]:inset-x-0 max-[899px]:bottom-0 max-[899px]:top-auto max-[899px]:flex max-[899px]:h-[90dvh] max-[899px]:max-h-[90dvh] max-[899px]:w-full max-[899px]:max-w-full max-[899px]:translate-x-0 max-[899px]:translate-y-0 max-[899px]:flex-col max-[899px]:overflow-hidden max-[899px]:rounded-b-none max-[899px]:rounded-t-[24px]'
       >
-        <div className='relative shrink-0 bg-background px-5 pt-5 sm:px-6 max-[899px]:pb-3'>
+        <div className='relative shrink-0 bg-background px-5 pt-5 sm:max-[900px]:px-6 min-[900px]:px-44 max-[899px]:pb-3'>
           <PopupBrandLogo />
-
-          <motion.div
-            initial={reduceMotion ? false : { opacity: 0, y: -6, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: reduceMotion ? 0 : 0.28, ease: [0.22, 1, 0.36, 1] }}
-            className='bg-accent text-primary-strong mx-auto flex w-fit items-center justify-center rounded-full px-4 py-2 text-sm font-bold'
-          >
-            {t('badge')}
-          </motion.div>
 
           <DialogClose
             aria-label={t('close')}
@@ -159,10 +153,13 @@ export function TemplateDetailCtaPopup({ template }: TemplateDetailCtaPopupProps
           </motion.div>
         </div>
 
-        <div className='grid gap-4 px-4 pt-5 sm:px-6 min-[900px]:grid-cols-2 max-[899px]:min-h-0 max-[899px]:flex-1 max-[899px]:overflow-y-auto max-[899px]:overscroll-contain max-[899px]:pt-2 max-[899px]:pb-4'>
+        {/* Chân popup không còn nút "Để sau" (đã ẩn chữ, chỉ còn khoảng trống) nên khoảng cách dưới thẻ do
+            chính khối thẻ giữ — góp ý case 6. Nút đóng nằm ở góc trên. */}
+        <div className='grid gap-4 px-4 pt-5 pb-5 sm:px-6 sm:pb-6 min-[900px]:grid-cols-2 max-[899px]:min-h-0 max-[899px]:flex-1 max-[899px]:overflow-y-auto max-[899px]:overscroll-contain max-[899px]:pt-2 max-[899px]:pb-4'>
           <TemplatePopupCard
             tone='orange'
             image={primaryImage}
+            imageFit={template.imageUrl || template.floors[0]?.imageUrl ? 'contain' : 'cover'}
             imageAlt={t('create.imageAlt')}
             Icon={FilePlus2}
             badge={t('create.badge')}
@@ -205,16 +202,6 @@ export function TemplateDetailCtaPopup({ template }: TemplateDetailCtaPopupProps
             }
           />
         </div>
-
-        <div className='flex shrink-0 justify-end bg-background px-5 pt-4 pb-4 sm:px-6 max-[899px]:border-t max-[899px]:border-border/70 max-[899px]:pt-3'>
-          <button
-            type='button'
-            onClick={() => setOpen(false)}
-            className='text-muted-foreground hover:text-foreground text-sm underline decoration-current/60 underline-offset-4 transition-colors duration-150'
-          >
-            {t('later')}
-          </button>
-        </div>
       </DialogContent>
     </Dialog>
   )
@@ -223,6 +210,7 @@ export function TemplateDetailCtaPopup({ template }: TemplateDetailCtaPopupProps
 function TemplatePopupCard({
   tone,
   image,
+  imageFit = 'cover',
   imageAlt,
   Icon,
   badge,
@@ -271,9 +259,10 @@ function TemplatePopupCard({
               ease: [0.22, 1, 0.36, 1]
             }}
           >
-            <Photo
+            <Picture
               src={image}
               alt={imageAlt}
+              fit={imageFit}
               sizes='(max-width: 768px) 100vw, 330px'
               className='h-[150px] rounded-[12px] max-[899px]:h-[132px]'
               imageClassName='transition-transform duration-[180ms] ease-out group-hover:scale-[1.025]'

@@ -7,8 +7,12 @@
 /** id dự toán thật là UUID; id mock có dạng `SVC-YYYY-NNNN`. */
 export const isApiEstimateId = (id: string): boolean => /^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(id)
 
-/** Mã dự án hiển thị cho khách: dự toán thật dùng 8 ký tự đầu của UUID (UUID đầy đủ quá dài cho tiêu đề), mock giữ nguyên. */
-export const displayProjectId = (id: string): string => (isApiEstimateId(id) ? id.slice(0, 8).toUpperCase() : id)
+/**
+ * Mã dự án hiển thị cho khách. Ưu tiên mã dự toán BE cấp (`BUILDX-YYYYMMDD-XXXXXX`); bản cũ chưa có mã thì dùng 8 ký tự
+ * đầu của UUID (UUID đầy đủ quá dài cho tiêu đề), mock giữ nguyên id.
+ */
+export const displayProjectId = (id: string, code?: string | null): string =>
+  code?.trim() ? code.trim() : isApiEstimateId(id) ? id.slice(0, 8).toUpperCase() : id
 
 export type FinishPackage = 'Basic' | 'Standard' | 'Vip'
 

@@ -15,6 +15,11 @@ export interface NewsCategoryNode {
   name: string
   sortOrder: number
   hasChildren: boolean
+  /** Bước của Cẩm nang; chỉ danh mục gốc mới có (BR-HB-001 khoản 4). */
+  stageId: string | null
+  /** true là chủ đề hướng dẫn, hiện trong một bước; false là nhãn tin tức, hiện ở bộ lọc bài viết. */
+  isInstruction: boolean
+  iconKey: string | null
 }
 
 export interface NewsCategoryPage {
@@ -28,6 +33,9 @@ export interface BmtNewsCategory {
   name?: string | null
   sortOrder?: number | null
   hasChildren?: boolean | null
+  stageId?: string | null
+  isInstruction?: boolean | null
+  iconKey?: string | null
 }
 
 export interface BmtNewsCategoryPage {
@@ -47,7 +55,10 @@ export function normalizeNewsCategory(raw: BmtNewsCategory | null | undefined): 
     parentId: text(raw?.parentId) || null,
     name,
     sortOrder: typeof raw?.sortOrder === 'number' && Number.isFinite(raw.sortOrder) ? raw.sortOrder : 0,
-    hasChildren: Boolean(raw?.hasChildren)
+    hasChildren: Boolean(raw?.hasChildren),
+    stageId: text(raw?.stageId) || null,
+    isInstruction: Boolean(raw?.isInstruction),
+    iconKey: text(raw?.iconKey) || null
   }
 }
 
@@ -82,6 +93,21 @@ export function descendantIds(nodes: readonly NewsCategoryNode[], rootId: string
     }
   }
   return result
+}
+
+/**
+ * Bỏ cả NHÁNH của mọi chủ đề hướng dẫn: nút gốc bật `isInstruction` và mọi hậu duệ của nó. Chủ đề hướng dẫn hiện
+ * bên trong một bước chứ không phải ở bộ lọc bài viết (BR-HB-001 khoản 3). Phải bỏ cả hậu duệ: `chipNodes` lấy
+ * con của nút gốc làm chip, nên nếu chỉ bỏ nút gốc thì các danh mục con của một chủ đề sẽ lọt vào chip.
+ */
+export function excludeInstructionBranches(nodes: readonly NewsCategoryNode[]): NewsCategoryNode[] {
+  const hidden = new Set<string>()
+  for (const node of nodes) {
+    if (node.parentId === null && node.isInstruction) {
+      for (const id of descendantIds(nodes, node.id)) hidden.add(id)
+    }
+  }
+  return nodes.filter((node) => !hidden.has(node.id))
 }
 
 /**

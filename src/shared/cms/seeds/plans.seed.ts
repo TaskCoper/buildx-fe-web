@@ -17,8 +17,8 @@ import type {
  */
 /* ===========================================================================
  * ẢNH BA THẺ GÓI — theo sheet góp ý BuildX (tab "Hình ảnh website", hình 01–03),
- * đặt ở `public/images/plans/`: basic.webp · plus.webp · pro.webp. Ảnh quà tặng
- * (`gift.imageUrl`): gift-sanitary.png.
+ * đặt ở `public/images/plans/`: basic.avif · plus.avif · pro.avif. Ảnh quà tặng
+ * (`gift.imageUrl`): gift-sanitary.avif.
  *
  * Tỉ lệ khung ảnh thẻ là 16:10; khung ảnh quà là ô vuông 56px.
  * ======================================================================== */
@@ -65,7 +65,7 @@ export const PLANS_SEED: SubscriptionPlan[] = [
     designCredits: 3,
     libraryCredits: 20,
     fitLine: 'Phù hợp khi bạn đã khá rõ nhu cầu và muốn bắt đầu nhanh.',
-    imageUrl: '/images/plans/basic.webp',
+    imageUrl: '/images/plans/basic.avif',
     ctaLabel: 'Chọn gói BASIC',
     status: 'selling',
     benefits: benefits(
@@ -90,7 +90,7 @@ export const PLANS_SEED: SubscriptionPlan[] = [
     designCredits: 10,
     libraryCredits: 50,
     fitLine: 'Phù hợp khi bạn muốn thử và so sánh nhiều phương án trước khi chốt.',
-    imageUrl: '/images/plans/plus.webp',
+    imageUrl: '/images/plans/plus.avif',
     ctaLabel: 'Chọn gói PLUS',
     status: 'selling',
     benefits: benefits(
@@ -101,7 +101,8 @@ export const PLANS_SEED: SubscriptionPlan[] = [
         advisory: { level: 'priority' }
       }
     ),
-    highlights: ['designCredits', 'interiorEstimate', 'layout', 'exportDossier', 'advisory'],
+    // `libraryCredits` hiện số lượt tra cứu thư viện mẫu LẤY TỪ API (plans.merge: quota `catalog.detail`), như BASIC.
+    highlights: ['designCredits', 'libraryCredits', 'interiorEstimate', 'layout', 'exportDossier', 'advisory'],
     giftId: null
   },
   {
@@ -114,7 +115,7 @@ export const PLANS_SEED: SubscriptionPlan[] = [
     designCredits: 20,
     libraryCredits: 100,
     fitLine: 'Phù hợp khi bạn muốn tối ưu ngân sách và vật liệu trước khi thi công.',
-    imageUrl: '/images/plans/pro.webp',
+    imageUrl: '/images/plans/pro.avif',
     ctaLabel: 'Chọn gói PRO',
     status: 'selling',
     benefits: benefits(
@@ -150,7 +151,7 @@ export const GIFTS_SEED: CmsGift[] = [
     title: 'Bộ thiết bị vệ sinh châu Âu',
     description: 'Trọn bộ thiết bị vệ sinh nhập khẩu châu Âu cho một căn nhà.',
     value: 100_000_000,
-    imageUrl: '/images/plans/gift-sanitary.png',
+    imageUrl: '/images/plans/gift-sanitary.avif',
     extraOffer: 'Khấu trừ 3.990.000đ vào giá trị hợp đồng khi đáp ứng điều kiện chương trình.',
     status: 'active'
   }
@@ -169,7 +170,7 @@ export const SUPERVISION_PACKAGES_SEED: SupervisionPackage[] = [
   {
     id: 'self',
     tier: 'self',
-    imageUrl: '/images/supervision/self.webp',
+    imageUrl: '/images/supervision/self.avif',
     name: 'TỰ QUẢN LÝ',
     price: 0,
     durationMonths: 6,
@@ -185,7 +186,7 @@ export const SUPERVISION_PACKAGES_SEED: SupervisionPackage[] = [
   {
     id: 'check',
     tier: 'check',
-    imageUrl: '/images/supervision/check.webp',
+    imageUrl: '/images/supervision/check.avif',
     name: 'AN TÂM',
     price: 8_900_000,
     durationMonths: 6,
@@ -203,7 +204,7 @@ export const SUPERVISION_PACKAGES_SEED: SupervisionPackage[] = [
   {
     id: 'control',
     tier: 'control',
-    imageUrl: '/images/supervision/control.webp',
+    imageUrl: '/images/supervision/control.avif',
     name: 'TOÀN DIỆN',
     price: 18_900_000,
     durationMonths: 6,

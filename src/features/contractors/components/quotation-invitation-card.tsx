@@ -16,7 +16,10 @@ import { ContractorStats } from './contractor-stats'
 
 const strong = (chunks: React.ReactNode) => <b className='text-foreground font-medium'>{chunks}</b>
 
-/** S18 presentation over RFQ data. No invented INV code, update time or status history. */
+/**
+ * S18 presentation over RFQ data. No invented INV code, update time or status history: the only code the API gives a
+ * request is the dossier code of its construction site (`siteCode`), which ops also search by, so that is what we show.
+ */
 export function QuotationInvitationCard({
   item,
   onDetail,
@@ -49,19 +52,20 @@ export function QuotationInvitationCard({
       className={cn('bg-card relative space-y-4 overflow-hidden rounded-2xl border p-4 sm:p-5', completed && 'pt-5')}
     >
       {completed ? <span aria-hidden className='bg-primary absolute inset-x-0 top-0 h-1' /> : null}
-      <div className='flex flex-wrap items-start gap-4'>
-        <ContractorLogo contractor={contractor ?? { name: item.contractorName }} />
-        <div className='min-w-0 flex-1'>
-          <h2 className='flex items-center gap-2 font-semibold'>
-            <span className='break-words'>{item.contractorName}</span>
-            {contractor?.verified ? <BadgeCheck className='text-primary size-4 shrink-0' /> : null}
-          </h2>
-          {contractor?.officeAddress ? (
-            <p className='text-muted-foreground mt-1 text-sm'>
-              {[contractor.kind, contractor.officeAddress].filter(Boolean).join(' · ')}
-            </p>
-          ) : null}
-          {contractor ? <ContractorStats contractor={contractor} dense className='mt-2' /> : null}
+      <div className='flex flex-wrap items-start gap-x-4 gap-y-3'>
+        {/* Logo + tên đi chung một khối để màn hẹp đẩy cụm trạng thái xuống dòng dưới, thay vì bóp cột tên. */}
+        <div className='flex min-w-0 flex-[1_1_16rem] items-start gap-4'>
+          <ContractorLogo contractor={contractor ?? { name: item.contractorName }} className='shrink-0' />
+          <div className='min-w-0 flex-1'>
+            <h2 className='flex items-center gap-2 font-semibold'>
+              <span className='break-words'>{item.contractorName}</span>
+              {contractor?.verified ? <BadgeCheck className='text-primary size-4 shrink-0' /> : null}
+            </h2>
+            {contractor?.officeAddress ? (
+              <p className='text-muted-foreground mt-1 text-sm'>{contractor.officeAddress}</p>
+            ) : null}
+            {contractor ? <ContractorStats contractor={contractor} dense className='mt-2' /> : null}
+          </div>
         </div>
         <div className='flex flex-wrap items-center gap-2'>
           <span className='bg-primary/10 text-primary-strong inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium'>
@@ -84,7 +88,7 @@ export function QuotationInvitationCard({
       </div>
 
       <div className='text-muted-foreground flex flex-wrap items-center gap-x-6 gap-y-1.5 border-t pt-3 text-sm'>
-        <span>{t.rich('code', { code: rfq('displayCodeUnavailable'), b: strong })}</span>
+        {item.siteCode ? <span>{t.rich('siteCode', { code: item.siteCode, b: strong })}</span> : null}
         <span>{t.rich('sentAt', { time: stamp(item.createdAtUtc), b: strong })}</span>
         {detail.data ? (
           <button type='button' onClick={onDetail} title={rfq('viewSent')} className='text-left hover:underline'>

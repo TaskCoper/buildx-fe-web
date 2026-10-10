@@ -42,7 +42,10 @@ FROM node:24-alpine AS runner
 
 WORKDIR /usr/src/app
 
+# Keep the authenticated image adapter on the same API origin as the built /api/v1 rewrite.
+ARG BMT_API_ORIGIN=https://bmt-api.vnzdna.com
 ENV NODE_ENV=production \
+    BMT_API_ORIGIN=${BMT_API_ORIGIN} \
     NEXT_TELEMETRY_DISABLED=1 \
     PORT=3000 \
     HOSTNAME=0.0.0.0

@@ -4,13 +4,12 @@ import { animate, motion, useMotionValue, useReducedMotion, useTransform } from 
 import {
   ArrowLeft,
   CheckCircle2,
+  CircleAlert,
   FileText,
   Info,
   LoaderCircle,
   Palette,
   QrCode,
-  RotateCcw,
-  ShieldCheck,
   SquarePen
 } from 'lucide-react'
 
@@ -27,14 +26,14 @@ import { Checkbox } from '@/shared/components/ui/checkbox'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
 import { Switch } from '@/shared/components/ui/switch'
-import { ROUTES, supervisionPlansRoute } from '@/shared/constants/routes'
+import { ROUTES, checkoutPaymentRoute, supervisionPlansRoute } from '@/shared/constants/routes'
 import { evaluateDiscount, useCmsCollection } from '@/shared/cms'
 import { usePageEntrance } from '@/shared/hooks'
 import { canReturnToCheckoutSource, clearCheckoutReturn } from '@/shared/lib/checkout-return'
 import { cn } from '@/shared/lib/utils'
-import { formatCurrency } from '@/shared/utils'
-import { isApiOrderId, REFUND_WINDOW_HOURS } from '../constants/checkout.constants'
-import { useCreateOrder } from '../hooks/use-checkout'
+import { formatCurrency, formatDisplayDateTime } from '@/shared/utils'
+import { isApiOrderId } from '../constants/checkout.constants'
+import { useCancelOrderInPlace, useCreateOrder, usePendingDesignOrder } from '../hooks/use-checkout'
 import type { OfferKey, OrderKind } from '../types/checkout.types'
 import { CheckoutSteps } from './checkout-steps'
 
@@ -189,6 +188,16 @@ export function OrderConfirm({ productId, kind, projectId, projectName, offerKey
   }, [reduceMotion, rootRef])
   const createOrder = useCreateOrder({ beforeNavigate: beforePaymentNavigate })
 
+  // Mỗi khách chỉ có MỘT đơn thiết kế đang chờ (BR-PAY-001): nếu đã có thì màn này không tạo đơn mới được mà
+  // phải dẫn khách về đơn đó (góp ý case 5). Chỉ gói thiết kế từ API mới có đơn thật để kiểm.
+  const pendingQuery = usePendingDesignOrder(kind === 'design' && isApiProduct)
+  const pendingOrder = pendingQuery.data ?? null
+  // Chỉ chặn nút lúc ĐANG tải (`isLoading`). Truy vấn bị tắt (gói mock, gói giám sát) có `isPending` = true mãi mãi
+  // vì chưa có dữ liệu — dùng nó sẽ khoá nút thanh toán vĩnh viễn.
+  const cancelPending = useCancelOrderInPlace()
+  const [confirmingCancel, setConfirmingCancel] = useState(false)
+  const [cancelling, setCancelling] = useState(false)
+
   const [buyer, setBuyer] = useState({
     name: user?.name ?? '',
     phone: user?.phone ?? '',
@@ -260,8 +269,10 @@ export function OrderConfirm({ productId, kind, projectId, projectName, offerKey
         <EmptyState
           title={t('missingProduct')}
           action={
-            <Button asChild>
-              <Link href={ROUTES.PLANS}>{t('backToPlans')}</Link>
+            <Button asChild variant='outline'>
+              <Link data-back-navigation href={ROUTES.PLANS}>
+                {t('backToPlans')}
+              </Link>
             </Button>
           }
         />
@@ -313,6 +324,21 @@ export function OrderConfirm({ productId, kind, projectId, projectName, offerKey
     }, 460)
   }
 
+  const cancelPendingOrder = async () => {
+    if (!pendingOrder) return
+    setCancelling(true)
+    try {
+      await cancelPending(pendingOrder.id)
+      toast.success(t('pending.cancelled'))
+      setConfirmingCancel(false)
+    } catch (error) {
+      // `useCancelOrderInPlace` đã đổi lỗi BE sang câu dành cho khách.
+      toast.error((error as { message?: string }).message ?? t('processing'))
+    } finally {
+      setCancelling(false)
+    }
+  }
+
   const submit = () => {
     if (!agreed) {
       setTermsError(true)
@@ -343,7 +369,8 @@ export function OrderConfirm({ productId, kind, projectId, projectName, offerKey
       <button
         type='button'
         onClick={backToPlan}
-        className='text-muted-foreground hover:text-foreground hidden items-center gap-1.5 text-sm font-medium transition-colors sm:inline-flex'
+        data-back-navigation
+        className='text-foreground hover:text-foreground hidden items-center gap-1.5 text-sm font-medium transition-colors sm:inline-flex'
       >
         <ArrowLeft className='size-4' />
         {t('backToPlans')}
@@ -693,37 +720,112 @@ export function OrderConfirm({ productId, kind, projectId, projectName, offerKey
               <p className='text-muted-foreground text-right text-xs'>{t('vat')}</p>
             </dl>
 
-            <Button
-              data-checkout-submit
-              data-ready={agreed ? 'true' : 'false'}
-              aria-disabled={createOrder.isPending || undefined}
-              className='relative mt-4 w-full overflow-hidden'
-              size='lg'
-              onClick={submit}
-              disabled={createOrder.isPending}
-            >
-              {createOrder.isPending ? <LoaderCircle className='size-4 animate-spin' /> : null}
-              {createOrder.isPending ? t('processing') : t('submit')}
-            </Button>
-            <p
-              className={cn(
-                'mt-2 text-xs',
-                termsError ? 'text-destructive' : agreed ? 'text-primary' : 'text-muted-foreground'
-              )}
-            >
-              {agreed ? t('readyHint') : t('termsRequired')}
-            </p>
-
-            <ul className='text-muted-foreground mt-4 space-y-2 text-xs'>
-              <li className='flex items-start gap-2'>
-                <ShieldCheck className='text-primary mt-0.5 size-3.5 shrink-0' />
-                <span>{t('noCardNote')}</span>
-              </li>
-              <li className='flex items-start gap-2'>
-                <RotateCcw className='text-primary mt-0.5 size-3.5 shrink-0' />
-                <span>{t('refund', { hours: REFUND_WINDOW_HOURS })}</span>
-              </li>
-            </ul>
+            {pendingOrder ? (
+              <>
+                {/* Cảnh báo CỐ ĐỊNH ngay trong khối đơn hàng, sát nút hành động (góp ý case 5): đơn đang chờ, số tiền,
+                    hạn và hai lối xử lý trực tiếp — không còn thông báo góc màn hình dễ bị đóng. */}
+                <div
+                  role='alert'
+                  data-checkout-pending-order
+                  className='border-warning/50 bg-warning/10 mt-4 space-y-3 rounded-xl border p-4'
+                >
+                  <div className='flex items-start gap-2'>
+                    <CircleAlert className='text-warning-strong mt-0.5 size-4 shrink-0' />
+                    <div className='min-w-0'>
+                      <p className='text-sm font-semibold'>{t('pending.title')}</p>
+                      <p className='text-muted-foreground mt-1 text-xs text-pretty'>
+                        {pendingOrder.state === 'PartiallyPaid' ? t('pending.partialBody') : t('pending.body')}
+                      </p>
+                    </div>
+                  </div>
+                  <dl className='bg-background/70 space-y-1 rounded-lg border px-3 py-2 text-xs'>
+                    <div className='flex justify-between gap-3'>
+                      <dt className='text-muted-foreground'>{t('pending.plan')}</dt>
+                      <dd className='text-right font-medium'>{pendingOrder.planName}</dd>
+                    </div>
+                    <div className='flex justify-between gap-3'>
+                      <dt className='text-muted-foreground'>{t('pending.amount')}</dt>
+                      <dd className='font-medium'>{formatCurrency(pendingOrder.priceVnd, locale)}</dd>
+                    </div>
+                    {pendingOrder.receivedVnd > 0 ? (
+                      <div className='flex justify-between gap-3'>
+                        <dt className='text-muted-foreground'>{t('pending.received')}</dt>
+                        <dd className='font-medium'>{formatCurrency(pendingOrder.receivedVnd, locale)}</dd>
+                      </div>
+                    ) : null}
+                    <div className='text-muted-foreground pt-1'>
+                      {t('pending.expires', { time: formatDisplayDateTime(pendingOrder.expiresAtUtc, locale) })}
+                    </div>
+                  </dl>
+                  {pendingOrder.state === 'Pending' ? (
+                    confirmingCancel ? (
+                      <div className='flex gap-2'>
+                        <Button
+                          type='button'
+                          variant='destructive'
+                          size='sm'
+                          className='flex-1'
+                          disabled={cancelling}
+                          onClick={() => void cancelPendingOrder()}
+                        >
+                          {cancelling ? <LoaderCircle className='size-3.5 animate-spin' /> : null}
+                          {cancelling ? t('pending.cancelling') : t('pending.confirmCancel')}
+                        </Button>
+                        <Button
+                          type='button'
+                          variant='outline'
+                          size='sm'
+                          className='flex-1'
+                          disabled={cancelling}
+                          onClick={() => setConfirmingCancel(false)}
+                        >
+                          {t('pending.keep')}
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button
+                        type='button'
+                        variant='outline'
+                        size='sm'
+                        className='w-full'
+                        onClick={() => setConfirmingCancel(true)}
+                      >
+                        {t('pending.cancel')}
+                      </Button>
+                    )
+                  ) : null}
+                </div>
+                <Button asChild className='mt-3 w-full' size='lg'>
+                  <Link href={checkoutPaymentRoute(pendingOrder.id)}>
+                    <QrCode className='size-4' />
+                    {t('pending.continue')}
+                  </Link>
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  data-checkout-submit
+                  data-ready={agreed ? 'true' : 'false'}
+                  aria-disabled={createOrder.isPending || pendingQuery.isLoading || undefined}
+                  className='relative mt-4 w-full overflow-hidden'
+                  size='lg'
+                  onClick={submit}
+                  disabled={createOrder.isPending || pendingQuery.isLoading}
+                >
+                  {createOrder.isPending ? <LoaderCircle className='size-4 animate-spin' /> : null}
+                  {createOrder.isPending ? t('processing') : t('submit')}
+                </Button>
+                <p
+                  className={cn(
+                    'mt-2 text-xs',
+                    termsError ? 'text-destructive' : agreed ? 'text-primary' : 'text-muted-foreground'
+                  )}
+                >
+                  {agreed ? t('readyHint') : t('termsRequired')}
+                </p>
+              </>
+            )}
           </section>
         </aside>
       </div>

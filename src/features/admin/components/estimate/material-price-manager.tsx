@@ -1,6 +1,6 @@
 'use client'
 
-import { Col, Form, InputNumber, Row, Select, Space, Tag, Typography } from 'antd'
+import { Col, Form, Row, Select, Space, Tag, Typography } from 'antd'
 import type { FormInstance } from 'antd'
 import { useLocale, useTranslations } from 'next-intl'
 import { useState } from 'react'
@@ -8,6 +8,7 @@ import { useState } from 'react'
 import type { Locale } from '@/i18n/routing'
 import type { CmsMaterialPrice, CmsServiceRegion } from '@/shared/cms'
 import { formatCurrency } from '@/shared/utils'
+import { MoneyInput } from '../common/money-input'
 import { useAdminCollection } from '../../hooks/use-admin-data'
 import { newAdminId } from '../../services/admin.service'
 import { ResourceManager } from '../common/resource-manager'
@@ -141,32 +142,31 @@ function PriceFields({ form }: { form: FormInstance }) {
       label={t(`packageTier.${name}`)}
       rules={[{ required: true, type: 'number', min: 1, message: t('materialPrices.priceRule') }]}
     >
-      <InputNumber<number>
-        min={0}
-        step={1000}
-        style={{ width: '100%' }}
-        formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
-        parser={(value) => Number(`${value}`.replace(/\./g, ''))}
-        suffix='₫'
-      />
+      <MoneyInput min={0} step={1000} />
     </Form.Item>
   )
 
   return (
     <>
-      <Form.Item
-        name='itemId'
-        label={t('materialPrices.item')}
-        rules={[{ required: true, message: t('fields.requiredMessage') }]}
-      >
-        <Select
-          showSearch={{ optionFilterProp: 'label' }}
-          onChange={() => form.setFieldValue('subItemId', undefined)}
-          options={items.map((entry) => ({ value: entry.id, label: `${groupName(entry.groupId)} · ${entry.name}` }))}
-        />
-      </Form.Item>
+      {/* Hai hàng, mỗi hàng chia đều: hạng mục + hạng mục con, rồi khu vực + ba mức giá. */}
       <Row gutter={16}>
-        <Col xs={24} md={16}>
+        <Col xs={24} md={12}>
+          <Form.Item
+            name='itemId'
+            label={t('materialPrices.item')}
+            rules={[{ required: true, message: t('fields.requiredMessage') }]}
+          >
+            <Select
+              showSearch={{ optionFilterProp: 'label' }}
+              onChange={() => form.setFieldValue('subItemId', undefined)}
+              options={items.map((entry) => ({
+                value: entry.id,
+                label: `${groupName(entry.groupId)} · ${entry.name}`
+              }))}
+            />
+          </Form.Item>
+        </Col>
+        <Col xs={24} md={12}>
           <Form.Item
             name='subItemId'
             label={t('materialPrices.subItem')}
@@ -178,7 +178,9 @@ function PriceFields({ form }: { form: FormInstance }) {
             />
           </Form.Item>
         </Col>
-        <Col xs={24} md={8}>
+      </Row>
+      <Row gutter={16}>
+        <Col xs={24} md={6}>
           <Form.Item
             name='region'
             label={t('materialPrices.region')}
@@ -187,10 +189,8 @@ function PriceFields({ form }: { form: FormInstance }) {
             <Select options={REGIONS.map((value) => ({ value, label: t(`contractors.regions.${value}`) }))} />
           </Form.Item>
         </Col>
-      </Row>
-      <Row gutter={16}>
         {TIERS.map((tier) => (
-          <Col key={tier} xs={24} md={8}>
+          <Col key={tier} xs={24} md={6}>
             {money(tier)}
           </Col>
         ))}

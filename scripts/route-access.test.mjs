@@ -45,10 +45,17 @@ test('guests and customers cannot open admin, even with injected permissions', (
 })
 test('a custom role opens exactly the sections granted by its effective permissions', () => {
   const reader = staff(['commerce.read', 'audit.read'])
-  for (const route of ['/admin/orders', '/admin/customers/id', '/admin/transactions', '/admin/access-audit']) {
+  for (const route of ['/admin/orders', '/admin/transactions', '/admin/access-audit']) {
     assert.equal(canAccessAdminRoute(reader, route), true, route)
   }
-  for (const route of ['/admin/roles', '/admin/staff', '/admin/payment-connections', '/admin/unknown']) {
+  for (const route of [
+    '/admin/customers',
+    '/admin/customers/id',
+    '/admin/roles',
+    '/admin/staff',
+    '/admin/payment-connections',
+    '/admin/unknown'
+  ]) {
     assert.equal(canAccessAdminRoute(reader, route), false, route)
   }
 })
@@ -61,6 +68,8 @@ test('Admin has no bypass for permission-based endpoints', () => {
 })
 for (const [permission, route] of [
   ['role.manage', '/admin/roles'],
+  ['customer.manage', '/admin/customers'],
+  ['customer.manage', '/admin/customers/some-customer-id'],
   ['user.manage', '/admin/staff'],
   ['assignment.manage', '/admin/assignments'],
   ['audit.read', '/admin/access-audit'],
@@ -87,6 +96,13 @@ test('read permission never grants mutation permissions', () => {
   for (const code of ['package.cancel', 'supervision.complete', 'supervision.unassign', 'role.manage']) {
     assert.equal(hasPermission(staff(['commerce.read']), code), false)
   }
+})
+
+test('pricing copy follows the CMS permission independently of plan configuration', () => {
+  assert.equal(canAccessAdminRoute(staff(['news.manage']), '/admin/plans-content'), true)
+  assert.equal(canAccessAdminRoute(staff(['plan.manage']), '/admin/plans-content'), false)
+  assert.equal(canAccessAdminRoute(staff(['news.manage']), '/admin/plans'), false)
+  assert.equal(canAccessAdminRoute(customer, '/admin/plans-content'), false)
 })
 test('restricted sessions and unavailable account types cannot open admin', () => {
   for (const overrides of [{ mustChangePassword: true }, { emailVerified: false }, { accountKind: null }]) {

@@ -26,6 +26,8 @@ import {
 
 interface BmtEstimateListItem {
   estimateId: string
+  /** Mã dự toán `BUILDX-YYYYMMDD-XXXXXX`; thiếu khi API chưa trả. */
+  code?: string | null
   name: string
   buildingType?: { id: string; name: string } | null
   /** Draft, Processing, Failed, Succeeded — trạng thái tác vụ tạo thiết kế gần nhất. */
@@ -92,6 +94,7 @@ async function resolveStep(estimateId: string, state: string): Promise<1 | 2 | 3
 function toProject(item: BmtEstimateListItem, currentStep: 1 | 2 | 3): Project {
   return {
     id: item.estimateId,
+    code: item.code ?? null,
     name: item.name,
     createdAt: item.createdAtUtc,
     updatedAt: item.modifiedAtUtc,
@@ -151,9 +154,14 @@ export const bmtDesignApi = {
     }
   },
 
-  /** Tạo dự toán thật `POST /estimates` → trả receipt {estimateId,inputVersion,nameVersion}. */
+  /** Tạo dự toán thật `POST /estimates` → trả receipt {estimateId,code,inputVersion,nameVersion}. */
   createProject: async (payload: CreateProjectPayload, key?: string): Promise<Project> => {
-    const saved = await http.post<{ estimateId: string; inputVersion: number; nameVersion: number }>(
+    const saved = await http.post<{
+      estimateId: string
+      code?: string | null
+      inputVersion: number
+      nameVersion: number
+    }>(
       '/estimates',
       {
         name: payload.name.trim(),
@@ -167,6 +175,7 @@ export const bmtDesignApi = {
     )
     return {
       id: saved.estimateId,
+      code: saved.code ?? null,
       name: payload.name.trim(),
       ...(payload.description ? { description: payload.description } : {}),
       createdAt: nowIso(),
@@ -185,6 +194,7 @@ export const bmtDesignApi = {
     const step = await resolveStep(projectId, e.state)
     return {
       id: e.estimateId,
+      code: e.code ?? null,
       name: e.name,
       createdAt: nowIso(),
       updatedAt: nowIso(),
@@ -206,6 +216,7 @@ export const bmtDesignApi = {
     const step = await resolveStep(projectId, e.state)
     return {
       id: projectId,
+      code: e.code ?? null,
       name: res.name,
       createdAt: nowIso(),
       updatedAt: nowIso(),
@@ -308,6 +319,7 @@ export const bmtDesignApi = {
       const mapped = mapEstimateContent(shared.dossier?.content, { projectId: shareId, areaM2: 0 })
       return {
         projectName: shared.estimateName,
+        projectCode: shared.estimateCode ?? null,
         // DTO chia sẻ không có địa chỉ và ngày tạo: bỏ trống, màn xem tự ẩn.
         address: '',
         createdAt: '',

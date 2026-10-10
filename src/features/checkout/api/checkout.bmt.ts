@@ -1,7 +1,7 @@
 import { http, isApiError } from '@/shared/lib/api'
 import type { PagedResult } from '@/shared/types'
 import { isApiOrderId } from '../constants/checkout.constants'
-import type { CreateOrderPayload, Order } from '../types/checkout.types'
+import type { CreateOrderPayload, Order, PendingDesignOrder } from '../types/checkout.types'
 import { mockCheckoutApi } from './checkout.mock'
 import { mapOrder, planBenefits, type BmtPaymentOrderDetail, type BmtPlanForBenefits } from './checkout.map'
 
@@ -66,6 +66,17 @@ async function enrichPaid(order: Order, detail: BmtPaymentOrderDetail): Promise<
   return order
 }
 
+/** Một dòng của `GET /payment-orders` (`PaymentOrderSummary`) — chỉ các trường màn xác nhận đơn cần. */
+interface BmtPaymentOrderSummary {
+  id: string
+  planName: string
+  kind: 'Design' | 'Supervision'
+  state: 'Pending' | 'PartiallyPaid' | 'Paid' | 'Expired' | 'Canceled'
+  priceVnd: string
+  receivedAmountVnd: string
+  expiresAtUtc: string
+}
+
 export const bmtCheckoutApi = {
   createOrder: async (payload: CreateOrderPayload): Promise<Order> => {
     // Gói mock (id không phải UUID) → tạo đơn mock như cũ.
@@ -91,6 +102,33 @@ export const bmtCheckoutApi = {
     // API không có endpoint tạo lại QR: đọc lại đơn để lấy `qrUrl` hiện hành.
     if (!isApiOrderId(orderId)) return mockCheckoutApi.regenerateQr(orderId)
     return mapOrder(await readOrder(orderId))
+  },
+
+  /**
+   * Đơn thiết kế đang chờ của khách, hoặc `null`. BE chỉ cho tối đa một đơn như vậy (BR-PAY-001) nên tìm thấy
+   * đơn đầu tiên là dừng; danh sách đọc theo trang giống lịch sử mua gói.
+   */
+  getPendingDesignOrder: async (): Promise<PendingDesignOrder | null> => {
+    for (let pageIndex = 1; pageIndex <= 20; pageIndex++) {
+      const page = await http.get<PagedResult<BmtPaymentOrderSummary>>('/payment-orders', {
+        params: { pageIndex, pageSize: 100 }
+      })
+      const found = page.items.find(
+        (item) => item.kind === 'Design' && (item.state === 'Pending' || item.state === 'PartiallyPaid')
+      )
+      if (found) {
+        return {
+          id: found.id,
+          planName: found.planName,
+          priceVnd: Number(found.priceVnd) || 0,
+          receivedVnd: Number(found.receivedAmountVnd) || 0,
+          state: found.state as 'Pending' | 'PartiallyPaid',
+          expiresAtUtc: found.expiresAtUtc
+        }
+      }
+      if (!page.hasNextPage) break
+    }
+    return null
   },
 
   cancelOrder: async (orderId: string): Promise<Order> => {

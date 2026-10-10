@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQueryClient } from '@tanstack/react-query'
-import { ArrowRight, Check, FileUp, Gift, Hammer, LoaderCircle, X } from 'lucide-react'
+import { ArrowRight, Check, FileUp, Gift, LoaderCircle, X } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import { useLocale, useTranslations } from 'next-intl'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -24,17 +24,17 @@ import {
   FormLabel,
   FormMessage,
   Input,
+  Label,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-  Skeleton,
-  Textarea
+  Skeleton
 } from '@/shared/components/ui'
 import { contractorReviewRoute, ROUTES } from '@/shared/constants/routes'
 import { errorCodeOf, isApiError } from '@/shared/lib/api'
-import { LocationMap, SearchableSelect } from '@/shared/components/common'
+import { LocationMap, MoneyTextInput } from '@/shared/components/common'
 import { findByName, geocodeApi, parseRegion } from '@/shared/geocode'
 import { cn } from '@/shared/lib/utils'
 import { constructionSitesApi } from '../api/construction-sites.api'
@@ -42,7 +42,6 @@ import { allConstructionSites } from '../api/construction-briefs.api'
 import { briefDrafts, requireBriefUserId, siteToBrief } from '../api/brief-drafts'
 import { contractorKeys } from '../api/contractors.keys'
 import { useBrief } from '../hooks/use-brief'
-import { useConstructionScopes } from '../hooks/use-construction-scopes'
 import {
   useSiteLocations,
   useSiteOptions,
@@ -117,15 +116,14 @@ const ERROR_CODES = [
 ] as const
 type StringField = Exclude<keyof SiteFormValues, 'floorCount' | 'hasTum'>
 const WARDS_STALE = 30 * 60 * 1000
-/** Tỉnh/phường dài và hay phải tìm: hai ô này dùng ô chọn có tìm (cùng kiểu Bước 1 dự toán). */
-const SEARCHABLE_FIELDS: ReadonlySet<keyof SiteFormValues> = new Set(['provinceCode', 'wardCode'])
+/** Lỗi ở các trường địa chỉ có cấu trúc đều hiện chung dưới ô địa chỉ duy nhất (người dùng không thấy riêng từng trường). */
+const ADDRESS_FIELDS = ['addressDetail', 'provinceCode', 'wardCode', 'locationDatasetVersion'] as const
 
 /** S10 / STORY-SITE-001,004: browser draft → atomic server creation → S11. */
 export function ConstructionSiteForm({ projectId }: { projectId: string }) {
   const userId = useAuthStore((state) => state.user?.id)
   const t = useTranslations('contractors.siteForm')
   const old = useTranslations('contractors.brief')
-  const scopes = useConstructionScopes()
   const starts = useTranslations('contractors.startWindow')
   const validation = useTranslations('validation')
   const locale = useLocale()
@@ -170,33 +168,28 @@ export function ConstructionSiteForm({ projectId }: { projectId: string }) {
   )
   const formSchema = useMemo(
     () =>
-      createSiteFormSchema(
-        activeCatalog,
-        {
-          required: validation('required'),
-          area: t('areaError'),
-          budget: t('budgetError'),
-          max: (max) => validation('maxLength', { max })
-        },
-        [
-          ...scopes.options.map((option) => option.id),
-          briefQuery.data?.scope ?? '',
-          briefQuery.data?.siteDraft?.values.scope ?? ''
-        ].filter(Boolean)
-      ),
-    [activeCatalog, scopes.options, briefQuery.data?.scope, briefQuery.data?.siteDraft?.values.scope, validation, t]
+      createSiteFormSchema(activeCatalog, {
+        required: validation('required'),
+        area: t('areaError'),
+        budget: t('budgetError'),
+        max: (max) => validation('maxLength', { max })
+      }),
+    [activeCatalog, validation, t]
   )
   const form = useForm<SiteFormValues>({ defaultValues: EMPTY, resolver: zodResolver(formSchema) })
   // RHF owns the form state; these subscriptions intentionally bypass React Compiler memoization.
   // eslint-disable-next-line react-hooks/incompatible-library
   const values = form.watch()
-  const { isDirty } = form.formState
+  const { isDirty, errors } = form.formState
+  const addressInvalid = ADDRESS_FIELDS.some((field) => Boolean(errors[field]))
   const applies = applicableSiteFields(catalog?.types.find((type) => type.id === values.buildingTypeId))
   const locked = Boolean(site && (!site.canEdit || site.sourceEstimateId)) || Boolean(selectedSource)
   const disabled = Boolean(site && !site.canEdit)
   const locations = useSiteLocations(values.provinceCode, values.locationDatasetVersion, !locked && !disabled)
   const [uploads, setUploads] = useState<PendingSiteFile[]>([])
   const [location, setLocation] = useState<SiteDraft['location']>()
+  // Chữ người dùng thấy trong ô địa chỉ duy nhất; `values.addressDetail` chỉ giữ phần số nhà, đường gửi cho backend.
+  const [addressInput, setAddressInput] = useState('')
   const [pendingCreation, setPendingCreation] = useState<SiteDraft['pendingCreation']>()
   const [suggestions, setSuggestions] = useState<Awaited<ReturnType<typeof constructionSitesApi.search>>>([])
   const [geoBusy, setGeoBusy] = useState(false)
@@ -257,6 +250,7 @@ export function ConstructionSiteForm({ projectId }: { projectId: string }) {
         scope: brief.scope,
         scopeNote: brief.scopeNote
       })
+      setAddressInput(detail.address)
       setLocation({
         addressKey: siteAddressKey(detail.profile),
         latitude: detail.latitude,
@@ -268,6 +262,7 @@ export function ConstructionSiteForm({ projectId }: { projectId: string }) {
       setSelectedSource(draft.values.sourceEstimateId)
       setDraftSource(draft.source)
       setLocation(draft.location)
+      setAddressInput(draft.addressInput ?? draft.location?.display ?? draft.values.addressDetail)
       setUploads(draft.uploads)
       setPendingCreation(draft.pendingCreation)
     } else form.reset({ ...EMPTY, name: brief.name, scope: brief.scope, scopeNote: brief.scopeNote })
@@ -290,11 +285,10 @@ export function ConstructionSiteForm({ projectId }: { projectId: string }) {
     setGeoBusy(false)
     // Coordinates are keyed to all address parts; a late response never authorizes a changed address.
   }, [key])
-  // Chỉ tìm sau khi người dùng gõ; phản hồi cũ không được xác nhận địa chỉ mới.
+  // Chỉ tìm khi ô địa chỉ có chữ chưa được xác nhận vị trí; phản hồi cũ bị huỷ khi chữ đổi nên không áp cho địa chỉ mới.
   useEffect(() => {
-    if (disabled || site?.sourceEstimateId || location?.addressKey === key) return
-    if (!values.addressDetail.trim() || !values.provinceCode || !values.wardCode) return
-    const text = addressText.trim()
+    if (locked || disabled || location?.addressKey === key) return
+    const text = addressInput.trim()
     if (text.length < 3 || text.length > 500) return
     const controller = new AbortController()
     geoController.current?.abort()
@@ -305,7 +299,7 @@ export function ConstructionSiteForm({ projectId }: { projectId: string }) {
       setGeoError('')
       try {
         const results = await constructionSitesApi.search(text, controller.signal)
-        if (controller.signal.aborted || siteAddressKey(latestValues.current) !== key) return
+        if (controller.signal.aborted) return
         setSuggestions(results)
         if (!results.length) setGeoError(t('noLocation'))
       } catch {
@@ -318,17 +312,7 @@ export function ConstructionSiteForm({ projectId }: { projectId: string }) {
       window.clearTimeout(timer)
       controller.abort()
     }
-  }, [
-    addressText,
-    key,
-    disabled,
-    site?.sourceEstimateId,
-    location?.addressKey,
-    values.addressDetail,
-    values.provinceCode,
-    values.wardCode,
-    t
-  ])
+  }, [addressInput, key, locked, disabled, location?.addressKey, t])
   useEffect(() => () => geoController.current?.abort(), [])
   useEffect(() => {
     const focus = search.get('focus')
@@ -354,13 +338,20 @@ export function ConstructionSiteForm({ projectId }: { projectId: string }) {
         wardName: addressNames.ward ?? current.address.wardName,
         street: draftValues.addressDetail
       },
+      // Form không còn ô nhập nhu cầu thi công: giữ nguyên những gì hồ sơ cũ đã lưu.
       scope: draftValues.scope,
-      scopeName: draftValues.scope
-        ? scopes.label(draftValues.scope, draftValues.scope === current.scope ? current.scopeName : undefined)
-        : undefined,
+      scopeName: draftValues.scope && draftValues.scope === current.scope ? current.scopeName : undefined,
       scopeNote: draftValues.scopeNote,
       constructionSiteId: nextSite?.constructionSiteId ?? siteId,
-      siteDraft: { values: draftValues, catalog, source: source ?? draftSource, location, uploads, pendingCreation },
+      siteDraft: {
+        values: draftValues,
+        catalog,
+        source: source ?? draftSource,
+        location,
+        addressInput,
+        uploads,
+        pendingCreation
+      },
       updatedAt: new Date().toISOString()
     }
     return nextSite
@@ -381,23 +372,23 @@ export function ConstructionSiteForm({ projectId }: { projectId: string }) {
   }
 
   async function searchAddress() {
-    if (!values.addressDetail.trim() || !values.provinceCode || !values.wardCode) {
+    const text = addressInput.trim()
+    if (!text) {
       setGeoError(t('addressFirst'))
       return
     }
-    if (!addressText.trim() || addressText.trim().length > 500) {
+    if (text.length > 500) {
       setGeoError(t('searchLength'))
       return
     }
     geoController.current?.abort()
     const controller = new AbortController()
     geoController.current = controller
-    const addressKey = key
     setGeoBusy(true)
     setGeoError('')
     try {
-      const results = await constructionSitesApi.search(addressText.trim(), controller.signal)
-      if (controller.signal.aborted || siteAddressKey(latestValues.current) !== addressKey) return
+      const results = await constructionSitesApi.search(text, controller.signal)
+      if (controller.signal.aborted) return
       setSuggestions(results)
       if (!results.length) setGeoError(t('noLocation'))
     } catch (problem) {
@@ -406,17 +397,49 @@ export function ConstructionSiteForm({ projectId }: { projectId: string }) {
       if (!controller.signal.aborted) setGeoBusy(false)
     }
   }
-  async function choosePlace(refId: string) {
+  /**
+   * Chọn một gợi ý ở ô địa chỉ duy nhất: lấy toạ độ, rồi tách số nhà, đường và suy ra phường/xã, tỉnh/thành của backend từ
+   * phần "phường/xã, tỉnh/thành" của gợi ý (giống lúc kéo ghim). Không suy ra được phường/xã thì không xác nhận vị trí và
+   * báo người dùng chọn gợi ý khác — backend đòi mã phường/xã và tỉnh/thành, không đoán thay họ.
+   */
+  async function choosePlace(item: Awaited<ReturnType<typeof constructionSitesApi.search>>[number]) {
     geoController.current?.abort()
     const controller = new AbortController()
     geoController.current = controller
-    const addressKey = key
     setGeoBusy(true)
     setGeoError('')
     try {
-      const result = await constructionSitesApi.place(refId, controller.signal)
-      if (controller.signal.aborted || siteAddressKey(latestValues.current) !== addressKey) return
-      setLocation({ addressKey, latitude: result.latitude, longitude: result.longitude, display: result.display })
+      if (!locations.provinces.data) {
+        setGeoError(t('locationsError'))
+        return
+      }
+      const [result, region] = await Promise.all([
+        constructionSitesApi.place(item.refId, controller.signal),
+        resolveRegion(item.address, controller.signal)
+      ])
+      if (controller.signal.aborted) return
+      const street = (item.name.trim() || item.display.split(',')[0]?.trim() || '').slice(0, 500)
+      if (!region?.wardCode || !street) {
+        setGeoError(t('regionNotFound'))
+        return
+      }
+      const options = { shouldDirty: true, shouldValidate: true }
+      form.setValue('provinceCode', region.provinceCode, options)
+      form.setValue('wardCode', region.wardCode, options)
+      form.setValue('locationDatasetVersion', region.locationDatasetVersion, options)
+      form.setValue('addressDetail', street, options)
+      setAddressInput(item.display)
+      setLocation({
+        addressKey: siteAddressKey({
+          provinceCode: region.provinceCode,
+          wardCode: region.wardCode,
+          locationDatasetVersion: region.locationDatasetVersion,
+          addressDetail: street
+        }),
+        latitude: result.latitude,
+        longitude: result.longitude,
+        display: result.display
+      })
       setSuggestions([])
     } catch (problem) {
       if (!controller.signal.aborted) setGeoError(explainError(problem))
@@ -487,6 +510,7 @@ export function ConstructionSiteForm({ projectId }: { projectId: string }) {
       if (next.locationDatasetVersion !== latestValues.current.locationDatasetVersion)
         form.setValue('locationDatasetVersion', next.locationDatasetVersion, options)
       setLocation({ addressKey: siteAddressKey(next), latitude, longitude, display: found.display })
+      setAddressInput(found.display)
     } catch {
       if (!stale()) setGeoError(t('errors.MapServiceUnavailable'))
     } finally {
@@ -509,10 +533,6 @@ export function ConstructionSiteForm({ projectId }: { projectId: string }) {
   }
   async function submit(input: SiteFormValues) {
     if (submitLock.current || fileBusy || pendingCreation || versionConflict) return
-    if (scopes.isPending || scopes.isError) {
-      setError(t('scopeLoadError'))
-      return
-    }
     if (
       !catalog ||
       (selectedSource && (sourceQuery.isFetching || sourceQuery.isError || sourceApplied.current !== selectedSource))
@@ -736,7 +756,8 @@ export function ConstructionSiteForm({ projectId }: { projectId: string }) {
       disabled?: boolean
       maxLength?: number
       inputMode?: 'decimal' | 'numeric'
-      multiline?: boolean
+      /** Số tiền VND: hiện dấu chấm ngăn mỗi 3 số, giá trị trong form vẫn chỉ gồm chữ số. */
+      money?: boolean
     } = {}
   ) {
     return (
@@ -754,15 +775,15 @@ export function ConstructionSiteForm({ projectId }: { projectId: string }) {
               </span>
             </FormLabel>
             <FormControl>
-              {options.multiline ? (
-                <Textarea
-                  {...field}
+              {options.money ? (
+                <MoneyTextInput
+                  ref={field.ref}
+                  name={field.name}
+                  onBlur={field.onBlur}
                   value={String(field.value ?? '')}
-                  maxLength={options.maxLength}
+                  onValueChange={field.onChange}
                   placeholder={options.placeholder}
                   disabled={options.disabled}
-                  rows={8}
-                  className='min-h-44'
                 />
               ) : (
                 <Input {...field} value={String(field.value ?? '')} {...options} />
@@ -785,14 +806,10 @@ export function ConstructionSiteForm({ projectId }: { projectId: string }) {
         key={name}
         control={form.control}
         name={name}
-        render={({ field, fieldState }) => {
+        render={({ field }) => {
           const current = field.value === null ? '' : String(field.value)
           const change = (value: string) => {
             field.onChange(name === 'floorCount' ? Number(value) : name === 'hasTum' ? value === 'true' : value)
-            if (name === 'provinceCode') {
-              form.setValue('wardCode', '')
-              form.setValue('locationDatasetVersion', locations.provinces.data?.datasetVersion ?? '')
-            }
             if (name === 'buildingTypeId') {
               form.setValue('floorCount', null)
               form.setValue('hasTum', null)
@@ -809,33 +826,20 @@ export function ConstructionSiteForm({ projectId }: { projectId: string }) {
                   *
                 </span>
               </FormLabel>
-              {SEARCHABLE_FIELDS.has(name) ? (
+              <Select value={current} disabled={isDisabled} onValueChange={change}>
                 <FormControl>
-                  <SearchableSelect
-                    value={current}
-                    disabled={isDisabled}
-                    options={options}
-                    placeholder={t('select')}
-                    invalid={Boolean(fieldState.error)}
-                    onValueChange={change}
-                  />
+                  <SelectTrigger className='w-full'>
+                    <SelectValue placeholder={t('select')} />
+                  </SelectTrigger>
                 </FormControl>
-              ) : (
-                <Select value={current} disabled={isDisabled} onValueChange={change}>
-                  <FormControl>
-                    <SelectTrigger className='w-full'>
-                      <SelectValue placeholder={t('select')} />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {options.map((item) => (
-                      <SelectItem key={item.value} value={item.value}>
-                        {item.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
+                <SelectContent>
+                  {options.map((item) => (
+                    <SelectItem key={item.value} value={item.value}>
+                      {item.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )
@@ -878,12 +882,8 @@ export function ConstructionSiteForm({ projectId }: { projectId: string }) {
     Boolean(values.buildingTypeId),
     positiveDecimal(values.areaM2, 'area'),
     Boolean(values.conditionId),
-    Boolean(values.provinceCode),
-    Boolean(values.wardCode),
-    Boolean(values.addressDetail.trim()),
-    positiveDecimal(values.budgetVnd, 'money'),
-    Boolean(values.scopeNote.trim()),
-    Boolean(location?.addressKey === key)
+    Boolean(location?.addressKey === key),
+    positiveDecimal(values.budgetVnd, 'money')
   ]
   if (applies.floor) progressFields.push(values.floorCount !== null)
   if (applies.tum) progressFields.push(values.hasTum !== null)
@@ -918,7 +918,9 @@ export function ConstructionSiteForm({ projectId }: { projectId: string }) {
             if (isDirty && !submitLock.current && !fileBusy && !pendingCreation) saveDraft()
           }}
           onSubmit={form.handleSubmit(submit, (errors) => {
-            const name = Object.keys(errors)[0]
+            const first = Object.keys(errors)[0] ?? ''
+            // Các trường địa chỉ có cấu trúc không có ô riêng: cuộn tới ô địa chỉ duy nhất.
+            const name = (ADDRESS_FIELDS as readonly string[]).includes(first) ? 'addressDetail' : first
             document.getElementById(`site-field-${name}`)?.scrollIntoView({ block: 'center' })
           })}
           className='bg-card rounded-2xl border p-5 shadow-sm sm:p-6'
@@ -943,6 +945,7 @@ export function ConstructionSiteForm({ projectId }: { projectId: string }) {
                     sourceApplied.current = ''
                     setDraftSource(undefined)
                     setLocation(undefined)
+                    setAddressInput('')
                     setSuggestions([])
                     form.reset(
                       {
@@ -970,7 +973,8 @@ export function ConstructionSiteForm({ projectId }: { projectId: string }) {
                     <SelectItem value='none'>{t('independent')}</SelectItem>
                     {sourceItems.map((item) => (
                       <SelectItem key={item.estimateId} value={item.estimateId}>
-                        {item.name}
+                        {/* Kèm mã dự toán để phân biệt các bản trùng tên. */}
+                        {item.code ? `${item.name} · ${item.code}` : item.name}
                       </SelectItem>
                     ))}
                     {site?.sourceEstimateId &&
@@ -1104,95 +1108,60 @@ export function ConstructionSiteForm({ projectId }: { projectId: string }) {
                     : null}
                 </div>
               ) : null}
-              <div className='grid gap-4 sm:grid-cols-2'>
-                {locked ? (
-                  <>
-                    <div>
-                      <p className='text-sm font-medium'>{t('province')}</p>
-                      <p className='bg-muted mt-2 rounded-lg border px-3 py-2 text-sm'>{addressNames.province}</p>
-                    </div>
-                    <div>
-                      <p className='text-sm font-medium'>{t('ward')}</p>
-                      <p className='bg-muted mt-2 rounded-lg border px-3 py-2 text-sm'>{addressNames.ward}</p>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    {selectField(
-                      'provinceCode',
-                      t('province'),
-                      locations.provinces.data?.provinces.map((item) => ({ value: item.code, label: item.name })) ?? [],
-                      locations.provinces.isPending
-                    )}
-                    {selectField(
-                      'wardCode',
-                      t('ward'),
-                      locations.wards.data?.wards.map((item) => ({ value: item.code, label: item.name })) ?? [],
-                      !values.provinceCode || locations.wards.isPending
-                    )}
-                  </>
-                )}
+              {/* Một ô địa chỉ cụ thể thay cho ba ô tỉnh/thành, phường/xã, số nhà đường (case 31): phường/xã và tỉnh/thành
+                  được suy ra từ gợi ý người dùng chọn. */}
+              <div id='site-field-addressDetail' className='space-y-2'>
+                <Label htmlFor='site-address'>
+                  {t('address')}
+                  <span className='text-destructive' aria-hidden>
+                    {' '}
+                    *
+                  </span>
+                </Label>
+                <Input
+                  id='site-address'
+                  value={locked ? addressText : addressInput}
+                  maxLength={500}
+                  placeholder={t('addressPlaceholder')}
+                  disabled={locked}
+                  autoComplete='off'
+                  aria-controls='site-location-suggestions'
+                  aria-invalid={addressInvalid}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.preventDefault()
+                      void searchAddress()
+                    }
+                    if (event.key === 'Escape') {
+                      geoController.current?.abort()
+                      setGeoBusy(false)
+                      setSuggestions([])
+                    }
+                  }}
+                  onChange={(event) => {
+                    geoController.current?.abort()
+                    setGeoBusy(false)
+                    setSuggestions([])
+                    setGeoError('')
+                    // Chữ đã đổi thì vị trí đã xác nhận không còn đúng: phải chọn lại một gợi ý.
+                    setLocation(undefined)
+                    setAddressInput(event.target.value)
+                  }}
+                />
+                {addressInvalid && !geoError ? (
+                  <p role='alert' className='text-destructive text-sm'>
+                    {t('chooseLocation')}
+                  </p>
+                ) : null}
               </div>
-              {locations.provinces.isError || locations.wards.isError ? (
+              {locations.provinces.isError && !locked ? (
                 <p role='alert' className='text-destructive text-sm'>
                   {t('locationsError')}{' '}
-                  <Button
-                    type='button'
-                    variant='link'
-                    onClick={() => {
-                      void locations.provinces.refetch()
-                      if (values.provinceCode) void locations.wards.refetch()
-                    }}
-                  >
+                  <Button type='button' variant='link' onClick={() => void locations.provinces.refetch()}>
                     {t('retry')}
                   </Button>
                 </p>
               ) : null}
-              <FormField
-                control={form.control}
-                name='addressDetail'
-                render={({ field }) => (
-                  <FormItem id='site-field-addressDetail'>
-                    <FormLabel htmlFor='site-address-detail'>
-                      {t('street')}{' '}
-                      <span className='text-destructive' aria-hidden>
-                        *
-                      </span>
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        id='site-address-detail'
-                        maxLength={500}
-                        placeholder={t('streetPlaceholder')}
-                        disabled={locked}
-                        autoComplete='off'
-                        aria-controls='site-location-suggestions'
-                        onKeyDown={(event) => {
-                          if (event.key === 'Enter') {
-                            event.preventDefault()
-                            void searchAddress()
-                          }
-                          if (event.key === 'Escape') {
-                            geoController.current?.abort()
-                            setGeoBusy(false)
-                            setSuggestions([])
-                          }
-                        }}
-                        onChange={(event) => {
-                          geoController.current?.abort()
-                          setGeoBusy(false)
-                          setSuggestions([])
-                          setGeoError('')
-                          setLocation(undefined)
-                          field.onChange(event)
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
               <div id='site-location' className='space-y-2'>
                 {geoBusy ? (
                   <p role='status' className='text-muted-foreground text-xs'>
@@ -1211,7 +1180,7 @@ export function ConstructionSiteForm({ projectId }: { projectId: string }) {
                           className='h-auto w-full justify-start whitespace-normal text-left'
                           variant='ghost'
                           type='button'
-                          onClick={() => void choosePlace(item.refId)}
+                          onClick={() => void choosePlace(item)}
                           disabled={geoBusy}
                         >
                           {item.display}
@@ -1246,7 +1215,7 @@ export function ConstructionSiteForm({ projectId }: { projectId: string }) {
                 ) : null}
               </div>
               <div className='grid gap-4 sm:grid-cols-2'>
-                {textField('budgetVnd', t('budget'), { inputMode: 'numeric', placeholder: '1.850.000.000', disabled })}
+                {textField('budgetVnd', t('budget'), { money: true, placeholder: '1.850.000.000', disabled })}
                 {selectField(
                   'plannedStart',
                   t('start'),
@@ -1255,10 +1224,10 @@ export function ConstructionSiteForm({ projectId }: { projectId: string }) {
                 )}
               </div>
               <section id='site-documents' className='space-y-3'>
-                <h3 className='text-sm font-semibold uppercase'>
-                  {t('files.title')}{' '}
-                  <span className='text-muted-foreground font-normal normal-case'>{t('optional')}</span>
-                </h3>
+                <div>
+                  <h3 className='text-sm font-semibold'>{t('files.title')}</h3>
+                  <p className='text-muted-foreground text-xs'>{t('files.example')}</p>
+                </div>
                 <p className='text-muted-foreground text-xs'>{t('files.hint', { count: totalFiles })}</p>
                 <div className='rounded-xl border border-dashed p-4'>
                   <Input
@@ -1368,73 +1337,6 @@ export function ConstructionSiteForm({ projectId }: { projectId: string }) {
                   <p className='bg-muted text-muted-foreground rounded-xl p-4 text-sm'>{t('stylePrompt')}</p>
                 )}
               </section>
-              <section id='site-needs' className='min-w-0 space-y-5'>
-                <div>
-                  <h2 className='font-semibold uppercase'>{t('needsTitle')}</h2>
-                  <p className='text-muted-foreground text-sm'>{t('needsSubtitle')}</p>
-                </div>
-                <FormField
-                  control={form.control}
-                  name='scope'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        {t('scope')}
-                        <span className='text-destructive' aria-hidden>
-                          {' '}
-                          *
-                        </span>
-                      </FormLabel>
-                      {scopes.isPending ? <Skeleton className='h-24 w-full' /> : null}
-                      {scopes.isError ? (
-                        <div role='alert' className='space-y-2'>
-                          <p className='text-destructive text-sm'>{t('scopeLoadError')}</p>
-                          <Button type='button' variant='outline' size='sm' onClick={() => void scopes.refetch()}>
-                            {t('retry')}
-                          </Button>
-                        </div>
-                      ) : !scopes.isPending && scopes.options.length === 0 ? (
-                        <p className='text-muted-foreground text-sm'>{t('scopeEmpty')}</p>
-                      ) : null}
-                      <div className='grid grid-cols-2 gap-3 sm:grid-cols-4'>
-                        {scopes.options.map((option) => (
-                          <button
-                            key={option.id}
-                            type='button'
-                            aria-pressed={field.value === option.id}
-                            onClick={() => field.onChange(option.id)}
-                            className={cn(
-                              'flex min-h-24 min-w-0 flex-col items-center justify-center gap-3 rounded-xl border px-2 py-3 text-center text-sm transition-colors',
-                              field.value === option.id
-                                ? 'border-primary bg-accent text-primary-strong'
-                                : 'hover:border-primary/50'
-                            )}
-                          >
-                            <Hammer className='text-primary size-6' aria-hidden />
-                            {option.name}
-                          </button>
-                        ))}
-                        {field.value && !scopes.options.some((option) => option.id === field.value) ? (
-                          <div className='border-primary bg-accent text-primary-strong flex min-h-24 flex-col items-center justify-center gap-2 rounded-xl border px-2 py-3 text-center text-sm'>
-                            <span>{scopes.label(field.value, briefQuery.data?.scopeName)}</span>
-                            <span className='text-muted-foreground text-xs'>{t('scopeHistorical')}</span>
-                          </div>
-                        ) : null}
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                {textField('scopeNote', t('description'), {
-                  multiline: true,
-                  maxLength: 1000,
-                  placeholder: t('descriptionPlaceholder')
-                })}
-                <p className='text-muted-foreground text-right text-xs'>
-                  {t('descriptionCount', { count: values.scopeNote.length })}
-                </p>
-                <p className='text-muted-foreground text-xs'>{t('needsLocal')}</p>
-              </section>
             </div>
           </fieldset>
           {pendingCreation ? (
@@ -1472,13 +1374,7 @@ export function ConstructionSiteForm({ projectId }: { projectId: string }) {
             <Button
               type='submit'
               disabled={
-                allBusy ||
-                Boolean(pendingCreation) ||
-                versionConflict ||
-                sourceQuery.isFetching ||
-                sourceQuery.isError ||
-                scopes.isPending ||
-                scopes.isError
+                allBusy || Boolean(pendingCreation) || versionConflict || sourceQuery.isFetching || sourceQuery.isError
               }
             >
               {allBusy ? <LoaderCircle className='size-4 animate-spin' /> : null}

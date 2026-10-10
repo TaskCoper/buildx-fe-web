@@ -32,7 +32,7 @@ export function AccountNav() {
     <LayoutGroup id='account-route-tabs'>
       <nav
         aria-label={t('title')}
-        className='bg-card flex h-auto w-full justify-start gap-1 overflow-x-auto rounded-xl border p-1'
+        className='bg-card flex h-auto w-full max-w-full min-w-0 touch-pan-x justify-start gap-1 overflow-x-auto overscroll-x-contain rounded-xl border p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
       >
         {tabs.map(({ href, icon: Icon, label, badge }) => {
           const active = pathname === href
@@ -42,6 +42,10 @@ export function AccountNav() {
               key={href}
               href={href}
               aria-current={active ? 'page' : undefined}
+              // Tab đang chọn luôn nằm trong vùng nhìn thấy khi thanh phải cuộn ngang.
+              ref={(node) => {
+                if (active) node?.scrollIntoView({ inline: 'center', block: 'nearest' })
+              }}
               className={cn(
                 'group relative inline-flex shrink-0 items-center justify-center rounded-lg px-3 py-2 text-xs font-medium transition-colors xl:px-4',
                 active ? 'text-primary-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'

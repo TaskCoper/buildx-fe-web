@@ -215,11 +215,15 @@ export type ContractorLegalProfile = CmsContractorLegalProfile
  */
 export type Contractor = Omit<CmsContractor, 'featuredProjects'> & {
   featuredProjects: ContractorProject[]
+  /** Tên pháp nhân từ API chi tiết; dữ liệu mock lấy ở `legalProfile.legalName`. */
+  legalName?: string
   /** API phân biệt chưa khai báo với giá trị 0/false; mock cũ không có các cờ này. */
   ratingKnown?: boolean
   reviewCountKnown?: boolean
   surveyTimeKnown?: boolean
   acceptingProjectsKnown?: boolean
+  /** `false` khi số "dự án tương tự" chưa có (API chi tiết không biết dự án của khách nên không tính được). */
+  similarProjectsKnown?: boolean
 }
 
 /** Một khung giờ khảo sát (S16). */

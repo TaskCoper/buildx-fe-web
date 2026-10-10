@@ -22,10 +22,25 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [{ source: '/api/v1/:path*', destination: `${BMT_API_ORIGIN}/api/v1/:path*` }]
   },
+  // `apple-app-site-association` không có đuôi tệp nên Next trả `application/octet-stream`; iOS yêu cầu JSON
+  // (liên kết sâu / Universal Links). `assetlinks.json` của Android có đuôi `.json` nên đã đúng kiểu. Hai tệp nằm ở
+  // `public/.well-known/` và phải trả 200 trực tiếp, không redirect (proxy.ts đã bỏ qua mọi đường dẫn có dấu chấm).
+  async headers() {
+    return [
+      {
+        source: '/.well-known/apple-app-site-association',
+        headers: [{ key: 'Content-Type', value: 'application/json' }]
+      }
+    ]
+  },
   poweredByHeader: false,
   // Type-safe `Link`/`router` routes.
   typedRoutes: true,
   images: {
+    // Mặc định Next chỉ phát WebP. Liệt kê AVIF trước để trình duyệt hỗ trợ nhận AVIF (nhỏ hơn WebP khoảng 20–30% ở cùng
+    // chất lượng), trình duyệt cũ vẫn nhận WebP. Áp dụng cho MỌI ảnh qua `next/image`, kể cả ảnh admin tải lên CDN.
+    formats: ['image/avif', 'image/webp'],
+    // Danh sách host này phải khớp `OPTIMIZABLE_IMAGE_HOSTS` trong `src/shared/lib/image-src.ts` (có test kiểm).
     remotePatterns: [
       // Royalty-free catalogue photography (see `shared/lib/imagery.ts`).
       // Replace with the CMS asset host once admin uploads the real catalogue.

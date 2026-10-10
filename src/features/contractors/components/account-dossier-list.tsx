@@ -84,7 +84,9 @@ function DossierRow({
     : invitedCount > 0
       ? t('invited', { count: invitedCount })
       : t('notInvited')
-  // Mã ngắn như chỗ khác trong app ("Nhà phố (05725107)"): 8 ký tự đầu của mã, bỏ tiền tố bản nháp `local-`.
+  // Công trình đã lưu trên server có mã hồ sơ BE cấp (`BUILDX-HS-YYYYMMDD-XXXXXX`). Bản nháp trên thiết bị hoặc API cũ
+  // chưa có mã thì dùng mã ngắn như chỗ khác trong app ("Nhà phố (05725107)"): 8 ký tự đầu, bỏ tiền tố `local-`.
+  const recordCode = brief.constructionSite?.code ?? null
   const shortCode = brief.id
     .replace(/^local-/, '')
     .slice(0, 8)
@@ -193,7 +195,15 @@ function DossierRow({
 
       <div className='bg-muted/25 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t px-4 py-3 sm:px-5'>
         <span className='text-muted-foreground text-xs tabular-nums'>
-          #{shortCode} · {latestVersion}
+          {recordCode ? (
+            <span data-site-code className='font-mono select-all'>
+              <span className='sr-only'>{t('codeLabel')}: </span>
+              {recordCode}
+            </span>
+          ) : (
+            `#${shortCode}`
+          )}{' '}
+          · {latestVersion}
         </span>
 
         <div className='flex flex-wrap items-center gap-2'>

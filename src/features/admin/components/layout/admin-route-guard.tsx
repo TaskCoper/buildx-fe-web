@@ -26,7 +26,12 @@ function AdminSectionForbidden() {
       title={t('title')}
       subTitle={t(firstAllowed ? 'sectionDescription' : 'noSections')}
       extra={
-        <Button type='primary' onClick={() => router.replace(firstAllowed ?? ROUTES.HOME)}>
+        <Button
+          type={firstAllowed ? 'primary' : 'default'}
+          data-back-navigation={firstAllowed ? undefined : true}
+          style={firstAllowed ? undefined : { color: 'var(--foreground)' }}
+          onClick={() => router.replace(firstAllowed ?? ROUTES.HOME)}
+        >
           {t(firstAllowed ? 'allowedSection' : 'backHome')}
         </Button>
       }

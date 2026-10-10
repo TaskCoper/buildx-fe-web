@@ -1,38 +1,106 @@
 'use client'
 
-import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons'
+import { ArrowDownOutlined, ArrowUpOutlined, DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
+  Alert,
   App,
   Button,
   Card,
+  Col,
   Descriptions,
   Form,
   Image,
   Input,
   Modal,
   Popconfirm,
+  Row,
   Segmented,
   Select,
+  Skeleton,
   Space,
   Table,
+  Tag,
   Tooltip,
   Typography
 } from 'antd'
 import { useTranslations } from 'next-intl'
-import { createElement, useState } from 'react'
+import { createElement, Suspense, useState, type ReactNode } from 'react'
 
-import type { HandbookStage, HandbookStageId, HandbookTopic } from '@/shared/cms'
+import { isApiError } from '@/shared/lib/api'
 import { HANDBOOK_TOPIC_ICON_KEYS, handbookTopicIcon } from '@/shared/lib/handbook-icons'
-import { useAdminCollection, useSaveAdminItem } from '../../hooks/use-admin-data'
-import { newAdminId } from '../../services/admin.service'
+import type { PagedResult } from '@/shared/types'
+import { adminKeys } from '../../api/admin.keys'
+import { handbookAdminApi, type BmtHandbookStageAdmin } from '../../api/bmt/handbook.api'
+import { newsAdminApi, type BmtNewsCategory } from '../../api/bmt/news.api'
+import { useFormPage } from '../../hooks/use-form-page'
 import { sameName } from '../../services/catalog.service'
+import {
+  canDeleteTopic,
+  countArticlesPerTopic,
+  instructionTopics,
+  sortedRoots,
+  topicMove,
+  type TopicCategory
+} from '../../services/handbook-topics.service'
+import { ApiResourceManager } from '../common/api-resource-manager'
 import { ImageUrlField } from '../common/field-kit'
-import { ResourceManager } from '../common/resource-manager'
 
 const { Text, Paragraph } = Typography
 
+const SNAPSHOT_KEY = adminKeys.bmt('handbook-snapshot')
+/** Cùng khóa với màn Bài viết để cây danh mục ở đó tải lại sau khi đổi chủ đề. */
+const CATEGORIES_KEY = adminKeys.bmt('news-categories', 'all')
+
+/** Trần `pageSize` của danh sách bài quản trị. */
+const MAX_PAGE_SIZE = 100
+
+/** Mọi bài ở mọi trạng thái, đọc lần lượt từng trang — chỉ cần `categoryIds` để đếm theo chủ đề. */
+async function listAllArticleCategories(): Promise<{ categoryIds: string[] }[]> {
+  const all: { categoryIds: string[] }[] = []
+  for (let pageIndex = 1; ; pageIndex += 1) {
+    const page = await newsAdminApi.listArticles({ pageIndex, pageSize: MAX_PAGE_SIZE })
+    all.push(...page.items.map((item) => ({ categoryIds: item.categoryIds })))
+    if (!page.hasNextPage) break
+  }
+  return all
+}
+
+interface HandbookSnapshot {
+  stages: BmtHandbookStageAdmin[]
+  /** Mọi danh mục gốc theo thứ tự lưu — chủ đề của các bước và nhãn tin tức nằm chung một dãy khi đổi vị trí. */
+  roots: TopicCategory[]
+  topics: TopicCategory[]
+  counts: Record<string, number>
+}
+
 /**
- * CÁC BƯỚC TRONG CẨM NANG (epic HandbookStepManagement).
+ * Ba bước, chủ đề hướng dẫn của từng bước và số bài của mỗi chủ đề. Chủ đề là danh mục gốc bật cờ hướng dẫn nên
+ * đọc từ cây danh mục (TDD-HB-001); số bài suy từ danh mục của bài.
+ */
+async function loadSnapshot(): Promise<HandbookSnapshot> {
+  const [stages, categories, articles] = await Promise.all([
+    handbookAdminApi.listStages(),
+    newsAdminApi.listAllCategories(),
+    listAllArticleCategories()
+  ])
+  const topics = instructionTopics(categories)
+  return { stages, roots: sortedRoots(categories), topics, counts: countArticlesPerTopic(articles, categories, topics) }
+}
+
+type StageRow = BmtHandbookStageAdmin & { topics: TopicCategory[]; counts: Record<string, number> }
+
+/** Cùng snapshot với bảng nhóm; trạng thái này dùng chung cho mọi ngôn ngữ. */
+export function HandbookStepsStatus() {
+  const t = useTranslations('admin.handbookContent')
+  const { data } = useQuery({ queryKey: SNAPSHOT_KEY, queryFn: loadSnapshot, staleTime: 0 })
+  if (!data) return null
+  const edited = data.stages.some((stage) => stage.version > 1) || data.topics.length > 0
+  return <Tag color={edited ? 'green' : undefined}>{t(edited ? 'edited' : 'usingDefault')}</Tag>
+}
+
+/**
+ * CÁC BƯỚC TRONG CẨM NANG (STORY-HB-001, BR-HB-001) — dữ liệu trên BMT API.
  *
  * Luôn đúng 3 bước cố định (Phần thô, Phần hoàn thiện, Trang trí nội thất): chỉ
  * sửa ảnh, tên, mô tả — không thêm, xóa hay đổi thứ tự. Nhóm cẩm nang quản lý
@@ -40,25 +108,50 @@ const { Text, Paragraph } = Typography
  */
 export function HandbookStepManager() {
   const t = useTranslations('admin')
-  const { data: articles = [] } = useAdminCollection('handbookArticles')
-  const countIn = (topicId: string) => articles.filter((article) => article.topicId === topicId).length
+  const queryClient = useQueryClient()
 
   return (
     <>
-      <ResourceManager
-        collection='handbookStages'
+      <ApiResourceManager<StageRow>
         title={t('nav.handbookSteps')}
         description={t('handbookSteps.description')}
-        allowDelete={false}
-        fromFormValues={(values, current): HandbookStage => ({
-          ...current,
-          imageUrl: String(values.imageUrl ?? current.imageUrl).trim(),
-          title: String(values.title ?? current.title).trim(),
-          description: String(values.description ?? current.description).trim()
+        compactHeader
+        queryKey={SNAPSHOT_KEY}
+        fetchPage={async (): Promise<PagedResult<StageRow>> => {
+          const snapshot = await loadSnapshot()
+          const items = snapshot.stages.map((stage) => ({
+            ...stage,
+            topics: snapshot.topics.filter((topic) => topic.stageId === stage.id),
+            counts: snapshot.counts
+          }))
+          return {
+            items,
+            pageIndex: 1,
+            pageSize: Math.max(items.length, 1),
+            totalCount: items.length,
+            hasNextPage: false,
+            hasPreviousPage: false
+          }
+        }}
+        rowKey={(item) => item.id}
+        toFormValues={(item) => ({
+          stepNumber: item.stepNumber,
+          title: item.title,
+          description: item.description,
+          coverImageUrl: item.coverImageUrl
         })}
+        onUpdate={async (values, item) => {
+          await handbookAdminApi.updateStage(item.id, {
+            title: String(values.title ?? '').trim(),
+            description: String(values.description ?? '').trim(),
+            coverImageUrl: String(values.coverImageUrl ?? '').trim(),
+            expectedVersion: item.version
+          })
+          await queryClient.invalidateQueries({ queryKey: SNAPSHOT_KEY })
+        }}
         renderView={(item) => (
           <Space orientation='vertical' size={16} style={{ width: '100%' }}>
-            {item.imageUrl ? <Image src={item.imageUrl} alt='' style={{ borderRadius: 8 }} /> : null}
+            {item.coverImageUrl ? <Image src={item.coverImageUrl} alt='' style={{ borderRadius: 8 }} /> : null}
             <Descriptions
               size='small'
               column={1}
@@ -67,13 +160,13 @@ export function HandbookStepManager() {
                 {
                   key: 'order',
                   label: t('handbookSteps.step'),
-                  children: t('handbookSteps.stepN', { index: item.order })
+                  children: t('handbookSteps.stepN', { index: item.stepNumber })
                 },
                 { key: 'title', label: t('handbookSteps.name'), children: item.title },
                 { key: 'desc', label: t('handbookSteps.descriptionLabel'), children: item.description }
               ]}
             />
-            <Table<HandbookTopic>
+            <Table<TopicCategory>
               rowKey='id'
               size='small'
               pagination={false}
@@ -81,11 +174,11 @@ export function HandbookStepManager() {
               columns={[
                 {
                   title: t('handbookGroups.name'),
-                  dataIndex: 'title',
-                  render: (title: string, topic) => (
+                  dataIndex: 'name',
+                  render: (name: string, topic) => (
                     <Space>
-                      {createElement(handbookTopicIcon(topic.icon), { size: 16 })}
-                      {title}
+                      {createElement(handbookTopicIcon(topic.iconKey ?? undefined), { size: 16 })}
+                      {name}
                     </Space>
                   )
                 },
@@ -93,7 +186,7 @@ export function HandbookStepManager() {
                   title: t('handbookGroups.articles'),
                   key: 'count',
                   width: 120,
-                  render: (_, topic) => countIn(topic.id)
+                  render: (_, topic) => item.counts[topic.id] ?? 0
                 }
               ]}
             />
@@ -102,15 +195,15 @@ export function HandbookStepManager() {
         columns={[
           {
             title: t('handbookSteps.step'),
-            dataIndex: 'order',
+            dataIndex: 'stepNumber',
             width: 90,
             defaultSortOrder: 'ascend',
-            sorter: (a, b) => a.order - b.order,
+            sorter: (a, b) => a.stepNumber - b.stepNumber,
             render: (order: number) => <Text strong>{t('handbookSteps.stepN', { index: order })}</Text>
           },
           {
             title: t('handbookSteps.image'),
-            dataIndex: 'imageUrl',
+            dataIndex: 'coverImageUrl',
             width: 110,
             render: (url: string) =>
               url ? (
@@ -124,9 +217,12 @@ export function HandbookStepManager() {
             dataIndex: 'title',
             render: (_, record) => (
               <div style={{ minWidth: 0 }}>
-                <Text strong style={{ display: 'block' }}>
-                  {record.title}
-                </Text>
+                <Space wrap style={{ display: 'flex' }}>
+                  <Text strong>{record.title}</Text>
+                  <Tag color={record.version > 1 ? 'green' : undefined}>
+                    {t(`handbookContent.${record.version > 1 ? 'edited' : 'usingDefault'}`)}
+                  </Tag>
+                </Space>
                 <Text type='secondary' style={{ fontSize: 12 }} ellipsis={{ tooltip: record.description }}>
                   {record.description}
                 </Text>
@@ -142,20 +238,31 @@ export function HandbookStepManager() {
         ]}
         renderForm={(form) => (
           <>
-            <Form.Item label={t('handbookSteps.step')}>
-              <Text strong>{t('handbookSteps.stepN', { index: (form.getFieldValue('order') as number) ?? '' })}</Text>
-            </Form.Item>
-            <ImageUrlField name='imageUrl' label={t('handbookSteps.image')} required />
-            <Form.Item
-              name='title'
-              label={t('handbookSteps.name')}
-              rules={[
-                { required: true, whitespace: true, message: t('fields.requiredMessage') },
-                { max: 100, message: t('fields.maxLength', { max: 100 }) }
-              ]}
-            >
-              <Input maxLength={100} />
-            </Form.Item>
+            <Row gutter={16}>
+              <Col xs={24} md={8}>
+                {/* `shouldUpdate`: giá trị `stepNumber` được nạp vào form SAU lần render đầu, không đăng ký thì số bước trống. */}
+                <Form.Item label={t('handbookSteps.step')} shouldUpdate>
+                  {() => (
+                    <Text strong>
+                      {t('handbookSteps.stepN', { index: (form.getFieldValue('stepNumber') as number) ?? '' })}
+                    </Text>
+                  )}
+                </Form.Item>
+              </Col>
+              <Col xs={24} md={16}>
+                <Form.Item
+                  name='title'
+                  label={t('handbookSteps.name')}
+                  rules={[
+                    { required: true, whitespace: true, message: t('fields.requiredMessage') },
+                    { max: 200, message: t('fields.maxLength', { max: 200 }) }
+                  ]}
+                >
+                  <Input maxLength={200} />
+                </Form.Item>
+              </Col>
+            </Row>
+            <ImageUrlField name='coverImageUrl' label={t('handbookSteps.image')} required />
             <Form.Item
               name='description'
               label={t('handbookSteps.descriptionLabel')}
@@ -169,113 +276,217 @@ export function HandbookStepManager() {
           </>
         )}
       />
-      <HandbookGroups />
+      {/* Khối nhóm nằm NGOÀI trang Thêm / Sửa / Xem của các bước — mở form thì ẩn, tránh một bảng
+          rộng cả bề ngang nằm lệch dưới form đã căn giữa. */}
+      <Suspense fallback={null}>
+        <HideOnFormPage>
+          <HandbookGroups />
+        </HideOnFormPage>
+      </Suspense>
     </>
   )
 }
 
-interface GroupDraft {
-  topic: HandbookTopic | null
-  stage: HandbookStageId
+function HideOnFormPage({ children }: { children: ReactNode }) {
+  const { mode } = useFormPage()
+  return mode ? null : children
 }
 
-/** Nhóm cẩm nang theo từng Bước (§4): thêm, sửa tên / icon, xóa khi không còn bài. */
+interface GroupDraft {
+  topic: TopicCategory | null
+  stageId: string
+}
+
+interface GroupFormValues {
+  title: string
+  icon: string
+  stage: string
+}
+
+/**
+ * Nhóm cẩm nang theo từng Bước: thêm, sửa tên / icon, xóa khi không còn bài.
+ *
+ * Một nhóm (chủ đề hướng dẫn) là một danh mục gốc bật cờ hướng dẫn và gắn bước (BR-HB-001), nên mỗi thao tác là
+ * một hoặc hai lệnh trên cây danh mục: tạo/đổi tên danh mục rồi đặt bước + biểu tượng.
+ */
 function HandbookGroups() {
   const t = useTranslations('admin')
   const { message } = App.useApp()
-  const { data: stages = [] } = useAdminCollection('handbookStages')
-  const { data: articles = [] } = useAdminCollection('handbookArticles')
-  const save = useSaveAdminItem('handbookStages')
-  const sorted = [...stages].sort((a, b) => a.order - b.order)
-  const [selected, setSelected] = useState<HandbookStageId>('structure')
+  const queryClient = useQueryClient()
+  const { data, isPending, error } = useQuery({ queryKey: SNAPSHOT_KEY, queryFn: loadSnapshot, staleTime: 0 })
+  const [selected, setSelected] = useState<string | null>(null)
   const [draft, setDraft] = useState<GroupDraft | null>(null)
-  const [form] = Form.useForm<{ title: string; icon: string; stage: HandbookStageId }>()
-  const stage = sorted.find((item) => item.id === selected)
-  const countIn = (topicId: string) => articles.filter((article) => article.topicId === topicId).length
+  const [saving, setSaving] = useState(false)
+  /** Chủ đề đang được dời chỗ: khóa các nút Lên / Xuống trong lúc chờ để không gửi hai lệnh chồng nhau. */
+  const [moving, setMoving] = useState<string | null>(null)
+  const [form] = Form.useForm<GroupFormValues>()
+
+  const stages = data?.stages ?? []
+  const sorted = [...stages].sort((a, b) => a.stepNumber - b.stepNumber)
+  const activeId = selected ?? sorted[0]?.id ?? null
+  const topics = (data?.topics ?? []).filter((topic) => topic.stageId === activeId)
+  const countIn = (topicId: string) => data?.counts[topicId] ?? 0
+
+  const refresh = () =>
+    Promise.all([
+      queryClient.invalidateQueries({ queryKey: SNAPSHOT_KEY }),
+      queryClient.invalidateQueries({ queryKey: CATEGORIES_KEY })
+    ])
+
+  const fail = (err: unknown) => message.error(isApiError(err) ? err.message : t('feedback.apiError'))
 
   const open = (next: GroupDraft) => {
-    form.setFieldsValue({ title: next.topic?.title ?? '', icon: next.topic?.icon, stage: next.stage })
+    form.setFieldsValue({
+      title: next.topic?.name ?? '',
+      icon: next.topic?.iconKey ?? undefined,
+      stage: next.stageId
+    })
     setDraft(next)
   }
 
   const submit = async () => {
     const values = await form.validateFields().catch(() => null)
     if (!values || !draft) return
-    const target = stages.find((item) => item.id === (draft.topic ? draft.topic.stage : values.stage))
-    if (!target) return
+    const stageId = draft.topic ? (draft.topic.stageId ?? values.stage) : values.stage
     const title = values.title.trim()
-    // Tên không được trùng với nhóm khác trong cùng Bước.
-    if (target.topics.some((topic) => topic.id !== draft.topic?.id && sameName(topic.title, title))) {
+
+    // Tên không được trùng với nhóm khác trong cùng Bước. Backend còn kiểm trùng ở cả cấp gốc.
+    const siblings = (data?.topics ?? []).filter((topic) => topic.stageId === stageId)
+    if (siblings.some((topic) => topic.id !== draft.topic?.id && sameName(topic.name, title))) {
       form.setFields([{ name: 'title', errors: [t('handbookGroups.duplicate')] }])
       return
     }
-    const topics = draft.topic
-      ? target.topics.map((topic) => (topic.id === draft.topic?.id ? { ...topic, title, icon: values.icon } : topic))
-      : [...target.topics, { id: newAdminId('grp'), stage: target.id, title, icon: values.icon }]
-    await save.mutateAsync({ ...target, topics })
-    message.success(t('feedback.saved'))
-    setDraft(null)
+
+    setSaving(true)
+    try {
+      if (draft.topic) await editTopic(draft.topic, title, stageId, values.icon)
+      else await createTopic(title, stageId, values.icon)
+      await refresh()
+      message.success(t('feedback.saved'))
+      setDraft(null)
+    } catch (err) {
+      fail(err)
+      // Dữ liệu có thể đã đổi một phần (tạo xong nhưng chưa đặt bước): tải lại để màn khớp với backend.
+      await refresh()
+    } finally {
+      setSaving(false)
+    }
   }
 
-  const remove = async (topic: HandbookTopic) => {
-    if (!stage) return
-    await save.mutateAsync({ ...stage, topics: stage.topics.filter((item) => item.id !== topic.id) })
-    message.success(t('handbookGroups.deletedToast', { name: topic.title }))
+  const remove = async (topic: TopicCategory) => {
+    try {
+      await newsAdminApi.deleteCategory(topic.id, topic.version)
+      await refresh()
+      message.success(t('handbookGroups.deletedToast', { name: topic.name }))
+    } catch (err) {
+      fail(err)
+      await refresh()
+    }
+  }
+
+  /**
+   * Dời một chủ đề lên / xuống một nấc trong bước. Mốc tính từ danh sách đang hiện nên nếu người khác vừa đổi
+   * thứ tự, backend trả xung đột phiên bản; khi đó tải lại để màn khớp với dữ liệu mới.
+   */
+  const move = async (index: number, direction: 'up' | 'down') => {
+    const topic = topics[index]
+    const target = topicMove(data?.roots ?? [], topics, index, direction)
+    if (!topic || !target) return
+
+    setMoving(topic.id)
+    try {
+      await newsAdminApi.moveCategory(topic.id, {
+        expectedVersion: topic.version,
+        expectedParentId: null,
+        beforeCategoryId: target.before?.id,
+        expectedBeforeVersion: target.before?.version
+      })
+      await refresh()
+    } catch (err) {
+      fail(err)
+      await refresh()
+    } finally {
+      setMoving(null)
+    }
+  }
+
+  if (isPending) return <Skeleton active />
+  if (error && !data) {
+    return <Alert type='error' showIcon title={isApiError(error) ? error.message : t('feedback.apiError')} />
   }
 
   return (
     <Card
       title={t('handbookGroups.title')}
       extra={
-        <Button type='primary' icon={<PlusOutlined />} onClick={() => open({ topic: null, stage: selected })}>
+        <Button
+          type='primary'
+          icon={<PlusOutlined />}
+          disabled={!activeId}
+          onClick={() => activeId && open({ topic: null, stageId: activeId })}
+        >
           {t('handbookGroups.add')}
         </Button>
       }
     >
-      <Segmented<HandbookStageId>
-        value={selected}
+      <Segmented<string>
+        value={activeId ?? undefined}
         onChange={setSelected}
         options={sorted.map((item) => ({
           value: item.id,
-          label: t('handbookSteps.stepValue', { index: item.order, name: item.title })
+          label: t('handbookSteps.stepValue', { index: item.stepNumber, name: item.title })
         }))}
         style={{ marginBottom: 16 }}
       />
-      <Table<HandbookTopic>
+      <Table<TopicCategory>
         rowKey='id'
         pagination={false}
-        dataSource={stage?.topics ?? []}
+        dataSource={topics}
         locale={{ emptyText: t('handbookGroups.empty') }}
         columns={[
           {
             title: t('handbookGroups.icon'),
             key: 'icon',
             width: 70,
-            render: (_, topic) => createElement(handbookTopicIcon(topic.icon), { size: 18 })
+            render: (_, topic) => createElement(handbookTopicIcon(topic.iconKey ?? undefined), { size: 18 })
           },
-          { title: t('handbookGroups.name'), dataIndex: 'title' },
+          { title: t('handbookGroups.name'), dataIndex: 'name' },
           { title: t('handbookGroups.articles'), key: 'count', width: 120, render: (_, topic) => countIn(topic.id) },
           {
             title: t('table.actions'),
             key: 'actions',
-            width: 110,
-            render: (_, topic) => {
+            width: 170,
+            render: (_, topic, index) => {
               const used = countIn(topic.id)
               return (
                 <Space size={0}>
                   <Button
                     type='text'
+                    icon={<ArrowUpOutlined />}
+                    aria-label={t('handbookGroups.moveUp')}
+                    disabled={index === 0 || moving !== null}
+                    onClick={() => move(index, 'up')}
+                  />
+                  <Button
+                    type='text'
+                    icon={<ArrowDownOutlined />}
+                    aria-label={t('handbookGroups.moveDown')}
+                    disabled={index === topics.length - 1 || moving !== null}
+                    onClick={() => move(index, 'down')}
+                  />
+                  <Button
+                    type='text'
                     icon={<EditOutlined />}
                     aria-label={t('actions.edit')}
-                    onClick={() => open({ topic, stage: topic.stage })}
+                    onClick={() => open({ topic, stageId: topic.stageId ?? activeId ?? '' })}
                   />
-                  {used ? (
+                  {!canDeleteTopic(topic, used) ? (
                     <Tooltip title={t('handbookGroups.inUse', { count: used })}>
                       <Button type='text' danger disabled icon={<DeleteOutlined />} aria-label={t('actions.delete')} />
                     </Tooltip>
                   ) : (
                     <Popconfirm
-                      title={t('handbookGroups.deleteConfirm', { name: topic.title })}
+                      title={t('handbookGroups.deleteConfirm', { name: topic.name })}
                       okText={t('actions.delete')}
                       okButtonProps={{ danger: true }}
                       cancelText={t('actions.cancel')}
@@ -296,7 +507,7 @@ function HandbookGroups() {
         title={draft?.topic ? t('handbookGroups.editTitle') : t('handbookGroups.add')}
         okText={t('actions.save')}
         cancelText={t('actions.cancel')}
-        confirmLoading={save.isPending}
+        confirmLoading={saving}
         onOk={submit}
         onCancel={() => setDraft(null)}
         forceRender
@@ -312,7 +523,7 @@ function HandbookGroups() {
               disabled={Boolean(draft?.topic)}
               options={sorted.map((item) => ({
                 value: item.id,
-                label: t('handbookSteps.stepValue', { index: item.order, name: item.title })
+                label: t('handbookSteps.stepValue', { index: item.stepNumber, name: item.title })
               }))}
             />
           </Form.Item>
@@ -350,4 +561,46 @@ function HandbookGroups() {
       </Modal>
     </Card>
   )
+}
+
+/**
+ * Tạo chủ đề: danh mục gốc mới rồi đặt bước + biểu tượng. Hai lệnh không nằm trong một giao dịch nên nếu lệnh thứ
+ * hai lỗi thì gỡ danh mục vừa tạo, để không để lại một nhãn tin tức mồ côi lọt vào bộ lọc bài viết.
+ */
+async function createTopic(title: string, stageId: string, icon: string): Promise<void> {
+  const created: BmtNewsCategory = await newsAdminApi.createCategory({ name: title, parentId: null })
+  try {
+    await handbookAdminApi.setCategoryHandbook(created.id, {
+      stageId,
+      isInstruction: true,
+      iconKey: icon,
+      expectedVersion: created.version
+    })
+  } catch (err) {
+    await newsAdminApi.deleteCategory(created.id, created.version).catch(() => undefined)
+    throw err
+  }
+}
+
+/** Sửa chủ đề: đổi tên khi tên đổi, đặt lại bước và biểu tượng khi biểu tượng đổi. Mỗi lệnh dùng version mới nhất. */
+async function editTopic(topic: TopicCategory, title: string, stageId: string, icon: string): Promise<void> {
+  let version = topic.version
+
+  if (title !== topic.name) {
+    const renamed = await newsAdminApi.updateCategory(topic.id, {
+      name: title,
+      parentId: null,
+      expectedVersion: version
+    })
+    version = renamed.version
+  }
+
+  if (icon !== (topic.iconKey ?? undefined) || stageId !== topic.stageId) {
+    await handbookAdminApi.setCategoryHandbook(topic.id, {
+      stageId,
+      isInstruction: true,
+      iconKey: icon,
+      expectedVersion: version
+    })
+  }
 }

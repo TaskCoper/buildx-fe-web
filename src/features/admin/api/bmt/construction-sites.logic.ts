@@ -66,6 +66,8 @@ export function formatSiteDecimal(value: string, locale: string): string {
 
 export interface AdminConstructionSite extends z.infer<typeof expandedSiteSchema> {
   constructionSiteId: string
+  /** Mã hồ sơ `BUILDX-HS-YYYYMMDD-XXXXXX`; `null` khi API chưa trả. */
+  code: string | null
   name: string
   address: string
   version: number
@@ -103,6 +105,7 @@ export function normalizeSite(raw: unknown): AdminConstructionSite {
   return {
     ...expandedSiteSchema.parse(raw),
     constructionSiteId: text(r.constructionSiteId) || text(r.id),
+    code: nullableText(r.code),
     name: text(r.name),
     address: text(r.address),
     version: typeof r.version === 'number' ? r.version : 0,

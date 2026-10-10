@@ -1,5 +1,6 @@
 import { env } from '@/shared/config/env'
 import { bmtCheckoutApi } from './checkout.bmt'
+import type { PendingDesignOrder } from '../types/checkout.types'
 import { mockCheckoutApi } from './checkout.mock'
 
 /**
@@ -13,12 +14,20 @@ import { mockCheckoutApi } from './checkout.mock'
  *
  * Giữ mock: `markTransferred` — luồng API tự đối soát bằng QR, không có nút thủ
  * công nên hàm này chỉ dùng cho gói mock.
+ *
+ * `getPendingDesignOrder` (đơn thiết kế đang chờ, đọc từ `GET /payment-orders`) cho màn xác nhận đơn.
  */
 const BmtCheckoutApi = {
   createOrder: bmtCheckoutApi.createOrder,
   getOrder: bmtCheckoutApi.getOrder,
   regenerateQr: bmtCheckoutApi.regenerateQr,
-  cancelOrder: bmtCheckoutApi.cancelOrder
-} satisfies Partial<typeof mockCheckoutApi>
+  cancelOrder: bmtCheckoutApi.cancelOrder,
+  getPendingDesignOrder: bmtCheckoutApi.getPendingDesignOrder
+}
 
-export const checkoutApi = env.NEXT_PUBLIC_USE_MOCK_API ? mockCheckoutApi : { ...mockCheckoutApi, ...BmtCheckoutApi }
+/** Mock không có đơn chờ nào: gói mock mua lại thoải mái. */
+const mockPendingDesignOrder = { getPendingDesignOrder: async (): Promise<PendingDesignOrder | null> => null }
+
+export const checkoutApi = env.NEXT_PUBLIC_USE_MOCK_API
+  ? { ...mockCheckoutApi, ...mockPendingDesignOrder }
+  : { ...mockCheckoutApi, ...mockPendingDesignOrder, ...BmtCheckoutApi }

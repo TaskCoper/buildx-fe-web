@@ -18,7 +18,8 @@ Nguồn chính sách FE là `src/shared/auth/route-access.ts`; danh sách mã qu
 
 | Section                                                      | Quyền cần có                                                                            |
 | ------------------------------------------------------------ | --------------------------------------------------------------------------------------- |
-| Đơn hàng, giao dịch, khách hàng                              | `commerce.read`                                                                         |
+| Đơn hàng, giao dịch                                          | `commerce.read`                                                                         |
+| Khách hàng                                                   | `customer.manage`; gói, đơn và giao dịch trong trang chi tiết cần thêm `commerce.read`  |
 | Vai trò                                                      | `role.manage`                                                                           |
 | Nhân viên                                                    | `user.manage`                                                                           |
 | Phân công                                                    | `assignment.manage`                                                                     |

@@ -250,7 +250,7 @@ export function StaffManager() {
         }}
         renderForm={() => (
           <>
-            <Alert type='info' showIcon style={{ marginBottom: 16 }} message={tr('form.passwordNotice')} />
+            <Alert type='info' showIcon style={{ marginBottom: 16 }} title={tr('form.passwordNotice')} />
             <Form.Item
               name='email'
               label={tr('form.email')}
@@ -334,7 +334,7 @@ function GeneratedPasswordModal({ created, onClose }: { created: StaffCreated | 
     >
       {created ? (
         <>
-          <Alert type='warning' showIcon style={{ marginBottom: 16 }} message={tr('password.warning')} />
+          <Alert type='warning' showIcon style={{ marginBottom: 16 }} title={tr('password.warning')} />
           <Descriptions
             column={1}
             size='small'

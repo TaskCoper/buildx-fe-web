@@ -6,7 +6,9 @@ import { motion } from 'motion/react'
 import { useTranslations } from 'next-intl'
 
 import { Link } from '@/i18n/navigation'
-import { revealEase, TurnkeyRequestDialog } from '@/shared/components/common'
+import { useHomeSections } from '@/shared/cms/home-content'
+import { itemText, sectionItems, sectionText } from '@/shared/cms/home-sections'
+import { NamedIcon, revealEase, TurnkeyRequestDialog } from '@/shared/components/common'
 import { Button } from '@/shared/components/ui/button'
 import { ROUTES } from '@/shared/constants/routes'
 import { useMediaQuery } from '@/shared/hooks'
@@ -47,6 +49,10 @@ interface HomeServicesProps {
 
 export function HomeServices({ ownedDesignRemaining, ownsSupervision = false }: HomeServicesProps) {
   const t = useTranslations('landing.services')
+  // Nội dung admin đã lưu (khối `services`, 4 mục theo đúng thứ tự HOME_SERVICES); trường trống thì dùng bản có sẵn.
+  // Đường dẫn của nút không nằm trong CMS.
+  const sections = useHomeSections()
+  const saved = sectionItems(sections, 'services', 'items')
   const [turnkeyOpen, setTurnkeyOpen] = useState(false)
   const [hovered, setHovered] = useState<HomeService | null>(null)
   // Mobile cuộn ngang: thẻ kế tiếp chỉ LÓ một mép nên không đạt 40% diện tích → kẹt ở opacity 0
@@ -63,10 +69,10 @@ export function HomeServices({ ownedDesignRemaining, ownsSupervision = false }: 
                 `leading-none`/`leading-5`: bỏ khoảng line-height thừa để chữ cách mép
                 section và cách các thẻ đúng 20px thay vì 20px + phần thừa. */}
             <h2 className='text-2xl leading-none font-bold tracking-tight text-balance lg:text-[1.75rem]'>
-              {t('title')}
+              {sectionText(sections, 'services', 'title') ?? t('title')}
             </h2>
             <p className='text-primary-foreground col-span-2 row-start-2 max-w-3xl text-sm leading-5'>
-              {t('subtitle')}
+              {sectionText(sections, 'services', 'subtitle') ?? t('subtitle')}
             </p>
           </div>
 
@@ -86,7 +92,7 @@ export function HomeServices({ ownedDesignRemaining, ownsSupervision = false }: 
             className='hover:text-primary-foreground focus-visible:text-primary-foreground col-start-2 row-start-1 hidden items-center gap-1.5 text-sm font-medium underline-offset-4 transition-colors hover:underline focus-visible:underline lg:inline-flex'
           >
             <span className='sm:hidden'>{t('viewAllMobile')}</span>
-            <span className='hidden sm:inline'>{t('viewAll')}</span>
+            <span className='hidden sm:inline'>{sectionText(sections, 'services', 'viewAll') ?? t('viewAll')}</span>
             <ChevronRight className='size-4 lg:hidden' />
             <ArrowRight className='hidden size-4 lg:block' />
           </Link>
@@ -97,6 +103,8 @@ export function HomeServices({ ownedDesignRemaining, ownsSupervision = false }: 
           <ul className='grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4'>
             {HOME_SERVICES.map((service, index) => {
               const Icon = SERVICE_ICON[service]
+              const item = saved?.[index]
+              const actionLabel = itemText(item, 'action') ?? t(`items.${service}.action`)
               const isHovered = hovered === service
               const isOwned = service === 'design' && ownedDesignRemaining !== undefined
 
@@ -116,7 +124,9 @@ export function HomeServices({ ownedDesignRemaining, ownsSupervision = false }: 
                   )}
                 >
                   <div className='flex flex-wrap items-center justify-between gap-2'>
-                    <Icon
+                    <NamedIcon
+                      name={itemText(item, 'icon')}
+                      fallback={Icon}
                       className={cn(
                         'size-6 shrink-0 transition-colors duration-500 ease-out motion-reduce:transition-none',
                         isHovered ? 'text-brand-orange' : 'text-primary'
@@ -129,9 +139,11 @@ export function HomeServices({ ownedDesignRemaining, ownsSupervision = false }: 
                       </span>
                     ) : null}
                   </div>
-                  <h3 className='text-sm leading-snug font-bold'>{t(`items.${service}.title`)}</h3>
+                  <h3 className='text-sm leading-snug font-bold'>
+                    {itemText(item, 'title') ?? t(`items.${service}.title`)}
+                  </h3>
                   <p className='text-muted-foreground text-xs leading-relaxed text-pretty'>
-                    {t(`items.${service}.description`)}
+                    {itemText(item, 'description') ?? t(`items.${service}.description`)}
                   </p>
 
                   {/* Dòng "Dùng ở bước…" nằm trong khoảng ĐÃ CHỪA SẴN — thẻ
@@ -144,7 +156,7 @@ export function HomeServices({ ownedDesignRemaining, ownsSupervision = false }: 
                         isHovered ? 'translate-y-0 opacity-100' : 'translate-y-1 opacity-0'
                       )}
                     >
-                      {t(`items.${service}.usedAtStep`)}
+                      {itemText(item, 'usedAtStep') ?? t(`items.${service}.usedAtStep`)}
                     </span>
                   </div>
 
@@ -186,7 +198,7 @@ export function HomeServices({ ownedDesignRemaining, ownsSupervision = false }: 
                         )}
                         onClick={() => setTurnkeyOpen(true)}
                       >
-                        {t(`items.${service}.action`)}
+                        {actionLabel}
                         <ArrowRight className='size-3.5' />
                       </Button>
                     ) : (
@@ -198,7 +210,7 @@ export function HomeServices({ ownedDesignRemaining, ownsSupervision = false }: 
                         )}
                       >
                         <Link href={SERVICE_HREF[service]}>
-                          {t(`items.${service}.action`)}
+                          {actionLabel}
                           <ArrowRight className='size-3.5' />
                         </Link>
                       </Button>

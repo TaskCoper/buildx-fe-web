@@ -1,16 +1,17 @@
 import { setRequestLocale } from 'next-intl/server'
 
-import { HandbookStepManager } from '@/features/admin'
+import { redirect } from '@/i18n/navigation'
 import type { Locale } from '@/i18n/routing'
+import { ADMIN_ROUTES } from '@/shared/constants/routes'
 
 interface PageProps {
   params: Promise<{ locale: Locale }>
 }
 
-/** Các bước trong Cẩm nang (spec admin #2). */
-export default async function AdminHandbookStepsPage({ params }: PageProps) {
+/** Màn Các bước Cẩm nang đã gộp vào tab Tin tức của màn Nội dung trang Cẩm nang; giữ đường dẫn cũ để link đã lưu không bị 404. */
+export default async function AdminHandbookStepsRedirectPage({ params }: PageProps) {
   const { locale } = await params
   setRequestLocale(locale)
 
-  return <HandbookStepManager />
+  redirect({ href: ADMIN_ROUTES.HANDBOOK_CONTENT, locale })
 }

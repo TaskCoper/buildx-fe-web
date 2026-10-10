@@ -1,12 +1,14 @@
 'use client'
 
-import { UploadOutlined } from '@ant-design/icons'
+import { DeleteOutlined, PictureOutlined, UploadOutlined } from '@ant-design/icons'
 import { App, Button, Image as AntImage, Typography, Upload } from 'antd'
 import { useTranslations } from 'next-intl'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { isApiError } from '@/shared/lib/api'
 import { ACCEPTED_IMAGE_TYPES, MediaUploadError, type MediaPurpose, uploadImage } from '@/shared/media'
+
+import { FileDropZone } from './file-drop-zone'
 
 /**
  * Các mã lỗi có câu tiếng Việt riêng. Mã ngoài danh sách này (backend thêm sau,
@@ -28,6 +30,65 @@ type KnownError = (typeof KNOWN_ERRORS)[number]
 
 const isKnownError = (code: string): code is KnownError => (KNOWN_ERRORS as readonly string[]).includes(code)
 
+/**
+ * Chạy đủ ba bước của MEDIA cho một tệp ảnh và báo kết quả cho người vận hành bằng thông báo.
+ * Trả URL ảnh đã được backend xác minh, hoặc `undefined` khi lỗi (lỗi đã được báo rồi).
+ *
+ * Một nơi duy nhất cho cả ba đường vào — bấm chọn tệp, kéo thả, khung ảnh trong richtext — để
+ * câu báo lỗi không lệch nhau.
+ */
+export function useImageUpload(purpose?: MediaPurpose) {
+  const t = useTranslations('admin.imageUpload')
+  const { message } = App.useApp()
+  const [pending, setPending] = useState(0)
+
+  async function upload(file: File): Promise<string | undefined> {
+    setPending((count) => count + 1)
+    try {
+      const uploaded = await uploadImage(file, purpose)
+      message.success(t('done'))
+      return uploaded.url
+    } catch (error) {
+      if (error instanceof MediaUploadError) {
+        message.error(isKnownError(error.code) ? t(`errors.${error.code}`) : t('errors.generic'))
+      } else {
+        message.error(isApiError(error) ? error.message : t('errors.generic'))
+      }
+      return undefined
+    } finally {
+      setPending((count) => count - 1)
+    }
+  }
+
+  return { upload, busy: pending > 0 }
+}
+
+interface PickImageButtonProps {
+  onFile: (file: File) => void
+  busy: boolean
+  size?: 'small' | 'middle'
+  label?: string
+}
+
+/** Nút bấm → hộp chọn tệp ảnh. Chỉ chọn tệp; việc tải lên do bên gọi (`useImageUpload`) điều khiển. */
+function PickImageButton({ onFile, busy, size = 'middle', label }: PickImageButtonProps) {
+  const t = useTranslations('admin.imageUpload')
+
+  return (
+    <Upload
+      accept={ACCEPTED_IMAGE_TYPES.join(',')}
+      showUploadList={false}
+      maxCount={1}
+      // `customRequest` để antd không tự POST tệp đi đâu cả — mọi bước do `uploadImage` điều khiển.
+      customRequest={({ file }) => onFile(file as File)}
+    >
+      <Button icon={<UploadOutlined />} loading={busy} size={size}>
+        {label ?? t('button')}
+      </Button>
+    </Upload>
+  )
+}
+
 interface ImageUploadButtonProps {
   /** Nhận URL ảnh đã được backend xác minh — chỉ gọi khi chắc chắn thành công. */
   onUploaded: (url: string) => void
@@ -38,48 +99,23 @@ interface ImageUploadButtonProps {
 
 /**
  * Nút tải ảnh dùng chung cho khu quản trị, thay cho việc bắt người vận hành tự
- * dán URL. Bấm → chọn tệp → tự chạy đủ ba bước của MEDIA → trả URL cố định.
- *
- * Ô nhập URL vẫn giữ bên cạnh: ảnh cũ đã nằm sẵn trên kho thì dán lại nhanh hơn
- * tải lên lần nữa.
+ * dán URL. Bấm → chọn tệp (hoặc kéo thả ảnh lên nút) → tự chạy đủ ba bước của MEDIA → trả URL cố định.
  *
  * LƯU Ý NGHIỆP VỤ: ảnh chỉ được tính là "đang dùng" khi bản ghi được LƯU thành
  * công. Bỏ form giữa chừng thì ảnh vừa tải sẽ bị dọn sau 24 giờ (BR-MEDIA-002) —
  * nên đừng coi lúc tải xong là đã lưu.
  */
-export function ImageUploadButton({ onUploaded, purpose, size = 'middle', label }: ImageUploadButtonProps) {
-  const t = useTranslations('admin.imageUpload')
-  const { message } = App.useApp()
-  const [busy, setBusy] = useState(false)
+export function ImageUploadButton({ onUploaded, purpose, size, label }: ImageUploadButtonProps) {
+  const { upload, busy } = useImageUpload(purpose)
+  const pick = async (file: File) => {
+    const url = await upload(file)
+    if (url) onUploaded(url)
+  }
 
   return (
-    <Upload
-      accept={ACCEPTED_IMAGE_TYPES.join(',')}
-      showUploadList={false}
-      maxCount={1}
-      // `customRequest` để antd không tự POST tệp đi đâu cả — mọi bước do
-      // `uploadImage` điều khiển.
-      customRequest={async ({ file }) => {
-        setBusy(true)
-        try {
-          const uploaded = await uploadImage(file as File, purpose)
-          onUploaded(uploaded.url)
-          message.success(t('done'))
-        } catch (error) {
-          if (error instanceof MediaUploadError) {
-            message.error(isKnownError(error.code) ? t(`errors.${error.code}`) : t('errors.generic'))
-          } else {
-            message.error(isApiError(error) ? error.message : t('errors.generic'))
-          }
-        } finally {
-          setBusy(false)
-        }
-      }}
-    >
-      <Button icon={<UploadOutlined />} loading={busy} size={size}>
-        {label ?? t('button')}
-      </Button>
-    </Upload>
+    <FileDropZone className='inline-block' disabled={busy} onFiles={([file]) => file && void pick(file)}>
+      <PickImageButton busy={busy} size={size} label={label} onFile={(file) => void pick(file)} />
+    </FileDropZone>
   )
 }
 
@@ -93,50 +129,129 @@ export function ImageUploadButton({ onUploaded, purpose, size = 'middle', label 
 export function ImagePicker({
   value,
   onChange,
-  purpose
+  purpose,
+  onUploadingChange,
+  variant = 'inline',
+  onRemove,
+  removeLabel
 }: {
   value?: string
   onChange?: (url: string | undefined) => void
+  onUploadingChange?: (uploading: boolean) => void
   purpose?: MediaPurpose
+  variant?: 'inline' | 'card'
+  onRemove?: () => void
+  removeLabel?: string
 }) {
   const t = useTranslations('admin.imageUpload')
   const tf = useTranslations('admin')
+  const { upload, busy } = useImageUpload(purpose)
+
+  const mounted = useRef(true)
+  const change = useRef(onChange)
+  useEffect(() => {
+    change.current = onChange
+  }, [onChange])
+  useEffect(() => {
+    mounted.current = true
+    return () => {
+      mounted.current = false
+    }
+  }, [])
+
+  const pick = async (file: File) => {
+    onUploadingChange?.(true)
+    try {
+      const url = await upload(file)
+      if (url && mounted.current) change.current?.(url)
+    } finally {
+      onUploadingChange?.(false)
+    }
+  }
+
+  if (variant === 'card') {
+    return (
+      <FileDropZone disabled={busy} onFiles={([file]) => file && void pick(file)}>
+        <div className='architect-image-picker overflow-hidden rounded-xl border border-border bg-background'>
+          <div className='architect-image-preview relative grid aspect-4/3 place-items-center bg-muted/40'>
+            {value ? (
+              <AntImage src={value} alt='' width='100%' height='100%' style={{ objectFit: 'cover' }} />
+            ) : (
+              <div className='text-muted-foreground flex flex-col items-center gap-2 p-4 text-center'>
+                <PictureOutlined className='text-3xl' />
+                <span className='text-xs'>{tf('fields.noImage')}</span>
+              </div>
+            )}
+            {(onRemove || value) && (
+              <div className='absolute top-2 right-2'>
+                <Button
+                  danger
+                  size='small'
+                  icon={<DeleteOutlined />}
+                  aria-label={removeLabel ?? t('remove')}
+                  title={removeLabel ?? t('remove')}
+                  disabled={busy}
+                  onClick={() => (onRemove ? onRemove() : onChange?.(undefined))}
+                />
+              </div>
+            )}
+          </div>
+          <div className='flex flex-col items-center gap-2 p-3'>
+            <PickImageButton
+              size='small'
+              busy={busy}
+              label={value ? t('replace') : t('button')}
+              onFile={(file) => void pick(file)}
+            />
+            <span className='text-muted-foreground text-center text-xs'>{t('orDrop')}</span>
+          </div>
+        </div>
+      </FileDropZone>
+    )
+  }
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-      <div
-        style={{
-          width: 96,
-          height: 68,
-          flexShrink: 0,
-          borderRadius: 8,
-          overflow: 'hidden',
-          background: 'var(--admin-placeholder)',
-          display: 'grid',
-          placeItems: 'center'
-        }}
-      >
-        {value ? (
-          <AntImage src={value} alt='' width={96} height={68} style={{ objectFit: 'cover' }} />
-        ) : (
+    <FileDropZone disabled={busy} onFiles={([file]) => file && void pick(file)}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div
+          style={{
+            width: 96,
+            height: 68,
+            flexShrink: 0,
+            borderRadius: 8,
+            overflow: 'hidden',
+            background: 'var(--admin-placeholder)',
+            display: 'grid',
+            placeItems: 'center'
+          }}
+        >
+          {value ? (
+            <AntImage src={value} alt='' width={96} height={68} style={{ objectFit: 'cover' }} />
+          ) : (
+            <Typography.Text type='secondary' style={{ fontSize: 11 }}>
+              {tf('fields.noImage')}
+            </Typography.Text>
+          )}
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <PickImageButton
+              size='small'
+              busy={busy}
+              label={value ? t('replace') : t('button')}
+              onFile={(file) => void pick(file)}
+            />
+            {value ? (
+              <Button type='text' size='small' danger onClick={() => onChange?.(undefined)}>
+                {t('remove')}
+              </Button>
+            ) : null}
+          </div>
           <Typography.Text type='secondary' style={{ fontSize: 11 }}>
-            {tf('fields.noImage')}
+            {t('orDrop')}
           </Typography.Text>
-        )}
+        </div>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <ImageUploadButton
-          size='small'
-          purpose={purpose}
-          label={value ? t('replace') : t('button')}
-          onUploaded={(url) => onChange?.(url)}
-        />
-        {value ? (
-          <Button type='text' size='small' danger onClick={() => onChange?.(undefined)}>
-            {t('remove')}
-          </Button>
-        ) : null}
-      </div>
-    </div>
+    </FileDropZone>
   )
 }

@@ -10,21 +10,26 @@ import { Photo } from '@/shared/components/common'
 import { Badge } from '@/shared/components/ui/badge'
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import { handbookArticleRoute } from '@/shared/constants/routes'
+import { useApiErrorText } from '@/shared/hooks'
 import { cn } from '@/shared/lib/utils'
 import { formatDisplayDate } from '@/shared/utils'
+import { sectionText } from '../api/handbook.cms.logic'
 import { ARTICLE_META_ICON, ARTICLE_META_TEXT } from '../constants/article-meta'
 import { useArticleLabels } from '../hooks/use-article-labels'
 import { HANDBOOK_ARTICLE_LIST_HISTORY_KEY, HANDBOOK_CATEGORY_SELECT_EVENT } from '../constants/handbook.constants'
-import { useHandbookArticles } from '../hooks/use-handbook'
-import { featuredArticles, sortByNewest } from '../services/handbook.service'
+import { useHandbookNewsletter, useHandbookPageSections } from '../hooks/use-handbook'
 import type { HandbookArticle } from '../types/handbook.types'
 
 /**
  * "Bản tin SAVICO" (Phần 3.2, Hình 11).
  *
  * Bài do đội nội dung chọn đẩy lên: một bài nổi bật lớn, ba bài phụ đánh số và
- * cột bài liên quan bên phải. Thứ tự lấy từ `featuredRank` chứ không phải theo
- * ngày — đây là khối biên tập, không phải dòng thời gian.
+ * cột bài liên quan bên phải. Thứ tự do người quản lý xếp chứ không phải theo
+ * ngày — đây là khối biên tập, không phải dòng thời gian (BR-HB-002 khoản 1).
+ *
+ * Dữ liệu từ `GET /handbook/newsletter`: bài không còn công bố đã bị BE bỏ qua và các
+ * bài sau dồn lên; bài liên quan do BE suy từ danh mục của bài đứng đầu. Không còn bài
+ * nổi bật nào thì ẩn cả khối, không lấy bài khác lấp vào (BR-HB-002 khoản 9).
  */
 export function NewsletterBlock() {
   const t = useTranslations('handbook.newsletter')
@@ -37,12 +42,11 @@ export function NewsletterBlock() {
   // Ngày trên đầu bản tin là NGÀY HÔM NAY (formatDisplayDate đã quy về giờ Việt Nam), không phải ngày đăng của bài nổi bật.
   const [today] = useState(() => new Date())
 
-  const { data: articles, isPending } = useHandbookArticles(undefined, undefined, { source: 'mock' })
-  const featured = useMemo(() => featuredArticles(articles ?? []), [articles])
-  const related = useMemo(
-    () => sortByNewest(articles ?? []).filter((article) => !featured.includes(article)),
-    [articles, featured]
-  )
+  const { data: newsletter, isPending, error } = useHandbookNewsletter()
+  const pageSections = useHandbookPageSections()
+  const apiErrorText = useApiErrorText()
+  const featured = useMemo(() => newsletter?.featured ?? [], [newsletter])
+  const related = useMemo(() => newsletter?.related ?? [], [newsletter])
 
   const lead = featured[0]
   const supporting = featured.slice(1)
@@ -346,6 +350,14 @@ export function NewsletterBlock() {
   }
 
   if (isPending) return <Skeleton className='h-96 rounded-2xl' />
+  if (error && !newsletter) {
+    // Không rơi về dữ liệu giả: lỗi tải khối là sự cố cần thấy, khác với khối rỗng hợp lệ ở dòng dưới.
+    return (
+      <p role='alert' className='text-muted-foreground rounded-2xl border border-dashed p-6 text-sm'>
+        {apiErrorText(error, t('loadError'))}
+      </p>
+    )
+  }
   if (featured.length === 0) return null
 
   return (
@@ -353,7 +365,7 @@ export function NewsletterBlock() {
       {/* Góp ý BuildX: bỏ dòng phân loại, ngày dời về góc phải cùng hàng tiêu đề. */}
       <header className='relative flex flex-wrap items-baseline justify-between gap-2 pb-3'>
         <h2 data-newsletter-title className='text-foreground text-3xl font-bold tracking-tight text-balance'>
-          {t('title')}
+          {sectionText(pageSections, 'newsletterHeading', 'title') ?? t('title')}
         </h2>
         <p data-newsletter-date className='text-foreground/80 text-sm font-semibold'>
           {formatDisplayDate(today, locale, { weekday: true })}
@@ -394,7 +406,11 @@ export function NewsletterBlock() {
                   </span>
                 </div>
                 <Link data-newsletter-lead-part href={handbookArticleRoute(displayedLead.slug)} className='block'>
-                  <h4 data-newsletter-lead-title className='text-xl leading-snug font-semibold text-balance'>
+                  <h4
+                    data-newsletter-lead-title
+                    title={displayedLead.title}
+                    className='line-clamp-2 text-xl leading-snug font-semibold text-balance'
+                  >
                     {displayedLead.title}
                   </h4>
                 </Link>
@@ -438,7 +454,9 @@ export function NewsletterBlock() {
                     <Photo className='size-14 rounded-lg' src={article.imageUrl} alt={article.title} sizes='56px' />
                   </div>
                   <span className='min-w-0 space-y-1'>
-                    <span className='line-clamp-3 block text-sm font-medium'>{article.title}</span>
+                    <span title={article.title} className='line-clamp-2 text-sm font-medium'>
+                      {article.title}
+                    </span>
                     <span className={cn(ARTICLE_META_TEXT, 'flex items-center gap-1 text-xs whitespace-nowrap')}>
                       <Clock className={cn(ARTICLE_META_ICON, 'size-3')} />
                       {t('readingTime', { minutes: article.readingMinutes })}
@@ -504,7 +522,11 @@ function RelatedRow({ article }: { article: HandbookArticle }) {
         <Photo className='size-16 rounded-lg' src={article.imageUrl} alt={article.title} sizes='64px' />
       </div>
       <span className='min-w-0 flex-1 space-y-1'>
-        <span data-newsletter-related-title className='line-clamp-2 block text-sm font-medium transition-colors'>
+        <span
+          data-newsletter-related-title
+          title={article.title}
+          className='line-clamp-2 text-sm font-medium transition-colors'
+        >
           {article.title}
         </span>
         <span className='block text-xs'>

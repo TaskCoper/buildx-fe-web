@@ -145,3 +145,40 @@ export function formatDigitGroups(value: string, locale: Locale): string {
   if (!digits) return ''
   return formatNumber(Number(digits), locale)
 }
+
+/**
+ * `formatter` của ô nhập TIỀN (antd `InputNumber`): `1850000` → `1.850.000`.
+ *
+ * Luôn dấu chấm kiểu Việt cho mọi ô tiền ở khu quản trị (góp ý case 17), không phụ thuộc ngôn ngữ trình duyệt.
+ * Chỉ dùng cho số nguyên VND — ô có phần thập phân (như phần trăm) không dùng hàm này.
+ */
+export function formatMoneyInput(value?: string | number | null): string {
+  if (value === undefined || value === null || value === '') return ''
+  return String(value)
+    .replace(/\D/g, '')
+    .replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+}
+
+/**
+ * `parser` đi cặp với {@link formatMoneyInput}: bỏ mọi ký tự không phải số (dán "1.850.000 ₫" vẫn ra đúng).
+ * Ô trống trả chuỗi rỗng để antd hiểu là chưa nhập (trả 0 thì ô "không giới hạn" không xoá trống được).
+ */
+export function parseMoneyInput(value?: string): string {
+  return (value ?? '').replace(/\D/g, '')
+}
+
+/**
+ * Vị trí con trỏ trong chuỗi đã nhóm, ngay SAU chữ số thứ `digits`.
+ *
+ * Ô nhập tiền được định dạng lại mỗi lần gõ (`1850` → `1.850`), React đặt lại giá trị nên con trỏ nhảy về cuối. Đếm số
+ * chữ số nằm trước con trỏ rồi tìm lại đúng chỗ đó trong chuỗi mới thì sửa giữa chừng vẫn gõ tiếp đúng vị trí.
+ */
+export function caretAfterDigits(formatted: string, digits: number): number {
+  if (digits <= 0) return 0
+  let seen = 0
+  for (let index = 0; index < formatted.length; index += 1) {
+    if (/\d/.test(formatted.charAt(index))) seen += 1
+    if (seen === digits) return index + 1
+  }
+  return formatted.length
+}

@@ -11,6 +11,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: primaryButtonEffectClasses,
+        transparent: 'group relative isolate overflow-hidden bg-transparent text-inherit',
         destructive:
           'group relative isolate overflow-hidden bg-destructive text-destructive-foreground ring-1 ring-destructive shadow-[0_1px_--theme(--color-white/0.07)_inset,0_1px_3px_--theme(--color-gray-900/0.2)] transition duration-300 ease-[cubic-bezier(0.4,0.36,0,1)] before:pointer-events-none before:absolute before:inset-0 before:-z-10 before:rounded-[inherit] before:bg-linear-to-b before:from-white/20 before:opacity-50 before:transition-opacity before:duration-300 before:ease-[cubic-bezier(0.4,0.36,0,1)] after:pointer-events-none after:absolute after:inset-0 after:-z-10 after:rounded-[inherit] after:bg-linear-to-b after:from-white/15 after:from-44% after:via-transparent after:via-50% after:to-black/12 after:to-56% after:mix-blend-overlay hover:before:opacity-100 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40',
         outline:

@@ -28,8 +28,8 @@ type MenuItem = NonNullable<MenuProps['items']>[number]
  * hàng trông giống hệt nhau mà hành xử khác nhau — cái bấm ra trang, cái bấm ra
  * danh sách. Đều tay dễ đoán hơn là tiết kiệm một cú bấm.
  *
- * Nhóm "Nội dung site" tạm không dựng — nội dung trang công khai đang sửa ở FE;
- * khi làm CMS thì dựng lại nhóm đó từ `admin-pages.config` như trước.
+ * Nhóm "Nội dung" tập hợp các màn CMS theo trang, cùng cách mở/gập và lọc quyền
+ * với các nhóm vận hành.
  */
 export function AdminMenu() {
   const t = useTranslations('admin')

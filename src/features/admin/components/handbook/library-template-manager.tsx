@@ -1,6 +1,6 @@
 'use client'
 
-import { DeleteOutlined, EyeOutlined, SwapOutlined } from '@ant-design/icons'
+import { DeleteOutlined, SwapOutlined } from '@ant-design/icons'
 import { Alert, App, Checkbox, Form, Segmented, Space, Tag, Typography } from 'antd'
 import { useTranslations } from 'next-intl'
 import { useRef, useState } from 'react'
@@ -35,7 +35,7 @@ import { StatusTag } from '../common/status-tag'
 import { useFloorLabel } from '../catalog/use-floor-label'
 import { LibraryContentFields, toContentFormValues, toTemplateContent } from './library-content-fields'
 import { useLibraryErrorMessage } from './library-error-message'
-import { LibraryTemplateDetailDrawer } from './library-template-detail-drawer'
+import { LibraryTemplateDetail } from './library-template-detail'
 import { LibraryInitialSectionsField, newFormSection, newFormSectionKey } from './library-initial-sections-field'
 import { useLibraryClassification } from './use-library-classification'
 
@@ -105,8 +105,6 @@ export function LibraryTemplateManager() {
   const editTarget = useRef<EditTarget | null>(null)
   const [activeKind, setActiveKind] = useState<'all' | DrawingKind>('all')
   const [progress, setProgress] = useState<CreateFlowProgress | null>(null)
-  // Mẫu đang xem chi tiết (chỉ đọc).
-  const [viewing, setViewing] = useState<LibraryRow | null>(null)
   const libraryError = useLibraryErrorMessage()
 
   const listKey = adminKeys.bmt('library', 'templates', activeKind)
@@ -267,14 +265,15 @@ export function LibraryTemplateManager() {
             ) : null}
           </>
         )}
+        // Trang xem chi tiết (chỉ đọc) dùng chung của bảng — mọi dòng đều có phiên bản đang hiển thị (`loadRows` bỏ vỏ rỗng).
+        renderView={(row) =>
+          row.shown ? (
+            <LibraryTemplateDetail
+              target={{ templateId: row.template.templateId, isHidden: row.template.isHidden, version: row.shown }}
+            />
+          ) : null
+        }
         rowActions={(row, ctx): RowAction[] => [
-          {
-            key: 'view',
-            label: t('actions.view'),
-            icon: <EyeOutlined />,
-            disabled: !row.shown,
-            onClick: () => setViewing(row)
-          },
           {
             key: 'status',
             label: t('actions.switchStatus'),
@@ -369,14 +368,6 @@ export function LibraryTemplateManager() {
               )
           }
         ]}
-      />
-      <LibraryTemplateDetailDrawer
-        target={
-          viewing?.shown
-            ? { templateId: viewing.template.templateId, isHidden: viewing.template.isHidden, version: viewing.shown }
-            : null
-        }
-        onClose={() => setViewing(null)}
       />
     </>
   )

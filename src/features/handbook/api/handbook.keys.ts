@@ -1,4 +1,5 @@
 import type { HandbookFilter, HandbookTemplateKind, LibraryMatchCriteria } from '../types/handbook.types'
+import { cmsSectionsQueryKey } from '@/shared/cms/cms-cache'
 
 export const handbookKeys = {
   all: ['handbook'] as const,
@@ -20,5 +21,7 @@ export const handbookKeys = {
   newsCategoryTree: () => [...handbookKeys.all, 'news-category-tree'] as const,
 
   stages: () => [...handbookKeys.all, 'stages'] as const,
+  newsletter: () => [...handbookKeys.all, 'newsletter'] as const,
+  pageSections: (locale: string) => cmsSectionsQueryKey('handbook', locale),
   quota: () => [...handbookKeys.all, 'quota'] as const
 } as const

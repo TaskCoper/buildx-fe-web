@@ -320,7 +320,9 @@ export function CheckoutDone({ orderId }: CheckoutDoneProps) {
             </Button>
             {!isSupervision && hasHandbookReturn ? (
               <Button
+                data-back-navigation
                 asChild
+                variant='outline'
                 className='h-13 flex-1 transition-[transform,filter] active:scale-[0.98] motion-reduce:transform-none'
               >
                 <Link

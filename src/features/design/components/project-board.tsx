@@ -105,6 +105,11 @@ export function ProjectBoard() {
   const [renaming, setRenaming] = useState<Project | null>(null)
   const [deleting, setDeleting] = useState<Project | null>(null)
 
+  function changePage(nextPage: number) {
+    setPage(nextPage)
+    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })
+  }
+
   // `?? []` tạo mảng mới mỗi lần render nên phải ghim lại, nếu không hai
   // `useMemo` bên dưới tính lại ở mọi lần render.
   const list = useMemo(() => projects ?? [], [projects])
@@ -190,7 +195,7 @@ export function ProjectBoard() {
 
                 <div className='flex flex-wrap items-center justify-between gap-3 pt-1'>
                   <p className='text-muted-foreground text-[13px]'>{t('count', { count: matchedCount })}</p>
-                  <ProjectPagination page={page} pageCount={pageCount} onChange={setPage} />
+                  <ProjectPagination page={page} pageCount={pageCount} onChange={changePage} />
                 </div>
               </>
             </motion.div>

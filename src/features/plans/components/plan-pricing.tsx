@@ -8,20 +8,17 @@ import {
   CheckCircle2,
   Building2,
   Check,
-  Clock,
+  ChevronLeft,
+  ChevronRight,
   Headphones,
-  HardHat,
   Info,
   MessageCircle,
   Minus,
-  MousePointerClick,
   QrCode,
-  ShieldCheck,
-  Wallet,
-  type LucideIcon
+  ShieldCheck
 } from 'lucide-react'
 import { animate, motion, useInView, useMotionValue } from 'motion/react'
-import { useLocale, useTranslations } from 'next-intl'
+import { useLocale, useMessages, useTranslations } from 'next-intl'
 import {
   Fragment,
   useEffect,
@@ -38,6 +35,8 @@ import type { Locale } from '@/i18n/routing'
 import { formatPriceTag } from '@/shared/utils'
 import { giftValueInMillions } from '../services/plan-gift.service'
 import { PlanGiftDialog } from './plan-gift-dialog'
+import { PlanValueIcon } from './plan-value-icon'
+import { readValueItems, legacyValueItems } from '@/shared/cms/plans-value-content'
 import { cmsText, useCmsDocument, type PlanTier } from '@/shared/cms'
 import { useChatContextStore } from '@/shared/chat-context'
 import { HotlineLink, Photo, PricingMotionProvider, pricingEase, usePricingMotion } from '@/shared/components/common'
@@ -48,19 +47,21 @@ import { checkoutConfirmRoute } from '@/shared/constants/routes'
 import { usePageEntrance } from '@/shared/hooks'
 import { cn } from '@/shared/lib/utils'
 import { rememberCheckoutReturn } from '@/shared/lib/checkout-return'
-import {
-  PLAN_COMPARISON,
-  PLAN_VALUE_ROWS,
-  planCell,
-  type PlanCell,
-  type PlanValueKey
-} from '../constants/plan-comparison'
+import { type PlanCell, type PlanValueKey } from '../constants/plan-comparison'
 import { usePlanHighlights } from '../hooks/use-plan-highlights'
 import type { PlanView } from '../types/plan.types'
 import { usePlans } from '../hooks/use-plans'
-import { hasYearOffer, maxYearlySaving, planForCycle } from '../services/plan-cycle'
-import type { PlanCycle } from '../types/plan.types'
-import { PlanCycleToggle } from './plan-cycle-toggle'
+import { usePlansCopy, usePlansSections } from '../hooks/use-plans-copy'
+import {
+  legacyComparisonGroups,
+  readComparisonGroups,
+  comparisonDefaultText
+} from '@/shared/cms/plans-comparison-content'
+import { planForCycle } from '../services/plan-cycle'
+// [CYCLE-TOGGLE] Tạm ẩn công tắc Tháng / Năm — bỏ comment ba dòng dưới (và thay dòng import ở trên bằng
+// `import { hasYearOffer, maxYearlySaving, planForCycle } from '../services/plan-cycle'`) để bật lại.
+// import type { PlanCycle } from '../types/plan.types'
+// import { PlanCycleToggle } from './plan-cycle-toggle'
 
 const TIERS: readonly PlanTier[] = ['basic', 'advanced', 'pro'] as const
 
@@ -77,21 +78,11 @@ const DESIGN_OFFER_KEY = 'Month'
  * không thể lệch choreography.
  */
 const PRICE_COUNT_DURATION_MS: Record<PlanTier, number> = {
-  basic: 1080,
-  advanced: 1320,
-  pro: 1560
+  basic: 540,
+  advanced: 660,
+  pro: 780
 }
 const PRICE_SETTLE_PULSE_MS = 240
-
-/** Gói được tô cam xuyên suốt trang (Hình S01) — cột PLUS của bảng so sánh. */
-
-/** Icon đứng trước mỗi hàng của bảng "Giá trị khách hàng nhận được" (Hình S01). */
-const VALUE_ROW_ICON: Record<(typeof PLAN_VALUE_ROWS)[number], LucideIcon> = {
-  easy: MousePointerClick,
-  time: Clock,
-  budget: Wallet,
-  ready: HardHat
-}
 
 /**
  * S01 — Bảng giá gói thiết kế (trang công khai).
@@ -115,8 +106,10 @@ export function PlanPricing() {
 
 function PlanPricingContent() {
   const t = useTranslations('plans')
+  const advice = usePlansCopy('advice')
+  const notes = usePlansCopy('notes')
   const settings = useCmsDocument('settings')
-  const hotline = cmsText(settings.hotline, siteConfig.contact.hotline)
+  const hotline = advice('hotline', cmsText(settings.hotline, siteConfig.contact.hotline))
   const setAssistantOpen = useChatContextStore((s) => s.setPanelOpen)
   const setAssistantSuppressed = useChatContextStore((s) => s.setDockSuppressed)
   const { data: plans, isPending } = usePlans()
@@ -124,10 +117,13 @@ function PlanPricingContent() {
 
   // Chu kỳ đang xem. Công tắc chỉ hiện khi có gói bán theo năm; không thì luôn là tháng. Dựng
   // bản "nhìn theo chu kỳ" ngay từ đây để thẻ, bảng so sánh và nút mua dùng nguyên price / hạn mức.
-  const [cycle, setCycle] = useState<PlanCycle>('Month')
-  const showCycleToggle = hasYearOffer(plans ?? [])
-  const activeCycle: PlanCycle = showCycleToggle ? cycle : 'Month'
-  const cyclePlans = useMemo(() => (plans ?? []).map((plan) => planForCycle(plan, activeCycle)), [plans, activeCycle])
+  //
+  // [CYCLE-TOGGLE] TẠM ẨN công tắc Tháng / Năm (khách yêu cầu): trang chỉ bán theo tháng. Để bật lại,
+  // bỏ comment ba dòng dưới, xoá dòng `cyclePlans` tạm và đổi `'Month'` thành `activeCycle`.
+  // const [cycle, setCycle] = useState<PlanCycle>('Month')
+  // const showCycleToggle = hasYearOffer(plans ?? [])
+  // const activeCycle: PlanCycle = showCycleToggle ? cycle : 'Month'
+  const cyclePlans = useMemo(() => (plans ?? []).map((plan) => planForCycle(plan, 'Month')), [plans])
 
   const { reduceMotion } = usePricingMotion()
 
@@ -147,9 +143,11 @@ function PlanPricingContent() {
             đề trong CMS thì phần tô màu vẫn tự bám chữ cuối. */}
         <PlanHeading />
 
+        {/* [CYCLE-TOGGLE] Tạm ẩn công tắc Tháng / Năm — bỏ comment để bật lại.
         {showCycleToggle ? (
           <PlanCycleToggle value={activeCycle} onChange={setCycle} saving={maxYearlySaving(plans ?? [])} />
         ) : null}
+        */}
 
         {isPending ? (
           <div className='grid gap-5 md:grid-cols-3'>
@@ -172,7 +170,7 @@ function PlanPricingContent() {
         initial={reduceMotion ? false : { opacity: 0, y: 14 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.5 }}
-        transition={{ duration: reduceMotion ? 0.01 : 0.6, delay: reduceMotion ? 0 : 0.55, ease: pricingEase }}
+        transition={{ duration: reduceMotion ? 0.01 : 0.3, delay: reduceMotion ? 0 : 0.275, ease: pricingEase }}
       >
         {/* Góp ý BuildX (BG07): dải giữa trang không còn đẩy thẳng vào thanh toán gói
             PLUS — mời tư vấn chọn gói qua tổng đài hoặc trợ lý AI. */}
@@ -181,15 +179,15 @@ function PlanPricingContent() {
             <Headphones aria-hidden className='plan-document size-5' />
           </span>
           <div>
-            <p className='font-semibold text-pretty'>{t('ctaBand.title')}</p>
-            <p className='text-muted-foreground text-sm text-pretty'>{t('ctaBand.subtitle')}</p>
+            <p className='font-semibold text-pretty'>{advice('title', t('ctaBand.title'))}</p>
+            <p className='text-muted-foreground text-sm text-pretty'>{advice('subtitle', t('ctaBand.subtitle'))}</p>
           </div>
         </div>
         <div className='grid w-full gap-2 sm:flex sm:w-auto sm:gap-3'>
           <Button asChild size='lg' className='brand-green-button plan-cta-action'>
             <HotlineLink hotline={hotline}>
               <Headphones className='size-4' />
-              {t('ctaBand.call', { hotline })}
+              {advice('call', t('ctaBand.call', { hotline }), { hotline })}
             </HotlineLink>
           </Button>
           <Button
@@ -202,7 +200,7 @@ function PlanPricingContent() {
             }}
           >
             <MessageCircle className='size-4' />
-            {t('ctaBand.chat')}
+            {advice('chat', t('ctaBand.chat'))}
           </Button>
         </div>
       </motion.section>
@@ -235,18 +233,18 @@ function PlanPricingContent() {
             <li
               key={note.key}
               className='plan-note-chip flex items-center gap-3'
-              style={{ '--note-delay': `${1.6 + index * 0.24}s` } as CSSProperties}
+              style={{ '--note-delay': `${0.8 + index * 0.12}s` } as CSSProperties}
             >
               <span className='plan-note-icon-wrap bg-accent text-primary flex size-8 shrink-0 items-center justify-center rounded-full'>
                 <note.icon aria-hidden className='plan-note-icon size-4' />
               </span>
-              <span className='text-pretty'>{t(`notes.${note.key}`)}</span>
+              <span className='text-pretty'>{notes(note.key, t(`notes.${note.key}`))}</span>
             </li>
           ))}
         </ul>
         <p className='plan-notes-disclaimer text-primary-strong flex items-start gap-2 text-left text-sm font-medium text-pretty'>
           <Info className='mt-0.5 size-3.5 shrink-0' />
-          <span>{t('notes.scope')}</span>
+          <span>{notes('scope', t('notes.scope'))}</span>
         </p>
       </motion.div>
     </div>
@@ -262,20 +260,30 @@ function PlanPricingContent() {
  */
 function ComparisonTable({ plans }: { plans: PlanView[] }) {
   const t = useTranslations('plans')
+  const messages = useMessages()
   const locale = useLocale() as Locale
-  const tRows = useTranslations('plans.comparison.rows')
+  const copy = usePlansCopy('comparison')
+  const comparisonContent = usePlansSections().comparison
   const tValues = useTranslations('plans.comparison.values')
   const [hoveredRow, setHoveredRow] = useState<string | null>(null)
   const [hoveredColumn, setHoveredColumn] = useState<PlanTier | null>(null)
   const { reduceMotion } = usePricingMotion()
 
   const byTier = (tier: PlanTier) => plans.find((plan) => plan.tier === tier)
-  /** Gói phổ biến do admin đánh dấu (tối đa một) — cột được tô nhấn. */
-  const POPULAR_TIER = plans.find((plan) => plan.popular)?.tier ?? null
+  // Mỗi cột theo cờ Nổi bật của bản công bố; CMS không lưu thêm một lựa chọn gói nổi bật.
+  const highlightedTiers = plans.filter((plan) => plan.popular).map((plan) => plan.tier)
   const giftTextOf = (tier: PlanTier) => {
     const gift = byTier(tier)?.gift
     return gift ? `${gift.title} ${t('gift.valuePrefix')} ${formatPriceTag(gift.value, locale)}` : ''
   }
+
+  const groups =
+    readComparisonGroups(comparisonContent?.groups) ??
+    legacyComparisonGroups(
+      plans,
+      (key, values) => copy(key, comparisonDefaultText(messages, `plans.comparison.${key}`), values),
+      (plan) => giftTextOf(plan.tier)
+    )
 
   return (
     <section className='plan-comparison'>
@@ -286,9 +294,9 @@ function ComparisonTable({ plans }: { plans: PlanView[] }) {
         initial={{ opacity: 0, y: 10 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.7 }}
-        transition={{ duration: 0.5, ease: pricingEase }}
+        transition={{ duration: 0.25, ease: pricingEase }}
       >
-        {t('comparison.title')}
+        {copy('title', t('comparison.title'))}
       </motion.h2>
 
       <motion.div
@@ -296,7 +304,7 @@ function ComparisonTable({ plans }: { plans: PlanView[] }) {
         initial={{ opacity: 0, y: 10 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.04 }}
-        transition={{ duration: 0.5, delay: 0.22, ease: pricingEase }}
+        transition={{ duration: 0.25, delay: 0.11, ease: pricingEase }}
       >
         <table
           data-hovering={hoveredRow || hoveredColumn ? 'true' : undefined}
@@ -319,7 +327,7 @@ function ComparisonTable({ plans }: { plans: PlanView[] }) {
               {/* Hình S01: ô đầu bảng ghi "HẠNG MỤC" IN HOA và CĂN GIỮA ô (đo trên
                   ảnh: tâm chữ trùng tâm cột đầu), khác với các dòng bên dưới căn trái. */}
               <th className='bg-card sticky left-0 z-10 border-b px-3 py-2.5 text-center text-sm font-semibold tracking-wide uppercase'>
-                {t('comparison.criterion')}
+                {copy('criterion', t('comparison.criterion'))}
               </th>
               {TIERS.map((tier) => (
                 <th
@@ -327,14 +335,14 @@ function ComparisonTable({ plans }: { plans: PlanView[] }) {
                   onMouseEnter={() => setHoveredColumn(tier)}
                   className={cn(
                     'plan-comparison-cell border-b px-3 py-2.5 text-center',
-                    tier === POPULAR_TIER && 'plan-plus-column bg-brand-orange-soft',
+                    highlightedTiers.includes(tier) && 'plan-plus-column bg-brand-orange-soft',
                     hoveredColumn === tier && 'is-column-hovered'
                   )}
                 >
                   <span
                     className={cn(
                       'block font-bold tracking-wide uppercase',
-                      tier === POPULAR_TIER ? 'text-brand-orange' : 'text-primary-strong'
+                      highlightedTiers.includes(tier) ? 'text-brand-orange' : 'text-primary-strong'
                     )}
                   >
                     {byTier(tier)?.name ?? t(`tiers.${tier}`)}
@@ -345,87 +353,62 @@ function ComparisonTable({ plans }: { plans: PlanView[] }) {
           </thead>
 
           <tbody className='divide-border divide-y'>
-            {/* Nhóm "Quyền lợi chính" đọc thẳng số từ bản ghi gói. */}
-            <GroupRow label={t('comparison.groups.core')} />
-            <CoreRow
-              popularTier={POPULAR_TIER}
-              hoveredRow={hoveredRow}
-              onHoverRow={setHoveredRow}
-              hoveredColumn={hoveredColumn}
-              onHoverColumn={setHoveredColumn}
-              index={0}
-              label={t('comparison.core.designOptions')}
-              values={TIERS.map((tier) => t('comparison.core.optionUnit', { count: byTier(tier)?.designCredits ?? 0 }))}
-            />
-            {/* Không có dòng "lượt chỉnh sửa": BE chỉ có hai hạn mức (phương án thiết kế, tra cứu
-                thư viện) — dòng đó từng được ghép từ số phương án nên in một con số không có thật. */}
-            <CoreRow
-              popularTier={POPULAR_TIER}
-              hoveredRow={hoveredRow}
-              onHoverRow={setHoveredRow}
-              hoveredColumn={hoveredColumn}
-              onHoverColumn={setHoveredColumn}
-              index={1}
-              label={t('comparison.core.libraryCredits')}
-              values={TIERS.map((tier) =>
-                t('comparison.core.libraryUnit', { count: byTier(tier)?.libraryCredits ?? 0 })
-              )}
-            />
-
-            {PLAN_COMPARISON.map((group) => (
-              <Fragment key={group.key}>
-                <GroupRow label={t(`comparison.groups.${group.key}`)} highlight={group.highlight} />
-                {group.rows.map((row, rowIndex) => (
-                  <motion.tr
-                    key={row}
-                    data-hovered={hoveredRow === row || undefined}
-                    className='plan-comparison-row divide-border divide-x'
-                    initial={reduceMotion ? false : { opacity: 0, y: 8 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, amount: 0.18 }}
-                    transition={{
-                      duration: reduceMotion ? 0.01 : 0.52,
-                      delay: reduceMotion ? 0 : (group.highlight ? 0.58 : 0.28) + rowIndex * 0.075,
-                      ease: pricingEase
-                    }}
-                    onMouseEnter={() => setHoveredRow(row)}
-                  >
-                    <th
-                      className={cn(
-                        'bg-card sticky left-0 z-10 px-3 py-2 text-left text-sm font-medium transition-colors',
-                        hoveredRow === row && 'bg-accent/80 font-semibold'
-                      )}
+            {groups
+              .filter((group) => group.rows.length > 0)
+              .map((group) => (
+                <Fragment key={group.id}>
+                  <GroupRow label={group.title} highlight={group.style === 'accent'} />
+                  {group.rows.map((row, rowIndex) => (
+                    <motion.tr
+                      key={row.id}
+                      data-row-id={row.id}
+                      data-hovered={hoveredRow === row.id || undefined}
+                      className='plan-comparison-row divide-border divide-x'
+                      initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, amount: 0.18 }}
+                      transition={{
+                        duration: reduceMotion ? 0.01 : 0.26,
+                        delay: reduceMotion ? 0 : Math.min(rowIndex, 5) * 0.0375,
+                        ease: pricingEase
+                      }}
+                      onMouseEnter={() => setHoveredRow(row.id)}
                     >
-                      {tRows(row)}
-                    </th>
-                    {TIERS.map((tier) => (
-                      <td
-                        key={tier}
-                        onMouseEnter={() => setHoveredColumn(tier)}
+                      <th
+                        scope='row'
                         className={cn(
-                          'px-3 py-2 text-center text-sm transition-colors',
-                          'plan-comparison-cell',
-                          tier === POPULAR_TIER && 'plan-plus-column bg-brand-orange-soft/60',
-                          hoveredColumn === tier && 'is-column-hovered',
-                          hoveredRow === row && hoveredColumn === tier && 'is-intersection font-semibold',
-                          row === 'gift' && byTier(tier)?.gift && 'plan-pro-gift-cell'
+                          'bg-card px-3 py-2 text-left text-sm font-medium transition-colors md:sticky md:left-0 md:z-10',
+                          hoveredRow === row.id && 'bg-accent/80 font-semibold'
                         )}
                       >
-                        <Cell
-                          value={planCell(byTier(tier), row, giftTextOf(tier))}
-                          label={tValues}
-                          index={TIERS.indexOf(tier)}
-                        />
-                      </td>
-                    ))}
-                  </motion.tr>
-                ))}
-              </Fragment>
-            ))}
+                        {row.label}
+                      </th>
+                      {TIERS.map((tier) => (
+                        <td
+                          key={tier}
+                          onMouseEnter={() => setHoveredColumn(tier)}
+                          className={cn(
+                            'plan-comparison-cell px-3 py-2 text-center text-sm transition-colors whitespace-pre-line',
+                            highlightedTiers.includes(tier) && 'plan-plus-column bg-brand-orange-soft/60',
+                            hoveredColumn === tier && 'is-column-hovered',
+                            hoveredRow === row.id && hoveredColumn === tier && 'is-intersection font-semibold'
+                          )}
+                        >
+                          <Cell
+                            value={row[tier].kind === 'text' ? { text: row[tier].text } : row[tier].kind === 'yes'}
+                            label={(key) => copy(`values.${key}`, tValues(key))}
+                            index={TIERS.indexOf(tier)}
+                          />
+                        </td>
+                      ))}
+                    </motion.tr>
+                  ))}
+                </Fragment>
+              ))}
 
             <tr className='plan-choose-row'>
               <th className='bg-card sticky left-0 z-10 border-r p-3 text-left text-sm font-medium'>
-                {t('comparison.choosePlanRow')}
+                {copy('choosePlanRow', t('comparison.choosePlanRow'))}
               </th>
               {TIERS.map((tier) => {
                 const plan = byTier(tier)
@@ -434,14 +417,14 @@ function ComparisonTable({ plans }: { plans: PlanView[] }) {
                     key={tier}
                     className={cn(
                       'plan-choose-cell p-3 text-center',
-                      tier === POPULAR_TIER && 'plan-plus-column bg-brand-orange-soft/60'
+                      highlightedTiers.includes(tier) && 'plan-plus-column bg-brand-orange-soft/60'
                     )}
                     initial={{ opacity: 0, y: 9 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, amount: 0.65 }}
                     transition={{
-                      duration: 0.52,
-                      delay: (entranceOrder[TIERS.indexOf(tier)] ?? 0) * 0.16,
+                      duration: 0.26,
+                      delay: (entranceOrder[TIERS.indexOf(tier)] ?? 0) * 0.08,
                       ease: pricingEase
                     }}
                   >
@@ -456,7 +439,7 @@ function ComparisonTable({ plans }: { plans: PlanView[] }) {
                           href={checkoutConfirmRoute(plan.id, undefined, plan.cycle ?? DESIGN_OFFER_KEY)}
                           onClick={() => rememberCheckoutReturn(plan.id)}
                         >
-                          {plan.ctaLabel || t(`cta.${tier}`)}
+                          {copy(`buttons.${tier}`, plan.ctaLabel || t(`cta.${tier}`), { name: plan.name })}
                         </Link>
                       </Button>
                     ) : null}
@@ -474,6 +457,10 @@ function ComparisonTable({ plans }: { plans: PlanView[] }) {
 /** Bảng "Giá trị khách hàng nhận được" (S01). */
 function ValueTable() {
   const t = useTranslations('plans.value')
+  const copy = usePlansCopy('value')
+  const content = usePlansSections().value
+  const messages = useMessages()
+  const items = readValueItems(content?.items) ?? legacyValueItems(content, messages)
   const { reduceMotion } = usePricingMotion()
 
   return (
@@ -482,70 +469,69 @@ function ValueTable() {
         initial={reduceMotion ? false : { opacity: 0, y: 10 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.8 }}
-        transition={{ duration: reduceMotion ? 0.01 : 0.55, ease: pricingEase }}
+        transition={{ duration: reduceMotion ? 0.01 : 0.275, ease: pricingEase }}
         className='text-primary-strong text-center text-2xl font-bold tracking-wide uppercase'
       >
-        {t('title')}
+        {copy('title', t('title'))}
       </motion.h2>
 
-      <motion.div
-        initial={reduceMotion ? false : { opacity: 0, y: 8 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, amount: 0.12 }}
-        transition={{ duration: reduceMotion ? 0.01 : 0.52, delay: reduceMotion ? 0 : 0.2, ease: pricingEase }}
-        className='bg-card mt-5 overflow-x-auto overflow-y-hidden rounded-2xl border'
-      >
-        <table className='plan-value-table w-full min-w-[640px] table-fixed text-sm'>
-          <colgroup>
-            <col className='w-[28%]' />
-            <col className='w-[24%]' />
-            <col className='w-[24%]' />
-            <col className='w-[24%]' />
-          </colgroup>
-          {/* Hình S01: bảng này CÓ đường kẻ ô rõ — kẻ dọc giữa bốn cột và kẻ
+      {items.length > 0 ? (
+        <motion.div
+          initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.12 }}
+          transition={{ duration: reduceMotion ? 0.01 : 0.26, delay: reduceMotion ? 0 : 0.1, ease: pricingEase }}
+          className='bg-card mt-5 overflow-x-auto overflow-y-hidden rounded-2xl border'
+        >
+          <table className='plan-value-table w-full min-w-[640px] table-fixed text-sm'>
+            <colgroup>
+              <col className='w-[28%]' />
+              <col className='w-[24%]' />
+              <col className='w-[24%]' />
+              <col className='w-[24%]' />
+            </colgroup>
+            {/* Hình S01: bảng này CÓ đường kẻ ô rõ — kẻ dọc giữa bốn cột và kẻ
               ngang giữa bốn hàng — khác bảng so sánh phía trên (chỉ có dải nhóm,
               không kẻ ô). Cột đầu nền xanh nhạt, chữ trong ô căn giữa hai dòng. */}
-          <tbody className='divide-border divide-y'>
-            {PLAN_VALUE_ROWS.map((row, index) => (
-              <motion.tr
-                key={row}
-                className='plan-value-row divide-border hover:bg-accent/45 group divide-x transition-colors duration-300'
-                initial={reduceMotion ? false : { opacity: 0, y: 11 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                onViewportEnter={(entry) => {
-                  if (entry) (entry.target as HTMLElement).dataset.seen = 'true'
-                }}
-                viewport={{ once: true, amount: 0.05 }}
-                transition={{
-                  duration: reduceMotion ? 0.01 : 0.56,
-                  delay: reduceMotion ? 0 : 0.32 + index * 0.14,
-                  ease: pricingEase
-                }}
-                style={{ '--value-row-delay': `${0.32 + index * 0.14}s` } as CSSProperties}
-              >
-                <th className='bg-[color-mix(in_srgb,var(--accent)_40%,var(--card))] sticky left-0 z-10 p-3.5 text-left text-sm font-medium'>
-                  <span className='text-primary-strong flex items-center gap-2.5'>
-                    {(() => {
-                      const Icon = VALUE_ROW_ICON[row]
-                      return <Icon className='plan-value-icon text-primary size-4.5 shrink-0' />
-                    })()}
-                    <span className='plan-value-label'>{t(`rows.${row}`)}</span>
-                  </span>
-                </th>
-                {TIERS.map((tier, cellIndex) => (
-                  <td
-                    key={tier}
-                    className='plan-value-cell p-3.5 text-center text-sm text-pretty'
-                    style={{ '--value-cell-index': cellIndex } as CSSProperties}
-                  >
-                    {t(`cells.${row}.${tier}`)}
-                  </td>
-                ))}
-              </motion.tr>
-            ))}
-          </tbody>
-        </table>
-      </motion.div>
+            <tbody className='divide-border divide-y'>
+              {items.map((row, index) => (
+                <motion.tr
+                  key={index}
+                  className='plan-value-row divide-border hover:bg-accent/45 group divide-x transition-colors duration-300'
+                  initial={reduceMotion ? false : { opacity: 0, y: 11 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  onViewportEnter={(entry) => {
+                    if (entry) (entry.target as HTMLElement).dataset.seen = 'true'
+                  }}
+                  viewport={{ once: true, amount: 0.05 }}
+                  transition={{
+                    duration: reduceMotion ? 0.01 : 0.28,
+                    delay: reduceMotion ? 0 : 0.16 + Math.min(index, 5) * 0.07,
+                    ease: pricingEase
+                  }}
+                  style={{ '--value-row-delay': `${0.16 + Math.min(index, 5) * 0.07}s` } as CSSProperties}
+                >
+                  <th className='bg-[color-mix(in_srgb,var(--accent)_40%,var(--card))] sticky left-0 z-10 p-3.5 text-left text-sm font-medium'>
+                    <span className='text-primary-strong flex items-center gap-2.5'>
+                      <PlanValueIcon name={row.icon} />
+                      <span className='plan-value-label'>{row.label}</span>
+                    </span>
+                  </th>
+                  {TIERS.map((tier, cellIndex) => (
+                    <td
+                      key={tier}
+                      className='plan-value-cell p-3.5 text-center text-sm text-pretty'
+                      style={{ '--value-cell-index': cellIndex } as CSSProperties}
+                    >
+                      {row[tier]}
+                    </td>
+                  ))}
+                </motion.tr>
+              ))}
+            </tbody>
+          </table>
+        </motion.div>
+      ) : null}
     </section>
   )
 }
@@ -558,8 +544,8 @@ function GroupRow({ label, highlight = false }: { label: string; highlight?: boo
       whileInView={{ opacity: 1, scaleX: 1 }}
       viewport={{ once: true, amount: 0.5 }}
       transition={{
-        duration: reduceMotion ? 0.01 : highlight ? 0.68 : 0.58,
-        delay: reduceMotion ? 0 : 0.18,
+        duration: reduceMotion ? 0.01 : highlight ? 0.34 : 0.29,
+        delay: reduceMotion ? 0 : 0.09,
         ease: pricingEase
       }}
       style={{ transformOrigin: 'left center' }}
@@ -580,70 +566,10 @@ function GroupRow({ label, highlight = false }: { label: string; highlight?: boo
   )
 }
 
-function CoreRow({
-  label,
-  values,
-  index,
-  popularTier,
-  hoveredRow,
-  onHoverRow,
-  hoveredColumn,
-  onHoverColumn
-}: {
-  label: string
-  values: string[]
-  index: number
-  popularTier: PlanTier | null
-  hoveredRow: string | null
-  onHoverRow: (row: string) => void
-  hoveredColumn: PlanTier | null
-  onHoverColumn: (tier: PlanTier) => void
-}) {
-  const { reduceMotion } = usePricingMotion()
-  return (
-    <motion.tr
-      data-hovered={hoveredRow === label || undefined}
-      className='plan-comparison-row divide-border divide-x'
-      onMouseEnter={() => onHoverRow(label)}
-      initial={reduceMotion ? false : { opacity: 0, y: 7 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.18 }}
-      transition={{ duration: reduceMotion ? 0.01 : 0.52, delay: 0.28 + index * 0.075, ease: pricingEase }}
-    >
-      <th
-        className={cn(
-          'bg-card sticky left-0 z-10 px-3 py-2 text-left text-sm font-medium transition-colors',
-          hoveredRow === label && 'bg-accent/80 font-semibold'
-        )}
-      >
-        {label}
-      </th>
-      {values.map((value, index) => (
-        <td
-          key={`${label}-${index}`}
-          onMouseEnter={() => {
-            const tier = TIERS[index]
-            if (tier) onHoverColumn(tier)
-          }}
-          className={cn(
-            'plan-comparison-cell px-3 py-2 text-center text-sm transition-colors',
-            TIERS[index] === popularTier && 'plan-plus-column bg-brand-orange-soft/60',
-            hoveredColumn === TIERS[index] && 'is-column-hovered',
-            hoveredRow === label && hoveredColumn === TIERS[index] && 'is-intersection font-semibold'
-          )}
-        >
-          {value}
-        </td>
-      ))}
-    </motion.tr>
-  )
-}
-
-/** Ô của bảng so sánh: tích, gạch ngang, hoặc chữ từ khóa dịch. */
 function Cell({ value, label, index }: { value: PlanCell; label: (key: PlanValueKey) => string; index: number }) {
   if (value === true)
     return (
-      <span className='plan-table-tick inline-flex' style={{ '--tick-delay': `${index * 0.07}s` } as CSSProperties}>
+      <span className='plan-table-tick inline-flex' style={{ '--tick-delay': `${index * 0.035}s` } as CSSProperties}>
         <Check className='text-primary mx-auto size-4' strokeWidth={2.5} />
       </span>
     )
@@ -656,10 +582,11 @@ const entranceOrder = [0, 2, 1]
 
 function PlanHeading() {
   const t = useTranslations('plans')
+  const copy = usePlansCopy('hero')
   const ref = useRef<HTMLElement>(null)
   const visible = useInView(ref)
   const { reduceMotion, isScrolling } = usePricingMotion()
-  const title = t('title')
+  const title = copy('title', t('title'))
   const split = title.lastIndexOf(' ')
   return (
     <header
@@ -671,10 +598,11 @@ function PlanHeading() {
     >
       <h1 className='text-primary-strong flex items-center justify-center gap-3 text-3xl font-bold tracking-tight uppercase sm:text-4xl'>
         <span className='plan-title'>
-          {title.slice(0, split)} <span className='plan-title-accent text-brand-orange'>{title.slice(split + 1)}</span>
+          {split < 0 ? title : title.slice(0, split)}{' '}
+          {split >= 0 ? <span className='plan-title-accent text-brand-orange'>{title.slice(split + 1)}</span> : null}
         </span>
       </h1>
-      <p className='plan-subtitle text-muted-foreground text-pretty'>{t('subtitle')}</p>
+      <p className='plan-subtitle text-muted-foreground text-pretty'>{copy('subtitle', t('subtitle'))}</p>
     </header>
   )
 }
@@ -694,6 +622,8 @@ function PlanCards({ plans }: { plans: PlanView[] }) {
   const progress = useMotionValue(1)
   const dotOffset = useDotOffset(progress)
   const { reduceMotion } = usePricingMotion()
+  const [slide, setSlide] = useState(1)
+  useEffect(() => progress.on('change', (value) => setSlide(Math.round(value))), [progress])
 
   useEffect(() => {
     const root = track.current
@@ -827,40 +757,72 @@ function PlanCards({ plans }: { plans: PlanView[] }) {
     }
   }, [plans, progress, reduceMotion])
 
+  function goTo(index: number) {
+    const root = track.current,
+      card = root?.children[index] as HTMLElement | undefined
+    if (root && card)
+      root.scrollTo({
+        left: card.offsetLeft - (root.clientWidth - card.clientWidth) / 2,
+        behavior: reduceMotion ? 'instant' : 'smooth'
+      })
+  }
+
   return (
     <>
-      <ul
-        ref={track}
-        data-entrance-step='4'
-        data-entrance-from='soft-scale'
-        className='plan-track'
-        aria-label={t('title')}
-        onMouseLeave={() => setHovered(null)}
-        onBlur={(e) => {
-          if (!e.currentTarget.contains(e.relatedTarget)) setHovered(null)
-        }}
-      >
-        {plans.map((plan, index) => (
-          <PlanCard
-            key={plan.id}
-            plan={plan}
-            index={index}
-            imagesReady={readyImages}
-            pricesStarted={pricesStarted}
-            pricesDone={pricesDone}
-            pricesInstant={pricesInstant}
-            dimmed={(selected ?? hovered) !== null && (selected ?? hovered) !== plan.id}
-            onHover={() => setHovered(plan.id)}
-            selected={selected}
-            onSelect={setSelected}
-            onGift={(button) => {
-              giftOrigin.current = button
-              setGift(plan)
-              setGiftOpen(true)
-            }}
-          />
+      {/* Mũi tên hai bên báo còn gói để vuốt; chỉ hiện ở điện thoại, ẩn ở đầu/cuối dải. */}
+      <div className='relative'>
+        {[
+          { dir: -1, label: t('prevPlan'), Icon: ChevronLeft, side: 'left-1', hidden: slide <= 0 },
+          { dir: 1, label: t('nextPlan'), Icon: ChevronRight, side: 'right-1', hidden: slide >= plans.length - 1 }
+        ].map(({ dir, label, Icon, side, hidden }) => (
+          <button
+            key={dir}
+            type='button'
+            aria-label={label}
+            tabIndex={hidden ? -1 : 0}
+            onClick={() => goTo(slide + dir)}
+            className={cn(
+              'bg-card/90 text-primary-strong absolute top-1/2 z-20 flex size-9 -translate-y-1/2 items-center justify-center rounded-full border shadow-md backdrop-blur-sm transition-opacity md:hidden',
+              side,
+              hidden && 'pointer-events-none opacity-0'
+            )}
+          >
+            <Icon className='size-5' />
+          </button>
         ))}
-      </ul>
+        <ul
+          ref={track}
+          data-entrance-step='4'
+          data-entrance-from='soft-scale'
+          className='plan-track'
+          aria-label={t('title')}
+          onMouseLeave={() => setHovered(null)}
+          onBlur={(e) => {
+            if (!e.currentTarget.contains(e.relatedTarget)) setHovered(null)
+          }}
+        >
+          {plans.map((plan, index) => (
+            <PlanCard
+              key={plan.id}
+              plan={plan}
+              index={index}
+              imagesReady={readyImages}
+              pricesStarted={pricesStarted}
+              pricesDone={pricesDone}
+              pricesInstant={pricesInstant}
+              dimmed={(selected ?? hovered) !== null && (selected ?? hovered) !== plan.id}
+              onHover={() => setHovered(plan.id)}
+              selected={selected}
+              onSelect={setSelected}
+              onGift={(button) => {
+                giftOrigin.current = button
+                setGift(plan)
+                setGiftOpen(true)
+              }}
+            />
+          ))}
+        </ul>
+      </div>
       <div className='plan-dots mx-auto -mt-4! flex w-fit gap-3 md:hidden' aria-label={t('title')}>
         {plans.map((plan, index) => (
           <button
@@ -868,15 +830,7 @@ function PlanCards({ plans }: { plans: PlanView[] }) {
             type='button'
             aria-label={plan.name}
             className='relative size-5 rounded-full bg-primary/15'
-            onClick={() => {
-              const root = track.current,
-                card = root?.children[index] as HTMLElement | undefined
-              if (root && card)
-                root.scrollTo({
-                  left: card.offsetLeft - (root.clientWidth - card.clientWidth) / 2,
-                  behavior: reduceMotion ? 'instant' : 'smooth'
-                })
-            }}
+            onClick={() => goTo(index)}
           />
         ))}
         <motion.span
@@ -930,7 +884,7 @@ function PlanCard({
   const visible = useInView(ref)
   const imageScale = useMotionValue(1)
   const zoom = useRef<ReturnType<typeof animate> | null>(null)
-  const delay = (entranceOrder[index] ?? index) * 0.19
+  const delay = (entranceOrder[index] ?? index) * 0.095
   useEffect(() => () => zoom.current?.stop(), [])
   return (
     <li
@@ -1017,8 +971,8 @@ function PlanCard({
                   initial={{ opacity: 0, filter: 'blur(4px)', scale: 0.985 }}
                   animate={imagesReady ? { opacity: 1, filter: 'blur(0px)', scale: 1 } : undefined}
                   transition={{
-                    duration: reduceMotion ? 0 : 0.82,
-                    delay: reduceMotion ? 0 : 0.28 + index * 0.22,
+                    duration: reduceMotion ? 0 : 0.41,
+                    delay: reduceMotion ? 0 : 0.14 + index * 0.11,
                     ease: pricingEase
                   }}
                 >
@@ -1084,7 +1038,7 @@ function PlanCard({
                 {highlights(plan).map((feature, i) => (
                   <li
                     key={feature}
-                    style={{ '--line-delay': `${0.2 + delay + i * 0.09}s` } as CSSProperties}
+                    style={{ '--line-delay': `${0.025 + delay * 0.4 + i * 0.025}s` } as CSSProperties}
                     className='plan-feature-line flex items-start gap-[2cqw] text-sm leading-snug'
                   >
                     <CheckCircle2
@@ -1114,7 +1068,11 @@ function PlanCard({
                 viewport={{ once: true }}
                 initial={reduceMotion ? false : { opacity: 0, y: 14 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: reduceMotion ? 0.01 : 0.55, delay: reduceMotion ? 0 : 0.65, ease: pricingEase }}
+                transition={{
+                  duration: reduceMotion ? 0.01 : 0.275,
+                  delay: reduceMotion ? 0 : 0.325,
+                  ease: pricingEase
+                }}
                 className='plan-gift border-brand-orange/30 bg-brand-orange-soft/60 hover:bg-brand-orange-soft mt-4 w-full rounded-xl border p-2.5 text-left transition-colors'
               >
                 <span className='flex items-center gap-2'>

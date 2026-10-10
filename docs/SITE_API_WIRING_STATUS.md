@@ -46,7 +46,7 @@ API là tạo đơn theo `planId` + `offerKey`, QR SePay tự xác nhận (`/pay
 
 ### 6. Tư vấn 1:1 (features/consultation)
 
-Chỉ có `POST /consultation-requests`. UI cần: điểm đánh giá / số lượt đánh giá / ảnh công trình KTS, **lịch trống & khung giờ**, **"Lịch tư vấn của tôi"**, hủy lịch — API đều thiếu. `consultantId` UI là id CMS, không phải uuid `/architects`. → Giữ mock. **BE cần:** trường hiển thị KTS, lịch trống, `GET /me/consultation-requests`, hủy.
+**Cập nhật 08/10/2026:** `GET /architects`, `GET /architects/{id}` và `POST /consultation-requests` đã nối API, dùng UUID hồ sơ thật. Danh sách có mô tả ngắn; chi tiết có thêm dự án `{name,imageUrls[]}` cùng công ty, số sao và số lượt đánh giá. Quản trị nhập mô tả và dự án qua POST/PUT `/admin/architects`; ảnh tải qua MEDIA. Lịch trống/khung giờ, lịch tư vấn của tôi và hủy lịch vẫn dùng mock vì chưa có API. UI đã kiểm bằng API giả lập; chưa xác minh trọn luồng frontend, API và PostgreSQL trên môi trường chung.
 
 ### 7. Giám sát thi công (features/supervision)
 

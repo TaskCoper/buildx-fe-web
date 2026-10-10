@@ -9,9 +9,9 @@ import { routing } from './routing'
  * `next/link` and `next/navigation` equivalents so the active locale prefix
  * is applied automatically.
  */
-const { Link: IntlLink, redirect, usePathname, useRouter, getPathname } = createNavigation(routing)
+const { Link: IntlLink, redirect, permanentRedirect, usePathname, useRouter, getPathname } = createNavigation(routing)
 
-export { getPathname, redirect, usePathname, useRouter }
+export { getPathname, permanentRedirect, redirect, usePathname, useRouter }
 
 type LinkProps = ComponentProps<typeof IntlLink>
 

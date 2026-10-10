@@ -46,6 +46,7 @@ jobs:
       NEXT_PUBLIC_USE_MOCK_API: ${{ secrets.NEXT_PUBLIC_USE_MOCK_API || 'false' }}
       NEXT_PUBLIC_VIETMAP_API_KEY: ${{ secrets.NEXT_PUBLIC_VIETMAP_API_KEY }}
       VIETMAP_API_KEY: ${{ secrets.VIETMAP_API_KEY }}
+      CMS_REVALIDATION_SECRET: ${{ secrets.CMS_REVALIDATION_SECRET }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v4

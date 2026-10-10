@@ -81,19 +81,13 @@ export const INVITATION_STEPS: readonly InvitationStatus[] = ['sent', 'received'
 export const BRIEF_FILE_MAX_BYTES = 10 * 1024 * 1024
 export const BRIEF_FILE_ACCEPT = '.pdf,.jpg,.jpeg,.png,.xlsx'
 
-/** 4 tab của hồ sơ nhà thầu (S13, S14) — một bộ duy nhất cho mọi tab. */
-export const CONTRACTOR_TABS = ['overview', 'projects', 'legal', 'partnership'] as const
+/**
+ * 2 tab của hồ sơ nhà thầu (S13). Hai tab "Năng lực pháp lý" và "Hợp tác BuildX" (S14) đã bỏ theo góp ý
+ * case 23; `?tab=legal` hay `?tab=partnership` cũ rơi về Tổng quan.
+ */
+export const CONTRACTOR_TABS = ['overview', 'projects'] as const
 export type ContractorTab = (typeof CONTRACTOR_TABS)[number]
 
-/** 8 tiêu chí của bảng so sánh (S15). Không tiêu chí nào liên quan tới giá (R2). */
-export const COMPARE_CRITERIA = [
-  'rating',
-  'similarProjects',
-  'distance',
-  'surveyTime',
-  'serviceAreas',
-  'legal',
-  'warranty',
-  'accepting'
-] as const
+/** 6 tiêu chí của bảng so sánh (S15). Không tiêu chí nào liên quan tới giá (R2). */
+export const COMPARE_CRITERIA = ['rating', 'similarProjects', 'distance', 'surveyTime', 'legal', 'warranty'] as const
 export type CompareCriterion = (typeof COMPARE_CRITERIA)[number]

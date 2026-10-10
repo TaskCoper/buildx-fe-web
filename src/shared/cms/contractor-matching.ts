@@ -31,7 +31,8 @@ export function isContractorEligible(
   if (criteria.minRating > 0 && contractor.reviewCount > 0 && contractor.rating < criteria.minRating) return false
   if (criteria.capabilityMatch && brief) {
     if (brief.buildingTypeId && !(contractor.buildingTypeIds ?? []).includes(brief.buildingTypeId)) return false
-    if (!(contractor.scopes ?? []).includes(brief.scope)) return false
+    // Hồ sơ mới không còn nhu cầu thi công (case 31): không có phạm vi thì không dùng nó để loại nhà thầu.
+    if (brief.scope && !(contractor.scopes ?? []).includes(brief.scope)) return false
   }
   return true
 }

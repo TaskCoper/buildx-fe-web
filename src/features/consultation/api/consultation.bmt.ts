@@ -1,7 +1,8 @@
 import type { Consultant } from '@/shared/cms'
 import { http } from '@/shared/lib/api'
 import type { PagedResult } from '@/shared/types'
-import type { BookConsultationPayload, ConsultationBooking } from '../types/consultation.types'
+import { CONSULTANT_LIST_PAGE_SIZE } from '../constants/consultation.constants'
+import type { BookConsultationPayload, ConsultationBooking, ConsultationRequestItem } from '../types/consultation.types'
 
 /**
  * Nối Tư vấn 1:1 vào BMT API (KTS công khai + gửi yêu cầu tư vấn miễn phí).
@@ -21,6 +22,8 @@ interface BmtArchitect {
   yearsExperience: number
   projectCount: number
   introduction: string
+  shortDescription?: string | null
+  designProjects?: { name: string; imageUrls: string[] }[]
   categories: { id: string; name: string }[]
   companyName?: string | null
   rating?: number | null
@@ -29,8 +32,8 @@ interface BmtArchitect {
 
 /**
  * PublicArchitect → Consultant (type UI). BE đã trả `companyName`, `rating`,
- * `reviewCount` (map vào company / rating / reviewCount). Còn thiếu: headline
- * và ảnh công trình (works) → để trống.
+ * `reviewCount`, mô tả ngắn và các dự án thiết kế. Danh sách chỉ có mô tả ngắn;
+ * chi tiết có thêm ảnh nhóm theo từng dự án.
  */
 function toConsultant(a: BmtArchitect): Consultant {
   return {
@@ -47,7 +50,8 @@ function toConsultant(a: BmtArchitect): Consultant {
           .map((line) => line.trim())
           .filter(Boolean)
       : [],
-    headline: '',
+    headline: a.shortDescription ?? '',
+    designProjects: a.designProjects ?? [],
     ...(a.companyName ? { company: a.companyName } : {}),
     rating: a.rating ?? 0,
     reviewCount: a.reviewCount ?? 0,
@@ -61,19 +65,37 @@ function toDesiredAt(date: string, time: string): string {
   return `${date}T${time.length === 5 ? `${time}:00` : time}+07:00`
 }
 
-/** Số KTS của một trang danh sách (cột trái + lưới trang Tư vấn). */
-const CONSULTANT_LIST_PAGE_SIZE = 20
+async function listConsultantsPage(pageIndex: number, signal?: AbortSignal): Promise<PagedResult<Consultant>> {
+  const page = await http.get<PagedResult<BmtArchitect>>('/architects', {
+    params: { pageIndex, pageSize: CONSULTANT_LIST_PAGE_SIZE },
+    signal
+  })
+  return { ...page, items: page.items.map(toConsultant) }
+}
+
+/** Số yêu cầu mỗi trang của màn Lịch tư vấn 1:1. */
+const MY_REQUESTS_PAGE_SIZE = 10
+
+/** `GET /me/consultation-requests`: yêu cầu tư vấn của CHÍNH khách đăng nhập, mới nhất trước (chỉ đọc). */
+async function listMyRequestsPage(
+  pageIndex: number,
+  signal?: AbortSignal
+): Promise<PagedResult<ConsultationRequestItem>> {
+  return http.get<PagedResult<ConsultationRequestItem>>('/me/consultation-requests', {
+    params: { pageIndex, pageSize: MY_REQUESTS_PAGE_SIZE },
+    signal
+  })
+}
 
 export const bmtConsultationApi = {
+  listConsultantsPage,
+  listMyRequestsPage,
   /**
    * Lấy DANH SÁCH KTS (một trang đầu), không kéo toàn bộ KTS về như trước. Mở hồ sơ
    * một KTS bất kỳ đã có `getConsultant` riêng nên không cần cả danh sách trong tay.
    */
   async listConsultants(): Promise<Consultant[]> {
-    const page = await http.get<PagedResult<BmtArchitect>>('/architects', {
-      params: { pageIndex: 1, pageSize: CONSULTANT_LIST_PAGE_SIZE }
-    })
-    return page.items.map(toConsultant)
+    return (await listConsultantsPage(1)).items
   },
 
   async getConsultant(id: string): Promise<Consultant | null> {

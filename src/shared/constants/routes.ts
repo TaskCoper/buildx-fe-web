@@ -83,8 +83,20 @@ export const ADMIN_ROUTES = {
   ARTICLE_LABELS: '/admin/article-labels',
   /** Lời nhận xét khách hàng ở trang chủ (ảnh đại diện + nội dung). */
   TESTIMONIALS: '/admin/testimonials',
-  /** Các bước trong Cẩm nang + Nhóm cẩm nang (epic HandbookStepManagement). */
+  /** Đường dẫn cũ của Các bước Cẩm nang; đã gộp vào `HANDBOOK_CONTENT` (tab Tin tức) và tự chuyển hướng. */
   HANDBOOK_STEPS: '/admin/handbook-steps',
+  /** Đường dẫn cũ của Bản tin Cẩm nang; đã gộp vào `HANDBOOK_CONTENT` (tab Tin tức) và tự chuyển hướng. */
+  HANDBOOK_NEWSLETTER: '/admin/handbook-newsletter',
+  /** Nội dung trang Cẩm nang: chữ cố định, ba bước, chủ đề, bài nổi bật và banner thư viện (STORY-HB-001 đến 004). */
+  HANDBOOK_CONTENT: '/admin/handbook-content',
+  /** Nội dung trang chủ: chữ, ảnh, icon, mẫu và video nổi bật của 12 khối. */
+  HOME_CONTENT: '/admin/home-content',
+  /** Chân trang & Về BuildX: liên hệ, mạng xã hội và nội dung năm trang pháp lý (rich text). */
+  FOOTER_CONTENT: '/admin/footer-content',
+  /** Nội dung trang Tìm nhà thầu: đầu trang, bốn cam kết, thẻ an toàn, câu hỏi thường gặp và dải kêu gọi. */
+  CONTRACTORS_CONTENT: '/admin/contractors-content',
+  PLANS_CONTENT: '/admin/plans-content',
+  SUPERVISION_CONTENT: '/admin/supervision-content',
   /** Video hướng dẫn của trang Hướng dẫn. */
   GUIDE_VIDEOS: '/admin/guide-videos',
   /** Mã giảm giá của ô nhập mã ở S03. */

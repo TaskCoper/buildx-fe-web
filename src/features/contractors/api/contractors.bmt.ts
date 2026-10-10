@@ -1,6 +1,7 @@
 import { http } from '@/shared/lib/api'
 import { serviceRegionSchema, type ContractorSearchFilters } from '@/shared/contractors'
 import type { Contractor } from '../types/contractor.types'
+import { contractorFromCompareItem, type BmtCompareResult } from '../services/contractor-compare.service'
 import { contractorFromApi, isUuid, normalizeContractor, normalizeProject, type ApiProject } from './contractors.logic'
 
 /** Public contractor directory uses the BMT API. Mock mode is selected only in contractors.api.ts. */
@@ -40,6 +41,7 @@ function toContractor(item: PublicContractorItem): Contractor {
     ratingKnown: item.rating != null,
     reviewCountKnown: item.ratingCount != null,
     similarProjects: item.similarProjectCount ?? 0,
+    similarProjectsKnown: item.similarProjectCount != null,
     completedProjects: item.projectCount ?? 0,
     distanceKm: item.distanceKm ?? 0,
     serviceAreas: (item.serviceAreaText ?? '')
@@ -92,8 +94,31 @@ async function listDirectory(filters: ContractorSearchFilters = {}, signal?: Abo
   return res.items.map(toContractor)
 }
 
+/** Kết quả so sánh: nhà thầu theo thứ tự mã đã gửi, và mã không dùng được (không còn hoặc đang ẩn). */
+export interface CompareContractorsResult {
+  contractors: Contractor[]
+  missingIds: string[]
+}
+
+/**
+ * `GET /contractors/compare?ids=…&ids=…&constructionSiteId=…` (BR-CTR-010): một request cho cả danh sách mã. Có công trình thì
+ * BE tính thêm khoảng cách và số dự án tương tự (cần đăng nhập, đúng chủ công trình); không có thì hai số này chưa cập nhật.
+ */
+async function compareContractors(
+  ids: readonly string[],
+  constructionSiteId?: string,
+  signal?: AbortSignal
+): Promise<CompareContractorsResult> {
+  const params = new URLSearchParams()
+  for (const id of ids) params.append('ids', id)
+  if (constructionSiteId) params.set('constructionSiteId', constructionSiteId)
+  const result = await http.get<BmtCompareResult>('/contractors/compare', { params, signal })
+  return { contractors: result.items.map(contractorFromCompareItem), missingIds: result.missingIds ?? [] }
+}
+
 export const bmtContractorsApi = {
   listDirectory,
+  compareContractors,
   listContractors(
     _projectId: string,
     filters: ContractorSearchFilters = {},

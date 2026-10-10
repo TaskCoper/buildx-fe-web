@@ -370,7 +370,7 @@ export function VerifyingTransfer({ orderId }: VerifyingTransferProps) {
 
           {/* Quay lại mã QR (S04) để quét lại / xem lại thông tin chuyển khoản; bấm bước "Thanh toán" cũng được. */}
           {confirmed ? null : (
-            <Button variant='outline' className='w-full' onClick={() => void backToPayment()}>
+            <Button data-back-navigation variant='outline' className='w-full' onClick={() => void backToPayment()}>
               <ArrowLeft className='size-4' />
               {t('backToQr')}
             </Button>

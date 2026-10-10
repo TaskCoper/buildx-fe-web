@@ -20,8 +20,11 @@ export interface AssignGrantResult {
 const idempotent = () => ({ headers: { 'Idempotency-Key': crypto.randomUUID() } })
 
 export const siteApi = {
-  listSites: () =>
-    http.get<PagedResult<ConstructionSite>>('/me/construction-sites', { params: { pageIndex: 1, pageSize: 100 } }),
+  /** `code` lọc theo một phần mã hồ sơ; BE so không phân biệt hoa thường và bỏ qua dấu gạch. */
+  listSites: (code?: string) =>
+    http.get<PagedResult<ConstructionSite>>('/me/construction-sites', {
+      params: { pageIndex: 1, pageSize: 100, ...(code ? { code } : {}) }
+    }),
 
   getSite: (id: string) => http.get<ConstructionSite>(`/me/construction-sites/${id}`),
 

@@ -113,6 +113,7 @@ export function StepDossierView({ projectId }: { projectId: string }) {
     customerName: user?.name ?? '',
     projectName: project?.name ?? '',
     projectId,
+    projectCode: project?.code ?? null,
     phone: user?.phone ?? '',
     address: apiInfo?.address || (draft?.address ?? ''),
     createdAt: project?.createdAt ?? new Date().toISOString(),

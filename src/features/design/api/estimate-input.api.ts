@@ -20,6 +20,8 @@ export type EstimateState = string
 
 export interface EstimateDetail {
   estimateId: string
+  /** Mã dự toán `BUILDX-YYYYMMDD-XXXXXX`; thiếu khi API chưa trả. */
+  code?: string | null
   name: string
   canRename: boolean
   nameVersion: number

@@ -20,6 +20,10 @@ Cập nhật: 29/09/2026 (đối soát lại toàn bộ — xem **mục 7**). Đ
 4. Admin: Tin tức, KTS, Yêu cầu tư vấn
 5. Admin: Danh mục dự toán và Thư viện mẫu
 6. Admin: Gói, Đơn, Giao dịch
+7. Đối soát lại Swagger (29/09/2026)
+8. Nội dung trang chủ do admin biên tập
+9. Chân trang và các trang Về BuildX do admin biên tập
+10. Trang Tìm nhà thầu do admin biên tập
 
 ---
 
@@ -103,12 +107,14 @@ Lý do chung: API của cả 3 khu đều thiếu những trường mà giao di�
 
 #### Tư vấn 1:1 (`listConsultants`, `getConsultant`, `getAvailability`, `bookConsultation`, `getMyBookings`, `cancelMyBooking`)
 
-| Màn / chức năng UI                                                                                                                                | UI cần                                                                                                  | API đang có / thiếu                                                                                                               | Đề xuất                                                                                                                                                                                                                                                                   |
-| ------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Thẻ KTS, hồ sơ KTS                                                                                                                                | `rating`, `reviewCount`, `works[]` (4 ảnh công trình + nhãn), `headline` (1–2 dòng), `bio[]`, `company` | `PublicArchitect` chỉ có fullName, title, avatarUrl, yearsExperience, projectCount, introduction, categories                      | Thêm rating/reviewCount, ảnh công trình tiêu biểu, headline, nơi công tác                                                                                                                                                                                                 |
-| Chọn ngày + khung giờ (7 ngày, sáng/chiều, khung "Kín" / "Không tư vấn")                                                                          | Lịch trống theo KTS, kèm khung bị khóa                                                                  | Không có API lịch/slot. Khóa lịch (closure) không có ở admin API                                                                  | Thêm `GET /architects/{id}/availability` (hoặc API closures), và kiểm tra `desiredAt` ở phía server                                                                                                                                                                       |
-| "Lịch của tôi" / lịch sử tư vấn trong Tài khoản (trạng thái pending/confirmed/done/cancelled/missed, ghi chú buổi tư vấn, đánh giá, lượt còn lại) | Danh sách yêu cầu của chính khách                                                                       | Không có `GET /me/consultation-requests`. Khách cũng không hủy được (không có cancel). Admin chỉ có 2 trạng thái Pending/Resolved | Thêm `GET /me/consultation-requests`, `POST .../{id}/cancel`, và mở rộng trạng thái                                                                                                                                                                                       |
-| Đặt lịch (`bookConsultation`)                                                                                                                     | Sau khi đặt, lịch phải hiện ngay ở "lịch của tôi"                                                       | `POST /consultation-requests` có đủ trường: architectId, desiredAt (+07:00), contactPhone, message ≤5000                          | **Không nối**, vì 3 lý do: (1) consultantId đang lấy từ kho CMS (mock), không phải uuid của `/architects`; (2) đơn gửi lên API sẽ không hiện ở "lịch của tôi" (vẫn là mock); (3) slot vừa đặt không chuyển sang "Kín". Khi BE có đủ 3 API ở trên thì nối cả nhóm cùng lúc |
+**Cập nhật 08/10/2026:** các dòng khảo sát cũ bên dưới chỉ ghi bối cảnh trước khi nối API. Danh sách/chi tiết KTS và gửi yêu cầu đã nối BMT, dùng UUID thật. Backend và UI đã bổ sung `shortDescription` và `designProjects:[{name,imageUrls}]`; không còn thiếu mô tả ngắn hoặc bộ ảnh dự án. Chỉ các luồng lịch trống, lịch của tôi và hủy lịch tiếp tục dùng mock. Chưa xác minh trọn luồng frontend, API và database trên môi trường chung.
+
+| Màn / chức năng UI                                                                                                                                | UI cần                                                                                                  | API đang có / thiếu                                                                                                                                                                                                | Đề xuất                                                                                                                                                                                                                                                                   |
+| ------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Thẻ KTS, hồ sơ KTS                                                                                                                                | `rating`, `reviewCount`, `works[]` (4 ảnh công trình + nhãn), `headline` (1–2 dòng), `bio[]`, `company` | `PublicArchitect` chỉ có fullName, title, avatarUrl, yearsExperience, projectCount, introduction, categories                                                                                                       | Thêm rating/reviewCount, ảnh công trình tiêu biểu, headline, nơi công tác                                                                                                                                                                                                 |
+| Chọn ngày + khung giờ (7 ngày, sáng/chiều, khung "Kín" / "Không tư vấn")                                                                          | Lịch trống theo KTS, kèm khung bị khóa                                                                  | Không có API lịch/slot. Khóa lịch (closure) không có ở admin API                                                                                                                                                   | Thêm `GET /architects/{id}/availability` (hoặc API closures), và kiểm tra `desiredAt` ở phía server                                                                                                                                                                       |
+| "Lịch của tôi" / lịch sử tư vấn trong Tài khoản (trạng thái pending/confirmed/done/cancelled/missed, ghi chú buổi tư vấn, đánh giá, lượt còn lại) | Danh sách yêu cầu của chính khách                                                                       | **Đã có từ 2026-10-09:** `GET /me/consultation-requests` (chỉ xem, Pending/Resolved), FE đã nối ở `/account/consultations`. Khách vẫn không hủy được (không có cancel); admin chỉ có 2 trạng thái Pending/Resolved | Còn thiếu: `POST .../{id}/cancel` và các trạng thái confirmed/done/cancelled/missed, ghi chú buổi tư vấn, đánh giá, lượt còn lại (khách đã chọn chỉ xem nên chưa làm)                                                                                                     |
+| Đặt lịch (`bookConsultation`)                                                                                                                     | Sau khi đặt, lịch phải hiện ngay ở "lịch của tôi"                                                       | `POST /consultation-requests` có đủ trường: architectId, desiredAt (+07:00), contactPhone, message ≤5000                                                                                                           | **Không nối**, vì 3 lý do: (1) consultantId đang lấy từ kho CMS (mock), không phải uuid của `/architects`; (2) đơn gửi lên API sẽ không hiện ở "lịch của tôi" (vẫn là mock); (3) slot vừa đặt không chuyển sang "Kín". Khi BE có đủ 3 API ở trên thì nối cả nhóm cùng lúc |
 
 #### Gói đăng ký (`listPlans`, `plan-tabs.tsx`, `plan-pricing.tsx`)
 
@@ -491,3 +497,213 @@ Rà soát toàn bộ endpoint đã nối so với Swagger live (133 path / 160 o
 - Response detail trả sẵn URL con (`eventsPath`, `historyPath`, `detailUrl`…) nhưng code tự ghép chuỗi từ id → nên đọc theo path BE trả cho bền với thay đổi routing.
 - Nút Google login không có endpoint BE (mock/trang trí).
 - Admin library thiếu filter server-side (2D/3D, tên) → code tải hết mẫu + lọc client (nặng nếu nhiều mẫu) → đề xuất BE thêm filter cho `GET /admin/library/templates`.
+
+## 8. Nội dung trang chủ do admin biên tập — chờ BE deploy trang `home` (08/10/2026)
+
+Trang chủ đã đọc nội dung biên tập từ `GET /api/v1/pages/home/sections?locale={vi|en}`, cùng cơ chế "khối chữ" mà Cẩm nang đang dùng (`PUT /admin/pages/{pageKey}/sections/{sectionKey}`).
+
+### 1. Đã làm phía site khách
+
+- `page.tsx` gọi API ở **server** (làm mới tối đa 60 giây, quá 4 giây thì bỏ qua) để HTML đầu tiên đã có chữ admin sửa, không bị nháy từ chữ mặc định sang chữ mới.
+- Khối nào chưa lưu, hoặc trường nào để trống, thì giao diện dùng nội dung có sẵn trong `messages/*.json`. Lỗi API hoặc phản hồi sai hình dạng cũng rơi về nội dung có sẵn, nên trang chủ không bao giờ trống vì CMS.
+- Chế độ `NEXT_PUBLIC_USE_MOCK_API=true` không gọi API.
+
+### 2. Chưa nối vì API thiếu (báo BE)
+
+Kiểm tra thật 08/10/2026:
+
+| Lệnh gọi                                 | Kết quả                                                        |
+| ---------------------------------------- | -------------------------------------------------------------- |
+| `GET /pages/handbook/sections?locale=vi` | 200, `value: []` (trang đã khai báo, chưa có bản lưu)          |
+| `GET /pages/home/sections?locale=vi`     | **404** `PageSectionNotFound` — "Trang này chưa được khai báo" |
+
+Source BE (`bmt-be/src/bmt-be.contract/services/handbook/PageSectionCatalog.cs`, kèm `HomePageSectionTests.cs`) **đã khai báo trang `home` với đúng 12 khối** như bảng dưới, nhưng môi trường `bmt-api.vnzdna.com` chưa chạy bản có trang này. FE đã làm màn admin **Nội dung trang chủ** (`/admin/home-content`) theo hình dạng đó; trên môi trường hiện tại màn vẫn mở và soạn được, còn bấm Lưu sẽ nhận 404 của BE cho tới khi deploy. **Đề nghị BE deploy bản có trang `home`.** Mọi trường chữ, ảnh và icon đều không bắt buộc (để trống thì giao diện dùng nội dung có sẵn).
+
+| `sectionKey`   | Trường chữ                                                                                                                                                                                                                                                                                  | Danh sách                                                                                                                                                                                  |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `hero`         | `eyebrow`, `titleLead`, `titleAccent`, `subtitle`, `primaryCta`, `secondaryCta`, `cardTitle`, `cardAreaLabel`, `cardAreaValue`, `cardTypeLabel`, `cardTypeValue`, `cardStyleLabel`, `cardStyleValue`, `cardOptionsLabel`, `cardOptionsValue`, `cardTotalLabel`, `cardTotalValue`, `cardCta` | `slides[]` — 1 đến 8 mục `{ imageUrl }` (ảnh nền xoay vòng); `guideIds[]` — tối đa 1 id video hướng dẫn công khai, mở khi bấm nút phụ                                                      |
+| `stats`        | —                                                                                                                                                                                                                                                                                           | `items[]` — 5 mục `{ icon, value, label }`                                                                                                                                                 |
+| `painPoints`   | `title`, `subtitle`, `note`                                                                                                                                                                                                                                                                 | `items[]` — 5 mục `{ icon, title, description }`                                                                                                                                           |
+| `services`     | `title`, `subtitle`, `viewAll`                                                                                                                                                                                                                                                              | `items[]` — 4 mục `{ icon, title, description, usedAtStep, action }`                                                                                                                       |
+| `journey`      | `title`, `subtitle`, `cta`, `currentStepBadge`, `labelYouDo`, `labelBuildxDoes`, `labelYouGet`                                                                                                                                                                                              | `items[]` — 5 mục theo thứ tự project, design, dossier, contractor, build: `{ title, description, youDo, buildxDoes, youGet, icon }`                                                       |
+| `dossiers`     | `title`, `viewAll`, `viewOne`, `tab2d`, `tab3d`                                                                                                                                                                                                                                             | `templateIds2d[]`, `templateIds3d[]` — id mẫu thư viện, giữ đúng thứ tự admin chọn. Mỗi danh sách tối đa 4 (cả hai tab tối đa 8); ô chọn của màn admin chỉ liệt kê mẫu công khai đúng loại |
+| `articles`     | `title`, `viewAll`                                                                                                                                                                                                                                                                          | `articleIds[]` — id bài viết Cẩm nang công khai, tối đa 3, giữ đúng thứ tự admin chọn                                                                                                      |
+| `guides`       | `title`, `subtitle`, `viewAll`                                                                                                                                                                                                                                                              | `guideIds[]` — id video Hướng dẫn (tối đa 3 hiển thị)                                                                                                                                      |
+| `consult`      | `title`, `description`, `viewAll`                                                                                                                                                                                                                                                           | `architectIds[]` — id kiến trúc sư công khai, tối đa 3, giữ đúng thứ tự admin chọn                                                                                                         |
+| `brands`       | `title`                                                                                                                                                                                                                                                                                     | `logos[]` — `{ imageUrl, name }`                                                                                                                                                           |
+| `testimonials` | `title`                                                                                                                                                                                                                                                                                     | `reviews[]` — tối đa 12 mục `{ name, meta, quote, avatarUrl }`                                                                                                                             |
+| `cta`          | `title`, `subtitle`, `action`                                                                                                                                                                                                                                                               | —                                                                                                                                                                                          |
+
+### 3. Lưu ý
+
+- `icon` là tên icon của thư viện lucide-react, nhận cả `PencilRuler` lẫn `pencil-ruler`. Tên không tồn tại thì giao diện dùng icon mặc định của vị trí đó, nên BE chỉ cần kiểm tra là chuỗi ngắn (≤ 64 ký tự, chữ, số, gạch ngang).
+- Các trường ảnh (`imageUrl`, `avatarUrl`) đi theo quy tắc ảnh thuộc tên miền kho đã có ở các khối khác.
+- Đường dẫn của nút (CTA) **không** nằm trong CMS, chỉ có nhãn.
+- `templateIds2d/3d` và `guideIds` chỉ là danh sách id. Mẫu hoặc video đã ẩn/xóa thì bị bỏ qua, không bù thêm mục khác; nếu admin chưa chọn gì thì trang chủ tự chọn như trước.
+- `stats`, `painPoints`, `journey` phải đủ đúng 5 mục và `services` đúng 4 mục (BE bắt số mục cố định, gắn theo thứ tự thẻ trên giao diện); trường nào của mục để trống thì thẻ đó dùng chữ có sẵn. Vì vậy màn admin ghi cả danh sách khi có thẻ nào đổi.
+- Màn admin làm theo mẫu "Nội dung trang Cẩm nang": lưu từng khối, gửi `expectedVersion`, mỗi ngôn ngữ một bản. Khi trang `home` chưa có trên BE, màn vẫn hiện form trên nội dung có sẵn; bấm Lưu thì lỗi 404 của BE hiện qua thông báo.
+
+## 9. Chân trang và các trang "Về BuildX" do admin biên tập — chờ BE deploy trang `footer` (08/10/2026)
+
+Chân trang và năm trang pháp lý đã đọc nội dung biên tập từ `GET /api/v1/pages/footer/sections?locale={vi|en}`, cùng cơ chế "khối chữ" của trang chủ và Cẩm nang (`PUT /admin/pages/footer/sections/{sectionKey}`, quyền `news.manage`). Khác trang chủ ở một điểm: có loại trường mới **`Html`** (rich text) cho nội dung dài.
+
+### 1. Đã làm phía site khách
+
+- `SiteFooterWithContent` (server) gọi API để HTML đầu tiên đã có hotline, email, địa chỉ và liên kết mạng xã hội đúng. Làm mới tối đa 60 giây, quá 4 giây thì bỏ qua.
+- Trường nào chưa lưu thì chân trang giữ cách làm cũ: tài liệu `settings` cũ, rồi hằng số trong `shared/config/site.ts` và `messages/*.json`.
+- Liên kết mạng xã hội chỉ dùng khi là `http`/`https` (nhập thiếu giao thức như `zalo.me/abc` thì tự thêm `https://`). Giá trị khác, ví dụ `javascript:`, bị bỏ và chân trang dùng liên kết có sẵn. BE chỉ lưu chuỗi, nên đây là chốt chặn cuối ở giao diện.
+- Năm trang `/terms`, `/privacy`, `/ai-terms`, `/ecommerce-partners`, `/payment-policy` hiện `body` do admin soạn trong "tờ giấy" trắng (`.legal-html`). Trang nào chưa soạn thì vẫn hiện bản có sẵn (`LegalPage`), nên không bao giờ trống vì CMS. `title` tùy chọn thay tiêu đề tab trình duyệt.
+- Chế độ `NEXT_PUBLIC_USE_MOCK_API=true` không gọi API.
+
+### 2. Chưa nối vì API thiếu (báo BE)
+
+Source BE (`bmt-be/src/bmt-be.contract/services/handbook/PageSectionCatalog.cs`, kèm `FooterPageSectionTests.cs`) **đã khai báo trang `footer` với 7 khối** như bảng dưới, nhưng đây là thay đổi mới trên nhánh `feature/footer-content`, chưa có trên môi trường `bmt-api.vnzdna.com` cho tới khi merge và deploy. Khi chưa có, `GET /pages/footer/sections` trả 404 và site khách dùng nội dung có sẵn.
+
+| `sectionKey` | Trường chữ                                                          | Trường `Html` |
+| ------------ | ------------------------------------------------------------------- | ------------- |
+| `contact`    | `hotline`, `email`, `address`                                       | —             |
+| `social`     | `facebookUrl`, `zaloUrl`, `youtubeUrl`, `tiktokUrl`, `instagramUrl` | —             |
+| `terms`      | `title`                                                             | `body`        |
+| `privacy`    | `title`                                                             | `body`        |
+| `aiTerms`    | `title`                                                             | `body`        |
+| `ecommerce`  | `title`                                                             | `body`        |
+| `payment`    | `title`                                                             | `body`        |
+
+Quy tắc của loại trường `Html` (đã làm ở BE):
+
+- Chuỗi HTML tối đa **200000 ký tự**, kiểm cả trước và sau khi làm sạch. Trường chữ thường vẫn tối đa 1000 ký tự.
+- Được làm sạch bằng `INewsHtmlSanitizer` của tin tức rồi lưu **bản đã làm sạch**; thẻ giữ lại gồm `p`, `h2`–`h6`, `ul`/`ol`/`li`, `blockquote`, `strong`, `em`, `u`, `a`, bảng.
+- **Không nhận ảnh**: có `<img>` thì trả 422 `InvalidPageSection` ("Nội dung trang này chưa hỗ trợ ảnh."). Ô soạn của admin cũng không có nút ảnh và không nhận ảnh dán vào.
+- Nội dung rỗng, hoặc không còn chữ nào sau khi làm sạch, được lưu thành chuỗi rỗng; giao diện coi như chưa soạn.
+
+### 3. Lưu ý
+
+- Các trường `hotline`, `email`, `address`, `*Url` là chuỗi tự do, không kiểm định dạng ở BE.
+- `terms`... `payment` dùng `h2` đầu tiên làm tiêu đề lớn của trang (canh giữa) và `h3` làm tiêu đề từng điều; trình soạn của admin chỉ có H2 và H3 nên khớp với quy ước này.
+- Lần đầu mở màn, nội dung năm trang là bản có sẵn đã đổi sang HTML (`legalDocToHtml`) để admin sửa tại chỗ; chữ đậm, nghiêng, danh sách và khung ghi chú được giữ, còn màu chữ và cỡ chữ do CSS dựng lại. Chỉ khi admin sửa khác bản có sẵn thì mới ghi lên BE.
+- Tài liệu nghiệp vụ của nhóm Cẩm nang (BR/TDD-HB-003) không có trong bản `bmt-documentation` dùng chung, nên phần hợp đồng ở mục này là nơi ghi tạm cho tới khi BE cập nhật tài liệu.
+
+## 10. Trang Tìm nhà thầu do admin biên tập — chờ BE deploy trang `contractors` (08/10/2026)
+
+Trang `/contractors` đã đọc nội dung biên tập từ `GET /api/v1/pages/contractors/sections?locale={vi|en}`, cùng cơ chế "khối chữ" của trang chủ (`PUT /admin/pages/contractors/sections/{sectionKey}`, quyền `news.manage`). Không liên quan tới API quản lý nhà thầu (`/admin/contractors`).
+
+### 1. Đã làm phía site khách
+
+- `page.tsx` gọi API ở **server** (làm mới tối đa 60 giây, quá 4 giây thì bỏ qua) rồi đưa xuống qua cùng ngữ cảnh khối chữ của trang chủ, để HTML đầu tiên đã có chữ, ảnh và icon admin đã sửa.
+- Khối nào chưa lưu, hoặc trường nào để trống, thì trang dùng nội dung có sẵn trong `messages/*.json`, ảnh `map.contractors` và icon mặc định. Lỗi API cũng rơi về nội dung có sẵn.
+- Ảnh đầu trang: có `hero.imageUrl` thì dùng, không thì dùng ảnh `map.contractors` như trước (màn "Hình ảnh site" vẫn đặt được).
+- Ba thẻ "An toàn & minh bạch" mặc định vẽ hình ghép (khiên + ổ khoá, tài liệu có khoá, sao + nhóm người). Admin đặt `icon` và tra được thì vẽ icon lucide đó thay cho hình ghép.
+- Chế độ `NEXT_PUBLIC_USE_MOCK_API=true` không gọi API.
+
+### 2. Chưa nối vì API thiếu (báo BE)
+
+Source BE (`PageSectionCatalog.cs`, kèm `ContractorsPageSectionTests.cs`) khai báo trang `contractors` với 5 khối như bảng dưới, trên nhánh `feature/contractors-content`; chưa có trên môi trường `bmt-api.vnzdna.com` cho tới khi merge và deploy. Khi chưa có, `GET /pages/contractors/sections` trả 404 và site khách dùng nội dung có sẵn.
+
+| `sectionKey` | Trường chữ / ảnh                                                                         | Danh sách `items` (số mục cố định)                                                                              |
+| ------------ | ---------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `hero`       | `titleLine1`, `titleLine2`, `subtitle`, `createBrief`, `viewContractors`, ảnh `imageUrl` | —                                                                                                               |
+| `promises`   | —                                                                                        | 4 mục: `title`, `icon` (thứ tự: miễn phí, đã xác minh, so sánh minh bạch, liên hệ được bảo vệ)                  |
+| `safety`     | `title`                                                                                  | 3 mục: `title`, `body`, `icon` (thứ tự: liên hệ được bảo vệ, báo cáo lưu trên nền tảng, đánh giá từ dự án thật) |
+| `faq`        | `title`                                                                                  | 7 mục: `question`, `answer`                                                                                     |
+| `cta`        | `title`, `action`, `partnerText`, `partnerAction`                                        | —                                                                                                               |
+
+### 3. Lưu ý
+
+- Mọi trường đều tùy chọn; ảnh `imageUrl` phải thuộc tên miền kho ảnh như các khối khác.
+- Đường dẫn của các nút (tạo hồ sơ, xem danh sách, trở thành đối tác) **không** nằm trong CMS, chỉ có chữ.
+- Danh sách có số mục cố định vì gắn với giao diện theo thứ tự (và liên kết `#faq-N`), nên chỉ sửa nội dung, không thêm bớt mục. Cần thêm bớt câu hỏi thì phải đổi cả BE lẫn giao diện.
+- Câu trả lời là chữ thuần. Câu trả lời số 3 có sẵn dùng thẻ `<mark>` quanh "3 nhà thầu" nhưng thẻ này không có hiệu ứng nhìn thấy, nên màn admin bỏ thẻ khi hiện chữ có sẵn.
+- Màn admin `/admin/contractors-content` dùng chung `PageContentManager` với trang chủ và chân trang: lưu từng khối, gửi `expectedVersion`, mỗi ngôn ngữ một bản.
+
+## 11. CMS trang Bảng giá — backend `plans` đã triển khai (09/10/2026)
+
+Màn `/admin/plans-content` có tên **Gói tư vấn**, nằm trong nhóm **Nội dung**, dùng quyền `news.manage`. Theo yêu cầu tiếp theo ngày 09/10/2026, mục này chuyển từ Gói dịch vụ sang Nội dung; URL, quyền và API giữ nguyên. CMS chỉ quản lý năm phần người dùng đã chụp: đầu trang (`hero`), dải tư vấn (`advice`), chữ trong bảng so sánh (`comparison`), bảng giá trị khách hàng (`value`) và ghi chú cuối trang (`notes`). Mỗi phần lưu riêng theo ngôn ngữ qua `PUT /api/v1/admin/pages/plans/sections/{sectionKey}` với `expectedVersion`; khôi phục mặc định dùng DELETE. Trang `/plans` đọc `GET /api/v1/pages/plans/sections?locale={vi|en}`.
+
+Khối `value` dùng bảng Hạng mục/BASIC/PLUS/PRO động theo STORY-CMS-002: thêm, sửa, xóa, sắp xếp hàng và chọn icon có xem trước. Content bổ sung `items` tối đa 100 mục, mỗi mục có `label`, `icon`, `basic`, `advanced`, `pro`. Dùng kiểu Items/validator hiện có, không đổi database, endpoint hay schemaVersion. Giữ 17 khóa chữ phẳng để đọc dữ liệu cũ; items đã lưu, kể cả danh sách rỗng, thay hoàn toàn hàng mặc định. Text chỉ là CMS, không sửa entitlement. Backend commit `05f2929` đã qua 154 test handler và [triển khai thành công](https://github.com/TaskCoper/bmt-be/actions/runs/37890154131); GET công khai CMS plans vi/en đều trả HTTP 200; test handler dùng kho giả, không chứng minh SQL hoặc policy HTTP.
+
+Backend đã bổ sung năm schema trong `PageSectionCatalog.cs`, dùng bảng, endpoint, kiểm phiên bản và cơ chế làm mới cache CMS hiện có; không cần migration. Commit `864b6df` đã triển khai lên môi trường phục vụ `bmt-api.vnzdna.com` ngày 09/10/2026 qua [pipeline thành công](https://github.com/TaskCoper/bmt-be/actions/runs/37879160696). GET công khai cho `plans` ở cả `vi` và `en` trả HTTP 200 với danh sách rỗng, thay cho lỗi 404 trước triển khai. Chưa kiểm thao tác lưu bằng phiên quản trị thật; frontend mới hiện chạy local, chưa triển khai lên website. Nếu đọc API lỗi, trang công khai giữ nội dung mặc định.
+
+Giá, quyền sử dụng, hạn mức thật, cấu hình quà tặng và trường **Nổi bật** vẫn quản lý ở gói đã công bố. Sau khi chốt STORY-CMS-001 và BR-CMS-001 ngày 09/10/2026, nội dung bảng so sánh được quản lý riêng bằng CMS: thêm/xóa/sắp xếp nhóm và hạng mục, chọn màu xanh/cam cho nhóm, nhập Có (✓), Không (–) hoặc chữ/số cho từng cột BASIC/PLUS/PRO. Hai hàng số lượt và nội dung quà tặng trong bảng cũng là chữ CMS; sửa chúng không tạo quyền hoặc đổi hạn mức thật. Cột cam vẫn theo `isHighlighted` của từng gói, không cố định ở PLUS.
+
+Schema `comparison` bổ sung trường có cấu trúc `groups`, giữ 47 trường chữ cũ, `schemaVersion=1`, endpoint, quyền và kiểm phiên bản hiện có. Chưa lưu `groups` thì bảng lấy nội dung cũ làm điểm bắt đầu; đã lưu thì thứ tự mảng và giá trị từng ô quyết định nội dung công khai. `groups: []` là xóa hết nhóm, giữ tiêu đề và nút chọn gói; nhóm rỗng giữ trong admin và ẩn trên site khách. Giới hạn kỹ thuật: 100 nhóm, tổng 500 hạng mục và 1.000 ký tự Unicode sau trim cho mỗi chuỗi nội dung. Backend kiểm mã định danh, loại ô, đủ ba cột và không nhận trường lạ. Chữ nhập trong ô động hiển thị nguyên văn, gồm cả `{count}` hoặc ký hiệu HTML. Các trường chữ cũ và các khối khác vẫn dùng cơ chế thay biến hiện có.
+
+Backend commit `cecde694645f3d826d9727a8be412193b61eaf28` đã [triển khai thành công](https://github.com/TaskCoper/bmt-be/actions/runs/37884195750). GET CMS công khai ở cả `vi` và `en` sau triển khai trả HTTP 200. Đã đạt 140 kiểm thử backend liên quan, 55 kiểm thử frontend, 28 kiểm tra trình duyệt với API giả lập và bảy kiểm thử rendering; TypeScript, ESLint, Prettier và production build đạt. Frontend đã build/start lại trên localhost:3000, chưa triển khai lên website. Chưa kiểm ghi nội dung động qua phiên quản trị và database thật.
+
+Đã kiểm hợp đồng frontend/backend, quyền truy cập, ngôn ngữ độc lập, giới hạn chữ và xung đột phiên bản; kiểm trình duyệt bằng API giả lập cho lưu năm phần, khôi phục, bản chưa lưu, bảng công khai và bố cục điện thoại. Các kiểm tra này chưa chứng minh thao tác ghi trên database hoặc webhook của môi trường thật. Xem phần CMS Bảng giá trong `TDD-HB-003`.
+
+## 12. Admin — Khách hàng (nối API thật, 09/10/2026)
+
+Màn `/admin/customers` và `/admin/customers/{id}` đọc từ backend, không còn đọc dữ liệu mẫu lưu trong trình duyệt. Đã kiểm trên trình duyệt với backend giả khớp contract trong code `bmt-be` (ghi lại URL và tham số thật mà FE gửi); chưa chạy với `bmt-api.vnzdna.com` vì cần tài khoản nhân viên có `customer.manage`.
+
+### 1. Đã nối
+
+- Danh sách: `GET /customers?search&pageIndex&pageSize` (quyền `customer.manage`). Tìm theo tên, email, SĐT và phân trang đều chạy ở server, 20 dòng mỗi trang.
+- Hồ sơ: `GET /customers/{id}`. Mã `404 CustomerNotFound` hiện "Không tìm thấy tài khoản này"; lỗi khác hiện thông báo kèm nút Thử lại.
+- Gói, đơn, giao dịch của khách (cần thêm `commerce.read`, thiếu thì mỗi khối báo rõ và không gọi API): `GET /admin/package-purchases`, `/admin/payment-orders`, `/admin/bank-transactions` lọc theo `customerId`, mỗi lần lấy tối đa 100 dòng mới nhất (khách có nhiều hơn thì trang báo). Hạn và lượt đã dùng / đang giữ của gói đang dùng lấy từ `GET /admin/package-purchases/{orderId}`.
+- Quyền của mục Khách hàng đổi từ `commerce.read` sang `customer.manage`, đúng quyền backend đòi cho `/customers`.
+- Liên kết "Xem chi tiết đơn" mở màn Đơn hàng ở trang xem đơn (`?act=view&rid=…`). `ApiResourceManager` có thêm `fetchOne` để mở được đơn không nằm ở trang đầu danh sách.
+
+### 2. Chưa nối vì API thiếu (báo BE)
+
+Theo yêu cầu "không có API thì xoá", các chức năng dưới đây đã **bỏ khỏi giao diện**; khi backend có endpoint thì thêm lại.
+
+| Chức năng đã bỏ khỏi màn                               | Hiện trạng backend                                                                      | Ghi chú khi thêm lại                                    |
+| ------------------------------------------------------ | --------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| Nút Ban / Mở ban tài khoản khách, kèm lý do            | Chỉ có `POST /staff/{id}/lock` và `unlock` cho nhân viên; khách không có endpoint nào   | Cần endpoint khoá / mở khoá khách (và trả lý do khoá)   |
+| Khối "Lịch sử sử dụng quota" (giữ, trừ, hoàn)          | Không có endpoint                                                                       | Số lượt đã dùng / đang giữ vẫn xem ở khối gói đang dùng |
+| Bộ lọc trạng thái Hoạt động / Đã ban trên danh sách    | `GET /customers` chỉ có tham số `search`                                                | Cần tham số `status`; cột Trạng thái vẫn hiện           |
+| Dòng Vai trò, Phương thức đăng nhập, Lý do khoá        | `CustomerInfo` không có các trường này (vai trò luôn là Khách hàng nên không đáng hiện) | Cần BE trả phương thức đăng nhập nếu muốn hiện lại      |
+| Quyền lợi theo đơn, quà tặng, giai đoạn và lượt kỹ sư  | API thương mại không trả                                                                | Gói giám sát hiện công trình và mốc cấp / gán           |
+| Tài liệu của `GET /customers` và `GET /customers/{id}` | `bmt-documentation` chưa có Story hay TDD, chỉ có trong code BE                         | FE bám contract trong code; cần bổ sung tài liệu        |
+
+### 3. Lưu ý
+
+- Họ tên ghép `lastName` rồi `firstName`; thiếu cả hai thì dùng email.
+- Trạng thái `Locked` của backend hiện là "Đã ban" để giữ nhãn cũ của màn.
+- Các bộ dữ liệu mẫu cũ của màn (`customers`, `customerPackages`, `quotaEvents` trong kho CMS cục bộ) không còn được màn này đọc.
+
+## 13. Admin — ô tìm kiếm và bộ lọc (10/10/2026)
+
+Đã rà từng màn admin trong menu: mỗi ô tìm kiếm và bộ lọc có gửi lên API không, và tên tham số có khớp OpenAPI của `bmt-api.vnzdna.com` không. Kết quả: gần hết màn đã gọi API đúng. Có hai chỗ sai và đã sửa. Còn một số chỗ backend chưa có tham số, ghi ở cuối mục.
+
+### 1. Đã sửa
+
+- **Nhà thầu** (`/admin/contractors`): ô tìm kiếm cũ không làm gì, vì `GET /admin/contractors` chỉ nhận `status`, không có `keyword`. Đã bỏ ô tìm và thay bằng bộ lọc Tất cả / Đang hiện / Đang ẩn, gửi `status=Visible|Hidden`.
+- **Mọi bảng có bộ lọc dùng `ApiResourceManager`**: đổi bộ lọc không đưa bảng về trang 1. Đang ở trang 3 mà lọc ra ít kết quả thì bảng gửi `pageIndex=3` và hiện trống. Nay đổi bộ lọc là về trang 1.
+
+### 2. Đã gọi API đúng
+
+| Màn                             | Ô tìm / bộ lọc                                       | Tham số gửi lên API                                                                                  |
+| ------------------------------- | ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Đơn hàng                        | loại gói, trạng thái, mã thanh toán, khoảng ngày tạo | `GET /admin/payment-orders`: `kind`, `state`, `paymentCode`, `fromUtc`, `toUtc`                      |
+| Đơn hàng (xem theo lượt mua)    | loại gói, trạng thái hiệu lực, cách xử lý            | `GET /admin/package-purchases`: `kind`, `effectiveState`, `disposition`                              |
+| Giao dịch                       | trạng thái khớp, mã giao dịch ngân hàng, khoảng ngày | `GET /admin/bank-transactions`: `matchState`, `providerTransactionId`, `orderId`, `fromUtc`, `toUtc` |
+| Gói                             | trạng thái bán                                       | `GET /admin/plans`: `saleState`                                                                      |
+| Lời mời báo giá                 | trạng thái, mã hồ sơ                                 | `GET /admin/quotation-requests`: `status`, `siteCode`                                                |
+| Công trình                      | mã hồ sơ                                             | `GET /admin/construction-sites`: `code`                                                              |
+| Chuyên gia tư vấn               | hiện / ẩn                                            | `GET /admin/architects`: `isVisible`                                                                 |
+| Lịch hẹn tư vấn                 | trạng thái                                           | `GET /admin/consultation-requests`: `status`                                                         |
+| Khách hàng                      | tên, email, số điện thoại                            | `GET /customers`: `search`                                                                           |
+| Phân công                       | nhân viên, chỉ phân công đang hiệu lực               | `GET /assignments`: `staffUserId`, `activeOnly`                                                      |
+| Bài viết                        | từ khóa, trạng thái                                  | `GET /admin/news/articles`: `keyword`, `state`                                                       |
+| Video hướng dẫn                 | từ khóa                                              | `GET /admin/guides`: `keyword`                                                                       |
+| Bản tin của Cẩm nang (chọn bài) | từ khóa                                              | `GET /admin/news/articles`: `keyword`                                                                |
+| Nhà thầu                        | trạng thái hiển thị                                  | `GET /admin/contractors`: `status`                                                                   |
+
+### 3. Lọc ngay trên trình duyệt vì backend không có tham số
+
+- **Vai trò, nhân viên, loại công trình, phong cách, phạm vi thi công**: backend trả cả danh sách, không phân trang và không có tham số tìm. Màn lấy hết rồi tìm trên trình duyệt, nên kết quả đúng với toàn bộ danh sách.
+- **Thư viện mẫu**: `GET /admin/library/templates` chỉ có phân trang. Màn đọc hết mẫu và phiên bản của từng mẫu rồi lọc 2D/3D và tìm theo tên trên trình duyệt. Cần backend thêm `drawingKind` và `keyword` để bỏ cách này.
+
+### 4. Cần báo backend
+
+| Việc                     | Endpoint                       | Ghi chú                                                   |
+| ------------------------ | ------------------------------ | --------------------------------------------------------- |
+| Tìm nhà thầu theo tên    | `GET /admin/contractors`       | Hiện chỉ có `status`; cần thêm `keyword` để làm lại ô tìm |
+| Lọc 2D/3D và tìm tên mẫu | `GET /admin/library/templates` | Cần `drawingKind`, `keyword`                              |
+
+### 5. Chưa làm
+
+- **Nhật ký truy cập** (`GET /access-audit`): backend đã có `actorUserId`, `targetType`, `targetId`, `fromUtc`, `toUtc` nhưng màn chưa có ô lọc nào. Thêm ô lọc là việc mới, chưa làm.
+- **Gói**: `GET /admin/plans` có `kind` (Thiết kế / Giám sát) nhưng màn chưa có ô lọc loại gói.
+- **Các màn đã ẩn khỏi menu** (Quà tặng, Mã giảm giá, Dự án giám sát, Giai đoạn giám sát, Gói giám sát, Đánh giá khách hàng, Nhóm chi phí, Hạng mục, Đơn giá vật liệu, Quy tắc đề xuất, Lịch khảo sát): dùng dữ liệu lưu cục bộ và backend chưa có API tương ứng, nên ô tìm và bộ lọc ở đó chạy trên dữ liệu cục bộ. Chỉ nối được khi backend có endpoint.

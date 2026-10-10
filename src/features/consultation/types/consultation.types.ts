@@ -54,6 +54,26 @@ export interface BookConsultationPayload {
   note?: string
 }
 
+/** Trạng thái yêu cầu tư vấn ở BE: Pending (chờ admin liên hệ) hoặc Resolved (admin đã xử lý). */
+export type ConsultationRequestStatus = 'Pending' | 'Resolved'
+
+/**
+ * Một yêu cầu tư vấn khách đã gửi, đọc từ `GET /me/consultation-requests`. Chỉ xem: không sửa, không hủy. `desiredAtUtc`
+ * là giờ khách MONG MUỐN (UTC), chưa phải lịch hẹn chính thức — admin gọi lại ngoài hệ thống.
+ */
+export interface ConsultationRequestItem {
+  id: string
+  architectId: string
+  architectName: string
+  architectTitle: string
+  architectAvatarUrl: string
+  desiredAtUtc: string
+  contactPhone: string
+  message: string | null
+  status: ConsultationRequestStatus
+  createdOnUtc: string
+}
+
 export type ConsultationHistoryStatus = 'pending' | 'confirmed' | 'done' | 'cancelled' | 'missed'
 
 /** Một dòng lịch sử tư vấn trong tab Tài khoản. */

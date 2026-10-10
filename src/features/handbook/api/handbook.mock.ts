@@ -2,13 +2,16 @@ import { cmsDb } from '@/shared/cms'
 import { mockDelay } from '@/shared/lib/mock'
 import type {
   HandbookArticle,
+  HandbookNewsletter,
   HandbookQuota,
   HandbookStage,
   HandbookTemplate,
   HandbookTemplateKind,
   LibraryMatchCriteria
 } from '../types/handbook.types'
+import { featuredArticles, sortByNewest } from '../services/handbook.service'
 import type { ArticleListQuery } from './handbook.bmt'
+import type { PageSections } from './handbook.cms.logic'
 import type { LibraryFilterQuery, TemplateStyleQuery } from './handbook.library'
 import type { LibraryFilterOptions } from './handbook.library.logic'
 import type { ListNewsCategoriesParams } from './handbook.news'
@@ -64,6 +67,17 @@ export const mockHandbookApi = {
     if (!topic) return articles
     return articles.filter((article) => article.panelTopic === topic)
   },
+
+  /** Bản tin mock: bài có `featuredRank` làm nổi bật, các bài còn lại mới nhất trước làm bài liên quan. */
+  getNewsletter: async (): Promise<HandbookNewsletter> => {
+    await mockDelay()
+    const articles = cmsDb.list('handbookArticles').filter(isPublished)
+    const featured = featuredArticles(articles)
+    return { featured, related: sortByNewest(articles).filter((article) => !featured.includes(article)) }
+  },
+
+  /** Mock không có khối chữ biên tập: mọi khối dùng bản dịch trong giao diện. */
+  listPageSections: async (_locale: string): Promise<PageSections> => new Map(),
 
   getArticle: async (slug: string): Promise<HandbookArticle | null> => {
     await mockDelay()

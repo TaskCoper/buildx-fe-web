@@ -8,6 +8,21 @@
  * ========================================================================== */
 @custom-variant dark (&:is(.dark *));
 
+/* Điều hướng quay lại dùng màu chữ chính ở mọi trạng thái. */
+:is(a, button)[data-back-navigation],
+:is(a, button)[data-back-navigation]:hover,
+:is(a, button)[data-back-navigation]:focus-visible,
+:is(a, button)[data-back-navigation]:active {
+  color: var(--foreground);
+}
+[data-back-navigation] svg {
+  color: inherit;
+}
+:is(a, button)[data-back-navigation]:focus-visible {
+  outline-color: var(--foreground);
+  --tw-ring-color: var(--foreground);
+}
+
 @media (max-width: 899px) {
   html[data-dialog-overlay-open='true'] [data-assistant-fab],
   html[data-dialog-overlay-open='true'] [data-assistant-topic-suggestion],
@@ -436,6 +451,19 @@
     scroll-behavior: smooth;
   }
 
+  /* Giữ cùng bề rộng trang trên desktop, kể cả khi nội dung chưa cần cuộn. */
+  @media (min-width: 900px) {
+    html {
+      overflow-y: scroll;
+      scrollbar-gutter: stable;
+    }
+
+    /* Thanh cuộn đã giữ sẵn chỗ; popup không cần bù thêm margin của body. */
+    body[data-scroll-locked] {
+      margin-right: 0 !important;
+    }
+  }
+
   body {
     @apply bg-background text-foreground antialiased;
     overflow-x: clip;
@@ -629,10 +657,11 @@
   }
 
   /* Đồng bộ motion cho CTA toàn site:
-     - CTA xanh: phóng nhẹ + sáng hơn + bóng xanh.
+     - CTA xanh và trong suốt: phóng nhẹ + sáng hơn + bóng xanh.
      - CTA trắng/outline: phóng nhẹ + bóng trung tính.
      Loại trừ icon-only và nút cam để giữ đúng hành vi riêng của chúng. */
   .brand-green-button,
+  [data-slot='button'][data-variant='transparent']:not([data-size^='icon']),
   [data-slot='button'][data-variant='default']:not(.brand-orange-button):not([data-size^='icon']),
   [data-slot='button'][data-variant='outline']:not([data-size^='icon']),
   [data-slot='button'][data-variant='secondary']:not([data-size^='icon']) {
@@ -643,6 +672,7 @@
   }
 
   .brand-green-button:hover,
+  [data-slot='button'][data-variant='transparent']:not([data-size^='icon']):hover,
   [data-slot='button'][data-variant='default']:not(.brand-orange-button):not([data-size^='icon']):hover {
     transform: scale(1.035);
     filter: brightness(1.1);
@@ -658,6 +688,7 @@
   }
 
   .brand-green-button:active,
+  [data-slot='button'][data-variant='transparent']:not([data-size^='icon']):active,
   [data-slot='button'][data-variant='default']:not(.brand-orange-button):not([data-size^='icon']):active,
   [data-slot='button'][data-variant='outline']:not([data-size^='icon']):active,
   [data-slot='button'][data-variant='secondary']:not([data-size^='icon']):active {
@@ -766,10 +797,20 @@
     box-shadow: var(--header-shadow-scrolled);
   }
 
-  /* The mobile header stays 64px tall even after the desktop compact state is
-     entered. Keep sticky page controls below that unchanged height as well. */
+  /* Mobile: keep the shared header pinned and visible while the page scrolls.
+     The component still tracks scroll direction for desktop, but mobile must
+     not translate the header away from the top of the viewport. */
   @media (max-width: 767px) {
-    :root:has(.site-header-shell):not(:has(.site-header-shell[data-hidden='true'])) {
+    .site-header-shell {
+      position: sticky;
+      top: 0;
+    }
+
+    .site-header-shell[data-hidden='true'] {
+      transform: translateY(0) !important;
+    }
+
+    :root:has(.site-header-shell) {
       --public-header-offset: 64px !important;
     }
   }
@@ -1277,14 +1318,14 @@
     bottom: -2px;
     left: 0;
     height: 1px;
-    background: var(--primary);
+    background: var(--foreground);
     transform: scaleX(0);
     transform-origin: left center;
     transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
   }
   [data-detail-breadcrumb-link]:hover,
   [data-detail-breadcrumb-link]:focus-visible {
-    color: var(--primary);
+    color: var(--foreground);
   }
   [data-detail-breadcrumb-link]:hover::after,
   [data-detail-breadcrumb-link]:focus-visible::after {
@@ -2001,6 +2042,128 @@
   }
 
   /* --- Rich-text article body (CMS HTML → blog typography) ----------------- */
+  .article-richtext,
+  .article-richtext .tableWrapper {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+  .article-richtext table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+  .article-richtext td,
+  .article-richtext th {
+    min-width: 60px;
+    padding: 0.5rem;
+    border: 1px solid var(--border);
+    vertical-align: top;
+    overflow-wrap: anywhere;
+  }
+  .article-richtext th {
+    background: var(--muted);
+    text-align: start;
+    font-weight: 600;
+  }
+  .article-richtext td > p,
+  .article-richtext th > p {
+    margin: 0;
+  }
+
+  /* --- Trang pháp lý do admin soạn (HTML đã được backend làm sạch) -----------------------------------------------
+   * Dựng lại diện mạo của các trang pháp lý có sẵn (`LegalPage`): "tờ giấy" trắng cố định, chữ xám xanh, tiêu đề xanh
+   * lục, khung ghi chú nền nhạt viền trái. Màu viết cứng như `LegalPage` vì tờ giấy không đổi theo chế độ tối.
+   * Quy ước của HTML: h2 đầu tiên là tiêu đề trang (canh giữa), h3 là tiêu đề từng điều/mục. */
+  .legal-html {
+    color: #334155;
+    font-size: 1rem;
+    line-height: 1.625;
+    overflow-wrap: anywhere;
+  }
+  .legal-html > * + * {
+    margin-top: 0.75rem;
+  }
+  .legal-html h2,
+  .legal-html h3,
+  .legal-html h4 {
+    color: #15803d;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+  .legal-html h2 {
+    margin-top: 2rem;
+    font-size: 1.4rem;
+  }
+  .legal-html > h2:first-child {
+    margin-top: 0;
+    text-align: center;
+    font-size: clamp(1.3rem, 3.6vw, 1.85rem);
+  }
+  .legal-html h3 {
+    margin-top: 2rem;
+    font-size: 1.19rem;
+  }
+  .legal-html h4 {
+    margin-top: 1.5rem;
+    font-size: 1.05rem;
+  }
+  .legal-html p {
+    text-align: justify;
+  }
+  .legal-html strong {
+    font-weight: 700;
+  }
+  .legal-html ul {
+    list-style: disc;
+    padding-left: 1.5rem;
+  }
+  .legal-html ol {
+    list-style: decimal;
+    padding-left: 1.5rem;
+  }
+  .legal-html li {
+    margin-top: 0.5rem;
+  }
+  .legal-html li > p {
+    margin-top: 0;
+  }
+  .legal-html a {
+    color: #15803d;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .legal-html blockquote {
+    margin-top: 1rem;
+    padding: 1rem 1.25rem;
+    border-left: 4px solid #15803d;
+    border-radius: 0.375rem;
+    background: #f0fdf4;
+  }
+  .legal-html blockquote > p + p {
+    margin-top: 0.5rem;
+  }
+  .legal-html table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+  .legal-html td,
+  .legal-html th {
+    padding: 0.5rem;
+    border: 1px solid #cbd5e1;
+    vertical-align: top;
+    overflow-wrap: anywhere;
+  }
+  .legal-html th {
+    background: #f1f5f9;
+    text-align: start;
+    font-weight: 600;
+  }
+  .legal-html td > p,
+  .legal-html th > p {
+    margin: 0;
+  }
+
   .prose-content {
     color: var(--foreground);
     line-height: 1.75;
@@ -3689,7 +3852,7 @@ body main {
   left: 0;
   height: 1px;
   border-radius: 999px;
-  background: var(--primary);
+  background: var(--foreground);
   content: '';
   transform: scaleX(0);
   transform-origin: left center;
@@ -3698,7 +3861,7 @@ body main {
 
 [data-article-breadcrumb-link]:hover,
 [data-article-breadcrumb-link]:focus-visible {
-  color: var(--primary);
+  color: var(--foreground);
 }
 
 [data-article-breadcrumb-link]:hover::after,
@@ -4285,32 +4448,32 @@ body main {
   }
 }
 .plans-tabs-enter {
-  animation: plan-reveal 0.44s 0.06s cubic-bezier(0.2, 0.72, 0.3, 1) both;
+  animation: plan-reveal 0.22s 0.03s cubic-bezier(0.2, 0.72, 0.3, 1) both;
 }
 .plans-tabs-enter + * {
   view-transition-name: plan-content;
 }
 .plan-title {
   display: inline-block;
-  animation: plan-reveal 0.56s 0.28s cubic-bezier(0.2, 0.72, 0.3, 1) both;
+  animation: plan-reveal 0.28s 0.14s cubic-bezier(0.2, 0.72, 0.3, 1) both;
 }
 .plan-title-accent {
   display: inline-block;
-  animation: plan-reveal 0.52s 0.56s cubic-bezier(0.2, 0.72, 0.3, 1) both;
+  animation: plan-reveal 0.26s 0.28s cubic-bezier(0.2, 0.72, 0.3, 1) both;
 }
 .plan-leaf-enter {
   display: inline-block;
-  animation: plan-leaf-enter 0.58s 0.84s cubic-bezier(0.2, 0.78, 0.3, 1) both;
+  animation: plan-leaf-enter 0.29s 0.42s cubic-bezier(0.2, 0.78, 0.3, 1) both;
 }
 .plan-subtitle {
-  animation: plan-reveal 0.5s 1.12s cubic-bezier(0.2, 0.72, 0.3, 1) both;
+  animation: plan-reveal 0.25s 0.56s cubic-bezier(0.2, 0.72, 0.3, 1) both;
 }
 .plan-leaf {
-  animation: plan-sway 5.4s 1.5s ease-in-out infinite;
+  animation: plan-sway 5.4s 0.75s ease-in-out infinite;
   transform-origin: 50% 80%;
 }
 .plan-leaf-enter:last-child .plan-leaf {
-  animation-delay: 2.7s;
+  animation-delay: 1.35s;
   animation-direction: reverse;
 }
 .plan-heading[data-paused='true'] .plan-leaf {
@@ -4337,7 +4500,7 @@ body main {
 }
 .plan-card-enter {
   height: 100%;
-  animation: plan-reveal 0.38s calc(0.52s + var(--entry-delay)) both;
+  animation: plan-reveal 0.19s calc(0.26s + var(--entry-delay)) both;
 }
 .plan-slide[data-popular='true'] .plan-card-enter {
   animation-name: plan-plus-enter;
@@ -4370,19 +4533,19 @@ body main {
   }
 }
 .plan-card-title {
-  animation: plan-reveal 0.35s calc(0.45s + var(--entry-delay)) both;
+  animation: plan-reveal 0.175s calc(0.225s + var(--entry-delay)) both;
 }
 .plan-fit {
-  animation: plan-reveal 0.35s calc(0.85s + var(--entry-delay)) both;
+  animation: plan-reveal 0.175s calc(0.425s + var(--entry-delay)) both;
 }
 .plan-popular {
-  animation: plan-label 0.52s 1.54s cubic-bezier(0.2, 0.82, 0.3, 1) both;
+  animation: plan-label 0.26s 0.77s cubic-bezier(0.2, 0.82, 0.3, 1) both;
 }
 .plan-tag {
-  animation: plan-label 0.52s calc(0.7s + var(--entry-delay)) cubic-bezier(0.2, 0.82, 0.3, 1) both;
+  animation: plan-label 0.26s calc(0.35s + var(--entry-delay)) cubic-bezier(0.2, 0.82, 0.3, 1) both;
 }
 .plan-slide[data-popular='true'] .plan-tag {
-  animation-delay: 1.75s;
+  animation-delay: 0.875s;
 }
 @keyframes plan-label {
   0% {
@@ -4409,7 +4572,7 @@ body main {
   pointer-events: none;
   background: linear-gradient(110deg, transparent 25%, #fff8 48%, transparent 65%);
   translate: -140% 0;
-  animation: plan-shine 0.8s 2.5s both;
+  animation: plan-shine 0.4s 1.25s both;
 }
 @keyframes plan-shine {
   to {
@@ -4418,7 +4581,7 @@ body main {
 }
 .plan-popular::before,
 .plan-tag.plan-shine::before {
-  animation: plan-shine-occasionally 9s 2.45s ease-in-out infinite;
+  animation: plan-shine-occasionally 9s 1.225s ease-in-out infinite;
 }
 @keyframes plan-shine-occasionally {
   0% {
@@ -4444,7 +4607,7 @@ body main {
   box-shadow: 0 0 18px color-mix(in srgb, var(--brand-orange) 15%, transparent);
 }
 .plan-gift[data-seen='true'] .plan-gift-icon {
-  animation: plan-gift-idle 7s 2.45s infinite;
+  animation: plan-gift-idle 7s 1.225s infinite;
 }
 .plan-slide[data-paused='true'] .plan-gift-icon {
   animation-play-state: paused;
@@ -4484,7 +4647,7 @@ body main {
   }
 }
 .plan-gift[data-seen='true'] .plan-gift-bounce {
-  animation: plan-gift-bounce 0.52s 1.3s cubic-bezier(0.2, 0.82, 0.3, 1) both;
+  animation: plan-gift-bounce 0.26s 0.65s cubic-bezier(0.2, 0.82, 0.3, 1) both;
 }
 .plan-gift-bounce {
   opacity: 0;
@@ -4508,10 +4671,10 @@ body main {
   opacity: 0;
 }
 .plan-gift[data-seen='true'] .plan-gift-value {
-  animation: plan-reveal 0.44s 1.82s cubic-bezier(0.2, 0.72, 0.3, 1) both;
+  animation: plan-reveal 0.22s 0.91s cubic-bezier(0.2, 0.72, 0.3, 1) both;
 }
 .plan-gift[data-seen='true'] .plan-gift-value::before {
-  animation-delay: 2.22s;
+  animation-delay: 1.11s;
 }
 .plan-buy {
   transition:
@@ -4582,7 +4745,7 @@ body main {
   transform: translateX(3px);
 }
 .plan-cta-band[data-seen='true'] .plan-document {
-  animation: plan-document 0.8s 1.3s cubic-bezier(0.2, 0.72, 0.3, 1) both;
+  animation: plan-document 0.4s 0.65s cubic-bezier(0.2, 0.72, 0.3, 1) both;
 }
 @keyframes plan-document {
   0%,
@@ -4636,7 +4799,7 @@ body main {
   opacity: 0;
 }
 .plan-slide[data-images-ready='true'] .plan-fit {
-  animation: plan-reveal 0.35s calc(1.45s + var(--entry-delay)) both;
+  animation: plan-reveal 0.175s calc(0.725s + var(--entry-delay)) both;
 }
 .plan-feature-title,
 .plan-feature-line > span {
@@ -4650,17 +4813,17 @@ body main {
   stroke-dasharray: 18;
   stroke-dashoffset: 18;
 }
-.plan-slide[data-prices-done='true'] .plan-features[data-seen='true'] .plan-feature-title {
-  animation: plan-reveal 0.46s var(--entry-delay) cubic-bezier(0.2, 0.72, 0.3, 1) both;
+.plan-features[data-seen='true'] .plan-feature-title {
+  animation: plan-reveal 0.23s calc(var(--entry-delay) * 0.4) cubic-bezier(0.2, 0.72, 0.3, 1) both;
 }
-.plan-slide[data-prices-done='true'] .plan-features[data-seen='true'] .plan-feature-line > span {
-  animation: plan-reveal 0.52s calc(var(--line-delay) + 0.38s) cubic-bezier(0.2, 0.72, 0.3, 1) both;
+.plan-features[data-seen='true'] .plan-feature-line > span {
+  animation: plan-reveal 0.26s calc(var(--line-delay) + 0.075s) cubic-bezier(0.2, 0.72, 0.3, 1) both;
 }
-.plan-slide[data-prices-done='true'] .plan-features[data-seen='true'] .plan-feature-line svg circle {
-  animation: plan-draw 0.3s var(--line-delay) ease-out both;
+.plan-features[data-seen='true'] .plan-feature-line svg circle {
+  animation: plan-draw 0.15s var(--line-delay) ease-out both;
 }
-.plan-slide[data-prices-done='true'] .plan-features[data-seen='true'] .plan-feature-line svg path {
-  animation: plan-draw 0.28s calc(var(--line-delay) + 0.28s) ease-out both;
+.plan-features[data-seen='true'] .plan-feature-line svg path {
+  animation: plan-draw 0.14s calc(var(--line-delay) + 0.075s) ease-out both;
 }
 @keyframes plan-draw {
   to {
@@ -4668,7 +4831,7 @@ body main {
   }
 }
 .plan-buy {
-  animation: plan-reveal 0.5s 1.85s cubic-bezier(0.2, 0.72, 0.3, 1) both;
+  animation: plan-reveal 0.25s 0.925s cubic-bezier(0.2, 0.72, 0.3, 1) both;
   animation-play-state: paused;
 }
 .plan-slide[data-prices-done='true'] .plan-buy {
@@ -4679,7 +4842,7 @@ body main {
 }
 .plan-slide[data-prices-done='true'] .plan-buy::before {
   animation-play-state: running;
-  animation-delay: 2.35s;
+  animation-delay: 1.175s;
 }
 .plan-gift:not([data-seen='true']) .plan-gift-value::before {
   animation-play-state: paused;
@@ -4721,7 +4884,7 @@ body main {
   stroke-dashoffset: 28;
 }
 .plan-value-row[data-seen='true'] .plan-value-icon * {
-  animation: plan-value-icon-draw 0.48s calc(var(--value-row-delay) + 0.06s) ease-out forwards;
+  animation: plan-value-icon-draw 0.24s calc(var(--value-row-delay) + 0.03s) ease-out forwards;
 }
 @keyframes plan-value-icon-draw {
   to {
@@ -4734,10 +4897,10 @@ body main {
   transform: translateY(5px);
 }
 .plan-value-row[data-seen='true'] .plan-value-label {
-  animation: plan-value-part-in 0.44s calc(var(--value-row-delay) + 0.22s) cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: plan-value-part-in 0.22s calc(var(--value-row-delay) + 0.11s) cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 .plan-value-row[data-seen='true'] .plan-value-cell {
-  animation: plan-value-part-in 0.46s calc(var(--value-row-delay) + 0.36s + var(--value-cell-index) * 0.1s)
+  animation: plan-value-part-in 0.23s calc(var(--value-row-delay) + 0.18s + var(--value-cell-index) * 0.05s)
     cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 @keyframes plan-value-part-in {
@@ -4753,7 +4916,7 @@ body main {
   transition: background-color 0.3s ease;
 }
 .plan-notes[data-seen='true'] .plan-note-chip {
-  animation: plan-note-chip-in 0.58s var(--note-delay) cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: plan-note-chip-in 0.29s var(--note-delay) cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 @keyframes plan-note-chip-in {
   to {
@@ -4777,7 +4940,7 @@ body main {
   stroke-dashoffset: 0 !important;
 }
 .plan-notes[data-seen='true'] .plan-note-icon-wrap {
-  animation: plan-note-icon-in 0.42s calc(var(--note-delay) + 0.08s) cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: plan-note-icon-in 0.21s calc(var(--note-delay) + 0.04s) cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 @keyframes plan-note-icon-in {
   to {
@@ -4789,7 +4952,7 @@ body main {
   opacity: 0;
 }
 .plan-notes[data-seen='true'] .plan-notes-disclaimer {
-  animation: plan-note-disclaimer-in 0.78s 3.05s ease-out forwards;
+  animation: plan-note-disclaimer-in 0.39s 1.525s ease-out forwards;
 }
 @keyframes plan-note-disclaimer-in {
   to {
@@ -4975,10 +5138,10 @@ body main {
   opacity: 0;
 }
 .supervision-inspection-band[data-seen='true'] .supervision-inspection-text {
-  animation: supervision-band-text-in 0.38s 0.88s ease-out forwards;
+  animation: supervision-band-text-in 0.38s 0.3s ease-out forwards;
 }
 .supervision-inspection-band[data-control='true'][data-seen='true'] .supervision-inspection-text {
-  animation-delay: 1.26s;
+  animation-delay: 0.45s;
 }
 .supervision-inspection-band[data-empty='true'][data-seen='true'] .supervision-inspection-text {
   animation-delay: 0.24s;
@@ -5017,10 +5180,11 @@ body main {
   transform: scaleX(1);
 }
 .supervision-benefits[data-seen='true'] .supervision-benefit {
-  animation: supervision-benefit-in 0.48s calc(1s + var(--benefit-index) * 0.09s) cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: supervision-benefit-in 0.48s calc(0.35s + var(--benefit-index) * 0.09s) cubic-bezier(0.16, 1, 0.3, 1)
+    forwards;
 }
 .supervision-benefits[data-seen='true'] .supervision-benefit svg * {
-  animation: plan-value-icon-draw 0.42s calc(0.92s + var(--benefit-index) * 0.09s) ease-out forwards;
+  animation: plan-value-icon-draw 0.42s calc(0.45s + var(--benefit-index) * 0.09s) ease-out forwards;
 }
 .supervision-benefits[data-empty='true'][data-seen='true'] .supervision-benefit {
   animation-delay: calc(0.42s + var(--benefit-index) * 0.09s);
@@ -5080,7 +5244,7 @@ body main {
   }
 }
 .supervision-price {
-  animation: supervision-price-settle 0.28s 3.05s ease-out;
+  animation: supervision-price-settle 0.28s 0.7s ease-out;
 }
 @keyframes supervision-price-settle {
   50% {
@@ -5284,22 +5448,6 @@ html[data-pricing-scrolling='true'] .supervision-journey-flow-dot {
 .supervision-control-column {
   border-inline-color: color-mix(in srgb, var(--brand-orange) 42%, var(--border));
 }
-.supervision-sticky-price {
-  display: block;
-  max-height: 0;
-  overflow: hidden;
-  opacity: 0;
-  transform: translateY(-3px);
-  transition:
-    max-height 0.26s ease,
-    opacity 0.22s ease,
-    transform 0.26s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.supervision-comparison-shell[data-stuck='true'] .supervision-sticky-price {
-  max-height: 18px;
-  opacity: 1;
-  transform: none;
-}
 .supervision-table-tick {
   transition:
     color 0.18s ease,
@@ -5313,28 +5461,6 @@ html[data-pricing-scrolling='true'] .supervision-journey-flow-dot {
     color: var(--primary-strong);
     scale: 1.3;
   }
-}
-.supervision-table-buy:not(.brand-orange-button) {
-  overflow: hidden;
-  background-image:
-    radial-gradient(circle at center, color-mix(in srgb, var(--primary) 13%, transparent) 0 50%, transparent 51%),
-    linear-gradient(to top, var(--brand-gradient-from), var(--brand-gradient-to));
-  background-position: center;
-  background-size:
-    0 0,
-    100% 100%;
-  background-repeat: no-repeat;
-  transition:
-    color 0.28s ease,
-    border-color 0.28s ease,
-    background-size 0.36s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.supervision-table-buy:not(.brand-orange-button):hover {
-  transform: none;
-  box-shadow: none;
-  background-size:
-    220% 220%,
-    100% 100%;
 }
 @media (max-width: 767.98px) {
   .supervision-comparison-shell {
@@ -6369,7 +6495,7 @@ html[data-pricing-scrolling='true'] .supervision-journey-flow-dot {
   .supervision-journey-track {
     flex-direction: column;
     align-items: stretch;
-    gap: 0;
+    gap: 24px;
     overflow: hidden;
   }
   .supervision-journey-card {

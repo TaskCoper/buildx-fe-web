@@ -50,6 +50,21 @@ export function useContractor(contractorId: string) {
   })
 }
 
+/**
+ * Bảng so sánh S15: gửi DANH SÁCH mã nhà thầu đã tick (và công trình đang làm việc nếu có) lên `GET /contractors/compare`,
+ * nhận thông tin từng nhà thầu theo đúng thứ tự mã trong một request. `data.missingIds` là mã không còn dùng được (không
+ * tồn tại hoặc nhà thầu đang ẩn); các nhà thầu còn lại vẫn có đủ cột. `enabled` để chờ biết công trình trước khi hỏi.
+ */
+export function useContractorsCompare(ids: readonly string[], constructionSiteId: string | undefined, enabled = true) {
+  return useQuery({
+    queryKey: contractorKeys.compare(ids, constructionSiteId),
+    queryFn: ({ signal }) => contractorsApi.compareContractors(ids, constructionSiteId, signal),
+    enabled: enabled && ids.length > 0,
+    staleTime: 30 * 1000,
+    retry: false
+  })
+}
+
 export function useContractorFilterOptions() {
   return useQuery({
     queryKey: [...contractorKeys.all, 'filter-options'],

@@ -303,7 +303,12 @@ export function GuideBrowser({ onCreateProject }: GuideBrowserProps) {
           className='bg-muted text-muted-foreground mx-auto mb-6 flex max-w-3xl flex-wrap items-center justify-between gap-3 rounded-xl border px-4 py-3 text-sm'
         >
           <span>{t('deepLink.unavailable')}</span>
-          <button type='button' onClick={deepLink.release} className='text-primary font-medium hover:underline'>
+          <button
+            data-back-navigation
+            type='button'
+            onClick={deepLink.release}
+            className='text-foreground font-medium hover:underline'
+          >
             {t('deepLink.backToList')}
           </button>
         </div>
@@ -375,6 +380,9 @@ export function GuideBrowser({ onCreateProject }: GuideBrowserProps) {
               if (suggestionsOpen && activeSuggestion >= 0) {
                 typeSuggestion(suggestions[activeSuggestion]!.label)
               } else {
+                // Enter là "tìm luôn": đóng bảng gợi ý (gõ tiếp thì nó tự mở lại) rồi cuộn xuống kết quả.
+                setSuggestionsDismissed(true)
+                setActiveSuggestion(-1)
                 gridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
               }
             } else if (event.key === 'Escape') {

@@ -1,6 +1,6 @@
 'use client'
 
-import { CalendarCheck, CircleCheck, Clock, FileText, Loader2, MapPin, Map as MapIcon, Send, Star } from 'lucide-react'
+import { CircleCheck, Clock, FileText, Loader2, MapPin, Send, Star } from 'lucide-react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { useLocale, useTranslations } from 'next-intl'
 import { type ReactNode, useState } from 'react'
@@ -12,9 +12,10 @@ import { Checkbox } from '@/shared/components/ui/checkbox'
 import { contractorFirmRoute, contractorInvitationsRoute, contractorInviteRoute } from '@/shared/constants/routes'
 import { useCountUp } from '@/shared/hooks/use-count-up'
 import { cn } from '@/shared/lib/utils'
-import { formatNumber } from '@/shared/utils'
+import { formatNumber, type GeoPoint } from '@/shared/utils'
 import { useInvitations } from '../hooks/use-invitations'
 import { MAX_INVITATIONS } from '../constants/contractors.constants'
+import { withDistanceFrom } from '../services/contractor-list.service'
 import type { Contractor } from '../types/contractor.types'
 import { ContractorLogo } from './contractor-logo'
 
@@ -34,18 +35,26 @@ interface ContractorCardProps {
   compareLocked?: boolean
   /** Vừa tạo hồ sơ từ M04, đây là thẻ đầu danh sách → viền loé một lần (mục 6). */
   ringFlash?: boolean
+  /** Xã/phường của công trình — ghi sau số km ("12,3 km từ Phường Tân An"). Trống thì ghi "từ công trình". */
+  siteWardName?: string
+  /**
+   * Toạ độ công trình. API danh sách chỉ trả khoảng cách khi lọc theo bán kính, nên thẻ tự tính từ toạ độ hai bên
+   * (cùng cách với trang hồ sơ) để ô khoảng cách hiện ngay khi tính được.
+   */
+  siteCoords?: GeoPoint
 }
 
 /**
  * Một thẻ trong danh sách "Nhà thầu được đề xuất" (S12).
  *
  * Bố cục theo bản thiết kế S12: ô tick "So sánh" và ô logo lớn nằm NGOÀI cùng
- * bên trái, giữa là tên nhà thầu (màu xanh, cỡ lớn) trên một LƯỚI chỉ số có vạch
+ * bên trái, giữa là tên nhà thầu (màu xanh, cỡ lớn) trên một HÀNG chỉ số có vạch
  * ngăn dọc, phải là hai nút xếp chồng.
  *
- * Mỗi ô chỉ số là hai dòng — giá trị ở trên, nhãn nhỏ ở dưới ("18 dự án" /
- * "đã thực hiện") — chứ không phải một dãy chip một dòng như bản trước: cùng một bộ
- * số nhưng đọc lướt nhanh hơn hẳn khi so ba nhà thầu chồng lên nhau.
+ * Mỗi ô chỉ số là hai dòng — giá trị ở trên, nhãn nhỏ ở dưới ("12,3 km" /
+ * "từ Phường Tân An"). Theo góp ý case 20–21 chỉ còn ba ô: đánh giá, khoảng cách
+ * (CHỈ hiện khi đã tính được) và khảo sát. Số dự án, phạm vi phục vụ và trạng thái
+ * nhận dự án đã bỏ khỏi thẻ.
  *
  * Nút "Mời báo giá" khóa khi dự án đã đủ 3 lời mời (R1) — khóa chứ không ẩn, để
  * người dùng hiểu vì sao không bấm được.
@@ -59,7 +68,9 @@ export function ContractorCard({
   invitedJustNow = false,
   inviteLocked,
   compareLocked = false,
-  ringFlash = false
+  ringFlash = false,
+  siteWardName,
+  siteCoords
 }: ContractorCardProps) {
   const t = useTranslations('contractors.common')
   const tMatches = useTranslations('contractors.matches')
@@ -75,8 +86,11 @@ export function ContractorCard({
     onToggleCompare(contractor.id)
   }
 
-  /** Bốn ô hàng trên: đánh giá · số dự án · khoảng cách · phạm vi phục vụ. */
-  const facts = [
+  const place = siteWardName?.trim()
+  const withDistance = withDistanceFrom(contractor, siteCoords)
+
+  /** Ba ô chỉ số: đánh giá · khoảng cách (chỉ khi đã tính) · khảo sát. */
+  const facts: { key: string; icon: typeof Star; iconClass?: string; value: ReactNode; hint: string }[] = [
     {
       key: 'rating',
       icon: Star,
@@ -95,35 +109,37 @@ export function ContractorCard({
           ? t('informationUnknown')
           : t('reviewCount', { count: contractor.reviewCount })
     },
+    // Chưa tính được khoảng cách (thiếu toạ độ một bên) thì KHÔNG hiện ô này, thay vì ghi "Chưa tính khoảng cách".
+    ...(withDistance.distanceKnown === false
+      ? []
+      : [
+          {
+            key: 'distance',
+            icon: MapPin,
+            value: (
+              <AnimatedMetric
+                value={Math.round(withDistance.distanceKm * 10)}
+                format={(value) =>
+                  t('distanceShort', { km: formatNumber(value / 10, locale, { minimumFractionDigits: 1 }) })
+                }
+              />
+            ),
+            hint: place ? t('distanceFromPlace', { place }) : t('distanceSuffix')
+          }
+        ]),
     {
-      key: 'similar',
-      icon: CalendarCheck,
-      value: (
-        <AnimatedMetric value={contractor.completedProjects} format={(value) => t('similarShort', { count: value })} />
-      ),
-      hint: t('similarSuffix')
-    },
-    {
-      key: 'distance',
-      icon: MapPin,
+      key: 'survey',
+      icon: Clock,
       value:
-        contractor.distanceKnown === false ? (
-          t('distanceUnknown')
+        contractor.surveyTimeKnown === false ? (
+          t('informationUnknown')
         ) : (
           <AnimatedMetric
-            value={Math.round(contractor.distanceKm * 10)}
-            format={(value) =>
-              t('distanceShort', { km: formatNumber(value / 10, locale, { minimumFractionDigits: 1 }) })
-            }
+            value={contractor.surveyWithinHours}
+            format={(value) => t('surveyWithin', { hours: value })}
           />
         ),
-      hint: t('distanceSuffix')
-    },
-    {
-      key: 'areas',
-      icon: MapIcon,
-      value: t('serviceAreas'),
-      hint: contractor.serviceAreas.slice(0, 3).join(', ') || t('informationUnknown')
+      hint: t('surveyOnSite')
     }
   ]
 
@@ -218,42 +234,16 @@ export function ContractorCard({
           </AnimatePresence>
         </div>
 
-        {/* Vạch ngăn dọc giữa các ô, vạch ngang giữa hai hàng — `divide-*` lo cả
-            hai, khỏi phải tự đặt border cho từng ô. */}
-        <div className='divide-border mt-3 grid grid-cols-[minmax(0,1fr)] divide-y sm:grid-cols-2 lg:grid-cols-4'>
-          <div className='divide-border grid grid-cols-[minmax(0,1fr)] divide-y sm:col-span-2 sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:col-span-4 lg:grid-cols-4'>
-            {facts.map((fact) => (
-              <Fact key={fact.key} icon={fact.icon} iconClass={fact.iconClass} value={fact.value} hint={fact.hint} />
-            ))}
-          </div>
-
-          <div className='divide-border grid grid-cols-[minmax(0,1fr)] divide-y sm:col-span-2 sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:col-span-4'>
-            <Fact
-              icon={Clock}
-              value={
-                contractor.surveyTimeKnown === false ? (
-                  t('informationUnknown')
-                ) : (
-                  <AnimatedMetric
-                    value={contractor.surveyWithinHours}
-                    format={(value) => t('surveyWithin', { hours: value })}
-                  />
-                )
-              }
-              hint={t('surveyLabel')}
-            />
-            <Fact
-              icon={CircleCheck}
-              value={
-                contractor.acceptingProjectsKnown === false
-                  ? t('informationUnknown')
-                  : contractor.acceptingProjects
-                    ? t('accepting')
-                    : t('notAccepting')
-              }
-              hint={t('projectAvailability')}
-            />
-          </div>
+        {/* Một hàng chỉ số, vạch ngăn dọc giữa các ô (hàng ngang khi xếp chồng trên mobile). */}
+        <div
+          className={cn(
+            'divide-border mt-3 grid grid-cols-[minmax(0,1fr)] divide-y sm:divide-x sm:divide-y-0',
+            facts.length > 2 ? 'sm:grid-cols-3' : 'sm:grid-cols-2'
+          )}
+        >
+          {facts.map((fact) => (
+            <Fact key={fact.key} icon={fact.icon} iconClass={fact.iconClass} value={fact.value} hint={fact.hint} />
+          ))}
         </div>
       </div>
 
@@ -316,9 +306,8 @@ function Fact({
   hint: string
 }) {
   return (
-    // Cột chỉ số hẹp (4 ô trên một hàng) nên chữ phải nhỏ lại, và dòng nhãn
-    // được XUỐNG DÒNG tối đa 2 dòng thay vì `truncate` — "TP. Buôn Ma Thuột,
-    // Cư M'gar" mà cắt cụt thì mất luôn thông tin phục vụ ở đâu.
+    // Dòng nhãn được XUỐNG DÒNG tối đa 2 dòng thay vì `truncate` — "từ Phường Thành Nhất, Tỉnh Đắk Lắk"
+    // mà cắt cụt thì mất luôn thông tin khoảng cách tính từ đâu.
     <div className='grid min-w-0 grid-cols-[1rem_minmax(0,1fr)] gap-x-1.5 rounded-lg px-2.5 py-2'>
       <Icon aria-hidden className={cn('mt-0.5 size-3.5 shrink-0', iconClass ?? 'text-primary')} />
       <p className='min-w-0 truncate text-[13px] leading-snug font-semibold'>{value}</p>

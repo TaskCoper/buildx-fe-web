@@ -216,6 +216,8 @@ export interface ApiContractor {
   buildingTypeNames: string[]
   scopeNames: string[]
   logoUrl?: string
+  /** Tên pháp nhân (`legal.legalName`) — chỉ API chi tiết trả. */
+  legalName?: string
   /** Ảnh hồ sơ (không gồm logo) theo `position`, kèm loại ảnh của BE (`Cover`, `Office`, `Team`). */
   photos: { url: string; kind?: string }[]
   projects: ApiProject[]
@@ -241,6 +243,7 @@ export function normalizeContractor(raw: unknown): ApiContractor | null {
   if (!id) return null
 
   const profile = bag(root.profile) ?? root
+  const legalName = text(bag(root.legal)?.legalName)
   const architects = num(profile.architectCount)
   const engineers = num(profile.engineerCount)
 
@@ -290,6 +293,7 @@ export function normalizeContractor(raw: unknown): ApiContractor | null {
     buildingTypeNames: namesOf(root.buildingTypes),
     scopeNames: namesOf(root.scopes),
     ...(logo ? { logoUrl: readImageUrls({ images: [logo] })[0] } : {}),
+    ...(legalName ? { legalName } : {}),
     photos,
     projects: (Array.isArray(root.projects) ? root.projects : [])
       .map(normalizeProject)
@@ -308,6 +312,7 @@ export function contractorFromApi(api: ApiContractor): Contractor {
     id: api.id,
     name: api.name,
     ...(api.logoUrl ? { logoUrl: api.logoUrl } : {}),
+    ...(api.legalName ? { legalName: api.legalName } : {}),
     kind: api.kind ?? '',
     verified: api.verified,
     rating: api.rating ?? 0,
@@ -317,6 +322,7 @@ export function contractorFromApi(api: ApiContractor): Contractor {
     // Chi tiết không có ngữ cảnh dự án của khách nên BE không tính "dự án tương tự"; trang hồ sơ hiện số này
     // với chữ "đã thực hiện", nên dùng toàn bộ dự án BE trả (TDD-CTR-002: chi tiết trả toàn bộ dự án).
     similarProjects: api.projects.length,
+    similarProjectsKnown: false,
     completedProjects: api.projects.length,
     distanceKm: 0,
     serviceAreas: api.serviceAreas,

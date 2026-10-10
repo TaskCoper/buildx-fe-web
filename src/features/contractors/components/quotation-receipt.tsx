@@ -117,7 +117,9 @@ export function QuotationReceipt({ projectId, requestId }: { projectId: string; 
       )}
       <div className='flex flex-wrap gap-3'>
         <Button asChild variant='outline'>
-          <Link href={contractorMatchesRoute(projectId)}>{t('back')}</Link>
+          <Link data-back-navigation href={contractorMatchesRoute(projectId)}>
+            {t('back')}
+          </Link>
         </Button>
         {requestId ? (
           <Button asChild>
@@ -182,11 +184,14 @@ function QuotationCard({
     format.dateTime(new Date(value), { dateStyle: 'short', timeStyle: 'short', timeZone: 'Asia/Ho_Chi_Minh' })
   return (
     <article className='bg-card space-y-4 rounded-2xl border p-5'>
-      <div className='flex flex-wrap items-center justify-between gap-3'>
-        {contractor ? <ContractorLogo contractor={contractor} className='size-14 rounded-lg' /> : null}
-        <div className='min-w-0 flex-1'>
-          <h2 className='font-semibold'>{item.contractorName}</h2>
-          {contractor ? <ContractorStats contractor={contractor} dense className='mt-1' /> : null}
+      <div className='flex flex-wrap items-center justify-between gap-x-3 gap-y-3'>
+        {/* Logo + tên đi chung một khối để màn hẹp đẩy nhãn trạng thái xuống dòng dưới, thay vì bóp cột tên. */}
+        <div className='flex min-w-0 flex-[1_1_16rem] items-center gap-3'>
+          {contractor ? <ContractorLogo contractor={contractor} className='size-14 shrink-0 rounded-lg' /> : null}
+          <div className='min-w-0 flex-1'>
+            <h2 className='font-semibold text-pretty break-words'>{item.contractorName}</h2>
+            {contractor ? <ContractorStats contractor={contractor} dense className='mt-1' /> : null}
+          </div>
         </div>
         <span className='bg-accent text-primary-strong rounded-full px-3 py-1 text-sm'>
           {t(`states.${item.status}`)}

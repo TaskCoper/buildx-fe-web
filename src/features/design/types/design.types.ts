@@ -56,8 +56,10 @@ export type CostSection = 'structure' | 'finishing' | 'interior'
 
 /** Dự án do người dùng tạo ở modal Tạo dự án (mục IV.2). */
 export interface Project {
-  /** Mã dự án, định dạng `SVC-YYYY-NNNN` (quy ước xuyên suốt, mục I). */
+  /** Id dự án: UUID của dự toán thật, mock dùng dạng `SVC-YYYY-NNNN`. */
   id: string
+  /** Mã dự toán BE cấp khi tạo, dạng `BUILDX-YYYYMMDD-XXXXXX`, không đổi. `null`/thiếu khi API chưa trả. */
+  code?: string | null
   name: string
   description?: string
   createdAt: string
@@ -212,6 +214,8 @@ export interface SharedDossier {
   /** Id ảnh kết quả theo vai trò — người xem tải về bằng token của link. */
   files?: { fileId: string; roleKey: string }[]
   projectName: string
+  /** Mã dự toán (`estimateCode` của link chia sẻ); thiếu khi API chưa trả. */
+  projectCode?: string | null
   address: string
   createdAt: string
   sections: EstimateSection[]

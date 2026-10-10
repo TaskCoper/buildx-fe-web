@@ -113,7 +113,9 @@ export function SupervisionDashboard({ projectId, stageIndex }: SupervisionDashb
           <p className='text-muted-foreground mt-1.5 text-sm text-pretty'>{t('lead')}</p>
         </div>
         <Button asChild variant='outline'>
-          <Link href={ROUTES.ACCOUNT}>{t('backToProject')}</Link>
+          <Link data-back-navigation href={ROUTES.ACCOUNT}>
+            {t('backToProject')}
+          </Link>
         </Button>
       </header>
 

@@ -19,7 +19,7 @@ export function QuotaEditor() {
     <DocumentEditor document='quotas' title={t('nav.templateViews')} description={t('templateViews.description')}>
       {() => (
         <>
-          <Alert type='info' showIcon title={t('templateViews.scope')} style={{ marginBottom: 20, maxWidth: 640 }} />
+          <Alert type='info' showIcon title={t('templateViews.scope')} style={{ marginBottom: 20 }} />
           <Form.Item
             name='handbookDetailPerDay'
             label={t('templateViews.perDay')}

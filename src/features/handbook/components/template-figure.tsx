@@ -3,6 +3,8 @@
 import { useState } from 'react'
 
 import { Photo, PlanDrawing } from '@/shared/components/common'
+import { Skeleton } from '@/shared/components/ui/skeleton'
+import { libraryImageSrcSet, libraryImageUrl } from '@/shared/media/library-image.logic'
 import { cn } from '@/shared/lib/utils'
 import { isProtectedContentUrl } from '../api/handbook.library.logic'
 import type { HandbookFloor, HandbookTemplate } from '../types/handbook.types'
@@ -20,6 +22,8 @@ interface TemplateFigureProps {
   autoHeight?: boolean
   /** Blur-to-sharp reveal for large handbook media only. */
   revealOnLoad?: boolean
+  /** Original pixels for the zoom viewer; regular previews use responsive images. */
+  original?: boolean
 }
 
 /**
@@ -42,7 +46,8 @@ export function TemplateFigure({
   priority,
   watermark,
   autoHeight,
-  revealOnLoad
+  revealOnLoad,
+  original
 }: TemplateFigureProps) {
   const target = floor ?? template.floors[0]
   const src = floor?.imageUrl ?? (floor ? undefined : template.imageUrl) ?? target?.imageUrl
@@ -54,9 +59,25 @@ export function TemplateFigure({
     // dấu nằm đè lên ảnh nên phải có bóng chữ mới đọc được trên nền sáng.
     if (!watermark) {
       return revealOnLoad ? (
-        <RevealPhoto className={className} src={src} alt={template.name} sizes={sizes} priority={priority} fit={fit} />
+        <RevealPhoto
+          className={className}
+          src={src}
+          alt={template.name}
+          sizes={sizes}
+          priority={priority}
+          fit={fit}
+          original={original}
+        />
       ) : (
-        <Picture className={className} src={src} alt={template.name} sizes={sizes} priority={priority} fit={fit} />
+        <Picture
+          className={className}
+          src={src}
+          alt={template.name}
+          sizes={sizes}
+          priority={priority}
+          fit={fit}
+          original={original}
+        />
       )
     }
     return (
@@ -69,9 +90,18 @@ export function TemplateFigure({
             sizes={sizes}
             priority={priority}
             fit={fit}
+            original={original}
           />
         ) : (
-          <Picture className='size-full' src={src} alt={template.name} sizes={sizes} priority={priority} fit={fit} />
+          <Picture
+            className='size-full'
+            src={src}
+            alt={template.name}
+            sizes={sizes}
+            priority={priority}
+            fit={fit}
+            original={original}
+          />
         )}
         <span
           aria-hidden
@@ -107,7 +137,8 @@ function RevealPhoto({
   alt,
   sizes,
   priority,
-  fit
+  fit,
+  original
 }: {
   className?: string
   src: string
@@ -115,6 +146,7 @@ function RevealPhoto({
   sizes?: string
   priority?: boolean
   fit: 'cover' | 'contain'
+  original?: boolean
 }) {
   const [loaded, setLoaded] = useState(false)
 
@@ -126,6 +158,7 @@ function RevealPhoto({
       sizes={sizes}
       priority={priority}
       fit={fit}
+      original={original}
       imageClassName={cn('handbook-image-reveal', loaded && 'is-loaded')}
       onLoad={() => setLoaded(true)}
     />
@@ -159,15 +192,26 @@ interface PictureProps {
   fit?: 'cover' | 'contain'
   imageClassName?: string
   onLoad?: () => void
+  original?: boolean
 }
 
-/**
- * Ảnh của mẫu. Ảnh công khai đi qua `Photo` (next/image) như trước. Ảnh lấy từ route nội dung
- * của BMT API (`/api/v1/library-versions/.../content`) chỉ cấp cho người đã mở mẫu, xác thực
- * bằng COOKIE PHIÊN — mà `next/image` tải ảnh phía máy chủ Next nên không mang cookie của khách
- * và sẽ nhận 401/403. Với ảnh loại này dùng thẻ `<img>` thường để chính trình duyệt tải.
- */
-function Picture({ src, alt, className, sizes, priority, fit = 'cover', imageClassName, onLoad }: PictureProps) {
+/** Public images use Next optimization; protected LIB images use the authenticated media route. */
+export function Picture(props: PictureProps) {
+  return <PictureFrame key={`${props.src}|${Boolean(props.original)}`} {...props} />
+}
+
+function PictureFrame({
+  src,
+  alt,
+  className,
+  sizes,
+  priority,
+  fit = 'cover',
+  imageClassName,
+  onLoad,
+  original
+}: PictureProps) {
+  const [failed, setFailed] = useState(false)
   if (!isProtectedContentUrl(src)) {
     return (
       <Photo
@@ -179,21 +223,78 @@ function Picture({ src, alt, className, sizes, priority, fit = 'cover', imageCla
         fit={fit}
         imageClassName={imageClassName}
         onLoad={onLoad}
+        unoptimized={original}
+        skeletonClassName='handbook-skeleton animate-none'
       />
     )
   }
-
+  const optimized = !original && !failed ? libraryImageUrl(src, 1280) : null
   return (
-    <div className={cn('bg-muted relative overflow-hidden', className)}>
-      {/* eslint-disable-next-line @next/next/no-img-element -- route nội dung cần cookie phiên, next/image không mang cookie */}
+    <PrivatePicture
+      key={optimized ?? src}
+      src={optimized ?? src}
+      alt={alt}
+      className={className}
+      sizes={sizes}
+      priority={priority}
+      fit={fit}
+      imageClassName={imageClassName}
+      onLoad={onLoad}
+      srcSet={optimized ? libraryImageSrcSet(src) : undefined}
+      onError={optimized ? () => setFailed(true) : undefined}
+    />
+  )
+}
+
+function PrivatePicture({
+  src,
+  alt,
+  className,
+  sizes,
+  priority,
+  fit,
+  imageClassName,
+  onLoad,
+  srcSet,
+  onError
+}: PictureProps & { srcSet?: string; onError?: () => void }) {
+  const [settled, setSettled] = useState(false)
+  function loaded() {
+    setSettled(true)
+    onLoad?.()
+  }
+  function failed() {
+    setSettled(true)
+    onError?.()
+  }
+  return (
+    <div
+      className={cn('bg-muted relative overflow-hidden', className)}
+      aria-busy={!settled}
+      data-photo-loading={!settled}
+    >
+      {!settled ? (
+        <Skeleton
+          data-photo-skeleton
+          aria-hidden='true'
+          style={{ position: 'absolute', inset: 0 }}
+          className='handbook-skeleton pointer-events-none z-10 animate-none rounded-[inherit]'
+        />
+      ) : null}
+      {/* eslint-disable-next-line @next/next/no-img-element -- protected images must carry the viewer's session */}
       <img
         src={src}
+        srcSet={srcSet}
+        sizes={srcSet ? sizes : undefined}
         alt={alt}
         loading={priority ? 'eager' : 'lazy'}
         decoding='async'
-        onLoad={onLoad}
+        onLoad={loaded}
+        onError={failed}
         ref={(img) => {
-          if (img?.complete && img.naturalWidth > 0) onLoad?.()
+          if (!img?.complete || !img.currentSrc) return
+          if (img.naturalWidth > 0) loaded()
+          else failed()
         }}
         className={cn(
           'absolute inset-0 size-full',

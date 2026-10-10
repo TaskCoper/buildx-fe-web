@@ -27,9 +27,11 @@ import {
   HANDBOOK_TEMPLATE_RETURN_SESSION_KEY,
   LIBRARY_PAGE_SIZE
 } from '../constants/handbook.constants'
+import { sectionText } from '../api/handbook.cms.logic'
 import {
   useHandbookLibraryFilters,
   useHandbookLookupQuota,
+  useHandbookPageSections,
   useHandbookTemplateIdsByFilters,
   useHandbookTemplateStyles,
   useHandbookTemplates
@@ -77,7 +79,10 @@ interface PillStyle {
 
 export function TemplateLibrary() {
   const t = useTranslations('handbook.library')
-  const bannerImage = useSiteImage('handbook.libraryBanner')
+  // Chữ và ảnh banner do admin biên tập (BR-HB-003); chưa biên tập thì dùng bản dịch và ảnh mặc định.
+  const pageSections = useHandbookPageSections()
+  const defaultBannerImage = useSiteImage('handbook.libraryBanner')
+  const bannerImage = sectionText(pageSections, 'libraryBanner', 'backgroundImageUrl') ?? defaultBannerImage
   const bannerRef = useRef<HTMLElement>(null)
 
   // Mở banner giống tab Tin tức (foundation-block): viền hiện dần, ảnh phóng nhẹ rồi
@@ -242,18 +247,23 @@ export function TemplateLibrary() {
       ),
     [pool, kind, buildingType]
   )
+  // Đồng bộ với Bước 1 và bộ lọc nhà thầu: 1 tầng là "Trệt", n tầng là "Trệt + (n−1) lầu".
+  const scaleLabel = useCallback(
+    (count: number) => (count <= 1 ? t('floorGround') : t('floorUpper', { count: count - 1 })),
+    [t]
+  )
   const floorOptions = useMemo(() => {
     if (apiMode)
       return (apiFilters?.floorCounts ?? []).map((count) => ({
         value: String(count),
-        label: t('floorOption', { count })
+        label: scaleLabel(count)
       }))
     return uniqueOptions(
       scopedPool,
       (template) => template.tags.floorCount,
-      (template) => floorCountLabel(template.tags.floorCount, (count) => t('floorOption', { count }))
+      (template) => floorCountLabel(template.tags.floorCount, scaleLabel)
     )
-  }, [apiMode, apiFilters, scopedPool, t])
+  }, [apiMode, apiFilters, scopedPool, scaleLabel])
   const architectureOptions = apiMode
     ? (apiFilters?.architectureStyles ?? []).map((style) => ({ value: style.styleId, label: style.name }))
     : uniqueOptions(
@@ -269,8 +279,7 @@ export function TemplateLibrary() {
         (template) => template.styleLabel
       )
 
-  const floorSelectedLabel =
-    floorCount === ALL ? t('optionAll') : t('floorOption', { count: floorCountOf(floorCount) ?? 1 })
+  const floorSelectedLabel = floorCount === ALL ? t('optionAll') : scaleLabel(floorCountOf(floorCount) ?? 1)
   const buildingSelectedLabel =
     buildingType === ALL
       ? t('optionAll')
@@ -1011,13 +1020,13 @@ export function TemplateLibrary() {
                 data-library-banner-sequence
                 className='text-primary-strong text-2xl leading-[1.2] font-bold tracking-tight whitespace-pre-line sm:text-3xl lg:text-4xl'
               >
-                {t('bannerTitle')}
+                {sectionText(pageSections, 'libraryBanner', 'title') ?? t('bannerTitle')}
               </h2>
               <p
                 data-library-banner-sequence
                 className='text-foreground/75 max-w-md text-sm leading-relaxed sm:text-base'
               >
-                {t('bannerDescription')}
+                {sectionText(pageSections, 'libraryBanner', 'description') ?? t('bannerDescription')}
               </p>
             </div>
           </div>

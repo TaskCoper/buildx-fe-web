@@ -12,7 +12,7 @@ import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import { handbookArticleRoute } from '@/shared/constants/routes'
-import { useDebouncedValue } from '@/shared/hooks'
+import { useApiErrorText, useDebouncedValue } from '@/shared/hooks'
 import { cn } from '@/shared/lib/utils'
 import { formatDisplayDate } from '@/shared/utils'
 import {
@@ -21,9 +21,10 @@ import {
   HANDBOOK_CATEGORY_SELECT_EVENT
 } from '../constants/handbook.constants'
 import { ARTICLE_META_ICON, ARTICLE_META_TEXT } from '../constants/article-meta'
-import { articleInChip, chipNodes, descendantsByChip } from '../api/handbook.news.logic'
+import { sectionText } from '../api/handbook.cms.logic'
+import { articleInChip, chipNodes, descendantsByChip, excludeInstructionBranches } from '../api/handbook.news.logic'
 import { useArticleLabels } from '../hooks/use-article-labels'
-import { useHandbookArticles, useHandbookNewsCategoryTree } from '../hooks/use-handbook'
+import { useHandbookArticles, useHandbookNewsCategoryTree, useHandbookPageSections } from '../hooks/use-handbook'
 import { articleCategoryIds, sortByNewest } from '../services/handbook.service'
 import type { HandbookArticle, HandbookCategory } from '../types/handbook.types'
 
@@ -116,7 +117,9 @@ function readArticleListRestoreState(): ArticleListRestoreState | null {
  */
 export function ArticleList() {
   const t = useTranslations('handbook.articles')
+  const apiErrorText = useApiErrorText()
   const cmsLabels = useArticleLabels()
+  const pageSections = useHandbookPageSections()
   const locale = useLocale() as Locale
   const [restoreState] = useState(readArticleListRestoreState)
   const initialCategory = restoreState?.category ?? ALL
@@ -146,7 +149,7 @@ export function ArticleList() {
   const visualCategoryRef = useRef<ArticleFilter>(initialCategory)
 
   const debouncedTerm = useDebouncedValue(term, 250).trim()
-  const { data: articles, isPending } = useHandbookArticles()
+  const { data: articles, isPending, error } = useHandbookArticles()
   const pool = useMemo(() => articles ?? [], [articles])
 
   // Chip lọc: bài từ BMT API → danh mục tin của BMT (cây công khai); bài mock → nhãn mock như cũ.
@@ -155,7 +158,9 @@ export function ArticleList() {
   const { data: categoryTree, isPending: categoryTreePending } = useHandbookNewsCategoryTree()
   const newsFilter = useMemo(() => {
     const nodes = categoryTree ?? []
-    const chips = chipNodes(nodes)
+    // Chủ đề hướng dẫn hiện bên trong một bước chứ không phải ở bộ lọc bài viết (BR-HB-001 khoản 3), nên bỏ cả
+    // nhánh của chúng trước khi dựng chip. Phần tính tập hậu duệ vẫn dùng toàn cây để lọc bài đúng như BE.
+    const chips = chipNodes(excludeInstructionBranches(nodes))
     return { chips, descendants: descendantsByChip(nodes, chips) }
   }, [categoryTree])
   const poolIsApi = useMemo(() => pool.some((article) => articleCategoryIds(article).length > 0), [pool])
@@ -528,8 +533,12 @@ export function ArticleList() {
       className='bg-card scroll-mt-[calc(var(--public-header-offset,64px)+0.75rem)] space-y-5 rounded-2xl border p-5 sm:p-6'
     >
       <header data-article-section-header className='space-y-1.5'>
-        <h2 className='text-foreground text-3xl font-bold tracking-tight text-balance'>{t('title')}</h2>
-        <p className='text-muted-foreground text-sm'>{t('subtitle')}</p>
+        <h2 className='text-foreground text-3xl font-bold tracking-tight text-balance'>
+          {sectionText(pageSections, 'articlesHeading', 'title') ?? t('title')}
+        </h2>
+        <p className='text-muted-foreground text-sm'>
+          {sectionText(pageSections, 'articlesHeading', 'description') ?? t('subtitle')}
+        </p>
       </header>
 
       <div
@@ -611,6 +620,11 @@ export function ArticleList() {
               <Skeleton key={index} className='h-72 rounded-xl' />
             ))}
           </div>
+        ) : error && !articles ? (
+          // Không rơi về bài mẫu: lỗi tải danh sách là sự cố cần thấy, khác với danh sách rỗng hợp lệ ở nhánh dưới.
+          <p role='alert' className='text-muted-foreground rounded-xl border border-dashed p-6 text-sm'>
+            {apiErrorText(error, t('loadError'))}
+          </p>
         ) : visible.length === 0 ? (
           <div
             data-article-empty
