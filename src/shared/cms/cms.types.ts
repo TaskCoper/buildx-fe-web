@@ -1,3 +1,5 @@
+import type { PlanMetadata, PlanQuota } from './plan-metadata'
+
 import type { PlanVariant } from '@/shared/components/common'
 
 /**
@@ -360,9 +362,12 @@ export interface PlanCycleOffer {
   price: number
   designCredits?: number
   libraryCredits?: number
+  quotas?: PlanQuota[]
 }
 
 export interface SubscriptionPlan {
+  apiPlan?: boolean
+  metadata?: PlanMetadata | null
   /** Khóa bản ghi; trùng `tier` với ba gói gốc. */
   id: string
   tier: PlanTier

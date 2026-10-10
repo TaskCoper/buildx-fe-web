@@ -134,15 +134,17 @@ export function PlanGiftDialog({ plan, open, onClose, origin }: PlanGiftDialogPr
                     ) : null}
                   </div>
 
-                  <div className='bg-brand-orange-soft rounded-2xl px-4 py-3 text-center'>
-                    <p className='text-brand-orange text-sm font-bold tracking-wide uppercase'>{t('valuePrefix')}</p>
-                    <p className='text-brand-orange text-6xl leading-none font-extrabold tracking-tight tabular-nums'>
-                      {valueNumber}
-                    </p>
-                    {valueUnit ? (
-                      <p className='text-brand-orange mt-1 text-lg font-bold tracking-wide uppercase'>{valueUnit}</p>
-                    ) : null}
-                  </div>
+                  {gift.value > 0 ? (
+                    <div className='bg-brand-orange-soft rounded-2xl px-4 py-3 text-center'>
+                      <p className='text-brand-orange text-sm font-bold tracking-wide uppercase'>{t('valuePrefix')}</p>
+                      <p className='text-brand-orange text-6xl leading-none font-extrabold tracking-tight tabular-nums'>
+                        {valueNumber}
+                      </p>
+                      {valueUnit ? (
+                        <p className='text-brand-orange mt-1 text-lg font-bold tracking-wide uppercase'>{valueUnit}</p>
+                      ) : null}
+                    </div>
+                  ) : null}
                 </div>
               </div>
 
@@ -163,10 +165,12 @@ export function PlanGiftDialog({ plan, open, onClose, origin }: PlanGiftDialogPr
                 {t('understood')}
               </Button>
 
-              <p className='text-muted-foreground flex items-start gap-2 text-xs'>
-                <Info className='mt-0.5 size-3.5 shrink-0' />
-                <span className='text-pretty'>{gift.conditions}</span>
-              </p>
+              {gift.conditions ? (
+                <p className='text-muted-foreground flex items-start gap-2 text-xs'>
+                  <Info className='mt-0.5 size-3.5 shrink-0' />
+                  <span className='whitespace-pre-wrap [overflow-wrap:anywhere]'>{gift.conditions}</span>
+                </p>
+              ) : null}
             </div>
           </>
         ) : null}

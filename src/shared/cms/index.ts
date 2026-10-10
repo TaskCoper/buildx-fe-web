@@ -61,3 +61,14 @@ export {
 export type { PlanBenefitDisplay } from './plans'
 /** Mọi kiểu bản ghi CMS — feature đọc/ghi lấy thẳng từ đây. */
 export type * from './cms.types'
+export { readPlanMetadata, legacyPlanHighlights, planHighlightLines, seedPlanMetadata } from './plan-metadata'
+export type {
+  PlanMetadata,
+  PlanMetadataBenefit,
+  PlanQuota,
+  DesignCardMetadata,
+  SupervisionCardMetadata
+} from './plan-metadata'
+export { usePlanHighlightLabels } from './use-plan-highlight-labels'
+
+export { seedSupervisionPlanMetadata } from './supervision-merge'

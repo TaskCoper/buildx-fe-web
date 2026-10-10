@@ -1,3 +1,4 @@
+import { readPlanMetadata, type PlanMetadata } from '@/shared/cms'
 import type { Order, OrderStatus } from '../types/checkout.types'
 
 /**
@@ -127,6 +128,7 @@ export interface BmtPlanForBenefits {
   revision?: {
     name?: string | null
     description?: string | null
+    metadata?: PlanMetadata | null
     offers?: { offerKey: string; quotas?: { code: string; isUnlimited: boolean; limit?: number | null }[] }[]
     displayBenefits?: { code: string; enabled: boolean; displayText?: string | null }[]
   }
@@ -137,14 +139,16 @@ export interface BmtPlanForBenefits {
  * - Gói thiết kế: đúng HAI hạn mức (`design.generate`, `catalog.detail`) của offer đã mua,
  *   cộng các quyền bật/tắt đang bật (vd phối cảnh 3D). KHÔNG có "lượt chỉnh sửa" —
  *   BE không có hạn mức đó, đừng suy ra từ số phương án.
- * - Gói giám sát: không có hạn mức, chỉ có mô tả dịch vụ tự do → mỗi dòng mô tả là một
- *   lợi ích (bỏ gạch đầu dòng); dòng không có gạch đầu dòng là câu "phù hợp khi…" nên bỏ.
+ * - Giám sát dùng các dòng metadata đang bật. Bản cũ chưa cấu hình metadata vẫn đọc
+ *   dòng mô tả bắt đầu bằng dấu '-'; danh sách đã cấu hình rỗng không phục hồi mô tả cũ.
  */
 export function planBenefits(plan: BmtPlanForBenefits, offerKey?: string): string[] {
   const revision = plan.revision
   if (!revision) return []
 
   if (plan.kind === 'Supervision') {
+    const metadata = readPlanMetadata(revision.metadata)
+    if (metadata !== null) return metadata.displayBenefits.filter((line) => line.visible).map((line) => line.text)
     return (revision.description ?? '')
       .split('\n')
       .map((line) => line.trim())

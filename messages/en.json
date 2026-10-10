@@ -2609,6 +2609,8 @@
     }
   },
   "plans": {
+    "loadError": "Unable to load packages. Please try again.",
+    "retry": "Try again",
     "title": "BuildX pricing",
     "subtitle": "Create options – Compare choices – Optimise the budget before you build",
     "tabs": {
@@ -2649,7 +2651,7 @@
     "designCredits": "design & estimate credits",
     "libraryCredits": "template look-ups",
     "audience": "For: {audience}",
-    "choosePlan": "Choose plan",
+    "choosePlan": "Choose {name}",
     "cta": {
       "basic": "Start now",
       "advanced": "Plan it out",
@@ -2774,7 +2776,9 @@
     },
     "highlights": {
       "designCredits": "{count} design options",
-      "libraryCredits": "{count} template library views"
+      "libraryCredits": "{count} template library views",
+      "designUnlimited": "Unlimited design options",
+      "libraryUnlimited": "Unlimited library lookups"
     },
     "cycle": {
       "label": "Billing cycle",
@@ -2784,7 +2788,8 @@
       "noteMonth": "Pay once · valid for 1 month",
       "noteYear": "Pay once · valid for 1 year",
       "unavailable": "Not on sale for this cycle"
-    }
+    },
+    "empty": "No design plans are currently published."
   },
   "consult": {
     "directory": {
@@ -3841,7 +3846,6 @@
       "unlimited": "Unlimited",
       "limited": "Limited",
       "limitValue": "{limit} uses",
-      "serviceDescription": "Service description",
       "descriptionField": "Plan description",
       "consultationText": "Consultation text",
       "offers": "Purchase options & price (VND)",
@@ -3858,7 +3862,6 @@
       "draftNote": "Saving overwrites the whole draft; the website keeps showing the published version until you Publish from the plan row.",
       "codeHint": "Must be unique and cannot change after creation.",
       "kindHint": "Chosen once at creation, cannot change later.",
-      "serviceDescriptionHint": "Required to publish. Display only, locked per order — creates no uses or counters.",
       "consultationHint": "Free text describing the offline consultation service; creates no consultation uses or levels.",
       "priceRule": "Price must be a whole VND amount greater than 0.",
       "quotaSection": "Usage-based benefits",
@@ -3874,7 +3877,7 @@
       "noBooleanDefinitions": "The system catalogue has no on / off benefits yet.",
       "displayText": "Display text",
       "sortOrderRule": "Order must be a whole number.",
-      "supervisionNote": "Supervision plans use no benefit catalogue and no consultation text; publishing needs a name, price and service description.",
+      "supervisionNote": "A zero-price plan is informational and cannot be purchased. Positive-price plans use the per-project purchase flow. Publishing requires a name and valid price.",
       "snapshotNote": "Existing orders keep the plan version at order time — published changes apply to later purchases only.",
       "highlightedBadge": "Highlighted",
       "cardSection": "Plan card presentation",
@@ -3885,7 +3888,64 @@
       "highlightLabel": "Highlight label",
       "highlightLabelHint": "Text shown on the badge when the plan is highlighted (e.g. Best seller).",
       "giftDescription": "Gift description",
-      "giftConditions": "Gift conditions"
+      "giftConditions": "Gift conditions",
+      "metadataTitle": "Display benefits",
+      "metadataHint": "Package description only; does not change usage permissions. Shared across month and year; up to 20 lines.",
+      "metadataSupervisionHint": "Package description only; does not change usage permissions or inspection counts. Up to 20 lines.",
+      "metadataText": "Line {number}",
+      "metadataVisible": "Show line {number}",
+      "metadataTextRule": "Enter 1–1,000 characters after trimming.",
+      "metadataMax": "Up to 20 benefit lines.",
+      "metadataUp": "Move up",
+      "metadataDown": "Move down",
+      "metadataRemove": "Remove line",
+      "metadataAdd": "Add line",
+      "metadataLegacyNote": "These lines come from the current display and have not been saved. Save the draft, then Publish to apply.",
+      "metadataLegacyPreview": "Not configured; Customer still sees the current descriptive benefits.",
+      "metadataEmpty": "No descriptive benefits.",
+      "supervisionCardSection": "Supervision card content",
+      "supervisionDisplayOrder": "Display order",
+      "supervisionDisplayOrderHint": "Lower numbers appear first. Leave blank to place this plan after ordered plans. Changes apply after publishing.",
+      "supervisionDisplayOrderRule": "Enter an integer from 1 to 9999 or leave blank.",
+      "supervisionCardHint": "Content belongs to the plan revision and changes after publishing. Duration and visits describe the service; they do not create permissions or counters. Leave blank to remove content.",
+      "supervisionCardFields": {
+        "tagline": "Label below plan name",
+        "fitLine": "Who this plan suits",
+        "durationText": "Duration text",
+        "inspectionText": "Site inspection text",
+        "recommendedLabel": "Recommendation label",
+        "buttonLabel": "Choose-plan button text (optional)"
+      },
+      "supervisionCardRecommended": "Mark as recommended",
+      "supervisionPriceRule": "Price must be a whole VND amount of 0 or more.",
+      "legacyDuration": "/ project · up to {months} months",
+      "legacyInspections": "{count} on-site engineer inspections",
+      "legacyNoInspection": "No on-site engineer inspections",
+      "legacyRecommended": "Recommended for homes",
+      "designCardSection": "Design card content",
+      "designCardHint": "Content belongs to the plan revision and changes after publication. Leave blank to omit content; sample data is never restored. Gift content uses the fields in this section.",
+      "designCardFields": {
+        "tagline": "Tagline below plan name",
+        "fitLine": "Suitable for",
+        "featuresTitle": "Benefits heading",
+        "buttonLabel": "Choose button text",
+        "giftTitle": "Gift title",
+        "giftExtraBody": "Additional gift offer",
+        "giftConditionsShort": "Gift conditions",
+        "giftImageUrl": "Gift image",
+        "giftValue": "Gift value (VND)"
+      },
+      "designGiftValueRule": "Gift value must be a nonnegative safe integer.",
+      "designMetadataMissing": "Display benefits are not configured; customers see only the plan usage limits.",
+      "historyTitle": "Revision history",
+      "historyEmpty": "This plan has no published revisions.",
+      "historyCurrent": "Current",
+      "historyView": "View",
+      "historyViewRevision": "View revision #{number}",
+      "historyPublished": "Published revision",
+      "historyReadOnly": "You are viewing a published revision. Its contents are read-only and preserved for this revision.",
+      "publishedAt": "Published at",
+      "retry": "Retry"
     },
     "bmtCommerce": {
       "views": {
@@ -7869,7 +7929,9 @@
         "paymentIcon": "QrCode",
         "scopeIcon": "Ruler",
         "areaIcon": "MapPin"
-      }
+      },
+      "loadingPlans": "Loading supervision plans…",
+      "noPublishedPlans": "No supervision plans have been published."
     },
     "dashboard": {
       "stageShort": "Stage {index}",

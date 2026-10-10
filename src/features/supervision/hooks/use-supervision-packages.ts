@@ -4,45 +4,37 @@ import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 
 import { useCmsCollection } from '@/shared/cms'
-import { http } from '@/shared/lib/api'
-import type { PagedResult } from '@/shared/types'
 import { supervisionKeys } from '../api/supervision.keys'
-import {
-  mergeApiIntoPackages,
-  type BmtSupervisionPlanItem,
-  type SupervisionPackageView
-} from '../api/supervision.merge'
+import { fetchPublishedSupervisionPlans } from '../api/supervision-plans.api'
+import { mergeApiIntoPackages, type SupervisionPackageView } from '../api/supervision.merge'
 
-/** Gói giám sát đã công bố trên BMT API. Lỗi hoặc rỗng → `[]`, trang vẫn đủ dữ liệu mock. */
-async function fetchPublishedSupervisionPlans(): Promise<BmtSupervisionPlanItem[]> {
-  try {
-    const page = await http.get<PagedResult<BmtSupervisionPlanItem>>('/plans', {
-      params: { kind: 'Supervision', pageSize: 100 }
-    })
-    return page.items
-  } catch {
-    return []
-  }
-}
-
-/**
- * Các gói giám sát của trang S19 và luồng mua: MOCK (kho CMS) làm nền, BMT API ghi đè
- * từng field nó có (xem `supervision.merge.ts`). Kho CMS đọc đồng bộ nên lần vẽ đầu
- * đã đủ thẻ, dữ liệu API đến sau chỉ đổi những field nó có — không nháy trống.
- *
- * `isPending` báo dữ liệu API CHƯA về: màn cần biết gói có phải đến từ API hay không
- * (như màn xác nhận đơn) phải chờ cờ này, nếu không sẽ tưởng gói không tồn tại.
+/** Published API plans own the card list; CMS only supplies matching legacy presentation.
+ * Valid cached data stays visible during a failed refresh; errors remain available to the page.
  */
-export function useSupervisionPackageList(): { packages: SupervisionPackageView[]; isPending: boolean } {
+export function useSupervisionPackageList(): {
+  packages: SupervisionPackageView[]
+  isPending: boolean
+  isError: boolean
+  error: Error | null
+  retry: () => void
+} {
   const base = useCmsCollection('supervisionPackages')
-  const { data, isPending } = useQuery({
+  const { data, isPending, isError, error, refetch } = useQuery({
     queryKey: supervisionKeys.packages(),
     queryFn: fetchPublishedSupervisionPlans,
     staleTime: 60_000
   })
 
-  const packages = useMemo(() => mergeApiIntoPackages(base, data ?? []), [base, data])
-  return { packages, isPending }
+  const packages = useMemo(() => (data === undefined ? [] : mergeApiIntoPackages(base, data)), [base, data])
+  return {
+    packages,
+    isPending,
+    isError,
+    error,
+    retry: () => {
+      void refetch()
+    }
+  }
 }
 
 export function useSupervisionPackages(): SupervisionPackageView[] {

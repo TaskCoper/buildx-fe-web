@@ -31,8 +31,8 @@ export async function refreshSession(): Promise<boolean> {
     )
     const refreshed = res.data?.isSuccess !== false
     if (refreshed && typeof window !== 'undefined') {
-      useAuthStore.getState().setInitialized(false)
-      // Finish the retry first, then recheck the new permission snapshot.
+      // Recheck permissions after the retry without unmounting the authenticated screen.
+      // Initial session resolution and irrecoverable sessions still use the auth guard.
       window.setTimeout(() => window.dispatchEvent(new Event(AUTH_SESSION_REFRESHED_EVENT)), 0)
     }
     return refreshed
