@@ -20,8 +20,11 @@ import { useFloorLabel } from './use-floor-label'
 
 const { Text } = Typography
 
-/** Số tầng đưa sẵn vào ô chọn. BR-PROJ-004 chưa chốt trần nghiệp vụ — số đã lưu vượt mốc này vẫn hiện. */
-const FLOOR_CHOICES = Array.from({ length: 10 }, (_, index) => index + 1)
+/** Số tầng chọn được: 1–4 (BR-PROJ-004, CHECK `FloorCount BETWEEN 1 AND 4` của TDD-PROJ-007). Số cũ đã lưu vẫn hiện. */
+const FLOOR_CHOICES = Array.from({ length: 4 }, (_, index) => index + 1)
+
+/** Mã gốc của app demo mà luồng AI dùng để chọn luật lô đất, mái, tầng (TDD-PROJ-007 mục B). */
+const BASE_CODES = ['nha-pho', 'villa-biet-thu', 'nha-mai', 'nha-vuon-cap4', 'can-ho'] as const
 const NAME_MAX = 200
 
 type Filter = 'all' | 'yes' | 'no'
@@ -33,9 +36,12 @@ interface Filters {
 
 const trimmed = (value: unknown) => (typeof value === 'string' ? value.trim() : value)
 
-function toInput(values: Record<string, unknown>): BuildingTypeInput {
+function toInput(values: Record<string, unknown>, aiMapping: boolean): BuildingTypeInput {
   const list = <T,>(value: unknown) => (Array.isArray(value) ? (value as T[]) : [])
+  const text = (value: unknown) => (typeof value === 'string' && value.trim() !== '' ? value.trim() : null)
   return {
+    // Chỉ gửi khi BE đã có hai trường này; BE cũ trả 422 với trường lạ.
+    ...(aiMapping ? { baseCode: text(values.baseCode), defaultBaseStyleCode: text(values.defaultBaseStyleCode) } : {}),
     name: String(values.name ?? '').trim(),
     floorsEnabled: Boolean(values.floorsEnabled),
     tumEnabled: Boolean(values.tumEnabled),
@@ -120,10 +126,15 @@ export function BuildingTypeManager() {
         interiorEnabled: false,
         floorCounts: [],
         architectureStyleIds: [],
-        interiorStyleIds: []
+        interiorStyleIds: [],
+        baseCode: null,
+        defaultBaseStyleCode: null
       })}
       onCreate={async (values) => {
-        await createBuildingType(Number(values.expectedCatalogVersion), toInput(values))
+        await createBuildingType(
+          Number(values.expectedCatalogVersion),
+          toInput(values, Boolean(catalog?.supportsAiMapping))
+        )
         await invalidate()
       }}
       toFormValues={async (item) => {
@@ -133,7 +144,11 @@ export function BuildingTypeManager() {
         return { ...latest, expectedCatalogVersion: fresh.catalogVersion }
       }}
       onUpdate={async (values, item) => {
-        await updateBuildingType(item.buildingTypeId, Number(values.expectedCatalogVersion), toInput(values))
+        await updateBuildingType(
+          item.buildingTypeId,
+          Number(values.expectedCatalogVersion),
+          toInput(values, Boolean(catalog?.supportsAiMapping))
+        )
         await invalidate()
       }}
       columns={[
@@ -142,6 +157,21 @@ export function BuildingTypeManager() {
           dataIndex: 'name',
           render: (name: string) => <Text strong>{name}</Text>
         },
+        ...(catalog?.supportsAiMapping
+          ? [
+              {
+                title: c('baseCode'),
+                key: 'baseCode',
+                width: 150,
+                render: (_: unknown, record: CatalogBuildingTypeDto) =>
+                  record.baseCode ? (
+                    <Tag>{c(`baseCodes.${record.baseCode as (typeof BASE_CODES)[number]}`)}</Tag>
+                  ) : (
+                    <StatusTag tone='off'>{c('baseCodeMissing')}</StatusTag>
+                  )
+              }
+            ]
+          : []),
         {
           title: c('floors'),
           key: 'floors',
@@ -209,6 +239,22 @@ export function BuildingTypeManager() {
             bordered
             items={[
               { key: 'name', label: c('buildingTypeName'), children: item.name },
+              ...(catalog?.supportsAiMapping
+                ? [
+                    {
+                      key: 'baseCode',
+                      label: c('baseCode'),
+                      children: item.baseCode
+                        ? c(`baseCodes.${item.baseCode as (typeof BASE_CODES)[number]}`)
+                        : c('baseCodeMissing')
+                    },
+                    {
+                      key: 'defaultBaseStyleCode',
+                      label: c('defaultBaseStyleCode'),
+                      children: item.defaultBaseStyleCode ?? '—'
+                    }
+                  ]
+                : []),
               {
                 key: 'floors',
                 label: c('floors'),
@@ -295,6 +341,26 @@ function BuildingTypeFields({ form, catalog }: { form: FormInstance; catalog: Ad
       >
         <Input showCount maxLength={NAME_MAX + 20} />
       </Form.Item>
+
+      {catalog?.supportsAiMapping ? (
+        <>
+          <Form.Item name='baseCode' label={c('baseCode')} extra={c('baseCodeHint')}>
+            <Select
+              allowClear
+              options={BASE_CODES.map((value) => ({ value, label: c(`baseCodes.${value}`) }))}
+              placeholder={c('baseCodeMissing')}
+            />
+          </Form.Item>
+          <Form.Item
+            name='defaultBaseStyleCode'
+            label={c('defaultBaseStyleCode')}
+            extra={c('defaultBaseStyleCodeHint')}
+            rules={[{ max: 64, transform: trimmed, message: t('fields.maxLength', { max: 64 }) }]}
+          >
+            <Input allowClear />
+          </Form.Item>
+        </>
+      ) : null}
 
       {group('floorsEnabled', 'floorCounts', c('floorsEnabled'), c('floorsEmpty'), floorOptions)}
 

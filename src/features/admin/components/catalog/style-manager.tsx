@@ -25,6 +25,17 @@ const { Text } = Typography
 const NAME_MAX = 200
 
 const trimmed = (value: unknown) => (typeof value === 'string' ? value.trim() : value)
+const PROMPT_DESCRIPTOR_MAX = 1000
+const BASE_STYLE_CODE_MAX = 64
+
+/** Trường gắn AI theo nhóm: kiến trúc có mã phong cách gốc, nội thất có mô tả cho AI (TDD-PROJ-007 mục B). */
+function aiMappingInput(values: Record<string, unknown>, kind: 'architecture' | 'interior', aiMapping: boolean) {
+  if (!aiMapping) return {}
+  const text = (value: unknown) => (typeof value === 'string' && value.trim() !== '' ? value.trim() : null)
+  return kind === 'architecture'
+    ? { baseStyleCode: text(values.baseStyleCode) }
+    : { promptDescriptor: text(values.promptDescriptor) }
+}
 
 /** Loại công trình đang gán phong cách này, kèm cờ nhóm có đang bật không. */
 function assignedTypes(catalog: AdminCatalog | undefined, kind: 'architecture' | 'interior', styleId: string) {
@@ -38,8 +49,15 @@ function assignedTypes(catalog: AdminCatalog | undefined, kind: 'architecture' |
 }
 
 /** Giữ nguyên mọi trường của loại công trình, chỉ thay danh sách id phong cách. */
-function buildingTypeInputWith(bt: CatalogBuildingTypeDto, kind: 'architecture' | 'interior', styleIds: string[]) {
+function buildingTypeInputWith(
+  bt: CatalogBuildingTypeDto,
+  kind: 'architecture' | 'interior',
+  styleIds: string[],
+  aiMapping: boolean
+) {
   return {
+    // Giữ mã gốc đã gắn: PUT gửi đủ trường, bỏ sót là xóa mất (chỉ gửi khi BE có trường này).
+    ...(aiMapping ? { baseCode: bt.baseCode, defaultBaseStyleCode: bt.defaultBaseStyleCode } : {}),
     name: bt.name,
     floorsEnabled: bt.floorsEnabled,
     tumEnabled: bt.tumEnabled,
@@ -96,7 +114,11 @@ export function StyleManager() {
       const should = selected.has(bt.buildingTypeId)
       if (has === should) continue
       const nextIds = should ? [...current, styleId] : current.filter((id) => id !== styleId)
-      const saved = await updateBuildingType(bt.buildingTypeId, version, buildingTypeInputWith(bt, kind, nextIds))
+      const saved = await updateBuildingType(
+        bt.buildingTypeId,
+        version,
+        buildingTypeInputWith(bt, kind, nextIds, fresh.supportsAiMapping)
+      )
       version = saved.catalogVersion
     }
   }
@@ -142,12 +164,15 @@ export function StyleManager() {
         expectedCatalogVersion: catalog?.catalogVersion ?? 0,
         name: '',
         imageUrl: '',
-        buildingTypeIds: []
+        buildingTypeIds: [],
+        baseStyleCode: null,
+        promptDescriptor: null
       })}
       onCreate={async (values) => {
         const saved = await createCatalogStyle(Number(values.expectedCatalogVersion), group, {
           name: String(values.name ?? '').trim(),
-          imageUrl: String(values.imageUrl ?? '').trim()
+          imageUrl: String(values.imageUrl ?? '').trim(),
+          ...aiMappingInput(values, kind, Boolean(catalog?.supportsAiMapping))
         })
         await applyAssignment(saved.styleId, (values.buildingTypeIds as string[] | undefined) ?? [])
         await invalidate()
@@ -163,7 +188,8 @@ export function StyleManager() {
       onUpdate={async (values, item) => {
         await updateCatalogStyle(item.styleId, Number(values.expectedCatalogVersion), {
           name: String(values.name ?? '').trim(),
-          imageUrl: String(values.imageUrl ?? '').trim()
+          imageUrl: String(values.imageUrl ?? '').trim(),
+          ...aiMappingInput(values, kind, Boolean(catalog?.supportsAiMapping))
         })
         await applyAssignment(item.styleId, (values.buildingTypeIds as string[] | undefined) ?? [])
         await invalidate()
@@ -194,7 +220,14 @@ export function StyleManager() {
             bordered
             items={[
               { key: 'name', label: c('styleName'), children: item.name },
-              { key: 'types', label: c('assignedTypes'), children: typeTags(item.styleId) }
+              { key: 'types', label: c('assignedTypes'), children: typeTags(item.styleId) },
+              ...(catalog?.supportsAiMapping
+                ? [
+                    kind === 'architecture'
+                      ? { key: 'base', label: c('baseStyleCode'), children: item.baseStyleCode ?? '—' }
+                      : { key: 'prompt', label: c('promptDescriptor'), children: item.promptDescriptor ?? '—' }
+                  ]
+                : [])
             ]}
           />
         </Space>
@@ -215,6 +248,39 @@ export function StyleManager() {
             <Input showCount maxLength={NAME_MAX + 20} />
           </Form.Item>
           <HttpsImageField name='imageUrl' label={c('styleImage')} />
+          {catalog?.supportsAiMapping && kind === 'architecture' ? (
+            <Form.Item
+              name='baseStyleCode'
+              label={c('baseStyleCode')}
+              extra={c('baseStyleCodeHint')}
+              rules={[
+                {
+                  max: BASE_STYLE_CODE_MAX,
+                  transform: trimmed,
+                  message: t('fields.maxLength', { max: BASE_STYLE_CODE_MAX })
+                }
+              ]}
+            >
+              <Input allowClear />
+            </Form.Item>
+          ) : null}
+          {catalog?.supportsAiMapping && kind === 'interior' ? (
+            <Form.Item
+              name='promptDescriptor'
+              label={c('promptDescriptor')}
+              extra={c('promptDescriptorHint')}
+              rules={[
+                { required: true, whitespace: true, message: t('fields.requiredMessage') },
+                {
+                  max: PROMPT_DESCRIPTOR_MAX,
+                  transform: trimmed,
+                  message: t('fields.maxLength', { max: PROMPT_DESCRIPTOR_MAX })
+                }
+              ]}
+            >
+              <Input.TextArea rows={4} showCount maxLength={PROMPT_DESCRIPTOR_MAX} />
+            </Form.Item>
+          ) : null}
           <Alert type='info' showIcon title={c('styleImageNote')} style={{ marginBottom: 12 }} />
           <Form.Item name='buildingTypeIds' label={c('styleAssignLabel')} extra={c('styleAssignHint')}>
             <Select
