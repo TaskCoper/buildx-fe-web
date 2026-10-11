@@ -10,8 +10,8 @@ import type { UploadPurpose } from './media.logic'
 
 /**
  * Loại tệp — quyết định định dạng và dung lượng tối đa backend cho phép:
- * `ContractorImage` ảnh JPG/PNG/WebP ≤ 10 MiB, `ContractorScan` PDF/JPG/PNG ≤ 20 MiB.
- * Cả hai chỉ admin được dùng.
+ * `ContractorImage` ảnh JPG/PNG/WebP ≤ 10 MiB, `ContractorScan` PDF/JPG/PNG ≤ 20 MiB (hai purpose
+ * này chỉ admin dùng); `EstimateLotImage` ảnh lô đất ≤ 10 MiB, phải kèm `estimateId` của bản khách sở hữu.
  */
 export type MediaPurpose = UploadPurpose
 

@@ -34,7 +34,12 @@ const POLL_LIMIT = 8
  * nó chỉ được giữ khi bản ghi chứa URL này lưu thành công, không thì bị dọn sau 24 giờ
  * (BR-MEDIA-002) — nên lưu hồ sơ ngay sau khi tải, đừng để treo.
  */
-export async function uploadFile(file: File, purpose?: MediaPurpose): Promise<UploadedFile> {
+export async function uploadFile(
+  file: File,
+  purpose?: MediaPurpose,
+  /** Trường kèm theo mà purpose đòi, ví dụ `estimateId` của `EstimateLotImage` (TDD-PROJ-007 mục C). */
+  context?: { estimateId?: string }
+): Promise<UploadedFile> {
   const problem = checkFile(file, purpose)
   if (problem) throw new MediaUploadError(problem)
 
@@ -42,7 +47,13 @@ export async function uploadFile(file: File, purpose?: MediaPurpose): Promise<Up
   //    bước xác minh, khai sai là bị từ chối.
   const ticket = await http.post<UploadTicket>(
     '/media/uploads',
-    { fileName: file.name, contentType: file.type, sizeBytes: file.size, ...(purpose ? { purpose } : {}) },
+    {
+      fileName: file.name,
+      contentType: file.type,
+      sizeBytes: file.size,
+      ...(purpose ? { purpose } : {}),
+      ...(context?.estimateId ? { estimateId: context.estimateId } : {})
+    },
     idempotent()
   )
   if (!ticket.uploadUrl) throw new MediaUploadError('MediaUploadExpired')
@@ -78,9 +89,13 @@ export async function uploadFile(file: File, purpose?: MediaPurpose): Promise<Up
 }
 
 /** Như `uploadFile` nhưng chỉ nhận ẢNH (JPG/PNG/WebP) — chặn PDF dù purpose có cho phép. */
-export async function uploadImage(file: File, purpose?: MediaPurpose): Promise<UploadedFile> {
+export async function uploadImage(
+  file: File,
+  purpose?: MediaPurpose,
+  context?: { estimateId?: string }
+): Promise<UploadedFile> {
   if (!(IMAGE_MIME as readonly string[]).includes(file.type) || !isAcceptedType(file.type, purpose)) {
     throw new MediaUploadError('UnsupportedType')
   }
-  return uploadFile(file, purpose)
+  return uploadFile(file, purpose, context)
 }
