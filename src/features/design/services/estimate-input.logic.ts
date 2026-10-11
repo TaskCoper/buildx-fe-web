@@ -22,6 +22,21 @@ export const DEFAULT_FINISH_PACKAGE: FinishPackage = 'Standard'
 /** Mô tả tối đa 500 ký tự (BR-PROJ-002), tính theo ký tự Unicode (rune), không phải UTF-16. */
 export const DESCRIPTION_MAX_LENGTH = 500
 
+/** Luồng bốn chặng: mô tả không bắt buộc, tối đa 4.000 ký tự Unicode (BR-PROJ-002, TDD-PROJ-007 mục A). */
+export const PIPELINE_DESCRIPTION_MAX_LENGTH = 4000
+
+/** Cạnh có cửa vào của lô; mặc định Trái (BR-PROJ-002). */
+export type EntranceSide = 'Left' | 'Right' | 'Top' | 'Bottom'
+export const ENTRANCE_SIDES: readonly EntranceSide[] = ['Left', 'Right', 'Top', 'Bottom']
+export const DEFAULT_ENTRANCE_SIDE: EntranceSide = 'Left'
+
+/** Số phòng ngủ mong muốn 1–10, bắt buộc trước chặng 2D (BR-PROJ-002). */
+export const BEDROOMS_MIN = 1
+export const BEDROOMS_MAX = 10
+
+/** Mã gốc của loại Căn hộ trong app demo: luôn một sàn, không tầng, không tum (BR-PROJ-004). */
+export const APARTMENT_BASE_CODE = 'can-ho'
+
 /** `input` của BE — giữ nguyên tên trường. */
 export interface EstimateInputBody {
   buildingTypeId: string | null
@@ -44,9 +59,27 @@ export interface EstimateInputBody {
    */
   latitude?: number | null
   longitude?: number | null
+  /**
+   * Trường của luồng bốn chặng (TDD-PROJ-007 mục A). Chỉ gửi khi `GET` đã trả khoá `desiredBedrooms`
+   * (xem {@link supportsPipelineInput}); BE cũ từ chối tên lạ trong `changedFields`.
+   */
+  lotFrontageM?: string | null
+  lotDepthM?: string | null
+  entranceSide?: EntranceSide | null
+  desiredBedrooms?: number | null
+  hasGarage?: boolean | null
 }
 
 export type InputField = keyof EstimateInputBody
+
+/** Trường mới của luồng bốn chặng, cũng theo thứ tự cố định. */
+export const PIPELINE_INPUT_FIELDS: readonly InputField[] = [
+  'lotFrontageM',
+  'lotDepthM',
+  'entranceSide',
+  'desiredBedrooms',
+  'hasGarage'
+]
 
 /** Thứ tự cố định để so sánh và gửi. */
 export const INPUT_FIELDS: readonly InputField[] = [
@@ -82,6 +115,17 @@ export interface EstimateInputDraft {
   inputImageUrl: string | null
   latitude: number | null
   longitude: number | null
+  /** Mặt tiền và chiều sâu lô (mét): hai ô đi cùng nhau, rỗng = chưa nhập; không tự điền từ kết quả soi ảnh. */
+  lotFrontageM: string
+  lotDepthM: string
+  entranceSide: EntranceSide
+  desiredBedrooms: number | null
+  hasGarage: boolean
+}
+
+/** BE đã có đầu vào của luồng bốn chặng? Bản trả khoá `desiredBedrooms` (kể cả null) là đã hỗ trợ. */
+export function supportsPipelineInput(input: object | null | undefined): boolean {
+  return Boolean(input) && 'desiredBedrooms' in (input as object)
 }
 
 /** BE đã lưu toạ độ cho dự toán này? Bản mới luôn trả khoá `latitude` (số, bắt buộc); bản cũ không có khoá. */
@@ -99,6 +143,8 @@ const finiteOrNull = (value: unknown): number | null =>
 export interface CatalogBuildingType {
   buildingTypeId: string
   name: string
+  /** Mã gốc của app demo (`nha-pho`, `can-ho`…); NULL khi Admin chưa gắn (BR-PROJ-004 khoản 19). */
+  baseCode?: string | null
   floorsEnabled: boolean
   tumEnabled: boolean
   architectureEnabled: boolean
@@ -142,11 +188,12 @@ export function selectedType(catalog: EstimateCatalog | undefined, draft: Estima
   return catalog?.buildingTypes.find((type) => type.buildingTypeId === draft.buildingTypeId)
 }
 
-/** Trường nào của form hiện theo loại công trình đang chọn. */
+/** Trường nào của form hiện theo loại công trình đang chọn. Căn hộ (mã gốc `can-ho`) luôn một sàn, không tum. */
 export function visibleFields(type: CatalogBuildingType | undefined) {
+  const apartment = type?.baseCode === APARTMENT_BASE_CODE
   return {
-    floors: Boolean(type?.floorsEnabled),
-    tum: Boolean(type?.tumEnabled),
+    floors: Boolean(type?.floorsEnabled) && !apartment,
+    tum: Boolean(type?.tumEnabled) && !apartment,
     architecture: Boolean(type?.architectureEnabled),
     interior: Boolean(type?.interiorEnabled)
   }
@@ -268,14 +315,19 @@ export function draftFromInput(input: Partial<EstimateInputBody> | null | undefi
     interiorStyleId: input?.interiorStyleId ?? null,
     inputImageUrl: input?.inputImageUrl ?? null,
     latitude: finiteOrNull(input?.latitude),
-    longitude: finiteOrNull(input?.longitude)
+    longitude: finiteOrNull(input?.longitude),
+    lotFrontageM: text(input?.lotFrontageM),
+    lotDepthM: text(input?.lotDepthM),
+    entranceSide: input?.entranceSide ?? DEFAULT_ENTRANCE_SIDE,
+    desiredBedrooms: input?.desiredBedrooms ?? null,
+    hasGarage: input?.hasGarage ?? false
   }
 }
 
 const blankToNull = (value: string): string | null => (value.trim() === '' ? null : value.trim())
 
 /** Bản đang nhập → `input` gửi BE (đủ mọi trường, rỗng = null). Mô tả giữ nội dung gốc, chỉ khoảng trắng thì null. */
-export function inputBody(draft: EstimateInputDraft, withCoordinates = false): EstimateInputBody {
+export function inputBody(draft: EstimateInputDraft, withCoordinates = false, withPipeline = false): EstimateInputBody {
   return {
     buildingTypeId: draft.buildingTypeId,
     areaM2: blankToNull(draft.areaM2),
@@ -290,7 +342,16 @@ export function inputBody(draft: EstimateInputDraft, withCoordinates = false): E
     architectureStyleId: draft.architectureStyleId,
     interiorStyleId: draft.interiorStyleId,
     inputImageUrl: draft.inputImageUrl,
-    ...(withCoordinates ? { latitude: draft.latitude, longitude: draft.longitude } : {})
+    ...(withCoordinates ? { latitude: draft.latitude, longitude: draft.longitude } : {}),
+    ...(withPipeline
+      ? {
+          lotFrontageM: blankToNull(draft.lotFrontageM),
+          lotDepthM: blankToNull(draft.lotDepthM),
+          entranceSide: draft.entranceSide,
+          desiredBedrooms: draft.desiredBedrooms,
+          hasGarage: draft.hasGarage
+        }
+      : {})
   }
 }
 
@@ -316,7 +377,12 @@ export function normalizeSaved(input: Partial<EstimateInputBody> | null | undefi
     interiorStyleId: input?.interiorStyleId ?? null,
     inputImageUrl: input?.inputImageUrl ?? null,
     latitude: finiteOrNull(input?.latitude),
-    longitude: finiteOrNull(input?.longitude)
+    longitude: finiteOrNull(input?.longitude),
+    lotFrontageM: blank(input?.lotFrontageM),
+    lotDepthM: blank(input?.lotDepthM),
+    entranceSide: input?.entranceSide ?? null,
+    desiredBedrooms: input?.desiredBedrooms ?? null,
+    hasGarage: input?.hasGarage ?? null
   }
 }
 
@@ -324,10 +390,12 @@ export function normalizeSaved(input: Partial<EstimateInputBody> | null | undefi
 export function changedFields(
   saved: EstimateInputBody,
   draft: EstimateInputDraft,
-  withCoordinates = false
+  withCoordinates = false,
+  withPipeline = false
 ): InputField[] {
-  const next = inputBody(draft)
-  const changed = INPUT_FIELDS.filter((field) => !sameValue(field, saved[field], next[field]))
+  const next = inputBody(draft, false, withPipeline)
+  const fields = withPipeline ? [...INPUT_FIELDS, ...PIPELINE_INPUT_FIELDS] : INPUT_FIELDS
+  const changed = fields.filter((field) => !sameValue(field, saved[field] ?? null, next[field] ?? null))
   if (!withCoordinates) return changed
 
   // Toạ độ luôn đi THEO CẶP: đổi tỉnh/xã/địa chỉ chi tiết thì phải khai cả hai dù cặp mới bằng cặp cũ (BE không tin
@@ -338,7 +406,7 @@ export function changedFields(
 }
 
 function sameValue(field: InputField, a: unknown, b: unknown): boolean {
-  if (field === 'areaM2') return numberText(a) === numberText(b)
+  if (field === 'areaM2' || field === 'lotFrontageM' || field === 'lotDepthM') return numberText(a) === numberText(b)
   return a === b
 }
 
@@ -390,6 +458,63 @@ export function missingFields(
   if (draft.addressDetail.trim() === '') missing.push('addressDetail')
   // Chưa xác định được vị trí trên bản đồ (BE bắt buộc cả vĩ độ và kinh độ).
   if (requireCoordinates && (draft.latitude === null || draft.longitude === null)) missing.push('location')
+  if (!draft.finishPackage) missing.push('finishPackage')
+
+  const type = selectedType(catalog, draft)
+  const fields = visibleFields(type)
+  if (fields.floors && draft.floorCount === null) missing.push('floorCount')
+  if (fields.tum && draft.hasTum === null) missing.push('hasTum')
+  if (fields.architecture && !draft.architectureStyleId) missing.push('architectureStyleId')
+  if (fields.interior && !draft.interiorStyleId) missing.push('interiorStyleId')
+  return missing
+}
+
+/* ===========================================================================
+ * Luồng bốn chặng — kiểm hợp lệ phía khách cho các ô mới (BE vẫn kiểm lại)
+ * ======================================================================== */
+
+/** Cạnh lô: số dương, tối đa 2 chữ số lẻ, vừa `numeric(6,2)` của BE (TDD-PROJ-007 mục A). */
+const LOT_SIDE_PATTERN = /^\d{1,4}(\.\d{1,2})?$/
+
+/**
+ * Hai ô kích thước lô: mỗi ô đúng dạng, và nhập thì nhập đủ cả hai (BR-PROJ-001 khoản 4). Bản nháp được lưu dở nên
+ * `pair` chỉ là gợi ý ngay lúc nhập; giới hạn cạnh và diện tích theo loại công trình do BE kiểm trước chặng 2D.
+ */
+export function lotSizeProblem(frontage: string, depth: string): 'format' | 'pair' | null {
+  const a = frontage.trim()
+  const b = depth.trim()
+  const bad = (value: string) => value !== '' && !(LOT_SIDE_PATTERN.test(value) && Number(value) > 0)
+  if (bad(a) || bad(b)) return 'format'
+  if ((a === '') !== (b === '')) return 'pair'
+  return null
+}
+
+/** Số phòng ngủ: số nguyên 1–10, chưa nhập thì không báo lỗi định dạng (thiếu sẽ báo ở bước kiểm trước 2D). */
+export function bedroomsProblem(value: number | null): 'range' | null {
+  if (value === null) return null
+  return Number.isInteger(value) && value >= BEDROOMS_MIN && value <= BEDROOMS_MAX ? null : 'range'
+}
+
+/**
+ * Trường còn thiếu trước khi chạy chặng 2D của luồng bốn chặng (TDD-PROJ-007 mục A, `FindMissingForStage`). Không còn
+ * đòi diện tích hay "ảnh hoặc mô tả": ảnh lô bắt buộc và phải soi Đạt, mô tả không bắt buộc. BE trả danh sách chính
+ * thức (`InvalidStageInput`), gồm cả `catalogMapping` và `pricingRegion` mà phía khách không biết trước.
+ */
+export function pipelineMissingFields(
+  draft: EstimateInputDraft,
+  catalog: EstimateCatalog | undefined,
+  options: { requireCoordinates?: boolean; lotVerificationPassed: boolean }
+): string[] {
+  const missing: string[] = []
+  if (!draft.inputImageUrl) missing.push('inputImageUrl')
+  else if (!options.lotVerificationPassed) missing.push('lotVerification')
+  if (draft.desiredBedrooms === null || bedroomsProblem(draft.desiredBedrooms)) missing.push('desiredBedrooms')
+  if (lotSizeProblem(draft.lotFrontageM, draft.lotDepthM)) missing.push('lotSize')
+  if (!draft.buildingTypeId) missing.push('buildingTypeId')
+  if (!draft.provinceCode) missing.push('provinceCode')
+  if (!draft.wardCode) missing.push('wardCode')
+  if (draft.addressDetail.trim() === '') missing.push('addressDetail')
+  if (options.requireCoordinates && (draft.latitude === null || draft.longitude === null)) missing.push('location')
   if (!draft.finishPackage) missing.push('finishPackage')
 
   const type = selectedType(catalog, draft)

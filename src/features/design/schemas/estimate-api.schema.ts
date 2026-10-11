@@ -18,7 +18,14 @@ const input = z.object({
   interiorStyleId: nullableText,
   inputImageUrl: nullableText,
   latitude: z.number().min(-90).max(90).nullable(),
-  longitude: z.number().min(-180).max(180).nullable()
+  longitude: z.number().min(-180).max(180).nullable(),
+  // Luồng bốn chặng (TDD-PROJ-007 mục A). Tuỳ chọn để BE chưa có các trường này vẫn đọc được; có khoá
+  // `desiredBedrooms` (kể cả null) là BE đã hỗ trợ. Giá trị null phải giữ nguyên, không bỏ khoá.
+  lotFrontageM: nullableText.optional(),
+  lotDepthM: nullableText.optional(),
+  entranceSide: z.enum(['Left', 'Right', 'Top', 'Bottom']).nullable().optional(),
+  desiredBedrooms: z.number().int().nullable().optional(),
+  hasGarage: z.boolean().nullable().optional()
 })
 
 export const estimateDetailSchema = z.object({
@@ -29,7 +36,8 @@ export const estimateDetailSchema = z.object({
   inputVersion: z.number().int().nonnegative(),
   catalogRevisionId: nullableText,
   input,
-  state: z.enum(['Draft', 'Processing', 'Succeeded', 'Failed']),
+  // Luồng cũ: Draft/Processing/Succeeded/Failed. Luồng bốn chặng có thể trả thêm InProgress/Completed (BR-PROJ-008).
+  state: z.string(),
   failureCode: nullableText.optional(),
   canEdit: z.boolean(),
   writeDeniedCode: nullableText.optional(),
@@ -43,6 +51,8 @@ export const estimateCatalogSchema = z.object({
     z.object({
       buildingTypeId: z.string().uuid(),
       name: z.string(),
+      // Mã gốc của app demo (TDD-PROJ-007 mục B); BE cũ không trả.
+      baseCode: z.string().nullable().optional(),
       floorsEnabled: z.boolean(),
       tumEnabled: z.boolean(),
       architectureEnabled: z.boolean(),

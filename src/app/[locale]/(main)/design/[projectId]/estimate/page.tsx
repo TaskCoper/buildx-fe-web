@@ -2,7 +2,9 @@ import { setRequestLocale } from 'next-intl/server'
 
 import type { Locale } from '@/i18n/routing'
 import { ProtectedRoute } from '@/shared/auth'
+import { env } from '@/shared/config/env'
 import { pageMetadata } from '@/shared/lib/page-metadata'
+import { PipelineLockedView } from '../pipeline-locked-view'
 import { StepEstimateView } from './step-estimate-view'
 
 export const generateMetadata = pageMetadata('designEstimate')
@@ -29,7 +31,11 @@ export default async function DesignEstimatePage({ params }: PageProps) {
 
   return (
     <ProtectedRoute>
-      <StepEstimateView projectId={projectId} />
+      {env.NEXT_PUBLIC_ESTIMATE_PIPELINE_ENABLED && !env.NEXT_PUBLIC_USE_MOCK_API ? (
+        <PipelineLockedView projectId={projectId} step={3} />
+      ) : (
+        <StepEstimateView projectId={projectId} />
+      )}
     </ProtectedRoute>
   )
 }

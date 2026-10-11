@@ -10,6 +10,23 @@ export { StepProgress } from './components/step-progress'
 export { HelpLink } from './components/help-link'
 export { StepInputForm } from './components/step-input-form'
 export { StepInputApiForm } from './components/step-input-api-form'
+// Luồng bốn chặng (TDD-PROJ-006/007)
+export { StepInputPipelineForm } from './components/step-input-pipeline-form'
+export { Plan2dStageView, Plan2dResultView } from './components/plan2d-stage-view'
+export { PipelineStageLocked } from './components/pipeline-stage-locked'
+export { usePipelineSteps } from './hooks/use-pipeline-steps'
+export { useStages } from './hooks/use-stages'
+export { useEstimateDetailName } from './hooks/use-estimate-detail-name'
+export {
+  PIPELINE_STAGES,
+  PIPELINE_STEPS,
+  pipelineStepStates,
+  type PipelineStep,
+  type PipelineStepState,
+  type StageName,
+  type StageStatus,
+  type StageView
+} from './services/pipeline.logic'
 export { EstimateFailed } from './components/estimate-failed'
 export { EstimateFlowError } from './services/estimate-result.logic'
 export { displayProjectId, isApiEstimateId, type MatchCriteria } from './services/estimate-input.logic'

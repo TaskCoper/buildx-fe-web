@@ -1,3 +1,4 @@
+import { env } from '@/shared/config/env'
 import { http, isApiError } from '@/shared/lib/api'
 import type { PagedResult } from '@/shared/types'
 
@@ -7,6 +8,7 @@ import {
   mapEstimateContent,
   stepOfState
 } from '../services/estimate-result.logic'
+import { normalizeListState, normalizeStageName, projectStatusOfListState } from '../services/pipeline.logic'
 import { projectStatus } from '../services/project-list.service'
 import type { DesignInput, Dossier, DossierImages, EstimateResult, Project, SharedDossier } from '../types/design.types'
 import type { CreateProjectPayload } from './design.api'
@@ -30,8 +32,13 @@ interface BmtEstimateListItem {
   code?: string | null
   name: string
   buildingType?: { id: string; name: string } | null
-  /** Draft, Processing, Failed, Succeeded — trạng thái tác vụ tạo thiết kế gần nhất. */
+  /**
+   * Luồng cũ: Draft, Processing, Failed, Succeeded. Luồng bốn chặng: Draft, Processing, Failed, InProgress, Completed
+   * (`Succeeded` vẫn được nhận như bí danh của `Completed`).
+   */
   state: string
+  /** Luồng bốn chặng: chặng đã thành công gần nhất (`Plan2d`…); thiếu hoặc null khi chưa có chặng nào. */
+  lastSucceededStage?: string | null
   createdAtUtc: string
   modifiedAtUtc: string
 }
@@ -91,6 +98,24 @@ async function resolveStep(estimateId: string, state: string): Promise<1 | 2 | 3
   }
 }
 
+const PIPELINE = env.NEXT_PUBLIC_ESTIMATE_PIPELINE_ENABLED
+
+/**
+ * Trạng thái thẻ dự án của luồng bốn chặng, lấy thẳng từ `state`/`lastSucceededStage` của BE (BR-PROJ-008 khoản 2).
+ * `currentStep` chỉ giữ cho các chỗ còn đọc luồng ba bước (trang chủ): nháp là 1, hoàn tất là 3, còn lại 2.
+ */
+function pipelineFields(
+  state: string,
+  lastSucceededStage?: string | null
+): Pick<Project, 'currentStep' | 'status' | 'pipeline'> {
+  const listState = normalizeListState(state)
+  return {
+    currentStep: listState === 'Draft' ? 1 : listState === 'Completed' ? 3 : 2,
+    status: projectStatusOfListState(listState),
+    pipeline: { state: listState, lastSucceededStage: normalizeStageName(lastSucceededStage) }
+  }
+}
+
 function toProject(item: BmtEstimateListItem, currentStep: 1 | 2 | 3): Project {
   return {
     id: item.estimateId,
@@ -134,7 +159,11 @@ export const bmtDesignApi = {
       })
       items.push(
         ...(await Promise.all(
-          page.items.map(async (item) => toProject(item, await resolveStep(item.estimateId, item.state)))
+          page.items.map(async (item) =>
+            PIPELINE
+              ? { ...toProject(item, 1), ...pipelineFields(item.state, item.lastSucceededStage) }
+              : toProject(item, await resolveStep(item.estimateId, item.state))
+          )
         ))
       )
       if (!page.hasNextPage) return [...new Map(items.map((item) => [item.id, item])).values()]
@@ -191,15 +220,16 @@ export const bmtDesignApi = {
   /** `GET /estimates/{id}`. DTO không có mốc thời gian → tạm dùng hiện tại (thẻ danh sách lấy mốc thật từ `/estimates`). */
   getProject: async (projectId: string): Promise<Project> => {
     const e = await estimateInputApi.getEstimate(projectId)
-    const step = await resolveStep(projectId, e.state)
+    const progress = PIPELINE
+      ? pipelineFields(e.state)
+      : await resolveStep(projectId, e.state).then((step) => ({ currentStep: step, status: projectStatus(step) }))
     return {
       id: e.estimateId,
       code: e.code ?? null,
       name: e.name,
       createdAt: nowIso(),
       updatedAt: nowIso(),
-      currentStep: step,
-      status: projectStatus(step),
+      ...progress,
       coverUrl: e.input?.inputImageUrl ?? null,
       buildingType: null,
       floorArea: null
