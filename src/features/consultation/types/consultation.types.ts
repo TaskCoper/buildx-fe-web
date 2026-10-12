@@ -6,6 +6,19 @@
  */
 export type { Consultant, ConsultantSpecialty, ConsultantWork } from '@/shared/cms'
 
+/**
+ * Điều kiện tìm và lọc danh sách KTS, gửi cho backend (`keyword`, `categoryId`) thay vì lọc trong bộ nhớ vì danh sách
+ * được phân trang. Bỏ trống thì không lọc.
+ */
+export interface ConsultantListQuery {
+  /** Tên hoặc chuyên môn; backend bỏ dấu và phân biệt hoa thường. */
+  keyword?: string
+  /** Mã chuyên môn (category) cần lọc. */
+  specialtyId?: string
+  /** Số hồ sơ mỗi trang; mặc định `CONSULTANT_LIST_PAGE_SIZE`. */
+  pageSize?: number
+}
+
 /** Hai hàng khung giờ của khối "CHỌN KHUNG GIỜ TƯ VẤN" (mục VIII.2). */
 export type ConsultationSession = 'morning' | 'afternoon'
 

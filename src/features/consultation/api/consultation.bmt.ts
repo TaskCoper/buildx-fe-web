@@ -1,8 +1,13 @@
-import type { Consultant } from '@/shared/cms'
+import type { Consultant, ConsultantSpecialty } from '@/shared/cms'
 import { http } from '@/shared/lib/api'
 import type { PagedResult } from '@/shared/types'
 import { CONSULTANT_LIST_PAGE_SIZE } from '../constants/consultation.constants'
-import type { BookConsultationPayload, ConsultationBooking, ConsultationRequestItem } from '../types/consultation.types'
+import type {
+  BookConsultationPayload,
+  ConsultantListQuery,
+  ConsultationBooking,
+  ConsultationRequestItem
+} from '../types/consultation.types'
 
 /**
  * Nối Tư vấn 1:1 vào BMT API (KTS công khai + gửi yêu cầu tư vấn miễn phí).
@@ -65,12 +70,32 @@ function toDesiredAt(date: string, time: string): string {
   return `${date}T${time.length === 5 ? `${time}:00` : time}+07:00`
 }
 
-async function listConsultantsPage(pageIndex: number, signal?: AbortSignal): Promise<PagedResult<Consultant>> {
+/**
+ * `GET /architects`: một trang KTS đang hiển thị, mới tạo trước. Tìm theo tên/chuyên môn (`keyword`) và lọc chuyên môn
+ * (`categoryId`) do backend làm trước khi phân trang, nên `totalCount` là số hồ sơ khớp bộ lọc.
+ */
+async function listConsultantsPage(
+  pageIndex: number,
+  signal?: AbortSignal,
+  query: ConsultantListQuery = {}
+): Promise<PagedResult<Consultant>> {
+  const keyword = query.keyword?.trim()
   const page = await http.get<PagedResult<BmtArchitect>>('/architects', {
-    params: { pageIndex, pageSize: CONSULTANT_LIST_PAGE_SIZE },
+    params: {
+      pageIndex,
+      pageSize: query.pageSize ?? CONSULTANT_LIST_PAGE_SIZE,
+      ...(keyword ? { keyword } : {}),
+      ...(query.specialtyId ? { categoryId: query.specialtyId } : {})
+    },
     signal
   })
   return { ...page, items: page.items.map(toConsultant) }
+}
+
+/** `GET /architects/categories`: chuyên môn đang có ít nhất một KTS hiển thị, để khách chọn bộ lọc. */
+async function listSpecialties(signal?: AbortSignal): Promise<ConsultantSpecialty[]> {
+  const result = await http.get<{ items: { id: string; name: string }[] }>('/architects/categories', { signal })
+  return result.items.map((item) => ({ id: item.id, label: item.name }))
 }
 
 /** Số yêu cầu mỗi trang của màn Lịch tư vấn 1:1. */
@@ -89,6 +114,7 @@ async function listMyRequestsPage(
 
 export const bmtConsultationApi = {
   listConsultantsPage,
+  listSpecialties,
   listMyRequestsPage,
   /**
    * Lấy DANH SÁCH KTS (một trang đầu), không kéo toàn bộ KTS về như trước. Mở hồ sơ

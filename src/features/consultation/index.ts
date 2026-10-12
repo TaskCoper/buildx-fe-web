@@ -13,6 +13,8 @@ export { MyConsultationRequests } from './components/my-consultation-requests'
 export { ConsultTransitionStateProvider } from './components/consult-transition-state'
 export {
   useConsultants,
+  useConsultantDirectory,
+  useConsultantSpecialties,
   useConsultant,
   useAvailability,
   useBookConsultation,

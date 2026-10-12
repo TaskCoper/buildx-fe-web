@@ -2802,6 +2802,11 @@
       "countLabel": "architects",
       "clearSearch": "Clear search",
       "lead": "Pick the architect you want to talk to",
+      "loadMore": "Show more",
+      "loadingMore": "Loading more…",
+      "loadMoreError": "Could not load more architects. Please try again.",
+      "loadError": "Could not load the architects. Please try again.",
+      "retry": "Try again",
       "empty": {
         "title": "No matching architect",
         "description": "Try another keyword or pick a different expertise."
