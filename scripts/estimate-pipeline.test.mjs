@@ -340,18 +340,22 @@ test('tham số model phải là đối tượng JSON; đường dẫn lỗi tr�
   assert.deepEqual(admin.configFieldPath('tasks[0].model'), ['tasks', 0, 'model'])
 })
 
-test('vùng giá: Tây Nguyên chỉ đi với miền Trung; chỉ gửi dòng đã đổi kèm rowVersion', () => {
-  assert.equal(admin.regionRowProblem({ region: null, highland: false }), 'missingRegion')
-  assert.equal(admin.regionRowProblem({ region: 'South', highland: true }), 'highlandOutsideCentral')
-  assert.equal(admin.regionRowProblem({ region: 'Central', highland: true }), null)
+test('vùng giá: mỗi tỉnh cần một miền (Tây Nguyên thuộc miền Trung); chỉ gửi dòng đã đổi kèm rowVersion', () => {
+  assert.equal(admin.regionRowProblem({ region: null }), 'missingRegion')
+  assert.equal(admin.regionRowProblem({ region: 'Central' }), null)
   const original = [
-    { provinceCode: '79', provinceName: 'TP.HCM', region: 'South', highland: false, rowVersion: '11' },
-    { provinceCode: '68', provinceName: 'Lâm Đồng', region: 'Central', highland: false, rowVersion: '12' }
+    { provinceCode: '79', provinceName: 'TP.HCM', region: 'South', rowVersion: '11' },
+    { provinceCode: '68', provinceName: 'Lâm Đồng', region: 'Central', rowVersion: '12' }
   ]
-  const edited = [original[0], { ...original[1], highland: true }]
+  const edited = [original[0], { ...original[1], region: 'South' }]
   assert.deepEqual(admin.changedRegionRows(original, edited), [
-    { provinceCode: '68', region: 'Central', highland: true, rowVersion: '12' }
+    { provinceCode: '68', region: 'South', rowVersion: '12' }
   ])
+  assert.equal(
+    admin.normalizePricingRegions({ provinces: [{ provinceCode: '68', region: 'Central', highland: true }] }).rows[0]
+      .highland,
+    undefined
+  )
 })
 
 test('đặt lại bộ đếm: chỉ khi có lần lỗi được tính, chặng chưa thành công và không đang chạy', () => {

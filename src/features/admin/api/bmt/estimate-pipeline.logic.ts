@@ -209,7 +209,6 @@ export interface PricingRegionRow {
   provinceCode: string
   provinceName: string
   region: PriceRegion | null
-  highland: boolean
   rowVersion: string
 }
 
@@ -222,19 +221,14 @@ export function normalizePricingRegions(raw: unknown): { tableVersion: number | 
       provinceCode: str(item.provinceCode),
       provinceName: str(item.provinceName),
       region: PRICE_REGIONS.includes(item.region as PriceRegion) ? (item.region as PriceRegion) : null,
-      highland: item.highland === true,
       rowVersion: String(item.rowVersion ?? '')
     }))
   }
 }
 
-/** Dòng hợp lệ: có miền; dấu Tây Nguyên chỉ đi với miền Trung (CHECK NOT Highland OR Region='Central'). */
-export function regionRowProblem(
-  row: Pick<PricingRegionRow, 'region' | 'highland'>
-): 'missingRegion' | 'highlandOutsideCentral' | null {
-  if (!row.region) return 'missingRegion'
-  if (row.highland && row.region !== 'Central') return 'highlandOutsideCentral'
-  return null
+/** Dòng hợp lệ khi có miền. Tây Nguyên thuộc miền Trung, không có dấu riêng (BR-PROJ-013, chốt 12/10/2026). */
+export function regionRowProblem(row: Pick<PricingRegionRow, 'region'>): 'missingRegion' | null {
+  return row.region ? null : 'missingRegion'
 }
 
 /** Chỉ gửi những dòng đã đổi, kèm `rowVersion` đọc được để BE chặn ghi đè (409 `VersionConflict`). */
@@ -243,12 +237,11 @@ export function changedRegionRows(original: readonly PricingRegionRow[], edited:
   return edited
     .filter((row) => {
       const old = before.get(row.provinceCode)
-      return !old || old.region !== row.region || old.highland !== row.highland
+      return !old || old.region !== row.region
     })
     .map((row) => ({
       provinceCode: row.provinceCode,
       region: row.region,
-      highland: row.highland,
       rowVersion: row.rowVersion
     }))
 }

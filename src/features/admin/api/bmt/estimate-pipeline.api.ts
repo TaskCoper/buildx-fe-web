@@ -64,7 +64,7 @@ export const estimatePipelineAdminApi = {
   getPricingRegions: async () => normalizePricingRegions(await http.get<unknown>('/admin/estimate-pricing/regions')),
 
   /** Chỉ gửi dòng đã đổi kèm `rowVersion` từng dòng. */
-  savePricingRegions: (rows: Pick<PricingRegionRow, 'provinceCode' | 'region' | 'highland' | 'rowVersion'>[]) =>
+  savePricingRegions: (rows: Pick<PricingRegionRow, 'provinceCode' | 'region' | 'rowVersion'>[]) =>
     http.put<unknown>('/admin/estimate-pricing/regions', { provinces: rows }, idempotent()),
 
   getPipelineDetail: async (estimateCode: string) =>

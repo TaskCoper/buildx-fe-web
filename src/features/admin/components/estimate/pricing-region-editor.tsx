@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Alert, App, Button, Checkbox, Input, Select, Table, Tag, Typography } from 'antd'
+import { Alert, App, Button, Input, Select, Table, Tag, Typography } from 'antd'
 import { useTranslations } from 'next-intl'
 import { useMemo, useState } from 'react'
 
@@ -32,7 +32,7 @@ export function PricingRegionEditor() {
   const queryClient = useQueryClient()
   const regions = useQuery({ queryKey: REGIONS_KEY, queryFn: () => estimatePipelineAdminApi.getPricingRegions() })
   // Chỉ giữ phần đã sửa theo mã tỉnh; bảng hiển thị = dữ liệu BE + phần sửa (không chép dữ liệu BE vào state).
-  const [edits, setEdits] = useState<Record<string, Pick<PricingRegionRow, 'region' | 'highland'>>>({})
+  const [edits, setEdits] = useState<Record<string, Pick<PricingRegionRow, 'region'>>>({})
   const [keyword, setKeyword] = useState('')
   const [saving, setSaving] = useState(false)
 
@@ -44,16 +44,8 @@ export function PricingRegionEditor() {
   const problems = rows.filter((row) => regionRowProblem(row))
   const visible = rows.filter((row) => row.provinceName.toLowerCase().includes(keyword.trim().toLowerCase()))
 
-  const update = (provinceCode: string, patch: Partial<Pick<PricingRegionRow, 'region' | 'highland'>>) => {
-    const row = rows.find((item) => item.provinceCode === provinceCode)
-    if (!row) return
-    const next = { region: patch.region ?? row.region, highland: patch.highland ?? row.highland }
-    // Dấu Tây Nguyên chỉ đi với miền Trung: đổi sang miền khác thì bỏ dấu.
-    setEdits((current) => ({
-      ...current,
-      [provinceCode]: next.region !== 'Central' ? { ...next, highland: false } : next
-    }))
-  }
+  const update = (provinceCode: string, region: PriceRegion) =>
+    setEdits((current) => ({ ...current, [provinceCode]: { region } }))
 
   async function save() {
     if (changed.length === 0 || problems.length > 0) return
@@ -140,19 +132,7 @@ export function PricingRegionEditor() {
                 placeholder={t('choose')}
                 style={{ width: 170 }}
                 options={PRICE_REGIONS.map((region) => ({ value: region, label: t(`regions.${region}`) }))}
-                onChange={(region) => update(row.provinceCode, { region })}
-              />
-            )
-          },
-          {
-            title: t('highland'),
-            key: 'highland',
-            width: 140,
-            render: (_, row) => (
-              <Checkbox
-                checked={row.highland}
-                disabled={row.region !== 'Central'}
-                onChange={(event) => update(row.provinceCode, { highland: event.target.checked })}
+                onChange={(region) => update(row.provinceCode, region)}
               />
             )
           },

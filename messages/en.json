@@ -6812,20 +6812,19 @@
       }
     },
     "pricingRegions": {
-      "description": "Each province belongs to the North, Central or South region; Central provinces can be marked as Central Highlands. The region is fixed when the customer runs the 2D stage, so changes only apply to later runs.",
+      "description": "Each province belongs to the North, Central or South region; the Central Highlands provinces belong to the Central region. The region is fixed when the customer runs the 2D stage, so changes only apply to later runs.",
       "save": "Save {count} changes",
       "saved": "Price regions saved.",
       "discard": "Discard changes",
       "reload": "Reload",
       "conflictTitle": "A province was just edited by someone else",
       "conflictBody": "Reload to see the latest data, then edit again. Your unsaved changes will be lost.",
-      "problems": "{count} provinces are not valid yet (missing region, or Highlands outside the Central region).",
+      "problems": "{count} provinces have no region yet.",
       "search": "Search province / city",
       "tableVersion": "Table version: {version}",
       "code": "Code",
       "province": "Province / city",
       "region": "Price region",
-      "highland": "Central Highlands",
       "choose": "Choose region",
       "edited": "Edited",
       "regions": {
