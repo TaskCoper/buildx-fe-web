@@ -26,7 +26,8 @@ export function useStageRun(projectId: string, stage: StageName) {
   const keyRef = useRef<string | null>(null)
 
   const mutation = useMutation({
-    mutationFn: async (inputVersion: number) => {
+    // `inputVersion` bắt buộc với chặng 2D; chặng sau BE bỏ qua thân yêu cầu nên có thể để trống.
+    mutationFn: async (inputVersion?: number | null) => {
       keyRef.current ??= crypto.randomUUID()
       try {
         const accepted = await estimatePipelineApi.startRun(projectId, stage, inputVersion, keyRef.current)

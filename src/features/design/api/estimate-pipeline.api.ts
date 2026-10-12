@@ -2,10 +2,12 @@ import { env } from '@/shared/config/env'
 import { http, isApiError } from '@/shared/lib/api'
 
 import {
+  estimateResultSchema,
   lotVerificationSchema,
   plan2dResultSchema,
   stageRunAcceptedSchema,
   stagesSchema,
+  type EstimateStageResult,
   type Plan2dResult,
   type StageRunAccepted
 } from '../schemas/pipeline-api.schema'
@@ -26,18 +28,19 @@ export const estimatePipelineApi = {
 
   /**
    * Bấm chạy một chặng. `key` giữ nguyên khi thử lại cùng một lần bấm (mất mạng, lỗi máy chủ) để BE trả lại lần chạy
-   * cũ thay vì giữ thêm lượt; lần bấm mới dùng khóa mới. `inputVersion` bắt buộc với chặng 2D, chặng khác BE bỏ qua.
+   * cũ thay vì giữ thêm lượt; lần bấm mới dùng khóa mới. `inputVersion` bắt buộc với chặng 2D; chặng sau BE bỏ qua
+   * thân yêu cầu (TDD-PROJ-009 Internal API), nên chỉ gửi khi có sẵn.
    */
   startRun: async (
     estimateId: string,
     stage: StageName,
-    inputVersion: number,
+    inputVersion: number | null | undefined,
     key: string
   ): Promise<StageRunAccepted> =>
     stageRunAcceptedSchema.parse(
       await http.post<unknown>(
         `/estimates/${estimateId}/stages/${stage}/runs`,
-        { inputVersion },
+        inputVersion === null || inputVersion === undefined ? {} : { inputVersion },
         { headers: { 'Idempotency-Key': key } }
       )
     ),
@@ -45,6 +48,13 @@ export const estimatePipelineApi = {
   /** Kết quả chặng 2D gửi khách; chỉ có khi chặng đã thành công (409 `StageResultNotReady` nếu chưa). */
   getPlan2dResult: async (estimateId: string, signal?: AbortSignal): Promise<Plan2dResult> =>
     plan2dResultSchema.parse(await http.get<unknown>(`/estimates/${estimateId}/stages/Plan2d/result`, { signal })),
+
+  /**
+   * Phần gửi khách của chặng Dự toán (hợp đồng `estimate-v1`); chỉ có khi chặng đã thành công (409
+   * `StageResultNotReady` nếu chưa). API không bao giờ trả phần nội bộ (BR-PROJ-017, TDD-PROJ-009 mục L).
+   */
+  getEstimateResult: async (estimateId: string, signal?: AbortSignal): Promise<EstimateStageResult> =>
+    estimateResultSchema.parse(await http.get<unknown>(`/estimates/${estimateId}/stages/Estimate/result`, { signal })),
 
   /** Gửi yêu cầu soi ảnh lô đang gắn với bản (bất đồng bộ): 202 khi tạo mới, 200 khi đã có yêu cầu đang soi. */
   requestLotVerification: async (estimateId: string): Promise<LotVerificationView> =>

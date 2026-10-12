@@ -19,6 +19,7 @@ async function load(path) {
 const pipeline = await load('src/features/design/services/pipeline.logic.ts')
 const input = await load('src/features/design/services/estimate-input.logic.ts')
 const admin = await load('src/features/admin/api/bmt/estimate-pipeline.logic.ts')
+const estimate = await load('src/features/design/services/estimate-stage.logic.ts')
 
 /* ---------------------------------------------------------------------------
  * Đầu vào mới (BR-PROJ-001, 002; TDD-PROJ-007 mục A)
@@ -379,6 +380,112 @@ test('chi phí một lần chạy cộng các lời gọi AI có giá', () => {
     0.31
   )
   assert.equal(admin.runCostUsd({ aiCalls: [] }), null)
+})
+
+/* ---------------------------------------------------------------------------
+ * Chặng Dự toán: ba tab, tổng, định dạng số, lỗi và chạy lại (STORY-PROJ-008, TDD-PROJ-009 mục P)
+ * ------------------------------------------------------------------------ */
+
+const sampleEstimate = {
+  totals: { structure: 1300000000, finishing: 581900000, interior: 486000000, grandTotal: 2367900000 },
+  parts: [
+    {
+      part: 'Interior',
+      total: 486000000,
+      groups: [{ name: 'TẦNG 1', items: [{ name: 'Tủ bếp', size: '3200×600×850 mm', amount: 16640000 }] }]
+    },
+    {
+      part: 'Structure',
+      total: 1300000000,
+      groups: [{ name: 'PHẦN MÓNG & NỀN', items: [{ name: 'Bê tông móng M250', amount: 34780000 }] }]
+    },
+    { part: 'Finishing', total: 581900000, groups: [] }
+  ]
+}
+
+test('dự toán: luôn đủ ba tab theo thứ tự thô → hoàn thiện → nội thất như app demo', () => {
+  const tabs = estimate.estimateTabs(sampleEstimate)
+  assert.deepEqual(
+    tabs.map((tab) => tab.part),
+    ['structure', 'finishing', 'interior']
+  )
+  assert.equal(tabs[0].groups[0].name, 'PHẦN MÓNG & NỀN')
+  assert.equal(tabs[1].empty, true, 'phần không có nhóm nào hiện dòng "không có hạng mục"')
+  assert.equal(tabs[2].empty, false)
+  assert.deepEqual(
+    tabs.map((tab) => tab.total),
+    [1300000000, 581900000, 486000000]
+  )
+  assert.equal(estimate.estimateGrandTotal(sampleEstimate), 2367900000)
+})
+
+test('dự toán: căn hộ không có phần thô thì tab Phần thô rỗng, tổng 0; tổng dự toán cộng ba phần khi thiếu', () => {
+  const apartment = {
+    totals: null,
+    parts: [
+      { part: 'Finishing', total: 300000000, groups: [{ name: 'SÀN', items: [{ name: 'Lát sàn', amount: 1 }] }] },
+      { part: 'Interior', groups: [{ name: 'PHÒNG KHÁCH', items: [{ name: 'Sofa', amount: 25000000 }] }] }
+    ]
+  }
+  const [structure, finishing, interior] = estimate.estimateTabs(apartment)
+  assert.equal(structure.empty, true)
+  assert.equal(structure.total, 0)
+  assert.equal(finishing.total, 300000000, 'thiếu totals thì lấy tổng của phần')
+  assert.equal(interior.total, 25000000, 'thiếu cả tổng phần thì cộng thành tiền các dòng')
+  assert.equal(estimate.estimateGrandTotal(apartment), 325000000)
+})
+
+test('dự toán: đọc tên phần theo hợp đồng estimate-v1 và theo khóa của app demo', () => {
+  assert.equal(estimate.estimatePartOf('Structure'), 'structure')
+  assert.equal(estimate.estimatePartOf('finishing'), 'finishing')
+  assert.equal(estimate.estimatePartOf('noi_that'), 'interior')
+  assert.equal(estimate.estimatePartOf('phan_tho'), 'structure')
+  assert.equal(estimate.estimatePartOf('Other'), null)
+  assert.equal(estimate.estimatePartOf(null), null)
+})
+
+test('dự toán: số tiền và khối lượng định dạng như money()/number() của app demo', () => {
+  assert.equal(estimate.formatEstimateAmount(34780000, 'vi'), '34.780.000')
+  assert.equal(estimate.formatEstimateAmount(8770000.5, 'vi'), '8.770.001', 'làm tròn tới đồng như Math.round')
+  assert.equal(estimate.formatEstimateAmount(34780000, 'en'), '34,780,000')
+  assert.equal(estimate.formatEstimateAmount(null, 'vi'), null, 'thiếu số thì để màn hình in —, không in 0 đ')
+  assert.equal(estimate.formatEstimateAmount(Number.NaN, 'vi'), null)
+  assert.equal(estimate.formatEstimateQuantity(18.5, 'vi'), '18,5')
+  assert.equal(estimate.formatEstimateQuantity(1234.567, 'vi'), '1.234,57', 'tối đa 2 chữ số lẻ')
+  assert.equal(estimate.formatEstimateQuantity(3, 'vi'), '3')
+  assert.equal(estimate.formatEstimateQuantity(3.2, 'en'), '3.2')
+  assert.equal(estimate.formatEstimateQuantity(undefined, 'vi'), null)
+})
+
+test('dự toán: thời gian thi công chỉ giữ dòng có nội dung, theo thứ tự thô → hoàn thiện → nội thất → tổng', () => {
+  assert.deepEqual(
+    estimate.estimateScheduleRows({ total: '~5,5 tháng', structure: '~95 ngày', finishing: ' ', interior: null }),
+    [
+      { key: 'structure', value: '~95 ngày' },
+      { key: 'total', value: '~5,5 tháng' }
+    ]
+  )
+  assert.deepEqual(estimate.estimateScheduleRows(null), [])
+})
+
+test('dự toán: mã lỗi lần chạy thành câu chung, không lộ nhà cung cấp (AC-009)', () => {
+  assert.equal(estimate.estimateFailureKind('AiOutputIncomplete'), 'incomplete')
+  assert.equal(estimate.estimateFailureKind('AiContentBlocked'), 'blocked')
+  assert.equal(estimate.estimateFailureKind('StageTimedOut'), 'timedOut')
+  for (const code of ['AiProviderUnavailable', 'AiOutOfCredit', 'AiOutputTruncated'])
+    assert.equal(estimate.estimateFailureKind(code), 'serviceDown', code)
+  for (const code of ['ArtifactStoreFailed', 'InternalError', 'PipelineVersionRetired', null, 'Lạ'])
+    assert.equal(estimate.estimateFailureKind(code), 'generic', String(code))
+})
+
+test('dự toán: còn lượt thì chạy lại, hết lượt thì báo liên hệ hỗ trợ (BR-PROJ-011 khoản 2)', () => {
+  assert.deepEqual(estimate.stageRetryState({ retriesLeft: 2 }), { kind: 'left', count: 2 })
+  assert.deepEqual(estimate.stageRetryState({ retriesLeft: 0 }), { kind: 'limit' })
+  assert.deepEqual(estimate.stageRetryState({ retriesLeft: 1, blockedReason: 'StageRetryLimitReached' }), {
+    kind: 'limit'
+  })
+  assert.deepEqual(estimate.stageRetryState({ retriesLeft: null }), { kind: 'unknown' })
+  assert.deepEqual(estimate.stageRetryState({}), { kind: 'unknown' })
 })
 
 /* ---------------------------------------------------------------------------

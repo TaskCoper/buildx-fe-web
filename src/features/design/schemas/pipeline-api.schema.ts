@@ -127,3 +127,80 @@ export const plan2dResultSchema = z.object({
 })
 export type Plan2dResult = z.infer<typeof plan2dResultSchema>
 export type Plan2dDrawing = Plan2dResult['drawings'][number]
+
+/* ===========================================================================
+ * Chặng Dự toán — phần gửi khách, hợp đồng `estimate-v1` (TDD-PROJ-009 Internal API, mục G, P)
+ * ======================================================================== */
+
+/**
+ * Số của dự toán đọc phòng thủ: nhận số hoặc chuỗi số (cột `numeric` có thể bị ghi thành chuỗi), giá trị lạ thành
+ * `null` thay vì làm hỏng cả bảng. Màn hình in "—" cho ô thiếu số.
+ */
+const estimateNumber = z
+  .preprocess(
+    (value) => (typeof value === 'string' && value.trim() !== '' ? Number(value) : value),
+    z.number().finite().nullable().optional()
+  )
+  .catch(null)
+const estimateText = z.string().nullable().optional().catch(null)
+
+const estimateItem = z.object({
+  name: z.string().catch(''),
+  /** Kích thước, chỉ có ở dòng nội thất; in dưới tên hạng mục như app demo. */
+  size: estimateText,
+  unit: estimateText,
+  quantity: estimateNumber,
+  /** Phần thô, hoàn thiện: vật tư + nhân công đã cộng sẵn (app demo `unit_price`); thành tiền tính theo đúng số này. */
+  unitPrice: estimateNumber,
+  amount: estimateNumber,
+  /** Vật liệu kèm hãng. Đọc để giữ hợp đồng nhưng màn hình không hiện, theo app demo (không hiện hãng vật tư). */
+  material: estimateText
+})
+
+const estimateGroup = z
+  .object({
+    name: estimateText,
+    /** Tên nhóm theo khóa của app demo (`group`), phòng khi BE giữ nguyên khóa cũ. */
+    group: estimateText,
+    items: z.array(estimateItem).catch([]).default([])
+  })
+  .transform(({ name, group, items }) => ({ name: name ?? group ?? '', items }))
+
+const estimatePartSchema = z.object({
+  part: z.string(),
+  title: estimateText,
+  total: estimateNumber,
+  groups: z.array(estimateGroup).catch([]).default([])
+})
+
+/** `GET /estimates/{id}/stages/Estimate/result` — phần gửi khách của chặng Dự toán. */
+export const estimateResultSchema = z.object({
+  runId: estimateText,
+  contractVersion: estimateText,
+  completedAtUtc: estimateText,
+  /** Ngày lập dự toán theo giờ Việt Nam (`yyyy-MM-dd`). */
+  estimateDateVn: estimateText,
+  convertedFloorAreaM2: estimateNumber,
+  totals: z
+    .object({
+      structure: estimateNumber,
+      finishing: estimateNumber,
+      interior: estimateNumber,
+      grandTotal: estimateNumber
+    })
+    .nullable()
+    .optional()
+    .catch(null),
+  /** Đơn giá trên m² sàn quy đổi = tổng dự toán ÷ tổng sàn quy đổi, đã làm tròn tới đồng (mục G). */
+  pricePerM2Vnd: estimateNumber,
+  parts: z.array(estimatePartSchema).default([]),
+  /** Thời gian thi công dự kiến của từng phần và tổng, dạng chữ (ví dụ "~95 ngày"). */
+  schedule: z
+    .object({ structure: estimateText, finishing: estimateText, interior: estimateText, total: estimateText })
+    .nullable()
+    .optional()
+    .catch(null),
+  /** Đoạn tư vấn gửi khách, đã lọc nội dung nội bộ; hiện như văn bản thuần (mục L). */
+  advice: estimateText
+})
+export type EstimateStageResult = z.infer<typeof estimateResultSchema>
