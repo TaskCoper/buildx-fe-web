@@ -6,7 +6,7 @@ import { TITLE_TEMPLATE } from '@/shared/lib/page-title'
 import { AppProviders } from '@/shared/providers'
 import type { Metadata } from 'next'
 import { NextIntlClientProvider, hasLocale } from 'next-intl'
-import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server'
 import { Be_Vietnam_Pro, Geist, Geist_Mono, Sriracha } from 'next/font/google'
 import { notFound } from 'next/navigation'
 
@@ -160,6 +160,12 @@ export default async function LocaleLayout({
   // Enable static rendering for this locale segment.
   setRequestLocale(locale)
 
+  // Chữ của khu quản trị (`admin.*`, ~134 KB — hơn 40% bảng chữ) chỉ khu admin dùng, nhưng nếu để lọt vào đây thì MỌI trang của
+  // khách đều phải tải và phân tích thêm chừng đó, cả trong HTML lẫn mỗi lần điều hướng (hồ sơ nhà thầu: 385 KB, trong đó
+  // 308 KB là bảng chữ). `(admin)/layout.tsx` tự nạp lại nhánh này cho riêng khu admin.
+  const allMessages = await getMessages({ locale })
+  const siteMessages = Object.fromEntries(Object.entries(allMessages).filter(([key]) => key !== 'admin'))
+
   // `data-scroll-behavior` trên <html>: `globals.css` bật `scroll-behavior: smooth` cho cả trang, nên
   // khi đổi trang Next cuộn về đầu bằng hiệu ứng trượt chậm từ chỗ đang đứng. Cờ này bảo Next tạm tắt
   // smooth đúng lúc chuyển route → nhảy thẳng lên đầu trang; cuộn neo / nút cuộn vẫn mượt.
@@ -172,8 +178,8 @@ export default async function LocaleLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${beVietnamPro.variable} ${handwriting.variable} font-sans antialiased`}
       >
-        {/* Messages are provided automatically from i18n/request.ts */}
-        <NextIntlClientProvider>
+        {/* Bảng chữ lấy từ i18n/request.ts, đã bỏ nhánh `admin` (xem trên). */}
+        <NextIntlClientProvider locale={locale} messages={siteMessages}>
           {/* Re-provides the catalogue with the copy the admin edited in the
               CMS layered on top, so every string on the site is editable
               without a deploy. No-ops until something is actually overridden. */}

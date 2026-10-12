@@ -25,7 +25,7 @@ import { useLocale, useTranslations } from 'next-intl'
 import { cloneElement, isValidElement, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
-import { Link, useRouter } from '@/i18n/navigation'
+import { Link } from '@/i18n/navigation'
 import type { Locale } from '@/i18n/routing'
 import { useCmsCollection } from '@/shared/cms'
 import {
@@ -51,12 +51,12 @@ import { Tabs, TabsList, TabsTrigger } from '@/shared/components/ui/tabs'
 import {
   CONTRACTOR_PREVIEW_ID,
   contractorCompareRoute,
-  contractorFirmRoute,
   contractorInvitationsRoute,
   contractorInviteRoute,
   contractorMatchesRoute
 } from '@/shared/constants/routes'
 import { useCountUp, useDocumentTitle } from '@/shared/hooks'
+import { replaceSearchParam } from '@/shared/lib/search-params'
 import { cn } from '@/shared/lib/utils'
 import { formatDate, formatDisplayDate, formatNumber } from '@/shared/utils'
 import { mergeProjectDetail } from '../api/contractors.logic'
@@ -235,11 +235,13 @@ export function ContractorProfile({ projectId, contractorId, tab }: ContractorPr
   const t = useTranslations('contractors.firm')
   const tCommon = useTranslations('contractors.common')
   const locale = useLocale() as Locale
-  const router = useRouter()
 
   const openPicker = useProjectPickerStore((s) => s.openPicker)
   /** Xem thử — chưa gắn hồ sơ dự án nào (xem `CONTRACTOR_PREVIEW_ID`). */
   const preview = projectId === CONTRACTOR_PREVIEW_ID
+
+  /** Đổi tab chỉ đổi `?tab=` trên thanh địa chỉ, không gọi máy chủ — `router.replace` tải lại cả trang mỗi lần bấm. */
+  const selectTab = (next: string) => replaceSearchParam('tab', next)
 
   const { data: brief } = useBrief(projectId)
   const { data: contractor, isPending, isError, refetch } = useContractor(contractorId)
@@ -420,11 +422,7 @@ export function ContractorProfile({ projectId, contractorId, tab }: ContractorPr
 
       <div className='grid gap-x-[1.4%] gap-y-5 lg:grid-cols-[79%_minmax(0,1fr)]'>
         <div className='min-w-0'>
-          <Tabs
-            value={tab}
-            onValueChange={(next) => router.replace(contractorFirmRoute(projectId, contractorId, next))}
-            className='gap-5'
-          >
+          <Tabs value={tab} onValueChange={selectTab} className='gap-5'>
             {/* Nhận diện + chỉ số + tab: một thẻ duy nhất, đúng ảnh S13. */}
             <motion.div
               initial={{ opacity: 0, y: 16 }}
