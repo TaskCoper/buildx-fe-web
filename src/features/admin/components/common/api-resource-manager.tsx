@@ -17,7 +17,7 @@ import {
   type TableProps
 } from 'antd'
 import { useTranslations } from 'next-intl'
-import { Suspense, useLayoutEffect, useState, type ReactNode } from 'react'
+import { Suspense, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 
 import { isApiError } from '@/shared/lib/api'
 import type { PagedResult } from '@/shared/types'
@@ -269,6 +269,7 @@ function ApiResourceManagerBody<T>({
         formatError={formatError}
         refresh={refresh}
         onClose={() => formPage.close()}
+        onSaved={() => formPage.close()}
       />
     )
   }
@@ -398,6 +399,7 @@ interface FormSessionProps<T> {
   formatError?: ApiResourceManagerProps<T>['formatError']
   refresh: () => Promise<void>
   onClose: () => void
+  onSaved: () => void
 }
 
 /**
@@ -420,13 +422,16 @@ function FormSession<T>({
   saveOptions,
   formatError,
   refresh,
-  onClose
+  onClose,
+  onSaved
 }: FormSessionProps<T>) {
   const t = useTranslations('admin')
   const { message, modal } = App.useApp()
   const [form] = Form.useForm()
   const [dirty, setDirty] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [completed, setCompleted] = useState(false)
+  const submitting = useRef(false)
   useUnsavedGuard(dirty)
 
   // Chốt bản ghi ngay lúc mở: Lưu dùng đúng bản này dù danh sách có tải lại giữa chừng.
@@ -468,24 +473,36 @@ function FormSession<T>({
   }
 
   async function submit(saveMode?: string) {
-    const values = (await form.validateFields().catch(() => {
-      onValidationFailed?.(form)
-      return null
-    })) as Record<string, unknown> | null
-    if (!values) return
+    if (submitting.current) return
+    submitting.current = true
     setSaving(true)
+    let saved = false
     try {
+      const values = (await form.validateFields().catch(() => {
+        onValidationFailed?.(form)
+        return null
+      })) as Record<string, unknown> | null
+      if (!values) return
       if (mode === 'edit') {
         if (item) await onUpdate?.(values, item, saveMode)
       } else await onCreate?.(values)
-      await refresh()
+      saved = true
+      setCompleted(true)
       message.success(mode === 'edit' ? t('feedback.saved') : t('feedback.created'))
       setDirty(false)
-      onClose()
+      onSaved()
+      // Tải lại danh sách ở nền; không giữ form tạo sau khi API đã ghi thành công.
+      void refresh().catch((err: unknown) => {
+        message.error(formatError ? formatError(err) : isApiError(err) ? err.message : t('feedback.apiError'))
+      })
     } catch (err) {
       message.error(formatError ? formatError(err) : isApiError(err) ? err.message : t('feedback.apiError'))
     } finally {
       setSaving(false)
+      // Giữ khóa gửi sau khi ghi thành công; không cho tạo lại nếu đóng form gặp lỗi.
+      if (!saved) {
+        submitting.current = false
+      }
     }
   }
 
@@ -502,12 +519,12 @@ function FormSession<T>({
           <Button onClick={requestClose}>{t('actions.cancel')}</Button>
           {extraSaves.length > 0 ? (
             <Space.Compact>
-              <Button type='primary' loading={saving} disabled={!ready} onClick={() => submit()}>
+              <Button type='primary' loading={saving} disabled={!ready || completed} onClick={() => submit()}>
                 {t('actions.save')}
               </Button>
               <Dropdown
                 trigger={['click']}
-                disabled={saving || !ready}
+                disabled={saving || !ready || completed}
                 menu={{
                   items: extraSaves.map((option) => ({ key: option.key, label: option.label })),
                   onClick: ({ key }) => {
@@ -528,7 +545,7 @@ function FormSession<T>({
               </Dropdown>
             </Space.Compact>
           ) : (
-            <Button type='primary' loading={saving} disabled={!ready} onClick={() => submit()}>
+            <Button type='primary' loading={saving} disabled={!ready || completed} onClick={() => submit()}>
               {t('actions.save')}
             </Button>
           )}

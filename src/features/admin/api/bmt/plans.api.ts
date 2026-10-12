@@ -1,4 +1,5 @@
 import { http } from '@/shared/lib/api'
+import { readPlanMetadata, type PlanMetadata } from '@/shared/cms'
 import type { PagedResult } from '@/shared/types'
 
 /**
@@ -18,7 +19,14 @@ export type PlanKind = 'Design' | 'Supervision'
 export type PlanSaleState = 'NotPublished' | 'OnSale' | 'Stopped'
 export type PlanOfferKey = 'Month' | 'Year' | 'ConstructionSite'
 /** Mã quyền hợp lệ của BE (danh mục `GET /admin/benefit-definitions`). */
-export type PlanQuotaCode = 'design.generate' | 'catalog.detail' | 'design.render3d'
+export type PlanQuotaCode = 'design.generate' | 'catalog.detail'
+
+/** Chỉ hai quyền đang dùng; tạm bỏ quyền hiển thị 3D theo quyết định ngày 10/10/2026. */
+export const ACTIVE_PLAN_BENEFIT_CODES: readonly PlanQuotaCode[] = [
+  'design.generate',
+  'catalog.detail'
+  // 'design.render3d'
+]
 
 export interface BmtBenefitDefinition {
   id: string
@@ -56,6 +64,7 @@ export interface BmtDisplayBenefitView {
  * trình bày thẻ PHẲNG mà BE vừa deploy (không còn khối `presentation` lồng nhau).
  */
 export interface BmtRevisionView {
+  metadata?: PlanMetadata | null
   id: string
   number: number
   state: 'Draft' | 'Published'
@@ -104,6 +113,14 @@ export interface BmtPlanDetail {
   draft?: BmtRevisionView | null
 }
 
+export interface BmtPlanRevisionHistoryItem {
+  id: string
+  number: number
+  name: string
+  publishedAtUtc?: string | null
+  isCurrent: boolean
+}
+
 export interface BmtPlanQuotaInput {
   code: PlanQuotaCode
   isUnlimited: boolean
@@ -114,7 +131,7 @@ export interface BmtPlanOfferInput {
   offerKey: PlanOfferKey
   price: number
   currency: 'VND'
-  quotas?: BmtPlanQuotaInput[]
+  quotas: BmtPlanQuotaInput[]
 }
 
 export interface BmtPlanDisplayBenefitInput {
@@ -130,6 +147,7 @@ export interface BmtPlanDisplayBenefitInput {
  * `giftConditions`) nằm PHẲNG ngay trong thân request, đúng như BE nhận.
  */
 export interface BmtPlanDraftContent {
+  metadata?: PlanMetadata | null
   name: string
   description: string
   consultationText: string
@@ -177,7 +195,24 @@ export const bmtPlansApi = {
       params: { kind, saleState, pageIndex, pageSize }
     }),
 
-  getPlan: (planId: string) => http.get<BmtPlanDetail>(`/admin/plans/${planId}`),
+  getPlan: async (planId: string) => {
+    const detail = await http.get<BmtPlanDetail>(`/admin/plans/${planId}`)
+    for (const revision of [detail.draft, detail.publishedRevision]) {
+      if (revision) revision.metadata = readPlanMetadata(revision.metadata)
+    }
+    return detail
+  },
+
+  listRevisions: (planId: string, pageIndex: number, pageSize: number) =>
+    http.get<PagedResult<BmtPlanRevisionHistoryItem>>(`/admin/plans/${planId}/revisions`, {
+      params: { pageIndex, pageSize }
+    }),
+
+  getRevision: async (planId: string, revisionId: string) => {
+    const revision = await http.get<BmtRevisionView>(`/admin/plans/${planId}/revisions/${revisionId}`)
+    revision.metadata = readPlanMetadata(revision.metadata)
+    return revision
+  },
 
   createPlan: (body: BmtCreatePlanRequest) => http.post<BmtPlanSaved>('/admin/plans', body),
 

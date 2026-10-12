@@ -30,7 +30,8 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-  Skeleton
+  Skeleton,
+  Textarea
 } from '@/shared/components/ui'
 import { contractorReviewRoute, ROUTES } from '@/shared/constants/routes'
 import { errorCodeOf, isApiError } from '@/shared/lib/api'
@@ -115,6 +116,11 @@ const ERROR_CODES = [
   'MapServiceUnavailable'
 ] as const
 type StringField = Exclude<keyof SiteFormValues, 'floorCount' | 'hasTum'>
+/**
+ * Mô tả nhu cầu gửi lên BE (BR-SITE-001 khoản 17). Rỗng thì bỏ khóa: PUT thay toàn bộ nên thiếu mô tả nghĩa là xóa mô tả đã lưu,
+ * và BE chưa có trường này (đang chờ triển khai) vẫn nhận được yêu cầu vì BE từ chối khóa lạ.
+ */
+const descriptionField = (text: string) => (text.trim() ? { description: text.trim() } : {})
 const WARDS_STALE = 30 * 60 * 1000
 /** Lỗi ở các trường địa chỉ có cấu trúc đều hiện chung dưới ô địa chỉ duy nhất (người dùng không thấy riêng từng trường). */
 const ADDRESS_FIELDS = ['addressDetail', 'provinceCode', 'wardCode', 'locationDatasetVersion'] as const
@@ -248,7 +254,8 @@ export function ConstructionSiteForm({ projectId }: { projectId: string }) {
         plannedStart: detail.plannedStart,
         sourceEstimateId: detail.sourceEstimateId ?? '',
         scope: brief.scope,
-        scopeNote: brief.scopeNote
+        // Hồ sơ đã lưu: mô tả lấy từ BE; BE chưa trả trường này (undefined) thì giữ bản cũ lưu trên trình duyệt.
+        scopeNote: detail.description === undefined ? brief.scopeNote : (detail.description ?? '')
       })
       setAddressInput(detail.address)
       setLocation({
@@ -569,6 +576,7 @@ export function ConstructionSiteForm({ projectId }: { projectId: string }) {
             conditionId: input.conditionId,
             budgetVnd: moneyDecimal(input.budgetVnd),
             plannedStart: input.plannedStart,
+            ...descriptionField(input.scopeNote),
             expectedVersion: site.version,
             ...(site.sourceEstimateId
               ? {}
@@ -587,6 +595,7 @@ export function ConstructionSiteForm({ projectId }: { projectId: string }) {
         conditionId: input.conditionId,
         budgetVnd: moneyDecimal(input.budgetVnd),
         plannedStart: input.plannedStart,
+        ...descriptionField(input.scopeNote),
         latitude: location!.latitude,
         longitude: location!.longitude,
         uploadIds: uploads.map((item) => item.uploadId),
@@ -1336,6 +1345,35 @@ export function ConstructionSiteForm({ projectId }: { projectId: string }) {
                 ) : (
                   <p className='bg-muted text-muted-foreground rounded-xl p-4 text-sm'>{t('stylePrompt')}</p>
                 )}
+              </section>
+              <section id='site-description' className='min-w-0 space-y-3'>
+                <div>
+                  <h2 className='font-semibold uppercase'>{t('needsTitle')}</h2>
+                  <p className='text-muted-foreground text-sm'>{t('needsSubtitle')}</p>
+                </div>
+                <FormField
+                  control={form.control}
+                  name='scopeNote'
+                  render={({ field }) => (
+                    <FormItem id='site-field-scopeNote'>
+                      <FormLabel>{t('description')}</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          {...field}
+                          value={field.value ?? ''}
+                          rows={5}
+                          maxLength={1000}
+                          placeholder={t('descriptionPlaceholder')}
+                          disabled={disabled}
+                        />
+                      </FormControl>
+                      <p className='text-muted-foreground text-right text-xs'>
+                        {t('descriptionCount', { count: values.scopeNote.length })}
+                      </p>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </section>
             </div>
           </fieldset>

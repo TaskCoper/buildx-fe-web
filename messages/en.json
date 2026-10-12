@@ -357,6 +357,7 @@
       "ConstructionSiteNameTaken": "You already have a site with this name. Please choose another.",
       "ConstructionSiteAddressRequired": "Please enter the site address.",
       "ConstructionSiteAddressTooLong": "The site address can be at most 500 characters.",
+      "ConstructionSiteDescriptionTooLong": "The description can be at most 1,000 characters.",
       "ConstructionSiteCoordinatesRequired": "Please pick the site location on the map.",
       "ConstructionSiteCoordinatesInvalid": "The map location is not valid. Please pick it again.",
       "ConstructionSiteCoordinatesUnavailable": "This site has no map location yet. Pick one and save.",
@@ -2608,6 +2609,8 @@
     }
   },
   "plans": {
+    "loadError": "Unable to load packages. Please try again.",
+    "retry": "Try again",
     "title": "BuildX pricing",
     "subtitle": "Create options – Compare choices – Optimise the budget before you build",
     "tabs": {
@@ -2648,7 +2651,7 @@
     "designCredits": "design & estimate credits",
     "libraryCredits": "template look-ups",
     "audience": "For: {audience}",
-    "choosePlan": "Choose plan",
+    "choosePlan": "Choose {name}",
     "cta": {
       "basic": "Start now",
       "advanced": "Plan it out",
@@ -2773,7 +2776,9 @@
     },
     "highlights": {
       "designCredits": "{count} design options",
-      "libraryCredits": "{count} template library views"
+      "libraryCredits": "{count} template library views",
+      "designUnlimited": "Unlimited design options",
+      "libraryUnlimited": "Unlimited library lookups"
     },
     "cycle": {
       "label": "Billing cycle",
@@ -2783,7 +2788,8 @@
       "noteMonth": "Pay once · valid for 1 month",
       "noteYear": "Pay once · valid for 1 year",
       "unavailable": "Not on sale for this cycle"
-    }
+    },
+    "empty": "No design plans are currently published."
   },
   "consult": {
     "directory": {
@@ -3840,7 +3846,6 @@
       "unlimited": "Unlimited",
       "limited": "Limited",
       "limitValue": "{limit} uses",
-      "serviceDescription": "Service description",
       "descriptionField": "Plan description",
       "consultationText": "Consultation text",
       "offers": "Purchase options & price (VND)",
@@ -3857,7 +3862,6 @@
       "draftNote": "Saving overwrites the whole draft; the website keeps showing the published version until you Publish from the plan row.",
       "codeHint": "Must be unique and cannot change after creation.",
       "kindHint": "Chosen once at creation, cannot change later.",
-      "serviceDescriptionHint": "Required to publish. Display only, locked per order — creates no uses or counters.",
       "consultationHint": "Free text describing the offline consultation service; creates no consultation uses or levels.",
       "priceRule": "Price must be a whole VND amount greater than 0.",
       "quotaSection": "Usage-based benefits",
@@ -3873,7 +3877,7 @@
       "noBooleanDefinitions": "The system catalogue has no on / off benefits yet.",
       "displayText": "Display text",
       "sortOrderRule": "Order must be a whole number.",
-      "supervisionNote": "Supervision plans use no benefit catalogue and no consultation text; publishing needs a name, price and service description.",
+      "supervisionNote": "A zero-price plan is informational and cannot be purchased. Positive-price plans use the per-project purchase flow. Publishing requires a name and valid price.",
       "snapshotNote": "Existing orders keep the plan version at order time — published changes apply to later purchases only.",
       "highlightedBadge": "Highlighted",
       "cardSection": "Plan card presentation",
@@ -3884,7 +3888,64 @@
       "highlightLabel": "Highlight label",
       "highlightLabelHint": "Text shown on the badge when the plan is highlighted (e.g. Best seller).",
       "giftDescription": "Gift description",
-      "giftConditions": "Gift conditions"
+      "giftConditions": "Gift conditions",
+      "metadataTitle": "Display benefits",
+      "metadataHint": "Package description only; does not change usage permissions. Shared across month and year; up to 20 lines.",
+      "metadataSupervisionHint": "Package description only; does not change usage permissions or inspection counts. Up to 20 lines.",
+      "metadataText": "Line {number}",
+      "metadataVisible": "Show line {number}",
+      "metadataTextRule": "Enter 1–1,000 characters after trimming.",
+      "metadataMax": "Up to 20 benefit lines.",
+      "metadataUp": "Move up",
+      "metadataDown": "Move down",
+      "metadataRemove": "Remove line",
+      "metadataAdd": "Add line",
+      "metadataLegacyNote": "These lines come from the current display and have not been saved. Save the draft, then Publish to apply.",
+      "metadataLegacyPreview": "Not configured; Customer still sees the current descriptive benefits.",
+      "metadataEmpty": "No descriptive benefits.",
+      "supervisionCardSection": "Supervision card content",
+      "supervisionDisplayOrder": "Display order",
+      "supervisionDisplayOrderHint": "Lower numbers appear first. Leave blank to place this plan after ordered plans. Changes apply after publishing.",
+      "supervisionDisplayOrderRule": "Enter an integer from 1 to 9999 or leave blank.",
+      "supervisionCardHint": "Content belongs to the plan revision and changes after publishing. Duration and visits describe the service; they do not create permissions or counters. Leave blank to remove content.",
+      "supervisionCardFields": {
+        "tagline": "Label below plan name",
+        "fitLine": "Who this plan suits",
+        "durationText": "Duration text",
+        "inspectionText": "Site inspection text",
+        "recommendedLabel": "Recommendation label",
+        "buttonLabel": "Choose-plan button text (optional)"
+      },
+      "supervisionCardRecommended": "Mark as recommended",
+      "supervisionPriceRule": "Price must be a whole VND amount of 0 or more.",
+      "legacyDuration": "/ project · up to {months} months",
+      "legacyInspections": "{count} on-site engineer inspections",
+      "legacyNoInspection": "No on-site engineer inspections",
+      "legacyRecommended": "Recommended for homes",
+      "designCardSection": "Design card content",
+      "designCardHint": "Content belongs to the plan revision and changes after publication. Leave blank to omit content; sample data is never restored. Gift content uses the fields in this section.",
+      "designCardFields": {
+        "tagline": "Tagline below plan name",
+        "fitLine": "Suitable for",
+        "featuresTitle": "Benefits heading",
+        "buttonLabel": "Choose button text",
+        "giftTitle": "Gift title",
+        "giftExtraBody": "Additional gift offer",
+        "giftConditionsShort": "Gift conditions",
+        "giftImageUrl": "Gift image",
+        "giftValue": "Gift value (VND)"
+      },
+      "designGiftValueRule": "Gift value must be a nonnegative safe integer.",
+      "designMetadataMissing": "Display benefits are not configured; customers see only the plan usage limits.",
+      "historyTitle": "Revision history",
+      "historyEmpty": "This plan has no published revisions.",
+      "historyCurrent": "Current",
+      "historyView": "View",
+      "historyViewRevision": "View revision #{number}",
+      "historyPublished": "Published revision",
+      "historyReadOnly": "You are viewing a published revision. Its contents are read-only and preserved for this revision.",
+      "publishedAt": "Published at",
+      "retry": "Retry"
     },
     "bmtCommerce": {
       "views": {
@@ -4089,7 +4150,7 @@
       "inspectionsRule": "Inspections must be a whole number from 1."
     },
     "contractorsAdmin": {
-      "description": "Manage contractor profiles: info, capability (building type × scope), contact, legal. New profiles are Hidden; going Visible needs name + address + coordinates + ≥1 building type + ≥1 scope.",
+      "description": "Manage contractor profiles: info, capability (building type × scope), contact, legal. A name, an address with a map location, at least one building type and one construction scope are required. New profiles are saved as Hidden; use Show profile to publish.",
       "name": "Contractor name",
       "address": "Address",
       "statusLabel": "Status",
@@ -4098,7 +4159,8 @@
       "hidden": "Hidden",
       "hide": "Hide profile",
       "show": "Show profile",
-      "requiredForVisible": "Required to be publicly visible.",
+      "buildingTypesRequired": "Select at least one building type.",
+      "scopesRequired": "Select at least one construction scope.",
       "ratingHint": "Admin-entered score, 0–5. Leave both score and count empty to hide the rating.",
       "contactNote": "Contact details are admin-only and never shown on the public site.",
       "sections": {
@@ -4275,6 +4337,10 @@
         "mapError": "Unable to find the location. Please try again.",
         "coordinatesRequired": "Select an address suggestion to determine the location before saving.",
         "required": "Enter the province/city, ward/commune and house number/street.",
+        "provinceRequired": "Select a province/city.",
+        "wardRequired": "Select a ward/commune.",
+        "streetRequired": "Enter the house number/street.",
+        "legacyRequired": "An address and a map location are required. Press \"Add separate address fields\" to enter them again.",
         "tooLong": "House number/street must not exceed 500 characters.",
         "clear": "Clear the entire address",
         "catalogError": "Unable to load provinces/wards. Your input has been preserved.",
@@ -6361,7 +6427,9 @@
         "ConditionPhoto": "Site photo"
       },
       "code": "Record code",
-      "searchByCode": "Search by record code"
+      "searchByCode": "Search by record code",
+      "needs": "Customer description",
+      "noNeeds": "The customer has not entered a description."
     }
   },
   "contractors": {
@@ -7293,11 +7361,10 @@
       "budgetError": "Enter a positive integer VND amount, up to 28 digits. Thousands separators are allowed.",
       "start": "Expected construction start",
       "needsTitle": "Construction needs",
-      "needsSubtitle": "Tell BuildX the scope and main requirements of your project.",
+      "needsSubtitle": "Tell BuildX the main requirements of your site. This part is optional.",
       "scope": "Construction scope",
       "description": "Describe your needs",
       "descriptionPlaceholder": "Example: Looking for an experienced contractor for a turnkey two-storey townhouse, available for a weekend survey.",
-      "needsLocal": "Construction needs are saved in this browser; they have not been sent to a contractor.",
       "scopeLoadError": "Unable to load construction scopes. Please retry.",
       "scopeEmpty": "There are no active construction scopes in the catalog.",
       "scopeHistorical": "Previously saved selection",
@@ -7862,7 +7929,9 @@
         "paymentIcon": "QrCode",
         "scopeIcon": "Ruler",
         "areaIcon": "MapPin"
-      }
+      },
+      "loadingPlans": "Loading supervision plans…",
+      "noPublishedPlans": "No supervision plans have been published."
     },
     "dashboard": {
       "stageShort": "Stage {index}",

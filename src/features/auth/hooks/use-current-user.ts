@@ -39,7 +39,8 @@ export function useCurrentUser() {
 
   useEffect(() => {
     const refreshed = () => {
-      setInitialized(false)
+      // Keep the verified screen mounted while checking the refreshed permission snapshot.
+      // A failed check still clears the user through the query error effect above.
       void queryClient
         .cancelQueries({ queryKey: authKeys.currentUser() })
         .then(() => queryClient.invalidateQueries({ queryKey: authKeys.currentUser() }))

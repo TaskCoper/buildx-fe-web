@@ -16,7 +16,7 @@ import {
 import { useSupervisionSections, useSupervisionCopy } from '../hooks/use-supervision-content'
 import { Link } from '@/i18n/navigation'
 import type { Locale } from '@/i18n/routing'
-import type { SupervisionPackage, SupervisionTier } from '@/shared/cms'
+import type { SupervisionTier } from '@/shared/cms'
 import { Photo, PricingMotionProvider, pricingEase } from '@/shared/components/common'
 import { Button } from '@/shared/components/ui/button'
 import { checkoutConfirmRoute } from '@/shared/constants/routes'
@@ -25,7 +25,7 @@ import { cn } from '@/shared/lib/utils'
 import { rememberCheckoutReturn } from '@/shared/lib/checkout-return'
 import { formatCurrency } from '@/shared/utils'
 import type { SupervisionPackageView } from '../api/supervision.merge'
-import { useSupervisionPackages } from '../hooks/use-supervision-packages'
+import { useSupervisionPackageList, useSupervisionPackages } from '../hooks/use-supervision-packages'
 import {
   SUPERVISION_COMPARISON,
   SUPERVISION_TIERS,
@@ -61,7 +61,7 @@ export function SupervisionPricing({ projectId }: SupervisionPricingProps) {
 function SupervisionPricingContent({ projectId }: SupervisionPricingProps) {
   const notesCopy = useSupervisionCopy('notes')
   const t = useTranslations('supervision.pricing')
-  const packages = useSupervisionPackages()
+  const { packages, isPending, isError, retry } = useSupervisionPackageList()
   const { rootRef, entranceState, entranceStyle } = usePageEntrance('plans.supervision', { offsetMs: 120 })
 
   // Chữ cuối tiêu đề tô cam (Hình S19) — tách ở khoảng trắng cuối như S01.
@@ -69,7 +69,7 @@ function SupervisionPricingContent({ projectId }: SupervisionPricingProps) {
   const splitAt = title.lastIndexOf(' ')
   const titleLead = splitAt > 0 ? title.slice(0, splitAt) : title
   const titleAccent = splitAt > 0 ? title.slice(splitAt + 1) : ''
-  const [hoveredTier, setHoveredTier] = useState<SupervisionTier | null>(null)
+  const [hoveredTier, setHoveredTier] = useState<string | null>(null)
   const cardsRef = useRef<HTMLUListElement>(null)
   const tPlans = useTranslations('plans')
   const [slide, setSlide] = useState(1)
@@ -154,6 +154,24 @@ function SupervisionPricingContent({ projectId }: SupervisionPricingProps) {
           </motion.p>
         </header>
 
+        {isError ? (
+          <div
+            role='alert'
+            className='bg-destructive/10 text-destructive flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4'
+          >
+            <span>{tPlans('loadError')}</span>
+            <Button type='button' variant='outline' onClick={retry}>
+              {tPlans('retry')}
+            </Button>
+          </div>
+        ) : null}
+
+        {!isError && (isPending || packages.length === 0) ? (
+          <p role='status' className='text-muted-foreground py-6 text-center'>
+            {t(isPending ? 'loadingPlans' : 'noPublishedPlans')}
+          </p>
+        ) : null}
+
         {/* pt đủ chỗ cho ruy-băng "Khuyến nghị" NẰM TRÊN viên nhãn nhóm gói: viên
             nhãn cưỡi lên mép trên thẻ (-mt-8) nên hai thứ này từng chồng chữ lên
             nhau ở thẻ được khuyến nghị. */}
@@ -196,12 +214,12 @@ function SupervisionPricingContent({ projectId }: SupervisionPricingProps) {
           >
             {packages.map((item, index) => (
               <PackageCard
-                key={item.tier}
+                key={item.id}
                 item={item}
                 index={index}
                 projectId={projectId}
-                active={hoveredTier === item.tier}
-                onHover={() => setHoveredTier(item.tier)}
+                active={hoveredTier === item.id}
+                onHover={() => setHoveredTier(item.id)}
                 onLeave={() => setHoveredTier(null)}
               />
             ))}
@@ -282,10 +300,13 @@ function PackageCard({
   const tTiers = useTranslations('supervision.tiers')
   const tTags = useTranslations('supervision.tierTags')
   const isFree = item.price === 0
+  const tagline = item.card ? item.card.tagline : item.legacy ? tTags(item.tier) : ''
+  const recommendedLabel = item.card ? item.card.recommendedLabel : t('recommended')
 
   return (
     <motion.li
       data-tier={item.tier}
+      data-plan-id={item.id}
       data-active={active || undefined}
       data-muted={isFree || undefined}
       className='supervision-package relative flex'
@@ -299,7 +320,7 @@ function PackageCard({
         if (!event.currentTarget.contains(event.relatedTarget)) onLeave()
       }}
     >
-      {item.recommended ? (
+      {item.recommended && recommendedLabel ? (
         <motion.span
           className='supervision-control-label supervision-control-label-top bg-brand-orange text-brand-orange-foreground absolute -top-3 left-1/2 z-10 inline-flex -translate-x-1/2 items-center gap-1 rounded-full px-4 py-1 text-sm font-semibold tracking-wide uppercase whitespace-nowrap'
           initial={{ opacity: 0, y: -14 }}
@@ -307,7 +328,7 @@ function PackageCard({
           transition={{ duration: 0.5, delay: 0.3, ease: pricingEase }}
         >
           <Star className='size-3' />
-          {t('recommended')}
+          {recommendedLabel}
         </motion.span>
       ) : null}
 
@@ -327,25 +348,27 @@ function PackageCard({
         >
           <h2
             className={cn(
-              'text-[8.3cqw] leading-none font-bold tracking-wide uppercase',
+              'text-[8.3cqw] leading-none font-bold tracking-wide [overflow-wrap:anywhere] uppercase',
               item.recommended ? 'text-brand-orange' : 'text-primary-strong'
             )}
           >
             {item.name || tTiers(item.tier)}
           </h2>
-          <motion.p
-            className={cn(
-              'supervision-control-label absolute bottom-0 left-1/2 w-fit -translate-x-1/2 translate-y-1/2 rounded-full px-[3.5cqw] py-[1.6cqw] text-center text-sm leading-none font-semibold tracking-wide whitespace-nowrap uppercase',
-              item.recommended
-                ? 'bg-brand-orange text-brand-orange-foreground'
-                : 'bg-primary-strong text-primary-foreground'
-            )}
-            initial={item.recommended ? { opacity: 0, y: -12 } : false}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.48, delay: item.recommended ? 0.25 : 0.15 + index * 0.1, ease: pricingEase }}
-          >
-            {tTags(item.tier)}
-          </motion.p>
+          {tagline ? (
+            <motion.p
+              className={cn(
+                'supervision-control-label absolute bottom-0 left-1/2 w-max max-w-[calc(100%-2rem)] -translate-x-1/2 translate-y-1/2 rounded-full px-[3.5cqw] py-[1.6cqw] text-center text-sm leading-snug font-semibold tracking-wide whitespace-pre-wrap [overflow-wrap:anywhere] uppercase',
+                item.recommended
+                  ? 'bg-brand-orange text-brand-orange-foreground'
+                  : 'bg-primary-strong text-primary-foreground'
+              )}
+              initial={item.recommended ? { opacity: 0, y: -12 } : false}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.48, delay: item.recommended ? 0.25 : 0.15 + index * 0.1, ease: pricingEase }}
+            >
+              {tagline}
+            </motion.p>
+          ) : null}
         </div>
 
         <div className='flex flex-1 flex-col p-5 pt-6'>
@@ -372,7 +395,7 @@ function PackageCard({
             </div>
           )}
 
-          <p className='text-muted-foreground mt-4 min-h-[2.75em] text-center text-sm leading-snug text-pretty'>
+          <p className='text-muted-foreground mt-4 min-h-[2.75em] text-center text-sm leading-snug whitespace-pre-wrap [overflow-wrap:anywhere]'>
             {item.fitLine}
           </p>
 
@@ -396,7 +419,7 @@ function PackageCard({
                 <SupervisionPrice value={item.price} index={index} />
               )}
             </span>
-            {isFree ? (
+            {isFree && !item.card?.durationText ? (
               // Chừa đúng chỗ dòng "/ dự án · tối đa N tháng" của hai gói trả phí để các hàng bên dưới ngang nhau.
               <span aria-hidden className='block text-sm opacity-0 select-none'>
                 &nbsp;
@@ -408,7 +431,13 @@ function PackageCard({
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.42, delay: item.recommended ? 0.55 : 0.5 }}
               >
-                {t('perProject')} · {t('duration', { months: item.durationMonths })}
+                {item.card ? (
+                  item.card.durationText
+                ) : item.legacy ? (
+                  <>
+                    {t('perProject')} · {t('duration', { months: item.durationMonths })}
+                  </>
+                ) : null}
               </motion.span>
             )}
           </p>
@@ -429,7 +458,7 @@ function PackageCard({
           >
             {item.benefits.map((benefit, benefitIndex) => (
               <li
-                key={benefit}
+                key={`${benefitIndex}-${benefit}`}
                 data-upgrade={isFree && benefitIndex === item.benefits.length - 1 ? 'true' : undefined}
                 className='supervision-benefit flex items-start gap-[2cqw] text-sm leading-snug'
                 style={{ '--benefit-index': benefitIndex } as CSSProperties}
@@ -448,7 +477,7 @@ function PackageCard({
                         : 'fill-primary text-primary-foreground')
                   )}
                 />
-                <span className='text-pretty'>{benefit}</span>
+                <span className='min-w-0 whitespace-pre-wrap [overflow-wrap:anywhere]'>{benefit}</span>
               </li>
             ))}
           </motion.ul>
@@ -468,7 +497,7 @@ function PackageCard({
                 onClick={() => rememberCheckoutReturn(item.id, projectId)}
                 className={cn('supervision-buy group justify-between', item.recommended && 'supervision-buy-control')}
               >
-                {t('choose', { tier: item.name || tTiers(item.tier) })}
+                {item.card?.buttonLabel || t('choose', { tier: item.name || tTiers(item.tier) })}
                 <ArrowRight className='size-4 transition-transform duration-300 group-hover:translate-x-1.5' />
               </Link>
             </Button>
@@ -479,10 +508,29 @@ function PackageCard({
   )
 }
 
-function InspectionBand({ item }: { item: SupervisionPackage }) {
+function InspectionBand({ item }: { item: SupervisionPackageView }) {
   const t = useTranslations('supervision.pricing')
   const [count, setCount] = useState(0)
   const done = useRef(false)
+
+  if (!item.card && !item.legacy) return null
+  if (item.card) {
+    if (!item.card.inspectionText) return null
+    return (
+      <p
+        className={cn(
+          'supervision-inspection-band mt-3 rounded-lg px-3 py-2 text-center text-sm font-medium whitespace-pre-wrap [overflow-wrap:anywhere]',
+          item.price === 0
+            ? 'bg-muted text-muted-foreground'
+            : item.recommended
+              ? 'bg-brand-orange-soft text-brand-orange'
+              : 'bg-accent text-primary-strong'
+        )}
+      >
+        {item.card.inspectionText}
+      </p>
+    )
+  }
 
   return (
     <motion.p

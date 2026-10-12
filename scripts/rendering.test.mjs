@@ -144,14 +144,15 @@ test('footer invalidation updates other cached public pages as well as home', as
   }
 })
 
-test('supervision pricing retains its public HTML and cache for different project queries', async () => {
+test('supervision pricing caches its public frame without any mock cards before the client API loads', async () => {
   const first = await page('/vi/plans/supervision?project=fixture-project-a')
   const second = await page('/vi/plans/supervision?project=fixture-project-b')
   for (const result of [first, second]) {
     assertIsr(result.response)
     assert.match(result.html, /<h1\b/)
     assert.match(result.html, /supervision-comparison/)
-    assert.match(result.html, /data-tier="control"/)
+    assert.doesNotMatch(result.html, /data-plan-id=|data-tier="(?:self|check|control|trust)"/)
+    assert.match(result.html, /Đang tải các gói giám sát/)
     assert.ok(!result.html.includes('fixture-project-'))
   }
   assert.equal(first.response.headers.get('etag'), second.response.headers.get('etag'))

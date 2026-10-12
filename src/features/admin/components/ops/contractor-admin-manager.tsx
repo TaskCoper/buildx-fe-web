@@ -74,8 +74,9 @@ function teamCountFields(values: Record<string, unknown>, profile?: ContractorPr
  * tạo/sửa hồ sơ (gộp một chỗ) → ẩn/hiện → xoá. BE tách API granular nhưng màn
  * này gộp lại theo ý người dùng.
  *
- * Hồ sơ mới lưu ẨN; muốn HIỆN cần đủ trường bắt buộc (name + address + toạ độ +
- * ≥1 loại công trình + ≥1 phạm vi) — BE chặn 422 nếu thiếu.
+ * Hồ sơ mới lưu ẨN; muốn HIỆN BE đòi đủ name + address + toạ độ + ≥1 loại công trình
+ * + ≥1 phạm vi (`ContractorRules.Visible`, lỗi 422 `ContractorProfileIncomplete`). Form bắt buộc
+ * đúng các trường đó ngay lúc lưu để hồ sơ nào đã lưu cũng Hiện được.
  *
  * Ảnh hồ sơ, giấy phép (kèm bản quét) và hợp tác BuildX nằm CHUNG form này. Tệp được chọn và
  * tải lên qua MEDIA presign ngay trong form (kể cả lúc TẠO, vì tải lên không cần hồ sơ tồn tại
@@ -196,6 +197,11 @@ export function ContractorAdminManager() {
       }
       rowKey={(item) => item.contractorId}
       drawerWidth={720}
+      onValidationFailed={(form) => {
+        // Form dài: cuộn tới ô lỗi đầu tiên để người nhập biết còn thiếu gì.
+        const error = form.getFieldsError().find((field) => field.errors.length > 0)
+        if (error) requestAnimationFrame(() => form.scrollToField(error.name, { block: 'center', focus: true }))
+      }}
       createValues={() => ({
         name: '',
         shortDescription: '',
@@ -383,7 +389,11 @@ export function ContractorAdminManager() {
             <ContractorAddressField form={form} visible={ctx.item?.status === 'Visible'} />
 
             <Divider titlePlacement='start'>{c('sections.capability')}</Divider>
-            <Form.Item name='buildingTypeIds' label={c('buildingTypes')} extra={c('requiredForVisible')}>
+            <Form.Item
+              name='buildingTypeIds'
+              label={c('buildingTypes')}
+              rules={[{ required: true, type: 'array', min: 1, message: c('buildingTypesRequired') }]}
+            >
               <Select
                 mode='multiple'
                 allowClear
@@ -392,7 +402,11 @@ export function ContractorAdminManager() {
                 optionFilterProp='label'
               />
             </Form.Item>
-            <Form.Item name='scopeIds' label={c('scopes')} extra={c('requiredForVisible')}>
+            <Form.Item
+              name='scopeIds'
+              label={c('scopes')}
+              rules={[{ required: true, type: 'array', min: 1, message: c('scopesRequired') }]}
+            >
               <Select
                 mode='multiple'
                 allowClear

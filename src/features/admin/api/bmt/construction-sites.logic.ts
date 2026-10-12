@@ -70,6 +70,8 @@ export interface AdminConstructionSite extends z.infer<typeof expandedSiteSchema
   code: string | null
   name: string
   address: string
+  /** Mô tả nhu cầu thi công do khách nhập (BR-SITE-001 khoản 17, BR-SITE-003 khoản 15); `null` khi chưa nhập hoặc BE chưa trả. */
+  description: string | null
   version: number
   createdAtUtc: string
   updatedAtUtc: string
@@ -108,6 +110,7 @@ export function normalizeSite(raw: unknown): AdminConstructionSite {
     code: nullableText(r.code),
     name: text(r.name),
     address: text(r.address),
+    description: nullableText(r.description),
     version: typeof r.version === 'number' ? r.version : 0,
     createdAtUtc: text(r.createdAtUtc),
     updatedAtUtc: text(r.updatedAtUtc),

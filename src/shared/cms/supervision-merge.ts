@@ -1,22 +1,7 @@
-import type { SupervisionPackage } from '@/shared/cms'
+import type { SupervisionPackage } from './cms.types'
+import { readPlanMetadata, type PlanMetadata } from './plan-metadata'
 
-/**
- * Ghép dữ liệu BMT API vào các gói giám sát mock, THEO TỪNG FIELD — cùng luật với
- * trang gói thiết kế (`features/plans/api/plans.merge.ts`): field nào API có trả thì
- * hiện API, field nào API không có thì GIỮ NGUYÊN mock.
- *
- * Gói giám sát trên BE rất gọn (TDD-SUB-001): tên, mô tả dịch vụ tự do và MỘT lựa
- * chọn giá `ConstructionSite`; không quyền lợi, hạn mức, nhãn nổi bật hay quà. Nên
- * API chỉ ghi đè được `name` và `price` (cộng `id` để luồng mua chạy thật); còn thời
- * hạn, số lượt kiểm tra, câu "phù hợp khi…", các dòng lợi ích, badge khuyến nghị và
- * ảnh đều là của mock. Mô tả dịch vụ của API là một khối chữ tự do, không có chỗ
- * tương ứng trên thẻ (thẻ dựng từ danh sách dòng) nên không ghép.
- *
- * Khớp gói theo mã: `CHECK` ↔ tier `check`, `CONTROL` ↔ tier `control`. Gói `self`
- * (0đ, tự quản lý) không thể có trên BE vì giá công bố phải > 0 nên luôn là mock.
- *
- * Hàm thuần (không gọi mạng, không đọc kho) để kiểm được không cần backend.
- */
+/** Mỗi gói API tạo một thẻ. CMS chỉ giữ nội dung cho revision cũ chưa cấu hình metadata. */
 
 export interface BmtSupervisionOfferView {
   offerKey: 'Month' | 'Year' | 'ConstructionSite'
@@ -28,47 +13,74 @@ export interface BmtSupervisionPlanItem {
   planId?: string
   code: string
   kind: 'Design' | 'Supervision'
-  revision?: { name?: string | null; offers?: BmtSupervisionOfferView[] }
+  revision?: {
+    name?: string | null
+    coverImageUrl?: string | null
+    offers?: BmtSupervisionOfferView[]
+    metadata?: PlanMetadata | null
+  }
 }
 
 /** Gói giám sát sau khi ghép. `offerKey` chỉ có khi gói đến từ API, để luồng mua gửi đúng. */
-export type SupervisionPackageView = SupervisionPackage & { offerKey?: 'ConstructionSite' }
+export type SupervisionPackageView = SupervisionPackage & {
+  offerKey?: 'ConstructionSite'
+  card?: PlanMetadata['supervisionCard']
+  legacy?: boolean
+}
 
 function text(value: string | null | undefined): string | undefined {
   const trimmed = value?.trim()
   return trimmed ? trimmed : undefined
 }
 
-function mergePackage(pkg: SupervisionPackageView, item: BmtSupervisionPlanItem): SupervisionPackageView {
-  const revision = item.revision
-  if (!revision) return pkg
-
-  const name = text(revision.name)
-  const price = revision.offers?.find(
-    (offer) => offer.offerKey === 'ConstructionSite' && typeof offer.price === 'number' && offer.price > 0
-  )?.price
-
-  return {
-    ...pkg,
-    ...(name ? { name } : {}),
-    ...(price ? { price } : {}),
-    // Checkout chọn nhánh mua THEO DẠNG ID (UUID → đơn thật, còn lại → mock). Chỉ đổi
-    // sang `planId` khi gói có giá để bán trên API; thiếu thì đơn thật bị BE từ chối,
-    // nên để id mock cho an toàn.
-    ...(item.planId && price ? { id: item.planId, offerKey: 'ConstructionSite' as const } : {})
-  }
-}
-
+/** Only API plans create cards. CMS may supply presentation for the matching legacy revision. */
 export function mergeApiIntoPackages(
   base: readonly SupervisionPackage[],
   items: readonly BmtSupervisionPlanItem[]
 ): SupervisionPackageView[] {
-  const byCode = new Map(
-    items.filter((item) => item.kind === 'Supervision').map((item) => [item.code.toUpperCase(), item])
+  return (
+    items
+      .filter((item) => item.kind === 'Supervision')
+      .map<SupervisionPackageView>((item) => {
+        const revision = item.revision
+        const offer = revision?.offers?.find((entry) => entry.offerKey === 'ConstructionSite')
+        if (
+          !item.planId ||
+          !revision ||
+          typeof offer?.price !== 'number' ||
+          !Number.isSafeInteger(offer.price) ||
+          offer.price < 0 ||
+          !text(revision.name)
+        )
+          throw new Error('Invalid published supervision plan')
+        const legacy = base.find((pkg) => pkg.tier.toUpperCase() === item.code.toUpperCase())
+        const metadata = readPlanMetadata(revision.metadata)
+        const card = metadata?.supervisionCard
+        return {
+          id: item.planId,
+          tier: legacy?.tier ?? (offer.price === 0 ? 'self' : card?.recommended ? 'control' : 'check'),
+          name: text(revision.name)!,
+          price: offer.price,
+          durationMonths: legacy?.durationMonths ?? 0,
+          inspections: legacy?.inspections ?? null,
+          fitLine: card ? (card.fitLine ?? '') : (legacy?.fitLine ?? ''),
+          benefits:
+            metadata !== null
+              ? metadata.displayBenefits.filter((line) => line.visible).map((line) => line.text)
+              : (legacy?.benefits ?? []),
+          recommended: card ? card.recommended : (legacy?.recommended ?? false),
+          imageUrl: revision.coverImageUrl !== undefined ? text(revision.coverImageUrl) : legacy?.imageUrl,
+          offerKey: 'ConstructionSite',
+          card,
+          legacy: Boolean(legacy)
+        }
+      })
+      // Stable sort preserves API order for equal values and legacy plans without an order.
+      .sort((a, b) => (a.card?.displayOrder ?? 10000) - (b.card?.displayOrder ?? 10000))
   )
+}
 
-  return base.map((pkg) => {
-    const item = byCode.get(pkg.tier.toUpperCase())
-    return item ? mergePackage(pkg, item) : pkg
-  })
+/** Seed chỉ các dòng quyền lợi trên thẻ khi mở sửa revision legacy; không ghi dữ liệu. */
+export function seedSupervisionPlanMetadata(pkg: Pick<SupervisionPackage, 'benefits'>): PlanMetadata {
+  return { displayBenefits: pkg.benefits.map((text) => ({ id: crypto.randomUUID(), text, visible: true })) }
 }

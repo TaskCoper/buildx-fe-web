@@ -1,7 +1,6 @@
 'use client'
 
 import { useSearchParams } from 'next/navigation'
-import { useRef } from 'react'
 
 import { usePathname, useRouter } from '@/i18n/navigation'
 
@@ -25,9 +24,6 @@ export function useFormPage() {
   const pathname = usePathname()
   const router = useRouter()
   const searchParams = useSearchParams()
-  // Trang form do CHÍNH màn này đẩy vào lịch sử (khác với mở thẳng từ link / tải lại): đóng thì lùi
-  // một bước, nếu không thì thay URL để Back không kẹt lại ở form.
-  const pushed = useRef(false)
 
   const act = searchParams.get(ACT)
   const mode = MODES.find((value) => value === act) ?? null
@@ -53,16 +49,15 @@ export function useFormPage() {
     open(next: FormPageMode, rowId?: string, options?: { replace?: boolean }) {
       const href = hrefFor({ mode: next, id: rowId })
       if (options?.replace) return router.replace(href)
-      pushed.current = true
       router.push(href)
     },
     close() {
-      if (pushed.current) {
-        pushed.current = false
-        router.back()
-      } else {
-        router.replace(hrefFor(null))
-      }
+      // Hủy, quay lại và Lưu đều về danh sách, kể cả lịch sử có nhiều lượt mở cùng form.
+      const url = new URL(window.location.href)
+      url.searchParams.delete(ACT)
+      url.searchParams.delete(RID)
+      // Next.js đồng bộ useSearchParams qua History API; không chờ tải route từ server.
+      window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`)
     }
   }
 }

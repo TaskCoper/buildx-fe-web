@@ -112,7 +112,7 @@ function PlanPricingContent() {
   const hotline = advice('hotline', cmsText(settings.hotline, siteConfig.contact.hotline))
   const setAssistantOpen = useChatContextStore((s) => s.setPanelOpen)
   const setAssistantSuppressed = useChatContextStore((s) => s.setDockSuppressed)
-  const { data: plans, isPending } = usePlans()
+  const { data: plans, isPending, isError, refetch } = usePlans()
   const { rootRef, entranceState, entranceStyle } = usePageEntrance('plans.design', { offsetMs: 120 })
 
   // Chu kỳ đang xem. Công tắc chỉ hiện khi có gói bán theo năm; không thì luôn là tháng. Dựng
@@ -149,15 +149,25 @@ function PlanPricingContent() {
         ) : null}
         */}
 
+        {isError ? (
+          <div role='alert' className='rounded-xl border p-4'>
+            <p>{t('loadError')}</p>
+            <Button variant='outline' onClick={() => void refetch()}>
+              {t('retry')}
+            </Button>
+          </div>
+        ) : null}
         {isPending ? (
           <div className='grid gap-5 md:grid-cols-3'>
             {[0, 1, 2].map((i) => (
               <Skeleton key={i} className='h-[32rem] rounded-2xl' />
             ))}
           </div>
-        ) : (
+        ) : plans?.length ? (
           <PlanCards plans={cyclePlans} />
-        )}
+        ) : !isError ? (
+          <p className='text-muted-foreground rounded-xl border p-6 text-center'>{t('empty')}</p>
+        ) : null}
       </div>
 
       {/* Dải CTA giữa trang — trong ảnh nó nằm SÁT ngay dưới cụm thẻ (khoảng
@@ -274,7 +284,9 @@ function ComparisonTable({ plans }: { plans: PlanView[] }) {
   const highlightedTiers = plans.filter((plan) => plan.popular).map((plan) => plan.tier)
   const giftTextOf = (tier: PlanTier) => {
     const gift = byTier(tier)?.gift
-    return gift ? `${gift.title} ${t('gift.valuePrefix')} ${formatPriceTag(gift.value, locale)}` : ''
+    return gift
+      ? `${gift.title}${gift.value > 0 ? ` ${t('gift.valuePrefix')} ${formatPriceTag(gift.value, locale)}` : ''}`
+      : ''
   }
 
   const groups =
@@ -619,10 +631,10 @@ function PlanCards({ plans }: { plans: PlanView[] }) {
   const [gift, setGift] = useState<PlanView | null>(null)
   const [giftOpen, setGiftOpen] = useState(false)
   const giftOrigin = useRef<HTMLButtonElement | null>(null)
-  const progress = useMotionValue(1)
+  const progress = useMotionValue(Math.min(1, plans.length - 1))
   const dotOffset = useDotOffset(progress)
   const { reduceMotion } = usePricingMotion()
-  const [slide, setSlide] = useState(1)
+  const [slide, setSlide] = useState(Math.min(1, plans.length - 1))
   useEffect(() => progress.on('change', (value) => setSlide(Math.round(value))), [progress])
 
   useEffect(() => {
@@ -635,7 +647,7 @@ function PlanCards({ plans }: { plans: PlanView[] }) {
     const media = matchMedia('(max-width: 767px)')
     const center = () => {
       if (!media.matches) return
-      const card = root.children[1] as HTMLElement
+      const card = root.children[Math.min(1, plans.length - 1)] as HTMLElement
       if (card) root.scrollLeft = card.offsetLeft - (root.clientWidth - card.clientWidth) / 2
     }
     frames.push(requestAnimationFrame(center))
@@ -651,8 +663,8 @@ function PlanCards({ plans }: { plans: PlanView[] }) {
         root.scrollTo({ left: root.scrollLeft + 26, behavior: 'smooth' })
         timers.push(
           setTimeout(() => {
-            if (!touched) {
-              const card = root.children[1] as HTMLElement
+            if (!touched && root.children.length > 0) {
+              const card = root.children[Math.min(1, plans.length - 1)] as HTMLElement
               root.scrollTo({ left: card.offsetLeft - (root.clientWidth - card.clientWidth) / 2, behavior: 'smooth' })
             }
             timers.push(
@@ -679,7 +691,10 @@ function PlanCards({ plans }: { plans: PlanView[] }) {
         progress.set(
           Math.max(
             0,
-            Math.min(2, (middle - first.offsetLeft - first.clientWidth / 2) / (second.offsetLeft - first.offsetLeft))
+            Math.min(
+              plans.length - 1,
+              (middle - first.offsetLeft - first.clientWidth / 2) / (second.offsetLeft - first.offsetLeft)
+            )
           )
         )
     }
@@ -890,6 +905,7 @@ function PlanCard({
     <li
       ref={ref}
       className='plan-slide @container relative flex'
+      data-plan-id={plan.id}
       data-popular={plan.popular || undefined}
       data-dimmed={dimmed}
       data-images-ready={imagesReady}
@@ -907,9 +923,9 @@ function PlanCard({
         {/* Đo trên ảnh S01: ruy-băng cao 8,1% bề rộng thẻ, nhô lên khỏi mép thẻ
           2,0% và cách chữ tên gói 4,5%. */}
         {plan.popular ? (
-          <span className='plan-popular plan-shine bg-brand-orange text-brand-orange-foreground absolute -top-[2cqw] left-1/2 z-10 inline-flex -translate-x-1/2 items-center gap-[1.5cqw] rounded-full px-[4cqw] py-[2.25cqw] text-sm leading-none font-semibold tracking-wide whitespace-nowrap uppercase'>
+          <span className='plan-popular plan-shine bg-brand-orange text-brand-orange-foreground absolute -top-[2cqw] left-1/2 z-10 inline-flex -translate-x-1/2 items-center gap-[1.5cqw] rounded-full px-[4cqw] py-[2.25cqw] max-w-[calc(100%-2rem)] text-center text-sm leading-snug font-semibold tracking-wide whitespace-pre-wrap uppercase [overflow-wrap:anywhere]'>
             <Star className='size-[3.4cqw]' />
-            {t('popular')}
+            {plan.shortLabel || t('popular')}
           </span>
         ) : null}
 
@@ -945,23 +961,25 @@ function PlanCard({
           >
             <h2
               className={cn(
-                'flex items-center justify-center gap-[1.5cqw] text-[8.3cqw] leading-none font-bold tracking-wide uppercase',
+                'flex items-center justify-center gap-[1.5cqw] text-[8.3cqw] leading-snug font-bold tracking-wide whitespace-pre-wrap uppercase [overflow-wrap:anywhere]',
                 plan.popular ? 'text-brand-orange' : 'text-primary-strong'
               )}
             >
               {plan.name}
             </h2>
-            <span
-              className={cn(
-                'plan-tag absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 rounded-full px-[3.5cqw] py-[1.6cqw] text-sm leading-none font-semibold tracking-wide whitespace-nowrap uppercase',
-                // Hình S01: viên nhãn là nền ĐẶC (xanh đậm hơn dải nền / cam), không phải nền mờ.
-                plan.popular
-                  ? 'plan-shine bg-brand-orange text-brand-orange-foreground'
-                  : 'bg-primary-strong text-primary-foreground'
-              )}
-            >
-              {t(`tierTags.${plan.tier}`)}
-            </span>
+            {plan.metadata?.designCard?.tagline ? (
+              <span
+                className={cn(
+                  'plan-tag absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-max max-w-[calc(100%-2rem)] rounded-full px-[3.5cqw] py-[1.6cqw] text-sm leading-snug font-semibold tracking-wide whitespace-pre-wrap uppercase [overflow-wrap:anywhere]',
+                  // Hình S01: viên nhãn là nền ĐẶC (xanh đậm hơn dải nền / cam), không phải nền mờ.
+                  plan.popular
+                    ? 'plan-shine bg-brand-orange text-brand-orange-foreground'
+                    : 'bg-primary-strong text-primary-foreground'
+                )}
+              >
+                {plan.metadata.designCard.tagline}
+              </span>
+            ) : null}
           </header>
 
           <div className='flex flex-1 flex-col p-5'>
@@ -989,9 +1007,11 @@ function PlanCard({
               </div>
             ) : null}
 
-            <p className='plan-fit text-muted-foreground mt-4 flex min-h-[2.75rem] items-center justify-center text-center text-sm leading-snug text-pretty'>
-              {plan.fitLine}
-            </p>
+            {plan.fitLine ? (
+              <p className='plan-fit text-muted-foreground mt-4 flex min-h-[2.75rem] items-center justify-center text-center text-sm leading-snug whitespace-pre-wrap text-pretty [overflow-wrap:anywhere]'>
+                {plan.fitLine}
+              </p>
+            ) : null}
 
             <p className='mt-3 flex min-h-[4rem] flex-col justify-start text-center'>
               {plan.cycleUnavailable ? (
@@ -1026,18 +1046,20 @@ function PlanCard({
               viewport={{ once: true, amount: 0.12 }}
               className='plan-features mt-5 flex flex-1 flex-col rounded-xl border p-4'
             >
-              <p
-                className={cn(
-                  'plan-feature-title text-center text-sm font-bold tracking-wide uppercase',
-                  plan.popular ? 'text-brand-orange' : 'text-primary-strong'
-                )}
-              >
-                {t(`featuresTitleByTier.${plan.tier}`)}
-              </p>
+              {plan.metadata?.designCard?.featuresTitle ? (
+                <p
+                  className={cn(
+                    'plan-feature-title text-center text-sm font-bold tracking-wide whitespace-pre-wrap uppercase [overflow-wrap:anywhere]',
+                    plan.popular ? 'text-brand-orange' : 'text-primary-strong'
+                  )}
+                >
+                  {plan.metadata.designCard.featuresTitle}
+                </p>
+              ) : null}
               <ul className='mt-3 flex-1 space-y-2'>
                 {highlights(plan).map((feature, i) => (
                   <li
-                    key={feature}
+                    key={`${i}-${feature}`}
                     style={{ '--line-delay': `${0.025 + delay * 0.4 + i * 0.025}s` } as CSSProperties}
                     className='plan-feature-line flex items-start gap-[2cqw] text-sm leading-snug'
                   >
@@ -1047,7 +1069,7 @@ function PlanCard({
                         plan.popular ? 'text-brand-orange' : 'text-primary'
                       )}
                     />
-                    <span className='text-pretty'>{feature}</span>
+                    <span className='min-w-0 whitespace-pre-wrap [overflow-wrap:anywhere]'>{feature}</span>
                   </li>
                 ))}
               </ul>
@@ -1088,13 +1110,15 @@ function PlanCard({
                       {t('gift.badge')}
                     </span>
                     <span className='text-muted-foreground mt-0.5 block text-sm leading-snug text-pretty'>
-                      {plan.gift.title} {t('gift.valuePrefix')}
+                      {plan.gift.title} {plan.gift.value > 0 ? t('gift.valuePrefix') : ''}
                     </span>
-                    <span className='plan-gift-value plan-shine text-brand-orange block text-[5.4cqw] font-extrabold tracking-tight whitespace-nowrap uppercase'>
-                      {giftMillions
-                        ? `${giftMillions} ${t('gift.valueMillionsUnit')}`
-                        : formatPriceTag(plan.gift.value, locale)}
-                    </span>
+                    {plan.gift.value > 0 ? (
+                      <span className='plan-gift-value plan-shine text-brand-orange block text-[5.4cqw] font-extrabold tracking-tight whitespace-nowrap uppercase'>
+                        {giftMillions
+                          ? `${giftMillions} ${t('gift.valueMillionsUnit')}`
+                          : formatPriceTag(plan.gift.value, locale)}
+                      </span>
+                    ) : null}
                   </span>
                 </span>
 
@@ -1282,7 +1306,7 @@ function PlanBuyButton({ plan, disabled, onSelect }: { plan: PlanView; disabled:
     }, 4000)
   }
   return (
-    <Button asChild size='lg' className='mt-5 h-[11cqw] w-full text-[5cqw] font-bold'>
+    <Button asChild size='lg' className='mt-5 h-auto min-h-[11cqw] w-full py-3 text-[5cqw] font-bold'>
       <Link
         href={checkoutConfirmRoute(plan.id, undefined, plan.cycle ?? DESIGN_OFFER_KEY)}
         aria-disabled={disabled || pending}
@@ -1290,12 +1314,17 @@ function PlanBuyButton({ plan, disabled, onSelect }: { plan: PlanView; disabled:
         onClick={(e) => void buy(e)}
         onPointerUp={release}
         className={cn(
-          'plan-buy group relative justify-between overflow-hidden',
+          'plan-buy group relative justify-between overflow-hidden whitespace-normal',
           plan.popular ? 'plan-shine brand-orange-button' : 'brand-green-button'
         )}
       >
-        <span className={cn('transition-all', pending && 'mx-auto text-sm')}>
-          {pending ? common('loading') : plan.ctaLabel || t(`cta.${plan.tier}`)}
+        <span
+          className={cn(
+            'min-w-0 whitespace-pre-wrap transition-all [overflow-wrap:anywhere]',
+            pending && 'mx-auto text-sm'
+          )}
+        >
+          {pending ? common('loading') : plan.ctaLabel || t('choosePlan', { name: plan.name })}
         </span>
         {pending ? (
           <LoaderCircle className='size-5 animate-spin' />

@@ -114,6 +114,8 @@ export function siteToBrief(
     budget: Number(site.budgetVnd),
     startWindow: starts[site.plannedStart],
     selfCreated: !site.sourceEstimateId,
+    // Hồ sơ đã lưu lấy mô tả từ BE; chỉ khi BE chưa trả trường này (undefined) mới giữ bản cũ lưu trên trình duyệt.
+    scopeNote: site.description === undefined ? (current?.scopeNote ?? '') : (site.description ?? ''),
     documents: site.files.map((file) => ({
       id: file.id,
       name: file.originalName,

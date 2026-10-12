@@ -191,10 +191,11 @@ function PaymentOrderTable({ switcher }: { switcher: ReactNode }) {
         {
           title: t('paymentCode'),
           dataIndex: 'paymentCode',
-          width: 150,
+          // Mã `BUILDXYYMMDDXXXXXXTK/GS` dài ~20 ký tự, không có chỗ ngắt: cột hẹp hơn là mã bị bẻ giữa chuỗi.
+          width: 220,
           render: (code: string, order) => (
             <Space orientation='vertical' size={2}>
-              <Text code copyable>
+              <Text code copyable style={{ whiteSpace: 'nowrap' }}>
                 {code}
               </Text>
               {order.orderingDiscrepancy ? <Tag color='volcano'>{t('orderingDiscrepancy')}</Tag> : null}

@@ -707,3 +707,24 @@ Theo yêu cầu "không có API thì xoá", các chức năng dưới đây đã
 - **Nhật ký truy cập** (`GET /access-audit`): backend đã có `actorUserId`, `targetType`, `targetId`, `fromUtc`, `toUtc` nhưng màn chưa có ô lọc nào. Thêm ô lọc là việc mới, chưa làm.
 - **Gói**: `GET /admin/plans` có `kind` (Thiết kế / Giám sát) nhưng màn chưa có ô lọc loại gói.
 - **Các màn đã ẩn khỏi menu** (Quà tặng, Mã giảm giá, Dự án giám sát, Giai đoạn giám sát, Gói giám sát, Đánh giá khách hàng, Nhóm chi phí, Hạng mục, Đơn giá vật liệu, Quy tắc đề xuất, Lịch khảo sát): dùng dữ liệu lưu cục bộ và backend chưa có API tương ứng, nên ô tìm và bộ lọc ở đó chạy trên dữ liệu cục bộ. Chỉ nối được khi backend có endpoint.
+
+## 14. Công trình — mô tả nhu cầu thi công (10/10/2026)
+
+Form tạo hồ sơ (S10) có lại ô Mô tả nhu cầu và admin xem được mô tả ở `/admin/construction-sites`. Trước đó ô này chỉ lưu trên trình duyệt của khách vì backend chưa có chỗ lưu, nên admin không đọc được và dữ liệu mất khi khách đổi máy.
+
+### 1. Đã làm
+
+- **Backend** (`bmt-be`, chưa deploy): cột `ConstructionSite.Description` (tối đa 1.000 ký tự, cho phép trống, migration `AddConstructionSiteDescription`); trường `description` ở `POST` và `PUT /me/construction-sites`, và ở danh sách, chi tiết của khách lẫn của nhân viên (`/admin/construction-sites`). Mã lỗi mới `ConstructionSiteDescriptionTooLong` (422). Tài liệu: BR-SITE-001 khoản 17, BR-SITE-003 khoản 15, TDD-SITE-003, UT-SITE-120 đến 122, ST-SITE-086.
+- **Frontend:** ô Mô tả ở S10; thẻ "Nhu cầu thi công" ở S11 đọc từ backend; dòng "Mô tả nhu cầu" trong chi tiết công trình của admin. Mã lỗi mới có câu ở cả hai ngôn ngữ trong `apiErrors.codes`.
+
+### 2. Lưu ý khi triển khai
+
+- **Deploy backend trước frontend.** Backend từ chối khóa lạ trong thân yêu cầu, nên backend cũ trả lỗi nếu nhận `description`. Frontend chỉ gửi khóa này khi khách có nhập nội dung, nên khách không nhập mô tả vẫn tạo và sửa hồ sơ được với backend cũ.
+- `PUT` thay toàn bộ: thiếu `description` nghĩa là xóa mô tả đã lưu. Frontend luôn gửi lại mô tả hiện có khi khách sửa hồ sơ.
+- `description` nằm trong `lockedFields` khi công trình có gói giữ chỗ (`canEdit=false`); công trình tạo từ dự toán không bị khóa trường này.
+- Chưa làm: đưa mô tả vào bản chụp hồ sơ gửi nhà thầu theo lời mời báo giá; tìm hoặc ghép nhà thầu theo mô tả. "Phạm vi thi công" vẫn không lưu ở backend.
+
+### 3. Đã kiểm
+
+- Backend trên PostgreSQL 15 thật (Testcontainers): migration áp dụng được; mô tả được làm sạch, thay, xóa và bị chặn đúng khi có gói giữ chỗ; CHECK và độ dài cột chặn giá trị sai. Chưa kiểm với `bmt-api.vnzdna.com` vì backend mới chưa deploy.
+- Frontend: typecheck, lint, format và `pnpm test:sites` (chuẩn hóa phía admin) đạt. Trên trình duyệt ở chế độ mock: nhập, lưu, sửa, xóa mô tả và thẻ ở S11; màn admin kiểm với backend giả có dạng DTO của backend (có và không có `description`).

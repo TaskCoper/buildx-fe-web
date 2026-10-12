@@ -5,10 +5,12 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Alert,
   App,
+  Button,
   Card,
   Checkbox,
   Col,
   Descriptions,
+  Drawer,
   Empty,
   Form,
   Image,
@@ -20,6 +22,7 @@ import {
   Space,
   Spin,
   Switch,
+  Table,
   Tag,
   Tooltip,
   Typography,
@@ -30,14 +33,24 @@ import { Fragment, useState } from 'react'
 
 import type { Locale } from '@/i18n/routing'
 import { isApiError } from '@/shared/lib/api'
+import {
+  cmsDb,
+  cmsSeedOf,
+  seedSupervisionPlanMetadata,
+  type PlanMetadataBenefit,
+  type DesignCardMetadata,
+  type SupervisionCardMetadata
+} from '@/shared/cms'
 import { formatCurrency } from '@/shared/utils'
 import { MoneyInput } from '../common/money-input'
 import { adminKeys } from '../../api/admin.keys'
 import {
+  ACTIVE_PLAN_BENEFIT_CODES,
   bmtPlansApi,
   type BmtAdminPlanItem,
   type BmtBenefitDefinition,
   type BmtPlanDetail,
+  type BmtPlanRevisionHistoryItem,
   type BmtPlanDraftContent,
   type BmtPlanOfferInput,
   type BmtRevisionSummary,
@@ -60,7 +73,6 @@ const CODE_MAX = 100
 const NAME_MAX = 200
 /** Giới hạn mềm cho các trường trình bày thẻ (phía client). */
 const HIGHLIGHT_LABEL_MAX = 100
-const GIFT_TEXT_MAX = 4000
 
 const SALE_TONE: Record<PlanSaleState, StatusTone> = { NotPublished: 'off', OnSale: 'success', Stopped: 'off' }
 const SALE_STATES: readonly PlanSaleState[] = ['NotPublished', 'OnSale', 'Stopped']
@@ -82,6 +94,10 @@ interface BenefitRow {
 }
 
 interface PlanFormValues {
+  designCard?: DesignCardMetadata
+  supervisionCard?: SupervisionCardMetadata
+  metadataBenefits?: PlanMetadataBenefit[]
+  metadataLegacy?: boolean
   expectedVersion?: number
   code?: string
   kind: PlanKind
@@ -102,7 +118,10 @@ interface PlanFormValues {
 }
 
 const designDefinitions = (definitions: BmtBenefitDefinition[], kind: BmtBenefitDefinition['kind']) =>
-  definitions.filter((item) => item.scope === 'Design' && item.kind === kind)
+  definitions.filter(
+    (item) =>
+      item.scope === 'Design' && item.kind === kind && ACTIVE_PLAN_BENEFIT_CODES.some((code) => code === item.code)
+  )
 
 const priceOf = (revision: BmtRevisionView | null | undefined, key: PlanOfferKey) =>
   revision?.offers?.find((offer) => offer.offerKey === key)?.price
@@ -126,6 +145,9 @@ function toValues(
   return {
     ...extra,
     kind,
+    metadataBenefits: revision?.metadata?.displayBenefits ?? extra.metadataBenefits ?? [],
+    designCard: revision?.metadata?.designCard ?? extra.designCard ?? {},
+    supervisionCard: revision?.metadata?.supervisionCard ?? extra.supervisionCard ?? { recommended: false },
     name: revision?.name ?? '',
     description: revision?.description ?? '',
     consultationText: revision?.consultationText ?? '',
@@ -163,24 +185,29 @@ function toValues(
 
 /**
  * Form → nội dung bản nháp đúng `PlanApi.SaveDraftRequest`. Gói giám sát chỉ có
- * lựa chọn `ConstructionSite`, không quyền lợi, không nội dung tư vấn — API từ
- * chối mọi thứ khác (422 `PlanConfigurationInvalid`). Năm trường trình bày thẻ
- * đi PHẲNG cho cả hai loại gói (BE nhận chung).
+ * lựa chọn `ConstructionSite`, không quyền hệ thống, không nội dung tư vấn — API từ
+ * chối quyền/quota và nội dung tư vấn (422 `PlanConfigurationInvalid`). Ảnh bìa
+ * nhận cho cả hai loại gói; trạng thái nổi bật, nhãn và quà chỉ dùng cho Design.
  */
 function toDraft(values: PlanFormValues): BmtPlanDraftContent {
   const card = {
     coverImageUrl: values.coverImageUrl?.trim() || null,
-    isHighlighted: values.isHighlighted ?? false,
-    highlightLabel: values.highlightLabel?.trim() || null,
+    isHighlighted: values.kind === 'Design' ? (values.isHighlighted ?? false) : false,
+    highlightLabel: values.kind === 'Design' ? values.highlightLabel?.trim() || null : null,
     giftDescription: values.kind === 'Design' ? values.giftDescription?.trim() || null : null,
     giftConditions: values.kind === 'Design' ? values.giftConditions?.trim() || null : null
   }
-  const base = { name: values.name.trim(), description: values.description?.trim() ?? '' }
+  const base = {
+    name: values.name.trim(),
+    description: values.description?.trim() ?? '',
+    metadata: { displayBenefits: (values.metadataBenefits ?? []).map((item) => ({ ...item, text: item.text.trim() })) }
+  }
   if (values.kind === 'Supervision') {
     return {
       ...base,
+      metadata: { ...base.metadata, supervisionCard: values.supervisionCard ?? { recommended: false } },
       consultationText: '',
-      offers: [{ offerKey: 'ConstructionSite', price: values.sitePrice ?? 0, currency: 'VND' }],
+      offers: [{ offerKey: 'ConstructionSite', price: values.sitePrice ?? 0, currency: 'VND', quotas: [] }],
       displayBenefits: [],
       ...card
     }
@@ -204,16 +231,11 @@ function toDraft(values: PlanFormValues): BmtPlanDraftContent {
   }
   return {
     ...base,
+    metadata: { ...base.metadata, designCard: values.designCard ?? {} },
     consultationText: values.consultationText?.trim() ?? '',
     offers,
-    displayBenefits: (values.benefits ?? [])
-      .filter((row) => row.included)
-      .map((row) => ({
-        code: row.code,
-        enabled: row.enabled,
-        displayText: row.displayText.trim(),
-        sortOrder: row.sortOrder
-      })),
+    // Tạm bỏ quyền hiển thị 3D; bản nháp mới chỉ gửi hai quyền dạng lượt.
+    displayBenefits: [],
     ...card
   }
 }
@@ -227,12 +249,14 @@ function toDraft(values: PlanFormValues): BmtPlanDraftContent {
  * quyền mới. Ngừng bán chỉ chặn đơn mới, gói khách đã mua giữ nguyên.
  */
 export function PlanManager() {
+  const locale = useLocale() as Locale
   const t = useTranslations('admin.bmtPlans')
   const tAdmin = useTranslations('admin')
+  const tSupervisionTags = useTranslations('supervision.tierTags')
+  const tSupervisionPricing = useTranslations('supervision.pricing')
   const { message, modal } = App.useApp()
   const queryClient = useQueryClient()
-  // Bảng liệt kê cả hai loại gói; loại gói chọn lúc tạo (ô "Loại gói" trong form) nên không lọc theo loại ở đây.
-  const kind = 'all' as const
+  const [kind, setKind] = useState<PlanKind | 'all'>('all')
   const [saleState, setSaleState] = useState<PlanSaleState | 'all'>('all')
 
   const definitionsQuery = useQuery({
@@ -262,6 +286,9 @@ export function PlanManager() {
         try {
           if (action === 'publish') await bmtPlansApi.publish(plan.planId, plan.version)
           else await bmtPlansApi.stopSelling(plan.planId, plan.version)
+          await queryClient.invalidateQueries({ queryKey: ['plans'] })
+          await queryClient.invalidateQueries({ queryKey: ['supervision', 'packages'] })
+          await queryClient.invalidateQueries({ queryKey: adminKeys.bmt('plan', plan.planId) })
           message.success(action === 'publish' ? t('published') : t('stopped'))
           await ctx.refresh()
         } catch (err) {
@@ -274,6 +301,7 @@ export function PlanManager() {
 
   return (
     <ApiResourceManager<BmtAdminPlanItem>
+      key={`${kind}-${saleState}`}
       title={tAdmin('nav.planTable')}
       description={t('description')}
       queryKey={adminKeys.bmt('plans', kind, saleState)}
@@ -289,7 +317,18 @@ export function PlanManager() {
       drawerWidth={820}
       banner={
         <Space wrap>
+          <Select<PlanKind | 'all'>
+            aria-label={t('kind')}
+            value={kind}
+            onChange={setKind}
+            style={{ minWidth: 200 }}
+            options={[
+              { value: 'all', label: t('allKinds') },
+              ...(['Design', 'Supervision'] as const).map((value) => ({ value, label: kindLabel(value) }))
+            ]}
+          />
           <Select<PlanSaleState | 'all'>
+            aria-label={t('saleState')}
             value={saleState}
             onChange={setSaleState}
             style={{ minWidth: 200 }}
@@ -380,8 +419,35 @@ export function PlanManager() {
       }}
       toFormValues={async (plan) => {
         const [detail, defs] = await Promise.all([bmtPlansApi.getPlan(plan.planId), loadDefinitions()])
-        return toValues(defs, detail.kind, workingRevision(detail), {
-          expectedVersion: detail.version
+        const revision = workingRevision(detail)
+        const legacy = detail.kind === 'Supervision' && revision !== null && revision.metadata == null
+        const supervisionStored = cmsDb.list('supervisionPackages', locale)
+        const supervisionBase = (supervisionStored.length ? supervisionStored : cmsSeedOf('supervisionPackages')).find(
+          (item) => item.tier.toUpperCase() === detail.code.toUpperCase()
+        )
+        return toValues(defs, detail.kind, revision, {
+          expectedVersion: detail.version,
+          metadataLegacy: legacy,
+          supervisionCard:
+            revision?.metadata?.supervisionCard ??
+            (supervisionBase
+              ? {
+                  tagline: tSupervisionTags(supervisionBase.tier),
+                  fitLine: supervisionBase.fitLine,
+                  durationText:
+                    supervisionBase.price === 0
+                      ? ''
+                      : `${tSupervisionPricing('perProject')} · ${tSupervisionPricing('duration', { months: supervisionBase.durationMonths })}`,
+                  inspectionText: supervisionBase.inspections
+                    ? tSupervisionPricing('inspections', { count: supervisionBase.inspections })
+                    : tSupervisionPricing('noInspection'),
+                  recommended: supervisionBase.recommended ?? false,
+                  recommendedLabel: supervisionBase.recommended ? tSupervisionPricing('recommended') : '',
+                  buttonLabel: ''
+                }
+              : { recommended: false }),
+          metadataBenefits:
+            legacy && supervisionBase ? seedSupervisionPlanMetadata(supervisionBase).displayBenefits : []
         }) as unknown as Record<string, unknown>
       }}
       onUpdate={async (raw, plan) => {
@@ -390,6 +456,7 @@ export function PlanManager() {
           expectedVersion: values.expectedVersion ?? plan.version,
           ...toDraft({ ...values, kind: plan.kind })
         })
+        await queryClient.invalidateQueries({ queryKey: adminKeys.bmt('plan', plan.planId) })
       }}
       renderForm={(form, { isNew, item }) => (
         <PlanFields
@@ -450,7 +517,114 @@ function PlanDetailView({ planId }: { planId: string }) {
       />
       <RevisionBlock title={t('publishedBlock')} plan={plan} revision={plan.publishedRevision} />
       <RevisionBlock title={t('draftBlock')} plan={plan} revision={plan.draft} />
+      <PlanRevisionHistory key={plan.planId} plan={plan} />
     </Space>
+  )
+}
+
+function PlanRevisionHistory({ plan }: { plan: BmtPlanDetail }) {
+  const t = useTranslations('admin.bmtPlans')
+  const tAdmin = useTranslations('admin')
+  const locale = useLocale()
+  const [pageIndex, setPageIndex] = useState(1)
+  const [selected, setSelected] = useState<BmtPlanRevisionHistoryItem | null>(null)
+  const [isOpen, setIsOpen] = useState(false)
+  const history = useQuery({
+    queryKey: adminKeys.bmt('plan', plan.planId, 'revisions', plan.version, pageIndex),
+    queryFn: () => bmtPlansApi.listRevisions(plan.planId, pageIndex, 5)
+  })
+  const revision = useQuery({
+    queryKey: adminKeys.bmt('plan', plan.planId, 'revision', selected?.id),
+    queryFn: () => bmtPlansApi.getRevision(plan.planId, selected!.id),
+    enabled: isOpen && selected !== null,
+    staleTime: Infinity // Published revisions are immutable; reopening keeps the same contents.
+  })
+  const error = (value: unknown) => (isApiError(value) ? value.message : tAdmin('feedback.apiError'))
+  return (
+    <Card size='small' title={t('historyTitle')}>
+      {history.isError ? (
+        <Alert
+          type='error'
+          showIcon
+          title={error(history.error)}
+          action={<Button onClick={() => void history.refetch()}>{t('retry')}</Button>}
+        />
+      ) : (
+        <Table<BmtPlanRevisionHistoryItem>
+          size='small'
+          rowKey='id'
+          loading={history.isPending}
+          dataSource={history.data?.items ?? []}
+          scroll={{ x: 560 }}
+          locale={{ emptyText: t('historyEmpty') }}
+          columns={[
+            {
+              title: t('revision'),
+              key: 'number',
+              width: 180,
+              render: (_, item) => (
+                <Space wrap>
+                  <Text>{t('revisionNumber', { number: item.number })}</Text>
+                  {item.isCurrent ? <Tag color='green'>{t('historyCurrent')}</Tag> : null}
+                </Space>
+              )
+            },
+            { title: t('name'), dataIndex: 'name', key: 'name' },
+            {
+              title: t('publishedAt'),
+              key: 'publishedAt',
+              width: 180,
+              render: (_, item) => (item.publishedAtUtc ? new Date(item.publishedAtUtc).toLocaleString(locale) : '—')
+            },
+            {
+              key: 'view',
+              width: 85,
+              render: (_, item) => (
+                <Button
+                  size='small'
+                  aria-label={t('historyViewRevision', { number: item.number })}
+                  onClick={() => {
+                    setSelected(item)
+                    setIsOpen(true)
+                  }}
+                >
+                  {t('historyView')}
+                </Button>
+              )
+            }
+          ]}
+          pagination={{
+            current: pageIndex,
+            pageSize: 5,
+            total: history.data?.totalCount ?? 0,
+            showSizeChanger: false,
+            hideOnSinglePage: true,
+            onChange: setPageIndex
+          }}
+        />
+      )}
+      <Drawer
+        title={selected ? t('historyViewRevision', { number: selected.number }) : t('historyTitle')}
+        open={isOpen}
+        onClose={() => setIsOpen(false)}
+        size={800}
+        destroyOnHidden
+      >
+        <Alert type='info' showIcon title={t('historyReadOnly')} style={{ marginBottom: 16 }} />
+        {revision.isPending ? (
+          <Spin />
+        ) : revision.isError ? (
+          <Alert
+            type='error'
+            showIcon
+            title={error(revision.error)}
+            action={<Button onClick={() => void revision.refetch()}>{t('retry')}</Button>}
+          />
+        ) : revision.data ? (
+          <RevisionBlock title={t('historyPublished')} plan={plan} revision={revision.data} />
+        ) : null}
+      </Drawer>
+    </Card>
   )
 }
 
@@ -483,15 +657,28 @@ function RevisionBlock({
         column={1}
         items={[
           { key: 'name', label: t('name'), children: revision.name || '—' },
-          {
-            key: 'description',
-            label: plan.kind === 'Supervision' ? t('serviceDescription') : t('descriptionField'),
-            children: revision.description ? (
-              <Paragraph style={{ whiteSpace: 'pre-wrap', margin: 0 }}>{revision.description}</Paragraph>
-            ) : (
-              '—'
-            )
-          },
+          ...(revision.publishedAtUtc
+            ? [
+                {
+                  key: 'publishedAt',
+                  label: t('publishedAt'),
+                  children: new Date(revision.publishedAtUtc).toLocaleString(locale)
+                }
+              ]
+            : []),
+          ...(plan.kind === 'Design'
+            ? [
+                {
+                  key: 'description',
+                  label: t('descriptionField'),
+                  children: revision.description ? (
+                    <Paragraph style={{ whiteSpace: 'pre-wrap', margin: 0 }}>{revision.description}</Paragraph>
+                  ) : (
+                    '—'
+                  )
+                }
+              ]
+            : []),
           ...(plan.kind === 'Design'
             ? [
                 {
@@ -527,7 +714,8 @@ function RevisionBlock({
               </ul>
             )
           },
-          ...(plan.kind === 'Design'
+          ...(plan.kind === 'Design' &&
+          revision.displayBenefits?.some((benefit) => ACTIVE_PLAN_BENEFIT_CODES.some((code) => code === benefit.code))
             ? [
                 {
                   key: 'benefits',
@@ -549,17 +737,119 @@ function RevisionBlock({
               ]
             : []),
           {
-            key: 'highlight',
-            label: t('isHighlighted'),
-            children: revision.isHighlighted ? (
-              <Space size={6}>
-                <Tag color='gold'>{t('highlightedBadge')}</Tag>
-                {revision.highlightLabel ? <Text>{revision.highlightLabel}</Text> : null}
-              </Space>
-            ) : (
-              t('off')
-            )
+            key: 'metadata',
+            label: t('metadataTitle'),
+            children:
+              revision.metadata == null ? (
+                t(plan.kind === 'Design' ? 'designMetadataMissing' : 'metadataLegacyPreview')
+              ) : revision.metadata.displayBenefits.length ? (
+                <ol className='m-0 pl-4'>
+                  {revision.metadata.displayBenefits.map((item) => (
+                    <li key={item.id} style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
+                      {item.text} · {item.visible ? t('on') : t('off')}
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                t('metadataEmpty')
+              )
           },
+          ...(plan.kind === 'Design'
+            ? [
+                {
+                  key: 'highlight',
+                  label: t('isHighlighted'),
+                  children: revision.isHighlighted ? (
+                    <Space size={6}>
+                      <Tag color='gold'>{t('highlightedBadge')}</Tag>
+                      {revision.highlightLabel ? <Text>{revision.highlightLabel}</Text> : null}
+                    </Space>
+                  ) : (
+                    t('off')
+                  )
+                }
+              ]
+            : []),
+          ...(revision.metadata?.designCard
+            ? [
+                {
+                  key: 'designCard',
+                  label: t('designCardSection'),
+                  children: (
+                    <div>
+                      <Paragraph>
+                        <Text strong>{t('supervisionDisplayOrder')}: </Text>
+                        {revision.metadata.designCard.displayOrder ?? '—'}
+                      </Paragraph>
+                      {(
+                        [
+                          'tagline',
+                          'fitLine',
+                          'featuresTitle',
+                          'buttonLabel',
+                          'giftTitle',
+                          'giftExtraBody',
+                          'giftConditionsShort',
+                          'giftImageUrl'
+                        ] as const
+                      ).map((field) => (
+                        <Paragraph
+                          key={field}
+                          style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', marginBottom: 4 }}
+                        >
+                          <Text strong>{t(`designCardFields.${field}`)}: </Text>
+                          {revision.metadata?.designCard?.[field] || '—'}
+                        </Paragraph>
+                      ))}
+                      <Paragraph>
+                        <Text strong>{t('designCardFields.giftValue')}: </Text>
+                        {revision.metadata.designCard.giftValue == null
+                          ? '—'
+                          : formatCurrency(revision.metadata.designCard.giftValue, locale)}
+                      </Paragraph>
+                    </div>
+                  )
+                }
+              ]
+            : []),
+          ...(revision.metadata?.supervisionCard
+            ? [
+                {
+                  key: 'supervisionCard',
+                  label: t('supervisionCardSection'),
+                  children: (
+                    <div>
+                      <Paragraph>
+                        <Text strong>{t('supervisionDisplayOrder')}: </Text>
+                        {revision.metadata.supervisionCard.displayOrder ?? '—'}
+                      </Paragraph>
+                      {(
+                        [
+                          'tagline',
+                          'fitLine',
+                          'durationText',
+                          'inspectionText',
+                          'recommendedLabel',
+                          'buttonLabel'
+                        ] as const
+                      ).map((field) => (
+                        <Paragraph
+                          key={field}
+                          style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', marginBottom: 4 }}
+                        >
+                          <Text strong>{t(`supervisionCardFields.${field}`)}: </Text>
+                          {revision.metadata?.supervisionCard?.[field] || '—'}
+                        </Paragraph>
+                      ))}
+                      <Text>
+                        {t('supervisionCardRecommended')}:{' '}
+                        {revision.metadata.supervisionCard.recommended ? t('on') : t('off')}
+                      </Text>
+                    </div>
+                  )
+                }
+              ]
+            : []),
           ...(revision.coverImageUrl
             ? [
                 {
@@ -569,7 +859,7 @@ function RevisionBlock({
                 }
               ]
             : []),
-          ...(revision.giftDescription || revision.giftConditions
+          ...(!revision.metadata?.designCard && (revision.giftDescription || revision.giftConditions)
             ? [
                 {
                   key: 'gift',
@@ -658,9 +948,27 @@ function PlanFields({
 
   return (
     <>
+      {/* Giữ dữ liệu quà legacy trong payload khi sửa các trường khác. */}
+      <Form.Item name='giftDescription' hidden>
+        <Input type='hidden' />
+      </Form.Item>
+      <Form.Item name='giftConditions' hidden>
+        <Input type='hidden' />
+      </Form.Item>
       <Form.Item name='expectedVersion' hidden>
         <InputNumber />
       </Form.Item>
+      {/* Giữ mô tả lịch sử khi lưu nháp; nội dung giám sát được nhập trong metadata. */}
+      <Form.Item name='description' hidden>
+        <Input />
+      </Form.Item>
+      {kind === 'Design' ? (
+        <>
+          <Form.Item name='consultationText' hidden>
+            <Input />
+          </Form.Item>
+        </>
+      ) : null}
       {/* Loại gói chọn MỘT LẦN lúc tạo, không đổi được sau đó (TDD-SUB-001): khi sửa chỉ giữ giá trị ngầm. */}
       {isNew ? null : (
         <Form.Item name='kind' hidden>
@@ -714,14 +1022,6 @@ function PlanFields({
         </Col>
       </Row>
 
-      {/* Gói giám sát không có quyền lợi / nội dung tư vấn: mô tả dịch vụ ở đây là chỗ duy nhất giải thích
-          gói, bắt buộc có nội dung mới Công bố được (lưu nháp thì để trống được — BR-SUB-008). */}
-      {kind === 'Supervision' ? (
-        <Form.Item name='description' label={t('serviceDescription')} extra={t('serviceDescriptionHint')}>
-          <Input.TextArea rows={4} />
-        </Form.Item>
-      ) : null}
-
       <Text strong style={sectionTitle}>
         {t('priceQuotaSection')}
       </Text>
@@ -730,9 +1030,9 @@ function PlanFields({
           name='sitePrice'
           label={t('offerKeys.ConstructionSite')}
           extra={t('supervisionNote')}
-          rules={requiredPrice}
+          rules={[{ required: true, type: 'integer', min: 0, message: t('supervisionPriceRule') }]}
         >
-          <MoneyInput min={1} step={100_000} />
+          <MoneyInput min={0} step={100_000} />
         </Form.Item>
       ) : (
         <>
@@ -786,73 +1086,244 @@ function PlanFields({
             {t('quotaHint')}
           </Text>
 
-          <Text strong style={subTitle}>
-            {t('displayBenefits')}
-          </Text>
-          <Text type='secondary' style={{ display: 'block', marginBottom: 12, fontSize: 12 }}>
-            {t('displayBenefitsHint')}
-          </Text>
-          {benefitDefs.length === 0 ? (
-            <Text type='secondary' style={{ display: 'block', marginBottom: 12 }}>
-              {t('noBooleanDefinitions')}
-            </Text>
+          {/* Tạm ẩn quyền bật/tắt (3D); giữ phần dựng form để có thể bật lại sau. */}
+          {benefitDefs.length > 0 ? (
+            <>
+              <Text strong style={subTitle}>
+                {t('displayBenefits')}
+              </Text>
+              <Text type='secondary' style={{ display: 'block', marginBottom: 12, fontSize: 12 }}>
+                {t('displayBenefitsHint')}
+              </Text>
+              {benefitDefs.map((def, index) => {
+                const included = benefits[index]?.included ?? false
+                return (
+                  <Card key={def.code} size='small' type='inner' style={{ marginBottom: 12 }}>
+                    <Form.Item name={['benefits', index, 'code']} hidden initialValue={def.code}>
+                      <Input />
+                    </Form.Item>
+                    <Form.Item
+                      name={['benefits', index, 'included']}
+                      valuePropName='checked'
+                      initialValue={false}
+                      style={{ marginBottom: 8 }}
+                    >
+                      <Checkbox>
+                        <Text strong>{def.label}</Text>
+                      </Checkbox>
+                    </Form.Item>
+                    {included ? (
+                      <Row gutter={12} align='middle'>
+                        <Col xs={24} md={5}>
+                          <Form.Item
+                            name={['benefits', index, 'enabled']}
+                            valuePropName='checked'
+                            initialValue={true}
+                            style={{ marginBottom: 8 }}
+                          >
+                            <Switch checkedChildren={t('on')} unCheckedChildren={t('off')} />
+                          </Form.Item>
+                        </Col>
+                        <Col xs={24} md={13}>
+                          <Form.Item
+                            name={['benefits', index, 'displayText']}
+                            initialValue={def.label}
+                            style={{ marginBottom: 8 }}
+                            rules={[required]}
+                          >
+                            <Input placeholder={t('displayText')} />
+                          </Form.Item>
+                        </Col>
+                        <Col xs={24} md={6}>
+                          <Form.Item
+                            name={['benefits', index, 'sortOrder']}
+                            initialValue={index + 1}
+                            style={{ marginBottom: 8 }}
+                            rules={[{ required: true, type: 'integer', message: t('sortOrderRule') }]}
+                          >
+                            <InputNumber precision={0} prefix='#' style={{ width: '100%' }} />
+                          </Form.Item>
+                        </Col>
+                      </Row>
+                    ) : null}
+                  </Card>
+                )
+              })}
+            </>
           ) : null}
-          {benefitDefs.map((def, index) => {
-            const included = benefits[index]?.included ?? false
-            return (
-              <Card key={def.code} size='small' type='inner' style={{ marginBottom: 12 }}>
-                <Form.Item name={['benefits', index, 'code']} hidden initialValue={def.code}>
+        </>
+      )}
+
+      <Text strong style={subTitle}>
+        {t('metadataTitle')}
+      </Text>
+      <Text type='secondary' style={hintText}>
+        {t(kind === 'Supervision' ? 'metadataSupervisionHint' : 'metadataHint')}
+      </Text>
+      <Form.Item noStyle shouldUpdate={(before, after) => before.metadataLegacy !== after.metadataLegacy}>
+        {() =>
+          form.getFieldValue('metadataLegacy') ? (
+            <Alert type='info' showIcon style={{ marginBottom: 12 }} title={t('metadataLegacyNote')} />
+          ) : null
+        }
+      </Form.Item>
+      <Form.List
+        name='metadataBenefits'
+        rules={[
+          {
+            validator: async (_, list) => {
+              if (list?.length > 20) throw new Error(t('metadataMax'))
+            }
+          }
+        ]}
+      >
+        {(fields, { add, remove, move }, { errors }) => (
+          <>
+            {fields.map((field, index) => (
+              <Card key={field.key} size='small' style={{ marginBottom: 12 }}>
+                <Form.Item name={[field.name, 'id']} hidden>
                   <Input />
                 </Form.Item>
                 <Form.Item
-                  name={['benefits', index, 'included']}
-                  valuePropName='checked'
-                  initialValue={false}
-                  style={{ marginBottom: 8 }}
+                  name={[field.name, 'text']}
+                  label={t('metadataText', { number: index + 1 })}
+                  rules={[
+                    required,
+                    {
+                      validator: async (_, text) => {
+                        if (typeof text !== 'string' || text.trim().length < 1 || text.trim().length > 1000)
+                          throw new Error(t('metadataTextRule'))
+                      }
+                    }
+                  ]}
                 >
-                  <Checkbox>
-                    <Text strong>{def.label}</Text>
-                  </Checkbox>
+                  <Input.TextArea rows={2} showCount maxLength={1000} />
                 </Form.Item>
-                {included ? (
-                  <Row gutter={12} align='middle'>
-                    <Col xs={24} md={5}>
-                      <Form.Item
-                        name={['benefits', index, 'enabled']}
-                        valuePropName='checked'
-                        initialValue={true}
-                        style={{ marginBottom: 8 }}
-                      >
-                        <Switch checkedChildren={t('on')} unCheckedChildren={t('off')} />
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24} md={13}>
-                      <Form.Item
-                        name={['benefits', index, 'displayText']}
-                        initialValue={def.label}
-                        style={{ marginBottom: 8 }}
-                        rules={[required]}
-                      >
-                        <Input placeholder={t('displayText')} />
-                      </Form.Item>
-                    </Col>
-                    <Col xs={24} md={6}>
-                      <Form.Item
-                        name={['benefits', index, 'sortOrder']}
-                        initialValue={index + 1}
-                        style={{ marginBottom: 8 }}
-                        rules={[{ required: true, type: 'integer', message: t('sortOrderRule') }]}
-                      >
-                        <InputNumber precision={0} prefix='#' style={{ width: '100%' }} />
-                      </Form.Item>
-                    </Col>
-                  </Row>
-                ) : null}
+                <Space wrap>
+                  <Form.Item name={[field.name, 'visible']} valuePropName='checked' style={{ marginBottom: 0 }}>
+                    <Switch
+                      checkedChildren={t('on')}
+                      unCheckedChildren={t('off')}
+                      aria-label={t('metadataVisible', { number: index + 1 })}
+                    />
+                  </Form.Item>
+                  <Button disabled={index === 0} onClick={() => move(index, index - 1)}>
+                    {t('metadataUp')}
+                  </Button>
+                  <Button disabled={index === fields.length - 1} onClick={() => move(index, index + 1)}>
+                    {t('metadataDown')}
+                  </Button>
+                  <Button danger onClick={() => remove(field.name)}>
+                    {t('metadataRemove')}
+                  </Button>
+                </Space>
               </Card>
-            )
-          })}
+            ))}
+            <Form.ErrorList errors={errors} />
+            <Button
+              disabled={fields.length >= 20}
+              onClick={() => add({ id: crypto.randomUUID(), text: '', visible: true })}
+            >
+              {t('metadataAdd')}
+            </Button>
+          </>
+        )}
+      </Form.List>
+
+      {kind === 'Design' ? (
+        <>
+          <Text strong style={sectionTitle}>
+            {t('designCardSection')}
+          </Text>
+          <Text type='secondary' style={hintText}>
+            {t('designCardHint')}
+          </Text>
+          <Form.Item
+            name={['designCard', 'displayOrder']}
+            label={t('supervisionDisplayOrder')}
+            extra={t('supervisionDisplayOrderHint')}
+            rules={[{ type: 'integer', min: 1, max: 9999, message: t('supervisionDisplayOrderRule') }]}
+          >
+            <InputNumber min={1} max={9999} precision={0} style={{ width: '100%' }} />
+          </Form.Item>
+          <Row gutter={16}>
+            {(
+              [
+                'tagline',
+                'fitLine',
+                'featuresTitle',
+                'buttonLabel',
+                'giftTitle',
+                'giftExtraBody',
+                'giftConditionsShort'
+              ] as const
+            ).map((field) => (
+              <Col key={field} xs={24} md={12}>
+                <Form.Item
+                  name={['designCard', field]}
+                  label={t(`designCardFields.${field}`)}
+                  rules={[{ max: 1000, message: tAdmin('fields.maxLength', { max: 1000 }) }]}
+                >
+                  <Input.TextArea rows={2} maxLength={1000} showCount />
+                </Form.Item>
+              </Col>
+            ))}
+            <Col xs={24} md={12}>
+              <Form.Item
+                name={['designCard', 'giftValue']}
+                label={t('designCardFields.giftValue')}
+                rules={[{ type: 'integer', min: 0, max: Number.MAX_SAFE_INTEGER, message: t('designGiftValueRule') }]}
+              >
+                <MoneyInput />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={12}>
+              <ImageUrlField name={['designCard', 'giftImageUrl']} label={t('designCardFields.giftImageUrl')} />
+            </Col>
+          </Row>
         </>
-      )}
+      ) : null}
+
+      {kind === 'Supervision' ? (
+        <>
+          <Text strong style={sectionTitle}>
+            {t('supervisionCardSection')}
+          </Text>
+          <Text type='secondary' style={hintText}>
+            {t('supervisionCardHint')}
+          </Text>
+          <Form.Item
+            name={['supervisionCard', 'displayOrder']}
+            label={t('supervisionDisplayOrder')}
+            extra={t('supervisionDisplayOrderHint')}
+            rules={[{ type: 'integer', min: 1, max: 9999, message: t('supervisionDisplayOrderRule') }]}
+          >
+            <InputNumber min={1} max={9999} precision={0} style={{ width: '100%' }} />
+          </Form.Item>
+          <Row gutter={16}>
+            {(['tagline', 'fitLine', 'durationText', 'inspectionText', 'recommendedLabel', 'buttonLabel'] as const).map(
+              (field) => (
+                <Col key={field} xs={24} md={12}>
+                  <Form.Item
+                    name={['supervisionCard', field]}
+                    label={t(`supervisionCardFields.${field}`)}
+                    rules={[{ max: 1000, message: tAdmin('fields.maxLength', { max: 1000 }) }]}
+                  >
+                    <Input.TextArea rows={2} maxLength={1000} showCount />
+                  </Form.Item>
+                </Col>
+              )
+            )}
+          </Row>
+          <Form.Item
+            name={['supervisionCard', 'recommended']}
+            label={t('supervisionCardRecommended')}
+            valuePropName='checked'
+          >
+            <Switch />
+          </Form.Item>
+        </>
+      ) : null}
 
       <Row gutter={16}>
         <Col xs={24} md={12}>
@@ -861,47 +1332,26 @@ function PlanFields({
             {t('coverImageHint')}
           </Text>
         </Col>
-        <Col xs={24} md={12}>
-          {/* Nhãn + công tắc cùng một dòng: hai khối cạnh nhau cao gần bằng nhau, không để trống dưới ô ảnh bìa. */}
-          <div className='mb-4 flex items-center gap-3'>
-            <Text>{t('isHighlighted')}</Text>
-            <Form.Item name='isHighlighted' valuePropName='checked' noStyle>
-              <Switch aria-label={t('isHighlighted')} />
+        {kind === 'Design' ? (
+          <Col xs={24} md={12}>
+            {/* Nhãn + công tắc cùng một dòng: hai khối cạnh nhau cao gần bằng nhau, không để trống dưới ô ảnh bìa. */}
+            <div className='mb-4 flex items-center gap-3'>
+              <Text>{t('isHighlighted')}</Text>
+              <Form.Item name='isHighlighted' valuePropName='checked' noStyle>
+                <Switch aria-label={t('isHighlighted')} />
+              </Form.Item>
+            </div>
+            <Form.Item
+              name='highlightLabel'
+              label={t('highlightLabel')}
+              extra={t('highlightLabelHint')}
+              rules={[{ max: HIGHLIGHT_LABEL_MAX, message: tAdmin('fields.maxLength', { max: HIGHLIGHT_LABEL_MAX }) }]}
+            >
+              <Input maxLength={HIGHLIGHT_LABEL_MAX} />
             </Form.Item>
-          </div>
-          <Form.Item
-            name='highlightLabel'
-            label={t('highlightLabel')}
-            extra={t('highlightLabelHint')}
-            rules={[{ max: HIGHLIGHT_LABEL_MAX, message: tAdmin('fields.maxLength', { max: HIGHLIGHT_LABEL_MAX }) }]}
-          >
-            <Input maxLength={HIGHLIGHT_LABEL_MAX} />
-          </Form.Item>
-        </Col>
+          </Col>
+        ) : null}
       </Row>
-
-      {kind === 'Design' ? (
-        <Row gutter={16}>
-          <Col xs={24} md={12}>
-            <Form.Item
-              name='giftDescription'
-              label={t('giftDescription')}
-              rules={[{ max: GIFT_TEXT_MAX, message: tAdmin('fields.maxLength', { max: GIFT_TEXT_MAX }) }]}
-            >
-              <Input.TextArea rows={3} maxLength={GIFT_TEXT_MAX} showCount />
-            </Form.Item>
-          </Col>
-          <Col xs={24} md={12}>
-            <Form.Item
-              name='giftConditions'
-              label={t('giftConditions')}
-              rules={[{ max: GIFT_TEXT_MAX, message: tAdmin('fields.maxLength', { max: GIFT_TEXT_MAX }) }]}
-            >
-              <Input.TextArea rows={3} maxLength={GIFT_TEXT_MAX} showCount />
-            </Form.Item>
-          </Col>
-        </Row>
-      ) : null}
 
       <Text type='secondary' style={{ display: 'block', marginTop: 8, fontSize: 12 }}>
         {t('snapshotNote')}

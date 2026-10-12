@@ -9,7 +9,6 @@ import { usePlans } from '@/features/plans'
 import { useSupervisionPackages } from '@/features/supervision'
 import { Link, useRouter } from '@/i18n/navigation'
 import type { Locale } from '@/i18n/routing'
-import { useCmsCollection } from '@/shared/cms'
 import { ROUTES } from '@/shared/constants/routes'
 import { usePageEntrance } from '@/shared/hooks'
 import { cn } from '@/shared/lib/utils'
@@ -35,11 +34,9 @@ interface PlanTabsProps {
 export function PlanTabs({ active }: PlanTabsProps) {
   const t = useTranslations('plans.tabs')
   const locale = useLocale() as Locale
-  // Gói THIẾT KẾ đọc từ feature `plans` (BMT API → mock khi rỗng); gói GIÁM SÁT
-  // vẫn đọc kho CMS vì API chưa đủ trường cho thẻ giám sát.
+  // Both tabs derive their price/count from published API plans.
   const { data: apiPlans } = usePlans()
-  const cmsPlans = useCmsCollection('plans')
-  const designPlans = apiPlans && apiPlans.length > 0 ? apiPlans : cmsPlans
+  const designPlans = apiPlans ?? []
   const supervisionPackages = useSupervisionPackages()
   const router = useRouter()
   const { rootRef, entranceState, entranceStyle } = usePageEntrance('plans.tabs')

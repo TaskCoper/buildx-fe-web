@@ -357,6 +357,7 @@
       "ConstructionSiteNameTaken": "Bạn đã có công trình mang tên này. Vui lòng chọn tên khác.",
       "ConstructionSiteAddressRequired": "Vui lòng nhập địa chỉ công trình.",
       "ConstructionSiteAddressTooLong": "Địa chỉ công trình tối đa 500 ký tự.",
+      "ConstructionSiteDescriptionTooLong": "Mô tả nhu cầu tối đa 1.000 ký tự.",
       "ConstructionSiteCoordinatesRequired": "Vui lòng chọn vị trí công trình trên bản đồ.",
       "ConstructionSiteCoordinatesInvalid": "Vị trí công trình trên bản đồ chưa hợp lệ. Vui lòng chọn lại.",
       "ConstructionSiteCoordinatesUnavailable": "Công trình chưa có vị trí trên bản đồ. Vui lòng chọn vị trí rồi lưu lại.",
@@ -2608,6 +2609,8 @@
     }
   },
   "plans": {
+    "loadError": "Không tải được danh sách gói. Vui lòng thử lại.",
+    "retry": "Thử lại",
     "title": "Bảng giá BuildX",
     "subtitle": "Tạo phương án – So sánh lựa chọn – Tối ưu ngân sách trước khi thi công",
     "tabs": {
@@ -2648,7 +2651,7 @@
     "designCredits": "lượt thiết kế - dự toán",
     "libraryCredits": "lượt tra thư viện mẫu",
     "audience": "Phù hợp: {audience}",
-    "choosePlan": "Chọn gói",
+    "choosePlan": "Chọn gói {name}",
     "cta": {
       "basic": "Bắt đầu ngay",
       "advanced": "Lập kế hoạch",
@@ -2773,7 +2776,9 @@
     },
     "highlights": {
       "designCredits": "{count} phương án thiết kế",
-      "libraryCredits": "{count} lượt tra cứu thư viện mẫu"
+      "libraryCredits": "{count} lượt tra cứu thư viện mẫu",
+      "designUnlimited": "Không giới hạn phương án thiết kế",
+      "libraryUnlimited": "Không giới hạn lượt tra cứu thư viện mẫu"
     },
     "cycle": {
       "label": "Chu kỳ thanh toán",
@@ -2783,7 +2788,8 @@
       "noteMonth": "Thanh toán 1 lần · dùng trong 1 tháng",
       "noteYear": "Thanh toán 1 lần · dùng trong 1 năm",
       "unavailable": "Chưa mở bán chu kỳ này"
-    }
+    },
+    "empty": "Hiện chưa có gói thiết kế được công bố."
   },
   "consult": {
     "directory": {
@@ -3840,7 +3846,6 @@
       "unlimited": "Không giới hạn",
       "limited": "Có hạn mức",
       "limitValue": "{limit} lượt",
-      "serviceDescription": "Mô tả dịch vụ",
       "descriptionField": "Mô tả gói",
       "consultationText": "Nội dung tư vấn",
       "offers": "Lựa chọn mua & giá (VND)",
@@ -3857,7 +3862,6 @@
       "draftNote": "Lưu là ghi đè toàn bộ bản nháp; website vẫn hiện bản đang công bố cho tới khi bấm Công bố ở dòng của gói.",
       "codeHint": "Không trùng gói khác và không đổi được sau khi tạo.",
       "kindHint": "Chọn một lần lúc tạo, không đổi được sau đó.",
-      "serviceDescriptionHint": "Bắt buộc có nội dung khi Công bố. Chỉ để hiển thị, chốt theo đơn — không tạo lượt hay bộ đếm.",
       "consultationHint": "Mô tả tự do dịch vụ tư vấn offline; không tạo lượt hay mức tư vấn.",
       "priceRule": "Giá là số nguyên VND lớn hơn 0.",
       "quotaSection": "Quyền dạng lượt",
@@ -3873,7 +3877,7 @@
       "noBooleanDefinitions": "Danh mục hệ thống chưa có quyền dạng bật / tắt.",
       "displayText": "Nội dung hiển thị",
       "sortOrderRule": "Nhập thứ tự là số nguyên.",
-      "supervisionNote": "Gói giám sát không dùng danh mục quyền lợi và không có nội dung tư vấn; công bố cần tên, giá và mô tả dịch vụ.",
+      "supervisionNote": "Giá 0 chỉ để giới thiệu, không cho mua. Giá dương dùng luồng mua theo công trình. Công bố cần tên và giá hợp lệ.",
       "snapshotNote": "Đơn đã tạo giữ phiên bản gói lúc đặt — thay đổi đã công bố chỉ áp cho lần mua sau.",
       "highlightedBadge": "Nổi bật",
       "cardSection": "Trình bày thẻ gói",
@@ -3884,7 +3888,64 @@
       "highlightLabel": "Nhãn nổi bật",
       "highlightLabelHint": "Chữ hiển thị trên nhãn khi bật gói nổi bật (ví dụ: Bán chạy).",
       "giftDescription": "Mô tả quà tặng",
-      "giftConditions": "Điều kiện nhận quà"
+      "giftConditions": "Điều kiện nhận quà",
+      "metadataTitle": "Quyền lợi hiển thị",
+      "metadataHint": "Nội dung giới thiệu gói, không thay quyền sử dụng. Dùng chung cho tháng và năm; tối đa 20 dòng.",
+      "metadataSupervisionHint": "Nội dung giới thiệu gói, không thay quyền sử dụng hoặc số lượt kiểm tra. Tối đa 20 dòng.",
+      "metadataText": "Nội dung dòng {number}",
+      "metadataVisible": "Hiển thị dòng {number}",
+      "metadataTextRule": "Nhập 1–1.000 ký tự sau khi bỏ khoảng trắng đầu/cuối.",
+      "metadataMax": "Tối đa 20 dòng quyền lợi.",
+      "metadataUp": "Lên",
+      "metadataDown": "Xuống",
+      "metadataRemove": "Xóa dòng",
+      "metadataAdd": "Thêm dòng",
+      "metadataLegacyNote": "Danh sách lấy từ nội dung đang hiển thị, chưa được lưu. Lưu nháp rồi Công bố để áp dụng.",
+      "metadataLegacyPreview": "Chưa cấu hình; Customer vẫn dùng nội dung giới thiệu hiện tại.",
+      "metadataEmpty": "Không có dòng giới thiệu.",
+      "supervisionCardSection": "Nội dung thẻ giám sát",
+      "supervisionDisplayOrder": "Thứ tự hiển thị",
+      "supervisionDisplayOrderHint": "Số nhỏ hiển thị trước. Để trống thì gói nằm sau các gói đã nhập thứ tự. Áp dụng sau Công bố.",
+      "supervisionDisplayOrderRule": "Nhập số nguyên từ 1 đến 9999 hoặc để trống.",
+      "supervisionCardHint": "Nội dung đi cùng bản gói và chỉ thay đổi sau Công bố. Thời hạn, số lượt là mô tả dịch vụ; không tạo quyền hoặc bộ đếm. Để trống để bỏ nội dung.",
+      "supervisionCardFields": {
+        "tagline": "Nhãn dưới tên gói",
+        "fitLine": "Giới thiệu phù hợp",
+        "durationText": "Nội dung thời hạn",
+        "inspectionText": "Thông tin kiểm tra tại công trình",
+        "recommendedLabel": "Nhãn khuyến nghị",
+        "buttonLabel": "Nội dung nút chọn gói (tùy chọn)"
+      },
+      "supervisionCardRecommended": "Đánh dấu khuyến nghị",
+      "supervisionPriceRule": "Giá là số nguyên VND bằng 0 hoặc lớn hơn 0.",
+      "legacyDuration": "/ dự án · tối đa {months} tháng",
+      "legacyInspections": "{count} lượt kỹ sư kiểm tra thực tế",
+      "legacyNoInspection": "Không có kỹ sư kiểm tra tại công trình",
+      "legacyRecommended": "Khuyến nghị cho nhà ở",
+      "designCardSection": "Nội dung thẻ thiết kế",
+      "designCardHint": "Nội dung đi cùng bản gói và chỉ thay đổi sau Công bố. Để trống để bỏ nội dung; không dùng dữ liệu mẫu. Quà tặng dùng các ô trong phần này.",
+      "designCardFields": {
+        "tagline": "Nhãn dưới tên gói",
+        "fitLine": "Giới thiệu phù hợp",
+        "featuresTitle": "Tiêu đề danh sách quyền lợi",
+        "buttonLabel": "Nội dung nút chọn gói",
+        "giftTitle": "Tên quà tặng",
+        "giftExtraBody": "Nội dung ưu đãi thêm",
+        "giftConditionsShort": "Điều kiện nhận quà",
+        "giftImageUrl": "Ảnh quà tặng",
+        "giftValue": "Giá trị quà tặng (đồng)"
+      },
+      "designGiftValueRule": "Giá trị quà phải là số nguyên không âm trong giới hạn cho phép.",
+      "designMetadataMissing": "Chưa cấu hình quyền lợi hiển thị; trang khách hàng chỉ hiển thị các hạn mức của gói.",
+      "historyTitle": "Lịch sử phiên bản",
+      "historyEmpty": "Gói chưa có phiên bản đã công bố.",
+      "historyCurrent": "Hiện tại",
+      "historyView": "Xem",
+      "historyViewRevision": "Xem phiên bản #{number}",
+      "historyPublished": "Bản đã công bố",
+      "historyReadOnly": "Bạn đang xem phiên bản đã công bố. Nội dung chỉ đọc và giữ nguyên theo phiên bản này.",
+      "publishedAt": "Ngày công bố",
+      "retry": "Thử lại"
     },
     "bmtCommerce": {
       "views": {
@@ -4089,7 +4150,7 @@
       "inspectionsRule": "Số lượt kiểm tra là số nguyên từ 1."
     },
     "contractorsAdmin": {
-      "description": "Quản lý hồ sơ nhà thầu: thông tin, năng lực (loại công trình × phạm vi), liên hệ, pháp lý. Hồ sơ mới lưu Ẩn; muốn Hiện cần đủ tên + địa chỉ + toạ độ + ≥1 loại công trình + ≥1 phạm vi.",
+      "description": "Quản lý hồ sơ nhà thầu: thông tin, năng lực (loại công trình × phạm vi), liên hệ, pháp lý. Bắt buộc có tên, địa chỉ kèm vị trí trên bản đồ, ít nhất một loại công trình và một phạm vi thi công. Hồ sơ mới lưu ở trạng thái Ẩn; bấm Hiện hồ sơ để công khai.",
       "name": "Tên nhà thầu",
       "address": "Địa chỉ",
       "statusLabel": "Trạng thái",
@@ -4098,7 +4159,8 @@
       "hidden": "Đang ẩn",
       "hide": "Ẩn hồ sơ",
       "show": "Hiện hồ sơ",
-      "requiredForVisible": "Bắt buộc để hiển thị công khai.",
+      "buildingTypesRequired": "Chọn ít nhất một loại công trình.",
+      "scopesRequired": "Chọn ít nhất một phạm vi thi công.",
       "ratingHint": "Điểm do admin nhập, 0–5. Để trống cả điểm và số lượt thì không hiện đánh giá.",
       "contactNote": "Thông tin liên hệ chỉ admin thấy, không lộ ra trang khách.",
       "sections": {
@@ -4275,6 +4337,10 @@
         "mapError": "Chưa tra được vị trí. Vui lòng thử lại.",
         "coordinatesRequired": "Chọn một địa chỉ gợi ý để xác định vị trí trước khi lưu.",
         "required": "Nhập đủ tỉnh/thành, phường/xã và số nhà/đường.",
+        "provinceRequired": "Chọn tỉnh/thành phố.",
+        "wardRequired": "Chọn phường/xã.",
+        "streetRequired": "Nhập số nhà/đường.",
+        "legacyRequired": "Cần có địa chỉ và vị trí trên bản đồ. Bấm \"Bổ sung địa chỉ tách riêng\" để nhập lại.",
         "tooLong": "Số nhà/đường tối đa 500 ký tự.",
         "clear": "Xóa toàn bộ địa chỉ",
         "catalogError": "Không tải được danh mục tỉnh/phường. Dữ liệu đã nhập được giữ lại.",
@@ -6361,7 +6427,9 @@
         "ConditionPhoto": "Ảnh hiện trạng"
       },
       "code": "Mã hồ sơ",
-      "searchByCode": "Tìm theo mã hồ sơ"
+      "searchByCode": "Tìm theo mã hồ sơ",
+      "needs": "Mô tả nhu cầu",
+      "noNeeds": "Khách chưa nhập mô tả."
     }
   },
   "contractors": {
@@ -7293,11 +7361,10 @@
       "budgetError": "Nhập số nguyên VND lớn hơn 0, tối đa 28 chữ số. Có thể dùng dấu phân cách nhóm nghìn.",
       "start": "Dự kiến khởi công",
       "needsTitle": "Nhu cầu thi công",
-      "needsSubtitle": "Cho BuildX biết phạm vi và yêu cầu chính của dự án.",
+      "needsSubtitle": "Cho BuildX biết yêu cầu chính của công trình. Phần này không bắt buộc.",
       "scope": "Phạm vi thi công",
       "description": "Mô tả nhu cầu",
       "descriptionPlaceholder": "VD: Cần nhà thầu thi công trọn gói nhà phố 2 tầng, có kinh nghiệm và có thể khảo sát cuối tuần.",
-      "needsLocal": "Nhu cầu thi công được lưu trên trình duyệt này; hiện chưa gửi đến nhà thầu.",
       "scopeLoadError": "Không tải được danh mục phạm vi thi công. Vui lòng thử lại.",
       "scopeEmpty": "Chưa có phạm vi thi công đang dùng trong danh mục.",
       "scopeHistorical": "Lựa chọn đã lưu trước đây",
@@ -7862,7 +7929,9 @@
         "paymentIcon": "QrCode",
         "scopeIcon": "Ruler",
         "areaIcon": "MapPin"
-      }
+      },
+      "loadingPlans": "Đang tải các gói giám sát…",
+      "noPublishedPlans": "Chưa có gói giám sát được công bố."
     },
     "dashboard": {
       "stageShort": "GĐ {index}",
