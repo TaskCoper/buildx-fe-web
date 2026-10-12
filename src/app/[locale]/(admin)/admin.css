@@ -157,89 +157,32 @@
 
 /* Trình soạn rich text (TipTap) của bài viết — khung + kiểu chữ khớp bản render
    trên site. Là vùng contenteditable do mình dựng nên style thẳng ở đây. */
-.admin-richtext {
-  min-height: 260px;
-  padding: 12px 14px;
-  border: 1px solid var(--admin-border);
+/* Một ô duy nhất: thanh công cụ + vùng soạn chung một khung (không còn chuyển Soạn / Xem trước). */
+.admin-richtext-box {
+  overflow: hidden;
+  border: 1px solid var(--ant-color-border, #d9d9d9);
   border-radius: 8px;
-  background: var(--admin-surface);
-  font:
-    15px/1.6 system-ui,
-    sans-serif;
-  outline: none;
+  background: var(--ant-color-bg-container, #fff);
+  color: var(--foreground);
 }
 
-.admin-richtext:focus {
+.admin-richtext-box:focus-within {
   border-color: var(--ant-color-primary, #16a34a);
 }
 
-.admin-richtext > * + * {
-  margin-top: 0.6em;
+/* Vùng soạn mang CÙNG lớp CSS với nơi khách đọc (`ARTICLE_BODY_CLASS` / `LEGAL_BODY_CLASS` ở `shared/lib/rich-content`)
+   nên tiêu đề, danh sách, trích dẫn, liên kết, ảnh và bảng hiển thị y như trang công khai. ĐỪNG định kiểu chữ ở đây:
+   CSS không layer của file này thắng cả Tailwind và sẽ làm hai nơi lệch nhau. Chỉ giữ phần riêng của lúc soạn. */
+.admin-richtext {
+  min-height: 320px;
+  padding: 12px 14px;
+  outline: none;
 }
 
-.admin-richtext h2 {
-  font-size: 1.3em;
-  font-weight: 600;
-}
-
-.admin-richtext h3 {
-  font-size: 1.1em;
-  font-weight: 600;
-}
-
-.admin-richtext ul,
-.admin-richtext ol {
-  padding-inline-start: 1.4em;
-}
-
-.admin-richtext blockquote {
-  border-inline-start: 3px solid var(--admin-border);
-  padding-inline-start: 12px;
-  color: var(--admin-muted);
-}
-
-.admin-richtext img {
-  max-width: 100%;
-  height: auto;
-  border-radius: 6px;
-}
-
-.admin-richtext a {
-  color: var(--ant-color-primary, #16a34a);
-  text-decoration: underline;
-}
-
-.admin-richtext .tableWrapper {
-  max-width: 100%;
-  overflow-x: auto;
-  margin-block: 12px;
-}
-
-.admin-richtext table {
-  border-collapse: collapse;
-  table-layout: fixed;
-  width: 100%;
-}
-
+/* Ô bảng làm mốc định vị cho lớp phủ chọn ô và tay nắm kéo cột. */
 .admin-richtext td,
 .admin-richtext th {
   position: relative;
-  min-width: 60px;
-  padding: 8px;
-  border: 1px solid var(--ant-color-border);
-  vertical-align: top;
-  overflow-wrap: anywhere;
-}
-
-.admin-richtext th {
-  background: var(--admin-tint);
-  font-weight: 600;
-  text-align: start;
-}
-
-.admin-richtext td > p,
-.admin-richtext th > p {
-  margin: 0;
 }
 
 .admin-richtext .selectedCell::after {

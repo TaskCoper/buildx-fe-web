@@ -932,7 +932,7 @@ function TemplateFloorViewer({
 
   const reduceMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-  /** Bản nét để zoom: ảnh thư viện qua route đổi AVIF cỡ lớn nhất, ảnh công khai thì giữ nguyên. */
+  /** Bản nét để zoom: ảnh thư viện qua route đổi WebP cỡ lớn nhất, ảnh công khai thì giữ nguyên. */
   const zoomSource = useCallback((floor: HandbookFloor) => {
     const src = floor.imageUrl ?? ''
     return libraryImageUrl(src, 1920) ?? src

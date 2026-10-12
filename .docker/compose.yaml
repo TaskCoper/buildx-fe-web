@@ -42,6 +42,8 @@ services:
     <<: *buildx-fe-base
     container_name: buildx-fe-web-dev
     profiles: [dev]
+    # Cache ảnh đã resize sống qua lần deploy (xem Dockerfile và `src/shared/lib/image-variants.ts`).
+    volumes: [buildx-fe-web-dev-image-cache:/usr/src/app/.next/cache/images]
 
   buildx-fe-web-prod:
     <<: *buildx-fe-base
@@ -54,6 +56,11 @@ services:
       buildx-network:
         ipv4_address: 10.47.20.12
     profiles: [prod]
+    volumes: [buildx-fe-web-prod-image-cache:/usr/src/app/.next/cache/images]
+
+volumes:
+  buildx-fe-web-dev-image-cache:
+  buildx-fe-web-prod-image-cache:
 
 networks:
   buildx-network:

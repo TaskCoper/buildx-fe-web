@@ -50,12 +50,13 @@ test('each new read checks its own session and converts to the requested format 
     calls.push({ url: String(url), options })
     return options.headers.Cookie === 'allowed' ? source() : new Response(null, { status: 403 })
   })
-  for (const format of ['avif', 'webp']) {
-    const response = await run(request('w=640', 'allowed', `image/${format}`), context)
+  for (const accept of ['image/webp', 'image/avif,image/webp']) {
+    const response = await run(request('w=640', 'allowed', accept), context)
     privateResponse(response, 200)
     const metadata = await sharp(Buffer.from(await response.arrayBuffer())).metadata()
     assert.equal(metadata.width, 640)
-    assert.equal(metadata.format, format === 'avif' ? 'heif' : format)
+    assert.equal(metadata.format, 'webp')
+    assert.match(response.headers.get('server-timing') ?? '', /^source;dur=\d+, encode;dur=\d+$/)
   }
   privateResponse(await run(request('w=640', 'denied'), context), 403)
   assert.equal(calls.length, 3)
@@ -155,19 +156,19 @@ test('small sources are returned untouched after authorization; wide ones are st
     options.headers.Cookie === 'allowed' ? source() : new Response(null, { status: 403 })
   )
   // Ảnh trắng 1000px, vài KB, w=960: nhỏ và không rộng quá 1,5 lần cỡ xin → trả nguyên file, không mã hoá lại.
-  const small = await run(request('w=960', 'allowed', 'image/avif'), context)
+  const small = await run(request('w=960', 'allowed', 'image/avif,image/webp'), context)
   privateResponse(small, 200)
   assert.equal(small.headers.get('content-type'), 'image/png')
   assert.equal(small.headers.get('content-length'), String(picture.length))
   assert.deepEqual(Buffer.from(await small.arrayBuffer()), picture)
   // Trả nguyên vẫn phải qua kiểm quyền của backend.
-  privateResponse(await run(request('w=960', 'denied', 'image/avif'), context), 403)
+  privateResponse(await run(request('w=960', 'denied', 'image/avif,image/webp'), context), 403)
   // Ảnh rộng hơn 1,5 lần cỡ xin (1000px so với 640) vẫn được đổi cỡ.
-  const resized = await run(request('w=640', 'allowed', 'image/avif'), context)
+  const resized = await run(request('w=640', 'allowed', 'image/avif,image/webp'), context)
   privateResponse(resized, 200)
   const metadata = await sharp(Buffer.from(await resized.arrayBuffer())).metadata()
   assert.equal(metadata.width, 640)
-  assert.equal(metadata.format, 'heif')
+  assert.equal(metadata.format, 'webp')
 })
 
 test('a large source is still converted when pass-through is on', async () => {
@@ -177,8 +178,8 @@ test('a large source is still converted when pass-through is on', async () => {
     .toBuffer()
   assert.ok(large.length > 300_000)
   const run = defaultHandler(async () => new Response(large, { headers: { 'Content-Type': 'image/png' } }))
-  const response = await run(request('w=1280', 'allowed', 'image/avif'), context)
+  const response = await run(request('w=1280', 'allowed', 'image/avif,image/webp'), context)
   privateResponse(response, 200)
-  assert.equal(response.headers.get('content-type'), 'image/avif')
+  assert.equal(response.headers.get('content-type'), 'image/webp')
   assert.ok(Number(response.headers.get('content-length')) < large.length)
 })

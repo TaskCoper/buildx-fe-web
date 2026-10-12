@@ -40,6 +40,15 @@ const nextConfig: NextConfig = {
     // Mặc định Next chỉ phát WebP. Liệt kê AVIF trước để trình duyệt hỗ trợ nhận AVIF (nhỏ hơn WebP khoảng 20–30% ở cùng
     // chất lượng), trình duyệt cũ vẫn nhận WebP. Áp dụng cho MỌI ảnh qua `next/image`, kể cả ảnh admin tải lên CDN.
     formats: ['image/avif', 'image/webp'],
+    // Ba cấu hình dưới đây là NGUỒN GỐC của tốc độ ảnh: mỗi bậc `w` / mức `q` là một cache key riêng của bộ tối ưu và một
+    // lần resize nguội tốn 2–6 giây (đo 12/10/2026 trên site thật: 3,5–5,8 giây TTFB), nên danh sách cố tình THƯA và chỉ có
+    // MỘT mức nén. Phải khớp `src/shared/lib/image-variants.ts` (`scripts/image-variants.test.mjs` kiểm); `/api/warm` sinh
+    // trước đúng các bậc này sau mỗi lần nội dung đổi. Thêm bậc mới phải có lý do thật.
+    deviceSizes: [640, 828, 1080, 1600, 1920],
+    imageSizes: [96, 192, 384],
+    qualities: [75],
+    // Ảnh admin tải lên mang key mới ở mỗi lần tải nên nội dung không bao giờ đổi: giữ bản đã resize 30 ngày thay vì mặc định.
+    minimumCacheTTL: 60 * 60 * 24 * 30,
     // Danh sách host này phải khớp `OPTIMIZABLE_IMAGE_HOSTS` trong `src/shared/lib/image-src.ts` (có test kiểm).
     remotePatterns: [
       // Royalty-free catalogue photography (see `shared/lib/imagery.ts`).

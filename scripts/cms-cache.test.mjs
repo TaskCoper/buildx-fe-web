@@ -21,13 +21,25 @@ function load(path, overrides = {}) {
 
 const cache = load('src/shared/cms/cms-cache.ts')
 const effects = []
+const scheduled = []
+const warmCalls = []
+let warmFails = false
 const route = load('src/app/api/cms/revalidate/route.ts', {
   '@/shared/cms/cms-cache': cache,
   'next/cache': {
     revalidateTag: (...args) => effects.push(['tag', ...args]),
     revalidatePath: (...args) => effects.push(['path', ...args])
   },
-  'next/server': { NextResponse: { json: (body, options) => Response.json(body, options) } }
+  '@/shared/lib/warm-images': {
+    warmImages: async (...args) => {
+      warmCalls.push(args)
+      if (warmFails) throw new Error('warm exploded')
+    }
+  },
+  'next/server': {
+    NextResponse: { json: (body, options) => Response.json(body, options) },
+    after: (task) => scheduled.push(task)
+  }
 })
 
 function request(body = { pageKey: 'home', locale: 'vi' }, headers = {}) {
@@ -48,6 +60,9 @@ async function run(t, operation) {
   process.env.NEXT_PUBLIC_APP_URL = 'http://localhost:3000'
   process.env.BMT_API_ORIGIN = 'https://fixture-api.invalid'
   effects.length = 0
+  scheduled.length = 0
+  warmCalls.length = 0
+  warmFails = false
   t.after(() => {
     process.env = env
     globalThis.fetch = originalFetch
@@ -68,6 +83,31 @@ test('webhook hết hạn ngay đúng trang/ngôn ngữ, không hỏi backend v�
       ['tag', 'cms:home:vi', { expire: 0 }],
       ['path', '/vi', 'page']
     ])
+  }))
+
+test('nội dung đổi ở production thì sinh trước ảnh sau khi trả lời; môi trường khác không làm gì', async (t) =>
+  run(t, async () => {
+    process.env.NODE_ENV = 'test'
+    assert.equal((await route.POST(request(undefined, webhook))).status, 200)
+    assert.equal(scheduled.length, 0, 'ngoài production không hâm nóng')
+
+    process.env.NODE_ENV = 'production'
+    const response = await route.POST(request(undefined, webhook))
+    assert.equal(response.status, 200)
+    assert.equal(scheduled.length, 1, 'được xếp lịch chạy nền, không chặn phản hồi')
+    assert.equal(warmCalls.length, 0, 'chưa chạy cho tới khi Next gọi tác vụ nền')
+    await scheduled[0]()
+    assert.equal(warmCalls.length, 1)
+  }))
+
+test('hâm nóng ảnh lỗi không làm hỏng việc làm mới cache', async (t) =>
+  run(t, async () => {
+    process.env.NODE_ENV = 'production'
+    warmFails = true
+    const response = await route.POST(request(undefined, webhook))
+    assert.equal(response.status, 200)
+    await assert.doesNotReject(async () => scheduled[0]())
+    assert.equal(warmCalls.length, 1)
   }))
 
 test('footer làm mới layout của ngôn ngữ tương ứng; trang khác không bị gắn tag footer', async (t) =>

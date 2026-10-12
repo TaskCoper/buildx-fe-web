@@ -103,8 +103,9 @@ test('srcset có đủ bốn cỡ, mỗi cỡ một mô tả w; URL lạ thì kh
   assert.equal(libraryImageSrcSet('/images/a.avif'), undefined)
 })
 
-test('chọn định dạng: AVIF khi nhận, không thì WebP, không nữa thì giữ file gốc', () => {
-  assert.equal(negotiateLibraryImageFormat('image/avif,image/webp,image/apng,*/*;q=0.8'), 'avif')
+test('chọn định dạng: WebP khi nhận (kể cả khi nhận AVIF — route không mã hoá AVIF), không thì giữ file gốc', () => {
+  assert.equal(negotiateLibraryImageFormat('image/avif,image/webp,image/apng,*/*;q=0.8'), 'webp')
+  assert.equal(negotiateLibraryImageFormat('image/avif'), 'original')
   assert.equal(negotiateLibraryImageFormat('image/webp,*/*'), 'webp')
   assert.equal(negotiateLibraryImageFormat('IMAGE/WEBP'), 'webp')
   assert.equal(negotiateLibraryImageFormat('image/png,image/*;q=0.8'), 'original')

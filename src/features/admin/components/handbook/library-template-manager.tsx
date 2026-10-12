@@ -1,9 +1,9 @@
 'use client'
 
 import { DeleteOutlined, SwapOutlined } from '@ant-design/icons'
-import { Alert, App, Checkbox, Form, Segmented, Space, Tag, Typography } from 'antd'
+import { Alert, App, Checkbox, Form, Segmented, Space, Tag, Typography, type FormInstance } from 'antd'
 import { useTranslations } from 'next-intl'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { isApiError } from '@/shared/lib/api'
 import { adminKeys } from '../../api/admin.keys'
@@ -28,7 +28,9 @@ import {
   type FormSection,
   type SaveFlowResult
 } from '../../api/bmt/library-create-flow'
+import { resolveFileType } from '../../api/bmt/library-sections.logic'
 import { matchesKeyword, pageLocally } from '../../services/local-page.service'
+import { librarySectionsProblem } from '../../services/publish-requirements.service'
 import { ApiResourceManager } from '../common/api-resource-manager'
 import type { RowAction } from '../common/row-actions-menu'
 import { StatusTag } from '../common/status-tag'
@@ -43,6 +45,73 @@ const { Text } = Typography
 
 /** Số request đọc phiên bản chạy song song khi dựng danh sách. */
 const CONCURRENCY = 6
+
+/**
+ * Thân form Thêm / Sửa. Tách riêng để theo dõi ô "Công bố ngay": mọi trường BE đòi lúc công bố chỉ bắt buộc khi
+ * đang công bố ngay, hoặc khi sửa mẫu ĐANG hiển thị với khách (sửa là khách thấy ngay nên phải đủ như lúc công
+ * bố — BR-LIB-001 khoản 1). Mẫu nháp bỏ chọn "Công bố ngay" thì vẫn lưu nháp thiếu được.
+ */
+function LibraryFormBody({
+  form,
+  live,
+  progress
+}: {
+  form: FormInstance
+  live: boolean
+  progress: CreateFlowProgress | null
+}) {
+  const l = useTranslations('admin.library')
+  const publishNow = Form.useWatch('publishNow', form) as boolean | undefined
+  const requireComplete = live || publishNow !== false
+  const busy = progress !== null
+
+  // Chuyển về lưu nháp thì bỏ các lỗi "bắt buộc" đang hiện, nếu không chúng nằm đó tới lần lưu kế tiếp.
+  useEffect(() => {
+    if (requireComplete) return
+    const stale = form
+      .getFieldsError()
+      .filter((field) => field.errors.length > 0)
+      .map((field) => ({ name: field.name, errors: [] as string[] }))
+    if (stale.length) form.setFields(stale)
+  }, [form, requireComplete])
+
+  const sectionsRules = requireComplete
+    ? [
+        {
+          validator: (_: unknown, value?: FormSection[]) => {
+            const problem = librarySectionsProblem(value ?? [], (name) => resolveFileType(name)?.kind === 'Image')
+            if (!problem) return Promise.resolve()
+            const key =
+              problem.kind === 'noSection'
+                ? 'sectionsRequired'
+                : problem.kind === 'noImage'
+                  ? 'imageRequired'
+                  : 'sectionFilesRequired'
+            return Promise.reject(new Error(l(key)))
+          }
+        }
+      ]
+    : []
+
+  return (
+    <>
+      <Alert type='info' showIcon style={{ marginBottom: 16 }} title={l('createNote')} />
+      <LibraryContentFields form={form} requireComplete={requireComplete} />
+      {/* Không dùng `noStyle`: thông báo thiếu mục / thiếu ảnh cần chỗ hiện ngay dưới danh sách mục. */}
+      <Form.Item name='sections' rules={sectionsRules} style={{ marginBottom: 0 }}>
+        <LibraryInitialSectionsField disabled={busy} />
+      </Form.Item>
+      {live ? null : (
+        <Form.Item name='publishNow' valuePropName='checked' extra={l('publishNowHint')}>
+          <Checkbox disabled={busy}>{l('publishNow')}</Checkbox>
+        </Form.Item>
+      )}
+      {progress && progress.total > 0 ? (
+        <Alert type='info' showIcon title={l('createUploading', { done: progress.done, total: progress.total })} />
+      ) : null}
+    </>
+  )
+}
 
 /** Một dòng bảng: mẫu + phiên bản đại diện (bản hiện hành, chưa có thì nháp mới nhất). */
 interface LibraryRow {
@@ -245,25 +314,7 @@ export function LibraryTemplateManager() {
           )
         }}
         renderForm={(form, { item }) => (
-          <>
-            <Alert type='info' showIcon style={{ marginBottom: 16 }} title={l('createNote')} />
-            <LibraryContentFields form={form} />
-            <Form.Item name='sections' noStyle>
-              <LibraryInitialSectionsField disabled={progress !== null} />
-            </Form.Item>
-            {item?.template.currentVersionId ? null : (
-              <Form.Item name='publishNow' valuePropName='checked' extra={l('publishNowHint')}>
-                <Checkbox disabled={progress !== null}>{l('publishNow')}</Checkbox>
-              </Form.Item>
-            )}
-            {progress && progress.total > 0 ? (
-              <Alert
-                type='info'
-                showIcon
-                title={l('createUploading', { done: progress.done, total: progress.total })}
-              />
-            ) : null}
-          </>
+          <LibraryFormBody form={form} live={Boolean(item?.template.currentVersionId)} progress={progress} />
         )}
         // Trang xem chi tiết (chỉ đọc) dùng chung của bảng — mọi dòng đều có phiên bản đang hiển thị (`loadRows` bỏ vỏ rỗng).
         renderView={(row) =>

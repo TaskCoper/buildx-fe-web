@@ -71,7 +71,7 @@ function toWrite(values: ArchitectFormValues): BmtArchitectWrite {
     })),
     categoryIds: values.categoryIds ?? [],
     isVisible: values.isVisible ?? false,
-    // Ba trường tùy chọn (nullable): để trống thì gửi null.
+    // Cả ba đều bắt buộc ở form (BE đòi tên công ty; số sao và số đánh giá bắt buộc khi sửa) nên không còn null.
     companyName: companyName || null,
     rating: values.rating ?? null,
     reviewCount: values.reviewCount ?? null
@@ -81,8 +81,9 @@ function toWrite(values: ArchitectFormValues): BmtArchitectWrite {
 /**
  * HỒ SƠ KIẾN TRÚC SƯ (STORY-CONSULT-001, BR-CONSULT-001) — dữ liệu trên BMT API.
  *
- * Bảy nhóm thông tin bắt buộc: ảnh đại diện, họ tên, chức danh, chuyên môn (ít
- * nhất một category), số năm kinh nghiệm, số công trình, giới thiệu. Người tạo tự
+ * Tám nhóm thông tin bắt buộc: ảnh đại diện, họ tên, chức danh, chuyên môn (ít
+ * nhất một category), số năm kinh nghiệm, số công trình, giới thiệu, công ty
+ * (BR-CONSULT-001 khoản 7); số sao và số đánh giá mặc định 0. Người tạo tự
  * chọn Ẩn/Hiện, không qua phê duyệt. Không có xóa hồ sơ — chỉ Ẩn; hồ sơ ẩn không
  * nhận yêu cầu mới nhưng yêu cầu cũ vẫn giữ. Danh mục chuyên môn quản lý trong
  * ngăn kéo "Danh mục chuyên môn" ngay trên màn này.
@@ -198,6 +199,9 @@ export function ConsultantManager() {
           categoryIds: [],
           yearsExperience: null,
           projectCount: null,
+          // Số sao và số đánh giá mặc định 0 khi tạo hồ sơ (BR-CONSULT-001 khoản 12); BE đòi cả hai khi sửa.
+          rating: 0,
+          reviewCount: 0,
           isVisible: undefined
         })}
         onCreate={async (values) => {

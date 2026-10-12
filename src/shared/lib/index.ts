@@ -26,4 +26,5 @@ export {
 } from './handbook-quota-return'
 export { scrollToAndFlash } from './scroll-flash'
 export { TITLE_BRAND, TITLE_TEMPLATE, titleWithBrand } from './page-title'
+export { ARTICLE_BODY_CLASS, LEGAL_BODY_CLASS } from './rich-content'
 export { cn } from './utils'

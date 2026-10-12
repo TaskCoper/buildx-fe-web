@@ -96,7 +96,7 @@ export function TableToolbar({ editor }: { editor: Editor }) {
           </div>
         }
       >
-        <Button size='small' icon={<TableOutlined />} disabled={state.inTable} aria-expanded={open}>
+        <Button size='small' type='text' icon={<TableOutlined />} disabled={state.inTable} aria-expanded={open}>
           {t('insert')}
         </Button>
       </Popover>
@@ -116,7 +116,7 @@ export function TableToolbar({ editor }: { editor: Editor }) {
           }
         }}
       >
-        <Button size='small' disabled={!state.inTable}>
+        <Button size='small' type='text' disabled={!state.inTable}>
           {t('actions')} <DownOutlined />
         </Button>
       </Dropdown>
