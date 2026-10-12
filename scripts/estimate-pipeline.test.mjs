@@ -55,13 +55,13 @@ test('chỉ gửi ô mới khi BE đã trả khoá desiredBedrooms', () => {
   assert.equal(input.supportsPipelineInput({ desiredBedrooms: null }), true)
   assert.equal(input.supportsPipelineInput({ areaM2: '70' }), false)
   const draft = input.draftFromInput({ desiredBedrooms: 3, lotFrontageM: '5', lotDepthM: '20' })
-  assert.equal(draft.entranceSide, 'Left', 'cạnh cửa vào mặc định Trái')
+  assert.equal('entranceSide' in draft, false, 'biểu mẫu không có ô cạnh cửa vào (AI đọc từ ảnh lô, BR-PROJ-002)')
   assert.equal(draft.hasGarage, false, 'gara mặc định Không')
   assert.equal('desiredBedrooms' in input.inputBody(draft, false, false), false)
   const body = input.inputBody(draft, false, true)
   assert.deepEqual(
-    [body.lotFrontageM, body.lotDepthM, body.entranceSide, body.desiredBedrooms, body.hasGarage],
-    ['5', '20', 'Left', 3, false]
+    [body.lotFrontageM, body.lotDepthM, 'entranceSide' in body, body.desiredBedrooms, body.hasGarage],
+    ['5', '20', false, 3, false]
   )
 })
 
@@ -71,7 +71,6 @@ test('changedFields so kích thước lô theo giá trị số và chỉ thêm �
     lotFrontageM: '5.0',
     lotDepthM: '20',
     desiredBedrooms: 3,
-    entranceSide: 'Left',
     hasGarage: false
   })
   const draft = input.draftFromInput({

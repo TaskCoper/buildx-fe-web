@@ -2308,14 +2308,6 @@
           "pair": "Enter both frontage and depth, or leave both empty.",
           "unit": "m"
         },
-        "entrance": {
-          "label": "Entrance side",
-          "hint": "The side of the lot (as in the image) where the entrance is. Defaults to the left side.",
-          "Left": "Left",
-          "Right": "Right",
-          "Top": "Top",
-          "Bottom": "Bottom"
-        },
         "bedrooms": {
           "label": "Bedrooms wanted",
           "hint": "From 1 to 10. If the lot is too small, the plan may have fewer rooms and will explain why.",

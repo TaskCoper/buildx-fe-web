@@ -28,7 +28,6 @@ import {
   BEDROOMS_MAX,
   BEDROOMS_MIN,
   descriptionLength,
-  ENTRANCE_SIDES,
   lotSizeProblem,
   PIPELINE_DESCRIPTION_MAX_LENGTH,
   selectedType,
@@ -344,16 +343,6 @@ export function StepInputPipelineForm({ projectId, onStageStarted }: StepInputPi
                       </div>
                     </div>
                     {lotProblem ? <p className='text-destructive text-xs'>{t(`lotSize.${lotProblem}`)}</p> : null}
-                  </div>
-
-                  <div id='field-entranceSide' className='space-y-2'>
-                    <FieldLabel hint={t('entrance.hint')}>{t('entrance.label')}</FieldLabel>
-                    <ChoiceCards
-                      compact
-                      options={ENTRANCE_SIDES.map((side) => ({ value: side, label: t(`entrance.${side}`) }))}
-                      value={draft.entranceSide}
-                      onChange={(value) => input.patch({ entranceSide: value as (typeof ENTRANCE_SIDES)[number] })}
-                    />
                   </div>
 
                   <div id='field-description' className='space-y-2'>

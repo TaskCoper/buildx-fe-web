@@ -2308,14 +2308,6 @@
           "pair": "Nhập đủ cả mặt tiền và chiều sâu, hoặc để trống cả hai.",
           "unit": "m"
         },
-        "entrance": {
-          "label": "Cạnh có cửa vào",
-          "hint": "Cạnh của lô (theo ảnh) có lối vào nhà. Mặc định là cạnh trái.",
-          "Left": "Trái",
-          "Right": "Phải",
-          "Top": "Trên",
-          "Bottom": "Dưới"
-        },
         "bedrooms": {
           "label": "Số phòng ngủ mong muốn",
           "hint": "Từ 1 đến 10 phòng. Nếu lô không đủ chỗ, phương án có thể ít phòng hơn và sẽ ghi rõ lý do.",

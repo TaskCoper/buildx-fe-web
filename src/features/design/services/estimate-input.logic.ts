@@ -26,9 +26,6 @@ export const DESCRIPTION_MAX_LENGTH = 500
 export const PIPELINE_DESCRIPTION_MAX_LENGTH = 4000
 
 /** Cạnh có cửa vào của lô; mặc định Trái (BR-PROJ-002). */
-export type EntranceSide = 'Left' | 'Right' | 'Top' | 'Bottom'
-export const ENTRANCE_SIDES: readonly EntranceSide[] = ['Left', 'Right', 'Top', 'Bottom']
-export const DEFAULT_ENTRANCE_SIDE: EntranceSide = 'Left'
 
 /** Số phòng ngủ mong muốn 1–10, bắt buộc trước chặng 2D (BR-PROJ-002). */
 export const BEDROOMS_MIN = 1
@@ -65,7 +62,6 @@ export interface EstimateInputBody {
    */
   lotFrontageM?: string | null
   lotDepthM?: string | null
-  entranceSide?: EntranceSide | null
   desiredBedrooms?: number | null
   hasGarage?: boolean | null
 }
@@ -76,7 +72,6 @@ export type InputField = keyof EstimateInputBody
 export const PIPELINE_INPUT_FIELDS: readonly InputField[] = [
   'lotFrontageM',
   'lotDepthM',
-  'entranceSide',
   'desiredBedrooms',
   'hasGarage'
 ]
@@ -118,7 +113,6 @@ export interface EstimateInputDraft {
   /** Mặt tiền và chiều sâu lô (mét): hai ô đi cùng nhau, rỗng = chưa nhập; không tự điền từ kết quả soi ảnh. */
   lotFrontageM: string
   lotDepthM: string
-  entranceSide: EntranceSide
   desiredBedrooms: number | null
   hasGarage: boolean
 }
@@ -318,7 +312,6 @@ export function draftFromInput(input: Partial<EstimateInputBody> | null | undefi
     longitude: finiteOrNull(input?.longitude),
     lotFrontageM: text(input?.lotFrontageM),
     lotDepthM: text(input?.lotDepthM),
-    entranceSide: input?.entranceSide ?? DEFAULT_ENTRANCE_SIDE,
     desiredBedrooms: input?.desiredBedrooms ?? null,
     hasGarage: input?.hasGarage ?? false
   }
@@ -347,7 +340,6 @@ export function inputBody(draft: EstimateInputDraft, withCoordinates = false, wi
       ? {
           lotFrontageM: blankToNull(draft.lotFrontageM),
           lotDepthM: blankToNull(draft.lotDepthM),
-          entranceSide: draft.entranceSide,
           desiredBedrooms: draft.desiredBedrooms,
           hasGarage: draft.hasGarage
         }
@@ -380,7 +372,6 @@ export function normalizeSaved(input: Partial<EstimateInputBody> | null | undefi
     longitude: finiteOrNull(input?.longitude),
     lotFrontageM: blank(input?.lotFrontageM),
     lotDepthM: blank(input?.lotDepthM),
-    entranceSide: input?.entranceSide ?? null,
     desiredBedrooms: input?.desiredBedrooms ?? null,
     hasGarage: input?.hasGarage ?? null
   }
