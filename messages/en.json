@@ -5453,6 +5453,14 @@
           "paragraph": "Paragraph",
           "bulletList": "Bulleted list",
           "numberList": "Numbered list",
+          "listStyle": "Numbering style",
+          "listStyles": {
+            "decimal": "Numbers",
+            "lowerAlpha": "Lowercase letters",
+            "upperAlpha": "Uppercase letters",
+            "lowerRoman": "Lowercase Roman",
+            "upperRoman": "Uppercase Roman"
+          },
           "quote": "Quote",
           "link": "Link",
           "image": "Insert image"

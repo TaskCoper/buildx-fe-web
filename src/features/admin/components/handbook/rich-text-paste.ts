@@ -1,3 +1,5 @@
+import { listTypeFromStyle, type OrderedListType } from './list-type'
+
 /**
  * Chuẩn hoá HTML dán vào ô rich text (Google Docs, Word, trang web) TRƯỚC khi TipTap phân tích, để nội dung giữ
  * được định dạng mà backend lưu (allowlist ở TDD-NEWS-001) thay vì vỡ hoặc bị cắt lúc lưu.
@@ -48,12 +50,12 @@ function liftFromEmptyParagraph(image: Element) {
   if (textless && paragraph.querySelectorAll('img').length === 1) paragraph.replaceWith(image)
 }
 
-type ListItem = { li: HTMLElement; level: number; ordered: boolean }
+type ListItem = { li: HTMLElement; level: number; ordered: boolean; type: OrderedListType | null }
 
 /** Dựng các mục (đã có `aria-level`) thành cây danh sách lồng nhau; trả về các danh sách gốc. */
 function buildNestedLists(items: ListItem[], doc: Document): HTMLElement[] {
   const roots: HTMLElement[] = []
-  const stack: { list: HTMLElement; level: number; ordered: boolean }[] = []
+  const stack: { list: HTMLElement; level: number; ordered: boolean; type: OrderedListType | null }[] = []
 
   for (const item of items) {
     item.li.removeAttribute('aria-level')
@@ -61,16 +63,18 @@ function buildNestedLists(items: ListItem[], doc: Document): HTMLElement[] {
     while (stack.length > 0 && (stack[stack.length - 1]?.level ?? 0) > item.level) stack.pop()
 
     let top = stack[stack.length - 1]
-    // Cùng cấp nhưng khác kiểu (chấm ↔ số): đóng danh sách cũ, mở danh sách mới ở cấp đó.
-    if (top && top.level === item.level && top.ordered !== item.ordered) {
+    // Cùng cấp nhưng khác kiểu (chấm ↔ số, hoặc 1. ↔ a. ↔ i.): đóng danh sách cũ, mở danh sách mới ở cấp đó.
+    if (top && top.level === item.level && (top.ordered !== item.ordered || top.type !== item.type)) {
       stack.pop()
       top = stack[stack.length - 1]
     }
     if (!top || top.level < item.level) {
       const list = doc.createElement(item.ordered ? 'ol' : 'ul')
+      // Docs ghi kiểu đánh số (`list-style-type: lower-alpha`…) trên từng mục; mục đã bỏ style nên chuyển thành `type` của danh sách.
+      if (item.ordered && item.type) list.setAttribute('type', item.type)
       if (top) (top.list.lastElementChild ?? top.list).appendChild(list)
       else roots.push(list)
-      top = { list, level: item.level, ordered: item.ordered }
+      top = { list, level: item.level, ordered: item.ordered, type: item.type }
       stack.push(top)
     }
     top.list.appendChild(item.li)
@@ -102,7 +106,11 @@ function nestGoogleDocsLists(body: HTMLElement) {
           .map((li) => ({
             li,
             level: Math.max(1, Number.parseInt(li.getAttribute('aria-level') ?? '1', 10) || 1),
-            ordered: list.tagName === 'OL'
+            ordered: list.tagName === 'OL',
+            type:
+              list.tagName === 'OL'
+                ? (listTypeFromStyle(li.getAttribute('style')) ?? listTypeFromStyle(list.getAttribute('style')))
+                : null
           }))
       )
       first.before(...buildNestedLists(items, parent.ownerDocument))

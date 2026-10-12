@@ -12,6 +12,7 @@ import { ARTICLE_BODY_CLASS, LEGAL_BODY_CLASS } from '@/shared/lib/rich-content'
 import { cn } from '@/shared/lib/utils'
 
 import { ImagePlaceholder, hasOwnImageHost, stripImagePlaceholders } from './image-placeholder'
+import { OrderedListWithType } from './ordered-list-type'
 import { ResizableImage } from './resizable-image'
 import { RichTextToolbar } from './rich-text-toolbar'
 import { hostOfUrl, imageHostsIn, normalizePastedHtml } from './rich-text-paste'
@@ -73,6 +74,8 @@ export function HtmlContentEditor({
     extensions: [
       StarterKit.configure({
         heading: { levels: [2, 3] },
+        // Danh sách số có kiểu đánh số 1 / a / A / i / I (`<ol type>`), thay cho bản có sẵn của StarterKit.
+        orderedList: false,
         codeBlock: false,
         code: false,
         horizontalRule: false,
@@ -82,6 +85,7 @@ export function HtmlContentEditor({
           HTMLAttributes: { rel: 'noopener noreferrer', target: '_blank' }
         }
       }),
+      OrderedListWithType,
       TableKit.configure({ table: { resizable: true, renderWrapper: true, cellMinWidth: 60 } }),
       // Căn lề đoạn / tiêu đề (cả đoạn trong ô bảng): lưu thành `style="text-align: …"`, backend giữ lại.
       TextAlign.configure({ types: ['heading', 'paragraph'], alignments: ['left', 'center', 'right', 'justify'] }),
