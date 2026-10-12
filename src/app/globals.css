@@ -2121,6 +2121,19 @@
     list-style: decimal;
     padding-left: 1.5rem;
   }
+  /* Danh sách lồng nhau đổi ký hiệu theo cấp (1. → a. → i.; chấm → tròn rỗng → vuông), khớp ô soạn của admin. */
+  .legal-html ul ul {
+    list-style: circle;
+  }
+  .legal-html ul ul ul {
+    list-style: square;
+  }
+  .legal-html ol ol {
+    list-style: lower-alpha;
+  }
+  .legal-html ol ol ol {
+    list-style: lower-roman;
+  }
   .legal-html li {
     margin-top: 0.5rem;
   }

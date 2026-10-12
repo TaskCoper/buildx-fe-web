@@ -28,6 +28,7 @@ import {
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import { ROUTES, handbookArticleRoute } from '@/shared/constants/routes'
 import { useDocumentTitle, usePageEntrance } from '@/shared/hooks'
+import { ARTICLE_BODY_CLASS } from '@/shared/lib/rich-content'
 import { cn } from '@/shared/lib/utils'
 import { formatDisplayDate } from '@/shared/utils'
 import { ARTICLE_META_ICON, ARTICLE_META_TEXT } from '../constants/article-meta'
@@ -437,10 +438,7 @@ export function ArticleDetail({ slug, onCreateProject }: ArticleDetailProps) {
                     chưa có thư viện sanitize phía client nên render trực tiếp; rủi ro
                     XSS đã được chặn ở server. Nhánh này chỉ chạy cho bài từ API.
                   */}
-                  <div
-                    className='article-richtext space-y-4 text-sm leading-relaxed [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-4 [&_blockquote]:border-primary/40 [&_blockquote]:text-muted-foreground [&_blockquote]:border-l-2 [&_blockquote]:pl-4 [&_h2]:text-primary [&_h2]:mt-5 [&_h2]:text-lg [&_h2]:font-semibold [&_h3]:mt-4 [&_h3]:font-semibold [&_img]:my-3 [&_img]:rounded-lg [&_ol]:list-decimal [&_ol]:space-y-1 [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-5'
-                    dangerouslySetInnerHTML={{ __html: article.contentHtml }}
-                  />
+                  <div className={ARTICLE_BODY_CLASS} dangerouslySetInnerHTML={{ __html: article.contentHtml }} />
                   {/* [ARTICLE-CTA] Tạm ẩn — bỏ comment để bật lại.
                   <ArticleCompactCta article={article} onCreateProject={onCreateProject} />
                   */}

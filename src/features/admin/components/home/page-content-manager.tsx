@@ -565,7 +565,7 @@ export function FieldItem({
         rules={[{ max: HOME_HTML_MAX_LENGTH, message: t('fields.maxLength', { max: HOME_HTML_MAX_LENGTH }) }]}
       >
         {/* Trang pháp lý chỉ có chữ: backend từ chối ảnh nên ô soạn không cho chèn ảnh. */}
-        <HtmlContentEditor maxLength={HOME_HTML_MAX_LENGTH} allowImages={false} />
+        <HtmlContentEditor maxLength={HOME_HTML_MAX_LENGTH} allowImages={false} appearance='legal' />
       </Form.Item>
     )
   }
