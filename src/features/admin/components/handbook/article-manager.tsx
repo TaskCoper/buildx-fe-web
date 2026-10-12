@@ -36,6 +36,7 @@ import {
   type NewsArticleState
 } from '../../api/bmt/news.api'
 import { buildCategoryTree, categoryPath } from '../../services/news-category.service'
+import { hasMeaningfulHtml } from '../../services/publish-requirements.service'
 import { ArticleCategoryDrawer } from './article-category-drawer'
 import { ApiResourceManager } from '../common/api-resource-manager'
 import type { RowAction } from '../common/row-actions-menu'
@@ -107,9 +108,10 @@ function missingForPublish(item: BmtAdminArticleItem): ('title' | 'cover' | 'slu
  * BÀI VIẾT TIN TỨC (STORY-NEWS-001, BR-NEWS-001) — dữ liệu trên BMT API.
  *
  * Vòng đời Nháp → Công bố ⇄ Ẩn; xóa được ở mọi trạng thái (không khôi phục).
- * Bài mới luôn là Nháp và được thiếu mọi trường; chỉ công bố khi đủ năm thành
- * phần: tiêu đề, ảnh đại diện, số phút đọc, nội dung, đường dẫn. Sửa
- * bài đang công bố cũng phải giữ đủ năm thành phần (danh mục không bắt buộc, đường dẫn thì có). Mỗi thao tác ghi gửi kèm
+ * Bài mới luôn là Nháp; chỉ công bố khi đủ năm thành phần: tiêu đề, ảnh đại
+ * diện, số phút đọc, nội dung, đường dẫn. Form bắt buộc bốn trường nhập đầu
+ * (đường dẫn tự sinh từ tiêu đề). Sửa bài đang công bố cũng phải giữ đủ năm
+ * thành phần (danh mục không bắt buộc, đường dẫn thì có). Mỗi thao tác ghi gửi kèm
  * `version` đã đọc; bản cũ thì backend trả lỗi xung đột và màn hiện nguyên thông báo.
  */
 export function ArticleManager() {
@@ -336,8 +338,10 @@ function ArticleFields({
 }) {
   const t = useTranslations('admin')
   const tn = useTranslations('admin.newsArticles')
-  // Bài đang công bố: bản sửa vẫn phải đủ năm thành phần (BR-NEWS-001 khoản 5).
-  const required = published ? [{ required: true, whitespace: true, message: t('fields.requiredMessage') }] : []
+  // Mọi trường BE đòi để công bố đều bắt buộc ngay trong form, kể cả bài nháp (BR-NEWS-001 khoản 2 vốn cho lưu nháp
+  // thiếu; form siết lại theo yêu cầu ngày 12/10/2026). Đường dẫn không cần ô bắt buộc: bỏ trống thì BE tự sinh từ
+  // tiêu đề (BR-NEWS-004). Danh mục không bắt buộc (BR-NEWS-001 khoản 2, quyết định 07/10/2026).
+  const required = [{ required: true, whitespace: true, message: t('fields.requiredMessage') }]
 
   return (
     <>
@@ -369,14 +373,18 @@ function ArticleFields({
           </Form.Item>
         </Col>
         <Col xs={24} md={8}>
-          <Form.Item name='readingTimeMinutes' label={tn('readingTimeMinutes')}>
-            <InputNumber min={0} max={NEWS_LIMITS.readingTimeMinutesMax} precision={0} style={{ width: '100%' }} />
+          <Form.Item
+            name='readingTimeMinutes'
+            label={tn('readingTimeMinutes')}
+            rules={[{ required: true, message: t('fields.requiredMessage') }]}
+          >
+            <InputNumber min={1} max={NEWS_LIMITS.readingTimeMinutesMax} precision={0} style={{ width: '100%' }} />
           </Form.Item>
         </Col>
       </Row>
       <Row gutter={16}>
         <Col xs={24} md={8}>
-          <ImageUrlField name='coverImageUrl' label={tn('cover')} required={published} />
+          <ImageUrlField name='coverImageUrl' label={tn('cover')} required />
         </Col>
         <Col xs={24} md={16}>
           <Form.Item name='categoryIds' label={tn('categories')} extra={tn('categoriesHint')}>
@@ -444,8 +452,13 @@ function ArticleFields({
       <Form.Item
         name='contentHtml'
         label={tn('content')}
+        // `required` để hiện dấu *; bản kiểm thật nằm ở `validator` vì trình soạn trả `<p></p>` khi để trống.
+        required
         rules={[
-          ...required,
+          {
+            validator: (_, value?: string) =>
+              hasMeaningfulHtml(value) ? Promise.resolve() : Promise.reject(new Error(tn('contentRequired')))
+          },
           {
             max: NEWS_LIMITS.contentHtml,
             message: t('fields.maxLength', { max: NEWS_LIMITS.contentHtml.toLocaleString() })

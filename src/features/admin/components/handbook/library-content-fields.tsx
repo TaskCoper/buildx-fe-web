@@ -95,13 +95,15 @@ function styleOptions(
 }
 
 /**
- * Các trường metadata của một phiên bản mẫu (BR-LIB-001). Lưu nháp được phép thiếu mọi trường; đủ hay chưa
- * do BE kiểm lúc công bố. Loại công trình, số tầng, tum và phong cách lấy từ `classification-options` (danh
- * mục dự toán hiện hành) — không cần quyền sửa danh mục. Mẫu 3D công bố phải có ít nhất một phong cách cho mỗi
- * nhóm mà loại công trình đang bật.
+ * Các trường metadata của một phiên bản mẫu (BR-LIB-001). Lưu nháp được phép thiếu mọi trường; mọi trường BE
+ * đòi lúc công bố thì form đặt `required` khi `requireComplete` (đang công bố ngay, hoặc sửa mẫu đang hiển thị
+ * với khách). Loại công trình, số tầng, tum và phong cách lấy từ `classification-options` (danh mục dự toán
+ * hiện hành) — không cần quyền sửa danh mục. Mẫu 3D công bố phải có ít nhất một phong cách cho mỗi nhóm mà
+ * loại công trình đang bật; số tầng / tum chỉ bắt buộc khi loại công trình bật chúng.
  */
-export function LibraryContentFields({ form }: { form: FormInstance }) {
+export function LibraryContentFields({ form, requireComplete }: { form: FormInstance; requireComplete: boolean }) {
   const l = useTranslations('admin.library')
+  const t = useTranslations('admin')
   const floorLabel = useFloorLabel()
   const { data: classification, isError } = useLibraryClassification()
 
@@ -126,10 +128,19 @@ export function LibraryContentFields({ form }: { form: FormInstance }) {
     .sort((a, b) => a - b)
     .map((value) => ({ value, label: floorLabel(value) }))
 
+  const requiredMessage = t('fields.requiredMessage')
+  /** Ô chữ bắt buộc: dấu * + không được để trống / toàn khoảng trắng. */
+  const requiredText = requireComplete ? [{ required: true, whitespace: true, message: requiredMessage }] : []
+  /** Ô chọn (Select) bắt buộc. */
+  const requiredPick = requireComplete ? [{ required: true, message: requiredMessage }] : []
+  /** Nhóm phong cách bắt buộc có ít nhất một mục — chỉ khi đã chọn loại công trình (chưa chọn thì ô bị khóa). */
+  const requiredStyles =
+    requireComplete && typeId ? [{ required: true, type: 'array' as const, min: 1, message: l('stylesRequired') }] : []
+
   const decimalRule = (label: string) => ({
     validator: (_: unknown, value: unknown) => {
       const text = String(value ?? '').trim()
-      if (!text) return Promise.resolve()
+      if (!text) return requireComplete ? Promise.reject(new Error(requiredMessage)) : Promise.resolve()
       return DECIMAL.test(text) && Number(text) > 0
         ? Promise.resolve()
         : Promise.reject(new Error(l('decimal', { field: label })))
@@ -171,39 +182,46 @@ export function LibraryContentFields({ form }: { form: FormInstance }) {
       <Form.Item name='pinnedStyles' hidden>
         <HiddenValue />
       </Form.Item>
-      <Form.Item name='name' label={l('name')} extra={l('draftHint')}>
+      <Form.Item name='name' label={l('name')} extra={l('draftHint')} rules={requiredText}>
         <Input />
       </Form.Item>
-      <Form.Item name='drawingKind' label={l('drawingKind')}>
+      <Form.Item name='drawingKind' label={l('drawingKind')} rules={requiredPick}>
         <Select allowClear options={DRAWING_KINDS.map((value) => ({ value, label: value }))} />
       </Form.Item>
       <Row gutter={16}>
         <Col xs={24} md={8}>
-          <Form.Item name='widthM' label={l('widthM')} rules={[decimalRule(l('widthM'))]}>
+          {/* `required` chỉ để hiện dấu *; bản kiểm nằm ở `decimalRule` (kiểm cả định dạng số). */}
+          <Form.Item name='widthM' label={l('widthM')} required={requireComplete} rules={[decimalRule(l('widthM'))]}>
             <Input suffix='m' inputMode='decimal' />
           </Form.Item>
         </Col>
         <Col xs={24} md={8}>
-          <Form.Item name='lengthM' label={l('lengthM')} rules={[decimalRule(l('lengthM'))]}>
+          <Form.Item name='lengthM' label={l('lengthM')} required={requireComplete} rules={[decimalRule(l('lengthM'))]}>
             <Input suffix='m' inputMode='decimal' />
           </Form.Item>
         </Col>
         <Col xs={24} md={8}>
-          <Form.Item name='areaM2' label={l('areaM2')} rules={[decimalRule(l('areaM2'))]} extra={l('areaHint')}>
+          <Form.Item
+            name='areaM2'
+            label={l('areaM2')}
+            required={requireComplete}
+            rules={[decimalRule(l('areaM2'))]}
+            extra={l('areaHint')}
+          >
             <Input suffix='m²' inputMode='decimal' />
           </Form.Item>
         </Col>
       </Row>
 
       {isError ? <Alert type='warning' showIcon style={{ marginBottom: 16 }} title={l('catalogUnavailable')} /> : null}
-      <Form.Item name='buildingTypeId' label={l('buildingType')}>
+      <Form.Item name='buildingTypeId' label={l('buildingType')} rules={requiredPick}>
         <Select allowClear options={typeOptions} onChange={changeType} optionFilterProp='label' showSearch />
       </Form.Item>
       {unknownType ? <Alert type='info' showIcon style={{ marginBottom: 16 }} title={l('pinnedTypeNote')} /> : null}
       <Row gutter={16}>
         <Col xs={24} md={12}>
           {showFloors ? (
-            <Form.Item name='floorCount' label={l('floorCount')}>
+            <Form.Item name='floorCount' label={l('floorCount')} rules={requiredPick}>
               <Select allowClear options={floorOptions} />
             </Form.Item>
           ) : (
@@ -214,7 +232,7 @@ export function LibraryContentFields({ form }: { form: FormInstance }) {
         </Col>
         <Col xs={24} md={12}>
           {showTum ? (
-            <Form.Item name='hasTum' label={l('tum')}>
+            <Form.Item name='hasTum' label={l('tum')} rules={requiredPick}>
               <Select
                 allowClear
                 options={[
@@ -239,6 +257,7 @@ export function LibraryContentFields({ form }: { form: FormInstance }) {
               name='architectureStyleIds'
               label={l('architectureStyles')}
               extra={typeId ? undefined : l('stylesNeedType')}
+              rules={requiredStyles}
             >
               <Select
                 mode='multiple'
@@ -254,6 +273,7 @@ export function LibraryContentFields({ form }: { form: FormInstance }) {
               name='interiorStyleIds'
               label={l('interiorStyles')}
               extra={typeId ? undefined : l('stylesNeedType')}
+              rules={requiredStyles}
             >
               <Select
                 mode='multiple'

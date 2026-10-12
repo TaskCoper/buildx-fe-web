@@ -23,6 +23,7 @@
     "test:money": "node --test scripts/money-input.test.mjs",
     "test:customers": "node --test scripts/customers-admin.test.mjs",
     "test:sites": "node --test scripts/construction-sites-admin.test.mjs",
+    "test:publish-rules": "node --test scripts/publish-requirements.test.mjs",
     "test:footer": "node --test scripts/footer-cms.test.mjs scripts/footer-admin.test.mjs scripts/footer-contract.test.mjs scripts/legal-html.test.mjs",
     "format": "prettier --write \"src/**/*.{ts,tsx,css,json}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,css,json}\"",

@@ -78,7 +78,11 @@ export function ArchitectProfileForm({
                           </Form.Item>
                         </Col>
                       </Row>
-                      <Form.Item name='companyName' label={ta('companyName')}>
+                      <Form.Item
+                        name='companyName'
+                        label={ta('companyName')}
+                        rules={[required, maxLength(CONSULT_LIMITS.companyName)]}
+                      >
                         <Input maxLength={CONSULT_LIMITS.companyName} placeholder={ta('placeholders.company')} />
                       </Form.Item>
                       <Form.Item
@@ -155,12 +159,30 @@ export function ArchitectProfileForm({
                       </Form.Item>
                     </Col>
                     <Col xs={12} sm={12} lg={6}>
-                      <Form.Item name='rating' label={ta('rating')}>
+                      {/* BE: số sao phải bằng 0 khi chưa có lượt đánh giá (BR-CONSULT-001 khoản 11). */}
+                      <Form.Item
+                        name='rating'
+                        label={ta('rating')}
+                        dependencies={['reviewCount']}
+                        rules={[
+                          { required: true, message: t('fields.requiredMessage') },
+                          ({ getFieldValue }) => ({
+                            validator: (_, value?: number | null) =>
+                              getFieldValue('reviewCount') === 0 && value != null && value !== 0
+                                ? Promise.reject(new Error(ta('ratingZeroWhenNoReviews')))
+                                : Promise.resolve()
+                          })
+                        ]}
+                      >
                         <InputNumber min={0} max={5} step={0.1} precision={1} style={{ width: '100%' }} />
                       </Form.Item>
                     </Col>
                     <Col xs={12} sm={12} lg={6}>
-                      <Form.Item name='reviewCount' label={ta('reviewCount')}>
+                      <Form.Item
+                        name='reviewCount'
+                        label={ta('reviewCount')}
+                        rules={[{ required: true, message: t('fields.requiredMessage') }]}
+                      >
                         <InputNumber min={0} precision={0} style={{ width: '100%' }} />
                       </Form.Item>
                     </Col>
