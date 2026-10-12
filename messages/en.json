@@ -3812,6 +3812,7 @@
       "noteHint": "Visible to admins only."
     },
     "bmtPlans": {
+      "searchPlaceholder": "Search by plan name",
       "description": "Design plans (sold monthly / yearly) and supervision plans (sold per construction site). Editing a plan edits its draft — the website only changes when you Publish. Purchased plans keep the version locked at purchase.",
       "allKinds": "All plan types",
       "allSaleStates": "All sale statuses",

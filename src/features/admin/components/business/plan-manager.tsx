@@ -304,14 +304,16 @@ export function PlanManager() {
 
   return (
     <ApiResourceManager<BmtAdminPlanItem>
-      key={`${kind}-${saleState}`}
       title={tAdmin('nav.planTable')}
       description={t('description')}
       queryKey={adminKeys.bmt('plans', kind, saleState)}
-      fetchPage={({ pageIndex, pageSize }) =>
+      searchable
+      searchPlaceholder={t('searchPlaceholder')}
+      fetchPage={({ pageIndex, pageSize, keyword }) =>
         bmtPlansApi.listForAdmin({
           kind: kind === 'all' ? undefined : kind,
           saleState: saleState === 'all' ? undefined : saleState,
+          search: keyword,
           pageIndex,
           pageSize
         })
