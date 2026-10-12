@@ -10,7 +10,7 @@ import type { Locale } from '@/i18n/routing'
 import { Button } from '@/shared/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/components/ui/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs'
-import { designPlanRoute } from '@/shared/constants/routes'
+import { designPlanRoute, designRender3dRoute } from '@/shared/constants/routes'
 import { isApiError } from '@/shared/lib/api'
 import { formatDisplayDate } from '@/shared/utils'
 import { useEstimateDetail } from '../hooks/use-estimate-detail'
@@ -68,7 +68,16 @@ export function EstimateStageView({ projectId }: { projectId: string }) {
         </StageStateCard>
       )
     if (!result.data) return <Spinner />
-    return <EstimateStageResultView result={result.data} />
+    return (
+      <div className='space-y-6'>
+        <EstimateStageResultView result={result.data} />
+        <div className='flex justify-end'>
+          <Button asChild>
+            <Link href={designRender3dRoute(projectId)}>{t('toRender3d')}</Link>
+          </Button>
+        </div>
+      </div>
+    )
   }
 
   if (stage && isStageActive(stage.status)) return <RunningCard stage={stage} />

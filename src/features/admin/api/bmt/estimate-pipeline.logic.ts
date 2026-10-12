@@ -267,6 +267,11 @@ export interface AiCallRow {
 }
 
 export interface StepRow {
+  artifactId: string | null
+  originRunId: string | null
+  originConfigRevisionId: string | null
+  originRuleSetRevisionId: string | null
+  callId: string | null
   stepKey: string
   attempt: number | null
   model: string | null
@@ -335,6 +340,11 @@ export function normalizePipelineDetail(raw: unknown): PipelineDetail {
           .filter(isObject)
           .map((step) => ({
             stepKey: str(step.stepKey),
+            artifactId: optStr(step.artifactId),
+            originRunId: optStr(step.originRunId),
+            originConfigRevisionId: optStr(step.originConfigRevisionId),
+            originRuleSetRevisionId: optStr(step.originRuleSetRevisionId),
+            callId: optStr(step.callId),
             attempt: optNum(step.attempt),
             model: optStr(step.model),
             promptVersion: optStr(step.promptVersion),

@@ -204,3 +204,27 @@ export const estimateResultSchema = z.object({
   advice: estimateText
 })
 export type EstimateStageResult = z.infer<typeof estimateResultSchema>
+
+/** TDD-PROJ-010: ảnh đã commit và các ô đang chờ, kể cả khi lần chạy lỗi. */
+export const render3dResultSchema = z.object({
+  contractVersion: z.literal('render3d-v1'),
+  runId: z.string().uuid().nullable(),
+  status: z.enum(['Ready', 'Running', 'Failed', 'Succeeded']),
+  planReady: z.boolean(),
+  progress: z.object({ done: z.number().int().nonnegative(), total: z.number().int().nonnegative().nullable() }),
+  items: z.array(
+    z.object({
+      itemKey: z.string(),
+      label: z.string(),
+      groupKey: z.string(),
+      groupLabel: z.string(),
+      floorIndex: z.number().int().positive().nullable(),
+      view: z.number().int().positive(),
+      fileUrl: z.string().nullable(),
+      width: z.number().int().positive().nullable(),
+      height: z.number().int().positive().nullable()
+    })
+  ),
+  notes: z.array(z.string())
+})
+export type Render3dResult = z.infer<typeof render3dResultSchema>

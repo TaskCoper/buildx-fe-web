@@ -2562,7 +2562,8 @@
           },
           "advice": "Tư vấn từ BuildX",
           "nextStageLocked": "Chặng Phối cảnh 3D sẽ mở trong bản cập nhật tới. Dự toán của bạn được lưu lại để dùng cho các chặng sau."
-        }
+        },
+        "toRender3d": "Tiếp tục: Phối cảnh 3D"
       },
       "locked": {
         "pageTitle": {
@@ -2571,6 +2572,31 @@
         "title": "Chặng này chưa mở",
         "description": "Phiên bản hiện tại có chặng Bản vẽ 2D và Dự toán. Phối cảnh 3D và hồ sơ sẽ mở trong các bản cập nhật tới.",
         "backToEstimate": "Xem dự toán"
+      },
+      "render3d": {
+        "pageTitle": "Phối cảnh 3D",
+        "pageTitleWithProject": "{name} · {id} — Phối cảnh 3D",
+        "loading": "Đang tải phối cảnh",
+        "locked": "Chưa mở phối cảnh 3D",
+        "lockedHint": "Hoàn tất Dự toán để tạo phối cảnh.",
+        "back": "Về Dự toán",
+        "ready": "Sẵn sàng tạo phối cảnh 3D",
+        "noQuota": "Không tính thêm lượt thiết kế.",
+        "start": "Tạo phối cảnh 3D",
+        "running": "Đang tạo phối cảnh 3D",
+        "runningHint": "Ảnh hoàn thành sẽ hiện bên dưới. Bạn có thể rời trang và quay lại sau.",
+        "preparing": "Đang chuẩn bị danh sách ảnh",
+        "progress": "Đã hoàn thành {done}/{total} ảnh",
+        "failed": "Chưa hoàn thành phối cảnh 3D",
+        "retry": "Chạy tiếp các ảnh còn thiếu",
+        "succeeded": "Phối cảnh 3D đã hoàn thành",
+        "dossierNext": "Đã đủ ảnh cho bước Hồ sơ. Chức năng tạo hồ sơ sẽ được mở ở đợt tiếp theo.",
+        "notes": "Lưu ý về các góc chụp",
+        "pending": "Chưa có ảnh",
+        "openImage": "Mở ảnh {name}",
+        "reloadImage": "Tải lại ảnh",
+        "loadError": "Chưa cập nhật được dữ liệu. Các ảnh đã tải vẫn được giữ bên dưới.",
+        "reload": "Tải lại"
       }
     }
   },
@@ -6856,7 +6882,8 @@
         "provider": "Nhà cung cấp",
         "model": "Model",
         "fallbackModel": "Model dự phòng",
-        "parameters": "Tham số (JSON)"
+        "parameters": "Tham số (JSON)",
+        "render3dParameters": "Cờ 3D: renderViewReference, renderDuplicateGuard, renderQc (true/false); renderDuplicateMaxDistance (số nguyên 0–64). Mặc định: false, false, false và 10."
       },
       "prices": {
         "title": "Bảng giá token (USD / 1 triệu token)",
@@ -6940,7 +6967,10 @@
         "attempt": "Số lần gọi",
         "model": "Model",
         "promptVersion": "Phiên bản prompt",
-        "completedAt": "Xong lúc"
+        "completedAt": "Xong lúc",
+        "origin": "Nguồn ảnh",
+        "created": "Tạo trong lần này",
+        "reused": "Dùng lại từ lần chạy"
       },
       "call": {
         "task": "Việc",

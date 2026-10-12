@@ -2,6 +2,8 @@ import { env } from '@/shared/config/env'
 import { http, isApiError } from '@/shared/lib/api'
 
 import {
+  render3dResultSchema,
+  type Render3dResult,
   estimateResultSchema,
   lotVerificationSchema,
   plan2dResultSchema,
@@ -55,6 +57,9 @@ export const estimatePipelineApi = {
    */
   getEstimateResult: async (estimateId: string, signal?: AbortSignal): Promise<EstimateStageResult> =>
     estimateResultSchema.parse(await http.get<unknown>(`/estimates/${estimateId}/stages/Estimate/result`, { signal })),
+
+  getRender3dResult: async (estimateId: string, signal?: AbortSignal): Promise<Render3dResult> =>
+    render3dResultSchema.parse(await http.get<unknown>(`/estimates/${estimateId}/stages/Render3d/result`, { signal })),
 
   /** Gửi yêu cầu soi ảnh lô đang gắn với bản (bất đồng bộ): 202 khi tạo mới, 200 khi đã có yêu cầu đang soi. */
   requestLotVerification: async (estimateId: string): Promise<LotVerificationView> =>

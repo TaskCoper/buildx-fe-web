@@ -299,3 +299,5 @@ export const PROTECTED_ROUTE_PREFIXES: readonly string[] = [
  * trong layout — và backend vẫn là nơi phân quyền thật sự.
  */
 export const ADMIN_ROUTE_PREFIX: string = ADMIN_ROUTES.DASHBOARD
+
+export const designRender3dRoute = (projectId: string) => `${ROUTES.DESIGN}/${projectId}/render3d`

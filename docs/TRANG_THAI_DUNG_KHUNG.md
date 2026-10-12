@@ -1,5 +1,8 @@
 # Trạng thái dựng khung — SAVICO AI
 
+
+Ngày 13/10/2026, hoàn thành chặng Phối cảnh 3D theo TDD-PROJ-010 trên nhánh `feature/estimate-pipeline-w3`. Trước đây chưa có màn dựng 3D; nay kết quả Dự toán có nút sang bước 4, tiến độ và thư viện ảnh theo tầng, giữ ảnh khi tải lại/lỗi và chạy tiếp phần thiếu. Admin xem được nguồn artifact/lần chạy và bốn cờ kiểm ảnh. Một lần Live được người dùng cho phép đã tạo đủ 8 ảnh 1280×720 trong khoảng 214,8 giây; tải lại trên production local vẫn đủ ảnh. Đã kiểm 34 ca frontend, TypeScript, ESLint, Prettier, build và browser 1440/390 px; lỗi mạng/retry kiểm bằng dữ liệu phát lại, không gọi thêm AI. `/en` vẫn chuyển về `/vi` theo proxy hiện có. Local đợt 3 chạy ở http://localhost:3001; bước Hồ sơ sẽ làm ở đợt tiếp theo. Chưa push, chưa đưa lên develop hoặc triển khai môi trường chung.
+
 Ngày 12/10/2026, dựng frontend đợt 2 của luồng bốn chặng: màn chặng Dự toán (STORY-PROJ-008; TDD-PROJ-009 mục P, TDD-PROJ-006). Màn này chỉ bật khi đặt `NEXT_PUBLIC_ESTIMATE_PIPELINE_ENABLED=true`; tắt cờ thì route `/design/[projectId]/estimate` vẫn là màn Bước 2 cũ. Khi bật:
 
 - Route `/design/[projectId]/estimate` thay thông báo "Chặng này chưa mở" bằng màn chặng Dự toán, có năm trạng thái. Chưa mở: báo cần xong Bản vẽ 2D, kèm nút xem bản vẽ. Sẵn sàng: nút "Tạo dự toán", không kiểm gói và không trừ lượt. Đang chạy: tiến độ x/y bước và hạn hoàn tất, hỏi lại trạng thái mỗi 5 giây. Lỗi: câu chung theo mã lỗi, không nêu tên nhà cung cấp; kèm số lần chạy lại còn lại và nút "Chạy lại", hết lượt thì báo liên hệ hỗ trợ. Thành công: hiện kết quả.

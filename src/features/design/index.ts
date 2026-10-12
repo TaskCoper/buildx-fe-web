@@ -175,3 +175,5 @@ export type {
 } from './types/design.types'
 
 export { DesignLoadError } from './components/design-load-error'
+
+export { Render3dStageView } from './components/render3d-stage-view'

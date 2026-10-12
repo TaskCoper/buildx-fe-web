@@ -2562,7 +2562,8 @@
           },
           "advice": "Advice from BuildX",
           "nextStageLocked": "The 3D renders stage will open in an upcoming update. Your estimate is kept for the next stages."
-        }
+        },
+        "toRender3d": "Continue to 3D perspectives"
       },
       "locked": {
         "pageTitle": {
@@ -2571,6 +2572,31 @@
         "title": "This stage is not open yet",
         "description": "This version has the 2D drawings and Estimate stages. 3D renders and dossier will open in upcoming updates.",
         "backToEstimate": "View estimate"
+      },
+      "render3d": {
+        "pageTitle": "3D perspectives",
+        "pageTitleWithProject": "{name} · {id} — 3D perspectives",
+        "loading": "Loading perspectives",
+        "locked": "3D perspectives are locked",
+        "lockedHint": "Complete the estimate to create perspectives.",
+        "back": "Back to estimate",
+        "ready": "Ready to create 3D perspectives",
+        "noQuota": "No additional design credit is used.",
+        "start": "Create 3D perspectives",
+        "running": "Creating 3D perspectives",
+        "runningHint": "Completed images appear below. You can leave and return later.",
+        "preparing": "Preparing the image list",
+        "progress": "{done}/{total} images completed",
+        "failed": "3D perspectives are incomplete",
+        "retry": "Continue missing images",
+        "succeeded": "3D perspectives completed",
+        "dossierNext": "All images are ready for the dossier. Dossier creation will be available in the next release.",
+        "notes": "Notes on selected views",
+        "pending": "Image pending",
+        "openImage": "Open image: {name}",
+        "reloadImage": "Reload image",
+        "loadError": "Could not refresh data. Previously loaded images remain below.",
+        "reload": "Reload"
       }
     }
   },
@@ -6856,7 +6882,8 @@
         "provider": "Provider",
         "model": "Model",
         "fallbackModel": "Fallback model",
-        "parameters": "Parameters (JSON)"
+        "parameters": "Parameters (JSON)",
+        "render3dParameters": "3D options: renderViewReference, renderDuplicateGuard, renderQc (true/false); renderDuplicateMaxDistance (integer 0–64). Defaults: false, false, false and 10."
       },
       "prices": {
         "title": "Token prices (USD / 1M tokens)",
@@ -6940,7 +6967,10 @@
         "attempt": "Calls used",
         "model": "Model",
         "promptVersion": "Prompt version",
-        "completedAt": "Completed at"
+        "completedAt": "Completed at",
+        "origin": "Image source",
+        "created": "Created in this run",
+        "reused": "Reused from run"
       },
       "call": {
         "task": "Task",

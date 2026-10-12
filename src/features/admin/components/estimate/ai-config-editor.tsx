@@ -301,7 +301,15 @@ export function AiConfigEditor() {
                       </Form.Item>
                     </Col>
                     <Col xs={24} md={6}>
-                      <Form.Item name={[field.name, 'parametersText']} label={t('tasks.parameters')}>
+                      <Form.Item
+                        name={[field.name, 'parametersText']}
+                        label={t('tasks.parameters')}
+                        extra={
+                          watchedTasks?.[field.name]?.task === 'render3dImage'
+                            ? t('tasks.render3dParameters')
+                            : undefined
+                        }
+                      >
                         <Input.TextArea rows={2} style={{ fontFamily: 'monospace' }} />
                       </Form.Item>
                     </Col>

@@ -10,9 +10,19 @@ import ts from 'typescript'
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 async function load(path) {
   const source = await readFile(resolve(root, path), 'utf8')
-  const js = ts.transpileModule(source, {
+  let js = ts.transpileModule(source, {
     compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 }
   }).outputText
+  if (path.endsWith('pipeline-api.schema.ts')) {
+    const logicSource = await readFile(resolve(root, 'src/features/design/services/pipeline.logic.ts'), 'utf8')
+    const logicJs = ts.transpileModule(logicSource, { compilerOptions: { module: ts.ModuleKind.ESNext } }).outputText
+    js = js
+      .replace("'zod'", JSON.stringify(import.meta.resolve('zod')))
+      .replace(
+        "'../services/pipeline.logic'",
+        JSON.stringify(`data:text/javascript;base64,${Buffer.from(logicJs).toString('base64')}`)
+      )
+  }
   return import(`data:text/javascript;base64,${Buffer.from(js).toString('base64')}`)
 }
 
@@ -559,4 +569,58 @@ test('chặng Dự toán: mọi nhóm lỗi, tab, cột và dòng thời gian th
   assert.equal(vi.grandTotal, 'Tổng dự toán')
   assert.equal(vi.emptyPart, 'Phần này không có hạng mục nào.')
   assert.equal(vi.money, '{value} đ')
+})
+
+// UT-PROJ-477: kiểm dữ liệu thực qua schema, gồm ảnh còn thiếu và trường nội bộ không được đưa vào UI.
+const { render3dResultSchema } = await load('src/features/design/schemas/pipeline-api.schema.ts')
+const partial3d = {
+  contractVersion: 'render3d-v1',
+  runId: '6127a540-d6c4-4145-b589-1b3227873936',
+  status: 'Running',
+  planReady: true,
+  progress: { done: 1, total: 2 },
+  notes: [],
+  items: [
+    {
+      itemKey: 'exterior_day',
+      label: 'Ban ngày',
+      groupKey: 'overview',
+      groupLabel: 'Ngoại thất',
+      floorIndex: null,
+      view: 1,
+      fileUrl: '/api/v1/estimates/example/stage-files/day',
+      width: 1280,
+      height: 720
+    },
+    {
+      itemKey: 'exterior_night',
+      label: 'Ban đêm',
+      groupKey: 'overview',
+      groupLabel: 'Ngoại thất',
+      floorIndex: null,
+      view: 1,
+      fileUrl: null,
+      width: null,
+      height: null
+    }
+  ]
+}
+test('3D: đọc ảnh đã lưu và ô chờ mà không loại mất mục chưa có ảnh', () => {
+  const actual = render3dResultSchema.parse(partial3d)
+  assert.equal(actual.items.length, 2)
+  assert.equal(actual.items[1].fileUrl, null)
+  assert.deepEqual(actual.progress, { done: 1, total: 2 })
+})
+test('3D: từ chối contract khác phiên bản và tiến độ âm', () => {
+  assert.equal(render3dResultSchema.safeParse({ ...partial3d, contractVersion: 'render3d-v2' }).success, false)
+  assert.equal(render3dResultSchema.safeParse({ ...partial3d, progress: { done: -1, total: 2 } }).success, false)
+})
+test('3D: không giữ prompt hoặc khóa kho ngoài hợp đồng khách hàng', () => {
+  const actual = render3dResultSchema.parse({
+    ...partial3d,
+    prompt: 'private',
+    items: partial3d.items.map((i) => ({ ...i, objectKey: 'private' }))
+  })
+  assert.equal('prompt' in actual, false)
+  assert.equal('objectKey' in actual.items[0], false)
 })

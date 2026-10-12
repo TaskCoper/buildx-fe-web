@@ -171,6 +171,35 @@ export function EstimatePipelineInspector() {
             locale={{ emptyText: t('noSteps') }}
             columns={[
               { title: t('step.key'), dataIndex: 'stepKey' },
+              {
+                title: t('step.origin'),
+                key: 'origin',
+                render: (_, step) =>
+                  step.artifactId ? (
+                    <Space orientation='vertical' size={0}>
+                      <Text copyable>{step.artifactId}</Text>
+                      {step.originRunId && (
+                        <Text type='secondary'>
+                          {t(step.originRunId === run.runId ? 'step.created' : 'step.reused')}{' '}
+                          <Text copyable>{step.originRunId}</Text>
+                        </Text>
+                      )}
+                      {step.originConfigRevisionId && (
+                        <Text type='secondary'>
+                          {t('run.configRevision')}: <Text copyable>{step.originConfigRevisionId}</Text>
+                        </Text>
+                      )}
+                      {step.originRuleSetRevisionId && (
+                        <Text type='secondary'>
+                          {t('run.ruleSetRevision')}: <Text copyable>{step.originRuleSetRevisionId}</Text>
+                        </Text>
+                      )}
+                      {step.callId && <Text copyable>{step.callId}</Text>}
+                    </Space>
+                  ) : (
+                    '—'
+                  )
+              },
               { title: t('step.attempt'), dataIndex: 'attempt', render: (value: number | null) => value ?? '—' },
               { title: t('step.model'), dataIndex: 'model', render: (value: string | null) => value ?? '—' },
               {
