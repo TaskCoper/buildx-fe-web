@@ -17,7 +17,7 @@
     "test:home": "node --test scripts/home-cms.test.mjs scripts/home-admin.test.mjs scripts/home-contract.test.mjs",
     "test:contractors": "node --test scripts/contractors-content.test.mjs scripts/contractor-compare.test.mjs",
     "test:rendering": "node --test scripts/rendering.test.mjs",
-    "test:images": "node --test scripts/image-src.test.mjs scripts/library-image.test.mjs scripts/library-image-route.test.mjs",
+    "test:images": "node --test scripts/image-src.test.mjs scripts/image-variants.test.mjs scripts/image-urls.test.mjs scripts/library-image.test.mjs scripts/library-image-route.test.mjs",
     "test:plans": "node --test scripts/plan-metadata.test.mjs scripts/plans-content.test.mjs",
     "test:admin-forms": "node --test scripts/admin-form-navigation.test.mjs",
     "test:money": "node --test scripts/money-input.test.mjs",

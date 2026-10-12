@@ -57,6 +57,11 @@ COPY --from=build --chown=nextjs:nodejs /usr/src/app/.next/standalone ./
 COPY --from=build --chown=nextjs:nodejs /usr/src/app/.next/static ./.next/static
 COPY --from=build --chown=nextjs:nodejs /usr/src/app/public ./public
 
+# Bộ nhớ đệm của bộ tối ưu ảnh (`/_next/image`) được Compose gắn volume để sống qua lần deploy: mỗi bản resize nguội tốn
+# 2–6 giây, mất cache sau mỗi deploy là mọi ảnh lại nguội. Thư mục phải thuộc `nextjs` thì volume mới ghi được. Chỉ gắn
+# riêng `images` (không gắn cả `.next/cache`) để cache dữ liệu / ISR vẫn sạch theo từng bản deploy.
+RUN mkdir -p .next/cache/images && chown -R nextjs:nodejs .next/cache
+
 # VIETMAP_API_KEY is injected by Compose at runtime, never stored in the image.
 USER nextjs
 EXPOSE 3000

@@ -6,7 +6,7 @@
  * có kiểm quyền bằng cookie, trả NGUYÊN FILE gốc với `Cache-Control: private, no-store`. Bộ tối ưu của Next
  * (`/_next/image`) không dùng được cho ảnh này vì nó lưu cache DÙNG CHUNG cho mọi người, mà nội dung chỉ cấp cho người đã
  * mở mẫu. Route `/api/media/library/{v}/{a}` thay vào đó: chuyển cookie của chính người xem lên backend (backend vẫn
- * kiểm quyền), đổi sang AVIF/WebP đúng cỡ rồi chỉ cho cache RIÊNG trong trình duyệt của họ.
+ * kiểm quyền), đổi sang WebP đúng cỡ rồi chỉ cho cache RIÊNG trong trình duyệt của họ.
  */
 
 /** Các cỡ rộng (px) được phép; ngoài danh sách thì từ chối để không ai ép máy chủ dựng vô hạn biến thể. */
@@ -52,10 +52,15 @@ export function libraryImageSrcSet(contentUrl: string | null | undefined): strin
 }
 
 /**
- * Định dạng trả về: AVIF khi trình duyệt nhận, không thì WebP khi nhận, còn lại giữ nguyên file gốc (không đổi định
- * dạng). Chỉ đổi ảnh JPEG/PNG/WebP; tệp khác (PDF, DWG, DXF, ảnh động…) không đi qua route này.
+ * Định dạng trả về: WebP khi trình duyệt nhận, còn lại giữ nguyên file gốc (không đổi định dạng). Chỉ đổi ảnh
+ * JPEG/PNG/WebP; tệp khác (PDF, DWG, DXF, ảnh động…) không đi qua route này.
+ *
+ * KHÔNG xuất AVIF ở đây dù trình duyệt nhận: ảnh thư viện là nội dung bảo vệ (`no-store`, kiểm quyền mỗi lần đọc) nên
+ * không cache và không hâm nóng được — lần nào xem cũng phải mã hoá lại. AVIF đắt gấp 3–4 lần WebP (đo ảnh phối cảnh rộng
+ * 960: 227 ms so với 59 ms; rộng 1920: 476 ms so với 133 ms trên máy dev nhanh, chậm hơn nhiều lần trên máy chủ nhỏ) mà
+ * dung lượng ra gần như bằng nhau, nên tiền CPU không đáng.
  */
-export type LibraryImageFormat = 'avif' | 'webp' | 'original'
+export type LibraryImageFormat = 'webp' | 'original'
 
 export const CONVERTIBLE_MEDIA_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const
 
@@ -65,10 +70,7 @@ export function isConvertibleMediaType(mediaType: string | null | undefined): bo
 }
 
 export function negotiateLibraryImageFormat(accept: string | null | undefined): LibraryImageFormat {
-  const types = (accept ?? '').toLowerCase()
-  if (types.includes('image/avif')) return 'avif'
-  if (types.includes('image/webp')) return 'webp'
-  return 'original'
+  return (accept ?? '').toLowerCase().includes('image/webp') ? 'webp' : 'original'
 }
 
 /**

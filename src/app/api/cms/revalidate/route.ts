@@ -1,8 +1,9 @@
 import { createHash, timingSafeEqual } from 'node:crypto'
 import { revalidatePath, revalidateTag } from 'next/cache'
-import { NextResponse } from 'next/server'
+import { after, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { CMS_LOCALES, CMS_PAGE_KEYS, cmsCacheEntries } from '@/shared/cms/cms-cache'
+import { warmImages } from '@/shared/lib/warm-images'
 
 export const runtime = 'nodejs'
 
@@ -71,6 +72,13 @@ export async function POST(request: Request) {
     // Hết hạn ngay: lần đọc tiếp theo chờ dữ liệu mới, không trả bản cũ rồi làm mới nền.
     revalidateTag(entry.tag, { expire: 0 })
     revalidatePath(entry.path, entry.type)
+  }
+  // Nội dung vừa đổi nên có thể có ảnh mới: sinh trước các bậc ảnh sau khi đã trả lời, để lần đầu khách mở không phải chờ
+  // resize nguội (xem `warm-images.ts`). Chạy nền, lỗi không ảnh hưởng việc làm mới cache.
+  if (process.env.NODE_ENV === 'production') {
+    after(async () => {
+      await warmImages().catch(() => undefined)
+    })
   }
   return json({ revalidated: true, ...target, tags: entries.map(({ tag }) => tag) })
 }

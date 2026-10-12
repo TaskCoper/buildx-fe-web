@@ -113,7 +113,9 @@ export function createLibraryImageHandler({
 
     try {
       // Never accept a source host from the browser, follow redirects or use Next's shared image/data cache.
+      const started = performance.now()
       const source = await readSource(src, cookie)
+      const fetched = performance.now()
       if ('status' in source) return failure(source.status)
       if (request.signal.aborted) return failure(408)
       const image = sharp(source.bytes, { limitInputPixels: 120_000_000, animated: false })
@@ -137,14 +139,21 @@ export function createLibraryImageHandler({
             'Content-Length': String(source.bytes.length)
           }
         })
-      const { quality, chroma } = libraryImageQuality(source.contentType)
-      const resized = image.rotate().resize({ width, withoutEnlargement: true })
-      const output =
-        format === 'avif'
-          ? await resized.avif({ quality, effort: 3, chromaSubsampling: chroma }).toBuffer()
-          : await resized.webp({ quality: quality + 15 }).toBuffer()
+      const { quality } = libraryImageQuality(source.contentType)
+      const encodeStarted = performance.now()
+      const output = await image
+        .rotate()
+        .resize({ width, withoutEnlargement: true })
+        .webp({ quality: quality + 15 })
+        .toBuffer()
       return new Response(new Uint8Array(output), {
-        headers: { ...PRIVATE_HEADERS, 'Content-Type': `image/${format}`, 'Content-Length': String(output.length) }
+        headers: {
+          ...PRIVATE_HEADERS,
+          'Content-Type': 'image/webp',
+          'Content-Length': String(output.length),
+          // Cho DevTools (tab Timing) thấy thời gian nằm ở đâu: lấy file gốc từ backend hay mã hoá.
+          'Server-Timing': `source;dur=${Math.round(fetched - started)}, encode;dur=${Math.round(performance.now() - encodeStarted)}`
+        }
       })
     } catch (error) {
       const timedOut = error instanceof Error && ['TimeoutError', 'AbortError'].includes(error.name)
