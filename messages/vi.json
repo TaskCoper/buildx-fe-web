@@ -5453,6 +5453,14 @@
           "paragraph": "Đoạn văn",
           "bulletList": "Danh sách chấm",
           "numberList": "Danh sách số",
+          "listStyle": "Kiểu đánh số",
+          "listStyles": {
+            "decimal": "Số",
+            "lowerAlpha": "Chữ cái thường",
+            "upperAlpha": "Chữ cái hoa",
+            "lowerRoman": "La Mã thường",
+            "upperRoman": "La Mã hoa"
+          },
           "quote": "Trích dẫn",
           "link": "Liên kết",
           "image": "Chèn ảnh"

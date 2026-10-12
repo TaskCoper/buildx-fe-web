@@ -25,12 +25,30 @@ import { useTranslations } from 'next-intl'
 import { useState, type ReactNode } from 'react'
 
 import { IMAGE_PLACEHOLDER } from './image-placeholder'
+import { ORDERED_LIST_TYPES, type OrderedListType } from './list-type'
+import { activeOrderedListType, setOrderedListType } from './ordered-list-type'
 import { TableToolbar } from './table-toolbar'
 
 /** Thêm https:// nếu người dùng dán link thiếu giao thức. */
 const withHttps = (raw: string) => (/^https?:\/\//i.test(raw) ? raw : `https://${raw}`)
 
 type TextStyle = 'paragraph' | 'heading2' | 'heading3'
+
+/** Khóa chuỗi i18n của từng kiểu đánh số (`tools.listStyles.*`) và mẫu ký hiệu hiện trong menu. */
+const LIST_STYLE_KEY = {
+  '1': 'decimal',
+  a: 'lowerAlpha',
+  A: 'upperAlpha',
+  i: 'lowerRoman',
+  I: 'upperRoman'
+} as const satisfies Record<OrderedListType, string>
+const LIST_STYLE_SAMPLE: Record<OrderedListType, string> = {
+  '1': '1. 2. 3.',
+  a: 'a. b. c.',
+  A: 'A. B. C.',
+  i: 'i. ii. iii.',
+  I: 'I. II. III.'
+}
 
 /** Ký hiệu nút trích dẫn (antd không có biểu tượng dấu trích). */
 const QUOTE_GLYPH = '“ ”'
@@ -88,6 +106,7 @@ export function RichTextToolbar({ editor, allowImages }: { editor: Editor; allow
       heading3: current.isActive('heading', { level: 3 }),
       bulletList: current.isActive('bulletList'),
       orderedList: current.isActive('orderedList'),
+      orderedListType: activeOrderedListType(current),
       blockquote: current.isActive('blockquote'),
       alignCenter: current.isActive({ textAlign: 'center' }),
       alignRight: current.isActive({ textAlign: 'right' }),
@@ -261,6 +280,32 @@ export function RichTextToolbar({ editor, allowImages }: { editor: Editor; allow
       >
         <OrderedListOutlined />
       </ToolButton>
+      <Dropdown
+        trigger={['click']}
+        menu={{
+          selectable: true,
+          selectedKeys: state.orderedListType ? [state.orderedListType] : [],
+          items: ORDERED_LIST_TYPES.map((type) => ({
+            key: type,
+            label: (
+              <span className='flex items-center justify-between gap-6'>
+                <span>{t(`tools.listStyles.${LIST_STYLE_KEY[type]}`)}</span>
+                <span className='text-[var(--admin-muted)]'>{LIST_STYLE_SAMPLE[type]}</span>
+              </span>
+            )
+          })),
+          onClick: ({ key }) => setOrderedListType(editor, key as OrderedListType)
+        }}
+      >
+        <Button
+          size='small'
+          type='text'
+          aria-label={t('tools.listStyle')}
+          title={t('tools.listStyle')}
+          icon={<DownOutlined />}
+          style={{ marginLeft: -2, paddingInline: 4 }}
+        />
+      </Dropdown>
       <ToolButton
         label={t('tools.outdent')}
         disabled={!state.canOutdent}
