@@ -85,6 +85,26 @@ export function libraryImageQuality(mediaType: string | null | undefined): {
   return base === 'image/png' ? { quality: 65, chroma: '4:4:4' } : { quality: 60, chroma: '4:2:0' }
 }
 
+/**
+ * Backend tạo sẵn các bản ảnh nhỏ WebP lúc upload (TDD-LIB-001/Upload và tài nguyên). Xin `?w=` ở route tải nội dung: có bản
+ * thì backend trả bản đó kèm header này (giá trị là bề rộng thật của bản, px), không có thì trả file gốc như trước. Route chỉ
+ * việc chuyển tiếp bản nhỏ, không đọc file gốc hay mã hoá lại.
+ */
+export const LIBRARY_VARIANT_WIDTH_HEADER = 'x-library-image-width'
+
+/** Bề rộng bản nhỏ từ header của backend; không phải số nguyên dương hợp lý thì `null` (coi như file gốc). */
+export function parseLibraryVariantWidth(raw: string | null | undefined): number | null {
+  if (!raw || !/^[1-9][0-9]{0,4}$/.test(raw)) return null
+  return Number(raw)
+}
+
+/** Dấu hiệu WebP (`RIFF....WEBP`); kiểm rẻ để không tin mù quáng một bản nhỏ trước khi chuyển tiếp nguyên byte. */
+export function isWebpBytes(bytes: Uint8Array): boolean {
+  if (bytes.length < 12) return false
+  const text = (from: number) => String.fromCharCode(bytes[from]!, bytes[from + 1]!, bytes[from + 2]!, bytes[from + 3]!)
+  return text(0) === 'RIFF' && text(8) === 'WEBP'
+}
+
 /** Trần dung lượng file gốc mà route chịu đổi (byte); lớn hơn thì trả lỗi 413 và trình duyệt tự dùng file gốc. */
 export const LIBRARY_IMAGE_MAX_SOURCE_BYTES = 30_000_000
 

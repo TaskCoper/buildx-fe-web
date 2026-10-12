@@ -60,37 +60,47 @@ test('each new read checks its own session and converts to the requested format 
   }
   privateResponse(await run(request('w=640', 'denied'), context), 403)
   assert.equal(calls.length, 3)
-  assert.equal(calls[0].url, `https://api.example.test/api/v1/library-versions/${versionId}/assets/${assetId}/content`)
+  // Trình duyệt nhận WebP thì route xin backend bản nhỏ đúng cỡ (`?w=`); backend cũ bỏ qua tham số này và trả file gốc nên vẫn chạy.
+  assert.equal(
+    calls[0].url,
+    `https://api.example.test/api/v1/library-versions/${versionId}/assets/${assetId}/content?w=640`
+  )
   assert.equal(calls[0].options.cache, 'no-store')
   assert.equal(calls[0].options.redirect, 'error')
 })
 
-test('overlapping sizes share a read only for the same source and exact session; later reads recheck', async () => {
+test('overlapping reads share only for the same source, width and exact session; later reads recheck', async () => {
   let release
   const gate = new Promise((resolve) => {
     release = resolve
   })
-  const cookies = []
-  const run = handler(async (_url, options) => {
-    cookies.push(options.headers.Cookie)
+  const reads = []
+  const run = handler(async (url, options) => {
+    reads.push([new URL(String(url)).search, options.headers.Cookie])
     await gate
     return options.headers.Cookie === 'allowed' ? source() : new Response(null, { status: 403 })
   })
   const large = run(request('w=960'), context)
   const small = run(request('w=640'), context)
+  const twin = run(request('w=640'), context)
   const other = run(request('w=640', 'other'), context)
   await new Promise((resolve) => setImmediate(resolve))
-  assert.deepEqual(cookies, ['allowed', 'other'])
+  // Mỗi cỡ là một bản nhỏ khác nhau ở backend nên không dùng chung; chỉ yêu cầu y hệt (cùng cỡ, cùng phiên) mới dùng chung một lần đọc.
+  assert.deepEqual(reads, [
+    ['?w=960', 'allowed'],
+    ['?w=640', 'allowed'],
+    ['?w=640', 'other']
+  ])
   release()
-  const responses = await Promise.all([large, small, other])
+  const responses = await Promise.all([large, small, twin, other])
   assert.deepEqual(
     responses.map((response) => response.status),
-    [200, 200, 403]
+    [200, 200, 200, 403]
   )
   assert.equal((await sharp(Buffer.from(await responses[0].arrayBuffer())).metadata()).width, 960)
   assert.equal((await sharp(Buffer.from(await responses[1].arrayBuffer())).metadata()).width, 640)
   privateResponse(await run(request(), context), 200)
-  assert.equal(cookies.length, 3)
+  assert.equal(reads.length, 4)
 })
 
 test('bad IDs, duplicate or unexpected query fields, and missing sessions never call the backend', async () => {
@@ -145,10 +155,71 @@ test('rejects incorrect content types, disguised SVG and oversized chunked files
   assert.equal(cancelled, true)
 })
 
-test('unsupported browser formats keep original bytes after authorization', async () => {
-  const response = await handler(async () => source())(request('w=640', 'allowed', 'image/png'), context)
+test('unsupported browser formats keep original bytes after authorization and never ask for a variant', async () => {
+  const urls = []
+  const response = await handler(async (url) => {
+    urls.push(String(url))
+    return source()
+  })(request('w=640', 'allowed', 'image/png'), context)
   privateResponse(response, 200)
   assert.deepEqual(Buffer.from(await response.arrayBuffer()), picture)
+  // Bản nhỏ luôn là WebP nên trình duyệt không nhận WebP phải xin file gốc, không kèm `w`.
+  assert.deepEqual(urls, [`https://api.example.test/api/v1/library-versions/${versionId}/assets/${assetId}/content`])
+})
+
+const webpPicture = await sharp({ create: { width: 640, height: 960, channels: 3, background: '#22aa66' } })
+  .webp()
+  .toBuffer()
+const variant = (width = '640', extra = {}) =>
+  new Response(webpPicture, {
+    headers: { 'Content-Type': 'image/webp', 'X-Library-Image-Width': width, ...extra }
+  })
+
+test('a backend-made variant is forwarded byte for byte after the backend authorised it, with no decoding or encoding', async () => {
+  const urls = []
+  const run = handler(async (url, options) => {
+    urls.push(String(url))
+    return options.headers.Cookie === 'allowed' ? variant() : new Response(null, { status: 403 })
+  })
+  const response = await run(request('w=640', 'allowed', 'image/avif,image/webp'), context)
+  privateResponse(response, 200)
+  assert.equal(response.headers.get('content-type'), 'image/webp')
+  assert.equal(response.headers.get('content-length'), String(webpPicture.length))
+  // Chỉ có phần đọc nguồn, không có phần mã hoá: khẳng định route không đụng tới sharp.
+  assert.match(response.headers.get('server-timing') ?? '', /^source;dur=\d+$/)
+  assert.deepEqual(Buffer.from(await response.arrayBuffer()), webpPicture)
+  assert.deepEqual(urls, [
+    `https://api.example.test/api/v1/library-versions/${versionId}/assets/${assetId}/content?w=640`
+  ])
+  // Bản nhỏ vẫn phải qua kiểm quyền của backend mỗi lần; không có cache hay đường tắt.
+  privateResponse(await run(request('w=640', 'denied'), context), 403)
+  privateResponse(await run(request('w=640', 'allowed'), context), 200)
+  assert.equal(urls.length, 3)
+})
+
+test('a variant marker is trusted only when it is a sane width on real WebP bytes', async () => {
+  // Header báo bản nhỏ nhưng nội dung là PNG, hoặc kiểu khai là PNG, hoặc cỡ vô lý: coi như file gốc và đi đường mã hoá cũ.
+  const cases = [
+    () => new Response(picture, { headers: { 'Content-Type': 'image/webp', 'X-Library-Image-Width': '640' } }),
+    () => new Response(picture, { headers: { 'Content-Type': 'image/png', 'X-Library-Image-Width': '640' } }),
+    () => variant('0'),
+    () => variant('-5'),
+    () => variant('1e3'),
+    () => variant('0640'),
+    () => variant('123456'),
+    () => variant('abc')
+  ]
+  for (const make of cases) {
+    const response = await handler(async () => make())(request('w=640'), context)
+    privateResponse(response, 200)
+    assert.match(response.headers.get('server-timing') ?? '', /encode;dur=\d+$/, 'must take the full re-encode path')
+  }
+})
+
+test('without a marker the backend sent the original, so the route resizes it itself (backend without variants)', async () => {
+  const response = await handler(async () => source())(request('w=640'), context)
+  privateResponse(response, 200)
+  assert.equal((await sharp(Buffer.from(await response.arrayBuffer())).metadata()).width, 640)
 })
 
 test('small sources are returned untouched after authorization; wide ones are still resized', async () => {

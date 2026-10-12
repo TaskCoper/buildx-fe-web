@@ -20,7 +20,9 @@ const {
   libraryImageUrl,
   negotiateLibraryImageFormat,
   parseLibraryContentUrl,
-  parseLibraryImageWidth
+  parseLibraryImageWidth,
+  parseLibraryVariantWidth,
+  isWebpBytes
 } = await import(`data:text/javascript;base64,${Buffer.from(js).toString('base64')}`)
 
 const V = '348ed6ba-d8ff-49e7-9b25-9ba477331773'
@@ -133,4 +135,20 @@ test('PNG (bản vẽ) giữ đủ màu và chất lượng cao hơn JPEG (ảnh
   assert.deepEqual(libraryImageQuality('image/png'), { quality: 65, chroma: '4:4:4' })
   assert.deepEqual(libraryImageQuality('image/jpeg'), { quality: 60, chroma: '4:2:0' })
   assert.deepEqual(libraryImageQuality(null), { quality: 60, chroma: '4:2:0' })
+})
+
+test('header báo bản nhỏ của backend chỉ nhận số nguyên dương viết chuẩn, tối đa 5 chữ số', () => {
+  assert.equal(parseLibraryVariantWidth('640'), 640)
+  assert.equal(parseLibraryVariantWidth('1920'), 1920)
+  for (const bad of [null, undefined, '', '0', '-5', '0640', '1e3', '12.5', ' 640', '640 ', '123456', 'abc'])
+    assert.equal(parseLibraryVariantWidth(bad), null, String(bad))
+})
+
+test('nhận ra byte WebP bằng dấu RIFF....WEBP, không tin gì khác', () => {
+  const header = (riff, webp) => Uint8Array.from([...Buffer.from(riff), 1, 2, 3, 4, ...Buffer.from(webp)])
+  assert.equal(isWebpBytes(header('RIFF', 'WEBP')), true)
+  assert.equal(isWebpBytes(header('RIFX', 'WEBP')), false)
+  assert.equal(isWebpBytes(header('RIFF', 'WAVE')), false)
+  assert.equal(isWebpBytes(Uint8Array.from([0x89, 0x50, 0x4e, 0x47])), false)
+  assert.equal(isWebpBytes(new Uint8Array()), false)
 })
