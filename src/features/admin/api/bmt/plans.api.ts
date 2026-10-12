@@ -184,15 +184,16 @@ export interface BmtPlanPublished {
 export interface AdminPlanListParams {
   kind?: PlanKind
   saleState?: PlanSaleState
+  search?: string
   pageIndex: number
   pageSize: number
 }
 
 export const bmtPlansApi = {
   /** `GET /admin/plans` — danh sách quản trị, phân trang & lọc phía server. */
-  listForAdmin: ({ kind, saleState, pageIndex, pageSize }: AdminPlanListParams) =>
+  listForAdmin: ({ kind, saleState, search, pageIndex, pageSize }: AdminPlanListParams) =>
     http.get<PagedResult<BmtAdminPlanItem>>('/admin/plans', {
-      params: { kind, saleState, pageIndex, pageSize }
+      params: { kind, saleState, search: search?.trim() || undefined, pageIndex, pageSize }
     }),
 
   getPlan: async (planId: string) => {
