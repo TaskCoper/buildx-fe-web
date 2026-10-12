@@ -56,7 +56,6 @@ import {
   contractorMatchesRoute
 } from '@/shared/constants/routes'
 import { useCountUp, useDocumentTitle } from '@/shared/hooks'
-import { replaceSearchParam } from '@/shared/lib/search-params'
 import { cn } from '@/shared/lib/utils'
 import { formatDate, formatDisplayDate, formatNumber } from '@/shared/utils'
 import { mergeProjectDetail } from '../api/contractors.logic'
@@ -76,8 +75,9 @@ import { ProjectPickerDialog } from './project-picker-dialog'
 interface ContractorProfileProps {
   projectId: string
   contractorId: string
-  /** Tab đang mở, lấy từ `?tab=` để chia sẻ được đường dẫn tới đúng tab. */
+  /** Tab đang mở, lưu ở `?tab=` để chia sẻ được đường dẫn tới đúng tab. */
   tab: ContractorTab
+  onTabChange: (tab: ContractorTab) => void
 }
 
 /** Bề ngang trang, đo từ ảnh S13: khối nội dung chiếm 90% bề ngang màn. */
@@ -231,7 +231,7 @@ function InviteButton({
  *   vi). Năm thành lập, quy mô đội ngũ và văn phòng chuyển sang cột trái, nằm
  *   ngay dưới đoạn giới thiệu.
  */
-export function ContractorProfile({ projectId, contractorId, tab }: ContractorProfileProps) {
+export function ContractorProfile({ projectId, contractorId, tab, onTabChange }: ContractorProfileProps) {
   const t = useTranslations('contractors.firm')
   const tCommon = useTranslations('contractors.common')
   const locale = useLocale() as Locale
@@ -239,9 +239,6 @@ export function ContractorProfile({ projectId, contractorId, tab }: ContractorPr
   const openPicker = useProjectPickerStore((s) => s.openPicker)
   /** Xem thử — chưa gắn hồ sơ dự án nào (xem `CONTRACTOR_PREVIEW_ID`). */
   const preview = projectId === CONTRACTOR_PREVIEW_ID
-
-  /** Đổi tab chỉ đổi `?tab=` trên thanh địa chỉ, không gọi máy chủ — `router.replace` tải lại cả trang mỗi lần bấm. */
-  const selectTab = (next: string) => replaceSearchParam('tab', next)
 
   const { data: brief } = useBrief(projectId)
   const { data: contractor, isPending, isError, refetch } = useContractor(contractorId)
@@ -422,7 +419,7 @@ export function ContractorProfile({ projectId, contractorId, tab }: ContractorPr
 
       <div className='grid gap-x-[1.4%] gap-y-5 lg:grid-cols-[79%_minmax(0,1fr)]'>
         <div className='min-w-0'>
-          <Tabs value={tab} onValueChange={selectTab} className='gap-5'>
+          <Tabs value={tab} onValueChange={(next) => onTabChange(next as ContractorTab)} className='gap-5'>
             {/* Nhận diện + chỉ số + tab: một thẻ duy nhất, đúng ảnh S13. */}
             <motion.div
               initial={{ opacity: 0, y: 16 }}
