@@ -2802,6 +2802,11 @@
       "countLabel": "kiến trúc sư",
       "clearSearch": "Xoá tìm kiếm",
       "lead": "Chọn kiến trúc sư bạn muốn trao đổi",
+      "loadMore": "Xem thêm",
+      "loadingMore": "Đang tải thêm…",
+      "loadMoreError": "Không tải được thêm kiến trúc sư. Vui lòng thử lại.",
+      "loadError": "Không tải được danh sách kiến trúc sư. Vui lòng thử lại.",
+      "retry": "Thử lại",
       "empty": {
         "title": "Không tìm thấy kiến trúc sư phù hợp",
         "description": "Thử đổi từ khóa tìm kiếm hoặc chọn chuyên môn khác."

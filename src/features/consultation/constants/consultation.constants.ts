@@ -5,8 +5,11 @@ import type { ConsultationSession } from '../types/consultation.types'
 /** Dải chip ngày của khối chọn giờ: 7 ngày kể từ hôm nay (mục VIII.2). */
 export const AVAILABILITY_DAYS = 7
 
-/** Số hồ sơ mỗi lần tải danh sách kiến trúc sư. */
+/** Số hồ sơ mỗi lần tải danh sách kiến trúc sư ở khung cuộn của trang hồ sơ. */
 export const CONSULTANT_LIST_PAGE_SIZE = 20
+
+/** Số thẻ mỗi trang ở trang Tư vấn 1:1; nút "Xem thêm" tải trang kế tiếp từ backend (mục VIII.1). */
+export const CONSULTANT_DIRECTORY_PAGE_SIZE = 6
 
 /**
  * Khung giờ 30 phút trong giờ làm việc SAVICO (Hình 15).

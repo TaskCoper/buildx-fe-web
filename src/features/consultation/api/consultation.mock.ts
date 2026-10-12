@@ -1,10 +1,13 @@
 import { cmsDb } from '@/shared/cms'
 import { mockDelay } from '@/shared/lib/mock'
+import type { ConsultantSpecialty } from '@/shared/cms'
 import type { PagedResult } from '@/shared/types'
 import { AVAILABILITY_DAYS, CONSULTANT_LIST_PAGE_SIZE, SESSION_TIMES } from '../constants/consultation.constants'
+import { filterConsultants, specialtyOptions } from '../services/consultation.service'
 import type {
   BookConsultationPayload,
   Consultant,
+  ConsultantListQuery,
   ConsultationBooking,
   ConsultationDay,
   ConsultationHistory,
@@ -188,18 +191,31 @@ function availabilityOf(consultantId: string): ConsultationDay[] {
 }
 
 export const mockConsultationApi = {
-  listConsultantsPage: async (pageIndex: number, _signal?: AbortSignal): Promise<PagedResult<Consultant>> => {
+  listConsultantsPage: async (
+    pageIndex: number,
+    _signal?: AbortSignal,
+    query: ConsultantListQuery = {}
+  ): Promise<PagedResult<Consultant>> => {
     await mockDelay(250)
-    const items = cmsDb.list('consultants').filter((consultant) => consultant.visible)
-    const start = (pageIndex - 1) * CONSULTANT_LIST_PAGE_SIZE
+    // Mock lọc trong bộ nhớ theo cùng luật với backend: tên hoặc chuyên môn (bỏ dấu), và mã chuyên môn.
+    const items = filterConsultants(
+      cmsDb.list('consultants').filter((consultant) => consultant.visible),
+      { query: query.keyword ?? '', ...(query.specialtyId ? { specialtyId: query.specialtyId } : {}) }
+    )
+    const pageSize = query.pageSize ?? CONSULTANT_LIST_PAGE_SIZE
+    const start = (pageIndex - 1) * pageSize
     return {
-      items: items.slice(start, start + CONSULTANT_LIST_PAGE_SIZE),
+      items: items.slice(start, start + pageSize),
       pageIndex,
-      pageSize: CONSULTANT_LIST_PAGE_SIZE,
+      pageSize,
       totalCount: items.length,
-      hasNextPage: start + CONSULTANT_LIST_PAGE_SIZE < items.length,
+      hasNextPage: start + pageSize < items.length,
       hasPreviousPage: pageIndex > 1
     }
+  },
+  listSpecialties: async (_signal?: AbortSignal): Promise<ConsultantSpecialty[]> => {
+    await mockDelay(150)
+    return specialtyOptions(cmsDb.list('consultants').filter((consultant) => consultant.visible))
   },
   listConsultants: async (): Promise<Consultant[]> => {
     await mockDelay(250)

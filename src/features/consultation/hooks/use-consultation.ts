@@ -1,12 +1,13 @@
 'use client'
 
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 
 import { isApiError } from '@/shared/lib/api'
 import { consultationApi } from '../api/consultation.api'
 import { consultationKeys } from '../api/consultation.keys'
+import { CONSULTANT_DIRECTORY_PAGE_SIZE } from '../constants/consultation.constants'
 import type { BookConsultationPayload } from '../types/consultation.types'
 
 /** Danh sách kiến trúc sư của trang Tư vấn 1:1 (mục VIII.1). */
@@ -14,6 +15,40 @@ export function useConsultants() {
   return useQuery({
     queryKey: consultationKeys.consultants(),
     queryFn: () => consultationApi.listConsultants()
+  })
+}
+
+/**
+ * Trang Tư vấn 1:1: từng trang 6 KTS do backend tìm và lọc (`keyword`, `specialtyId`), nút "Xem thêm" tải trang kế tiếp.
+ * Đổi từ khóa hoặc chuyên môn là một danh sách mới bắt đầu lại từ trang 1; danh sách cũ vẫn hiện mờ cho tới khi trang
+ * đầu của danh sách mới về, nên lưới không nhấp nháy trống giữa hai lần gõ.
+ */
+export function useConsultantDirectory(filter: { keyword: string; specialtyId: string }) {
+  return useInfiniteQuery({
+    queryKey: consultationKeys.directory(filter),
+    queryFn: ({ pageParam, signal }) =>
+      consultationApi.listConsultantsPage(pageParam, signal, {
+        ...(filter.keyword ? { keyword: filter.keyword } : {}),
+        ...(filter.specialtyId ? { specialtyId: filter.specialtyId } : {}),
+        pageSize: CONSULTANT_DIRECTORY_PAGE_SIZE
+      }),
+    initialPageParam: 1,
+    staleTime: 30_000,
+    placeholderData: keepPreviousData,
+    getNextPageParam: (page) => (page.hasNextPage && page.items.length > 0 ? page.pageIndex + 1 : undefined),
+    select: (data) => ({
+      consultants: [...new Map(data.pages.flatMap((page) => page.items).map((item) => [item.id, item])).values()],
+      totalCount: data.pages.at(-1)?.totalCount ?? 0
+    })
+  })
+}
+
+/** Chuyên môn có ít nhất một KTS hiển thị, cho dropdown lọc của trang Tư vấn 1:1. */
+export function useConsultantSpecialties() {
+  return useQuery({
+    queryKey: consultationKeys.specialties(),
+    queryFn: ({ signal }) => consultationApi.listSpecialties(signal),
+    staleTime: 5 * 60_000
   })
 }
 

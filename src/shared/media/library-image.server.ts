@@ -3,7 +3,10 @@ import { createHash } from 'node:crypto'
 
 import {
   isGuid,
+  isWebpBytes,
+  LIBRARY_VARIANT_WIDTH_HEADER,
   parseLibraryImageWidth,
+  parseLibraryVariantWidth,
   LIBRARY_IMAGE_MAX_SOURCE_BYTES,
   LIBRARY_IMAGE_PASSTHROUGH_MAX_BYTES,
   negotiateLibraryImageFormat,
@@ -65,7 +68,10 @@ export function createLibraryImageHandler({
 }) {
   // Share only overlapping reads of the SAME source with the EXACT same session cookies.
   // Delete on completion (including errors): later requests must check .NET again. No image/auth cache.
-  const pending = new Map<string, Promise<{ bytes: Buffer; contentType: string } | { status: number }>>()
+  const pending = new Map<
+    string,
+    Promise<{ bytes: Buffer; contentType: string; variantWidth: number | null } | { status: number }>
+  >()
   const readSource = (src: string, cookie: string) => {
     const key = createHash('sha256').update(cookie).update('\0').update(src).digest('hex')
     const existing = pending.get(key)
@@ -87,7 +93,11 @@ export function createLibraryImageHandler({
         return { status: 415 }
       }
       const bytes = await readImage(source)
-      return bytes ? { bytes, contentType } : { status: 413 }
+      // Backend báo đây là bản nhỏ tạo sẵn bằng header; header lạ hoặc nội dung không phải WebP thì coi như file gốc.
+      const reported = parseLibraryVariantWidth(source.headers.get(LIBRARY_VARIANT_WIDTH_HEADER))
+      const variantWidth =
+        reported !== null && contentType === 'image/webp' && bytes && isWebpBytes(bytes) ? reported : null
+      return bytes ? { bytes, contentType, variantWidth } : { status: 413 }
     })().finally(() => pending.delete(key))
     pending.set(key, reading)
     return reading
@@ -107,10 +117,11 @@ export function createLibraryImageHandler({
       [...query.keys()].some((name) => name !== 'w')
     )
       return failure(400)
-    const src = `/api/v1/library-versions/${versionId}/assets/${assetId}/content`
     const cookie = request.headers.get('cookie')
     if (!cookie) return failure(401)
-
+    const format = negotiateLibraryImageFormat(request.headers.get('accept'))
+    // Trình duyệt nhận WebP thì xin backend bản nhỏ đúng cỡ (đã tạo sẵn lúc upload); không nhận WebP thì cần file gốc nguyên vẹn.
+    const src = `/api/v1/library-versions/${versionId}/assets/${assetId}/content${format === 'webp' ? `?w=${width}` : ''}`
     try {
       // Never accept a source host from the browser, follow redirects or use Next's shared image/data cache.
       const started = performance.now()
@@ -118,11 +129,21 @@ export function createLibraryImageHandler({
       const fetched = performance.now()
       if ('status' in source) return failure(source.status)
       if (request.signal.aborted) return failure(408)
+      // Đường nhanh: bản nhỏ backend tạo sẵn, đã đúng cỡ và đã là WebP — chuyển tiếp nguyên byte, không giải mã, không mã hoá lại.
+      if (source.variantWidth !== null) {
+        return new Response(new Uint8Array(source.bytes), {
+          headers: {
+            ...PRIVATE_HEADERS,
+            'Content-Type': 'image/webp',
+            'Content-Length': String(source.bytes.length),
+            'Server-Timing': `source;dur=${Math.round(fetched - started)}`
+          }
+        })
+      }
       const image = sharp(source.bytes, { limitInputPixels: 120_000_000, animated: false })
       const metadata = await image.metadata()
       // MIME declarations are not sufficient: refuse SVG/PDF/CAD or other decoders even if labelled image/png.
       if (!metadata.format || !['jpeg', 'png', 'webp'].includes(metadata.format)) return failure(415)
-      const format = negotiateLibraryImageFormat(request.headers.get('accept'))
       if (
         format === 'original' ||
         shouldServeLibraryImageOriginal({

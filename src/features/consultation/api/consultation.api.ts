@@ -13,6 +13,7 @@ import { mockConsultationApi } from './consultation.mock'
 // không có. Hồ sơ đã có công ty, đánh giá, mô tả ngắn và các dự án thiết kế từ API.
 const BmtConsultationApi = {
   listConsultantsPage: bmtConsultationApi.listConsultantsPage,
+  listSpecialties: bmtConsultationApi.listSpecialties,
   listConsultants: bmtConsultationApi.listConsultants,
   getConsultant: bmtConsultationApi.getConsultant,
   bookConsultation: bmtConsultationApi.bookConsultation,
