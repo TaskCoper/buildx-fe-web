@@ -113,17 +113,15 @@ function intlLocale(locale: string): string {
 
 /**
  * Số tiền như `money()` của app demo: làm tròn tới đồng, nhóm nghìn theo locale (`34.780.000` ở tiếng Việt). Đơn vị
- * (`đ`) nằm trong câu i18n. Thiếu số thì `null` để màn hình in "—" thay vì "0 đ" gây hiểu nhầm.
+ * (`đ`) nằm trong câu i18n. Thiếu số thì in 0 như `money(n || 0)` của app demo.
  */
-export function formatEstimateAmount(value: number | null | undefined, locale: string): string | null {
-  if (!finite(value)) return null
-  return new Intl.NumberFormat(intlLocale(locale)).format(Math.round(value))
+export function formatEstimateAmount(value: number | null | undefined, locale: string): string {
+  return new Intl.NumberFormat(intlLocale(locale)).format(Math.round(finite(value) ? value : 0))
 }
 
-/** Khối lượng như `number()` của app demo: tối đa 2 chữ số lẻ (`18,5` ở tiếng Việt). */
-export function formatEstimateQuantity(value: number | null | undefined, locale: string): string | null {
-  if (!finite(value)) return null
-  return new Intl.NumberFormat(intlLocale(locale), { maximumFractionDigits: 2 }).format(value)
+/** Khối lượng như `number()` của app demo: tối đa 2 chữ số lẻ (`18,5` ở tiếng Việt); thiếu số thì in 0. */
+export function formatEstimateQuantity(value: number | null | undefined, locale: string): string {
+  return new Intl.NumberFormat(intlLocale(locale), { maximumFractionDigits: 2 }).format(finite(value) ? value : 0)
 }
 
 /* ===========================================================================

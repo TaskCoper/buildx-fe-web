@@ -448,13 +448,15 @@ test('dự toán: số tiền và khối lượng định dạng như money()/nu
   assert.equal(estimate.formatEstimateAmount(34780000, 'vi'), '34.780.000')
   assert.equal(estimate.formatEstimateAmount(8770000.5, 'vi'), '8.770.001', 'làm tròn tới đồng như Math.round')
   assert.equal(estimate.formatEstimateAmount(34780000, 'en'), '34,780,000')
-  assert.equal(estimate.formatEstimateAmount(null, 'vi'), null, 'thiếu số thì để màn hình in —, không in 0 đ')
-  assert.equal(estimate.formatEstimateAmount(Number.NaN, 'vi'), null)
+  assert.equal(estimate.formatEstimateAmount(null, 'vi'), '0', 'thiếu số thì in 0 như money(n || 0) của app demo')
+  assert.equal(estimate.formatEstimateAmount(undefined, 'vi'), '0')
+  assert.equal(estimate.formatEstimateAmount(Number.NaN, 'vi'), '0')
   assert.equal(estimate.formatEstimateQuantity(18.5, 'vi'), '18,5')
   assert.equal(estimate.formatEstimateQuantity(1234.567, 'vi'), '1.234,57', 'tối đa 2 chữ số lẻ')
   assert.equal(estimate.formatEstimateQuantity(3, 'vi'), '3')
   assert.equal(estimate.formatEstimateQuantity(3.2, 'en'), '3.2')
-  assert.equal(estimate.formatEstimateQuantity(undefined, 'vi'), null)
+  assert.equal(estimate.formatEstimateQuantity(undefined, 'vi'), '0', 'thiếu khối lượng in 0 như number(n || 0)')
+  assert.equal(estimate.formatEstimateQuantity(null, 'vi'), '0')
 })
 
 test('dự toán: thời gian thi công chỉ giữ dòng có nội dung, theo thứ tự thô → hoàn thiện → nội thất → tổng', () => {

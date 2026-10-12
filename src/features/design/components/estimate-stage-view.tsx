@@ -224,14 +224,15 @@ export function EstimateStageResultView({ result }: { result: EstimateStageResul
   const t = useTranslations('design.pipeline.estimate.result')
   const locale = useLocale() as Locale
   const tabs = estimateTabs(result)
-  // App demo mở tab Phần thô; căn hộ không có phần thô nên mở tab đầu tiên có hạng mục.
-  const [active, setActive] = useState<EstimatePart>(() => tabs.find((tab) => !tab.empty)?.part ?? 'structure')
-  const money = (value: number | null | undefined) => {
-    const text = formatEstimateAmount(value, locale)
-    return text === null ? '—' : t('money', { value: text })
-  }
-  const pricePerM2 = formatEstimateAmount(result.pricePerM2Vnd, locale)
-  const floorArea = formatEstimateQuantity(result.convertedFloorAreaM2, locale)
+  // Luôn mở tab Phần thô như app demo; căn hộ không có phần thô thì tab này hiện dòng "không có hạng mục".
+  const [active, setActive] = useState<EstimatePart>('structure')
+  // Thiếu số thì in "0 đ" như `money(n || 0)` của app demo.
+  const money = (value: number | null | undefined) => t('money', { value: formatEstimateAmount(value, locale) })
+  // Hai ô ngoài màn của app demo (STORY-PROJ-008 bước 8) chỉ hiện khi BE có số.
+  const pricePerM2 =
+    typeof result.pricePerM2Vnd === 'number' ? formatEstimateAmount(result.pricePerM2Vnd, locale) : null
+  const floorArea =
+    typeof result.convertedFloorAreaM2 === 'number' ? formatEstimateQuantity(result.convertedFloorAreaM2, locale) : null
   const schedule = estimateScheduleRows(result.schedule)
 
   return (
@@ -347,9 +348,9 @@ function PartTable({ tab, money }: { tab: EstimateTab; money: (value: number | n
                       {item.name}
                       {item.size ? <small className='text-muted-foreground block'>{item.size}</small> : null}
                     </TableCell>
-                    <TableCell className='py-2.5'>{item.unit || '—'}</TableCell>
+                    <TableCell className='py-2.5'>{item.unit ?? ''}</TableCell>
                     <TableCell className='py-2.5 text-right tabular-nums'>
-                      {formatEstimateQuantity(item.quantity, locale) ?? '—'}
+                      {formatEstimateQuantity(item.quantity, locale)}
                     </TableCell>
                     <TableCell className='py-2.5 text-right tabular-nums'>{money(item.unitPrice)}</TableCell>
                     <TableCell className='py-2.5 pr-4 text-right tabular-nums'>{money(item.amount)}</TableCell>
