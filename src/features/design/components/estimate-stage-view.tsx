@@ -55,7 +55,7 @@ export function EstimateStageView({ projectId }: { projectId: string }) {
         </Button>
       </StageStateCard>
     )
-  if (stages.isPending || !stage) return <Spinner />
+  if (stages.isPending) return <Spinner />
 
   if (succeeded) {
     if (result.isError)
@@ -71,9 +71,10 @@ export function EstimateStageView({ projectId }: { projectId: string }) {
     return <EstimateStageResultView result={result.data} />
   }
 
-  if (isStageActive(stage.status)) return <RunningCard stage={stage} />
-  if (stage.status === 'Failed') return <FailedCard projectId={projectId} stage={stage} />
-  if (stage.status === 'Ready') return <NotStartedCard projectId={projectId} />
+  if (stage && isStageActive(stage.status)) return <RunningCard stage={stage} />
+  if (stage?.status === 'Failed') return <FailedCard projectId={projectId} stage={stage} />
+  if (stage?.status === 'Ready') return <NotStartedCard projectId={projectId} />
+  // Chưa mở, hoặc BE chưa trả chặng Dự toán trong danh sách: khách cần xong chặng 2D trước.
   return (
     <StageStateCard
       icon={<Lock className='text-muted-foreground size-6' />}
