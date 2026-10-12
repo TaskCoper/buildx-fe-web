@@ -278,7 +278,10 @@ export function PlanManager() {
     const name = workingSummary(plan)?.name || plan.code
     modal.confirm({
       title: action === 'publish' ? t('publishConfirmTitle', { name }) : t('stopConfirmTitle', { name }),
-      content: action === 'publish' ? t('publishConfirmBody') : t('stopConfirmBody'),
+      content:
+        action === 'publish'
+          ? t(plan.saleState === 'Stopped' ? 'republishConfirmBody' : 'publishConfirmBody')
+          : t('stopConfirmBody'),
       okText: action === 'publish' ? t('publish') : t('stopSelling'),
       okButtonProps: action === 'stop' ? { danger: true } : undefined,
       cancelText: tAdmin('actions.cancel'),
@@ -392,7 +395,7 @@ export function PlanManager() {
       ]}
       rowActions={(plan, ctx) => {
         const actions: RowAction[] = []
-        if (plan.draft && plan.saleState !== 'Stopped') {
+        if (plan.draft) {
           actions.push({
             key: 'publish',
             label: t('publish'),
