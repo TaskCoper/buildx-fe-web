@@ -311,11 +311,15 @@ const optStr = (value: unknown): string | null => (typeof value === 'string' && 
 
 export function normalizePipelineDetail(raw: unknown): PipelineDetail {
   const root = isObject(raw) ? raw : {}
+  // BE trả phần nội bộ theo từng lần chạy (`runs[].internal`); màn hiện phần của lần chạy mới nhất có dữ liệu.
+  const latestInternal = list(root.runs)
+    .filter(isObject)
+    .find((run) => run.internal != null)?.internal
   return {
     estimateId: str(root.estimateId),
     code: str(root.code ?? root.estimateCode),
     name: str(root.name ?? root.estimateName),
-    internal: root.internal ?? null,
+    internal: root.internal ?? latestInternal ?? null,
     runs: list(root.runs)
       .filter(isObject)
       .map((run) => ({
@@ -329,7 +333,9 @@ export function normalizePipelineDetail(raw: unknown): PipelineDetail {
         countsTowardLimit: typeof run.countsTowardLimit === 'boolean' ? run.countsTowardLimit : null,
         pipelineVersion: optStr(run.pipelineVersion),
         configRevision:
-          run.configRevisionNumber !== undefined ? String(run.configRevisionNumber) : optStr(run.configRevisionId),
+          (run.configNumber ?? run.configRevisionNumber) !== undefined
+            ? String(run.configNumber ?? run.configRevisionNumber)
+            : optStr(run.configRevisionId),
         ruleSetRevision:
           run.ruleSetRevisionNumber !== undefined ? String(run.ruleSetRevisionNumber) : optStr(run.ruleSetRevisionId),
         steps: list(run.steps)
