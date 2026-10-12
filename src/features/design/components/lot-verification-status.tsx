@@ -2,7 +2,7 @@
 
 import { AlertCircle, CheckCircle2, Loader2, RefreshCw, ScanSearch, XCircle } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import type { ReactNode } from 'react'
+import { useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 
 import { Button } from '@/shared/components/ui/button'
 import { cn } from '@/shared/lib/utils'
@@ -110,9 +110,19 @@ export function LotVerificationStatus({
       <CheckCircle2 className='text-primary size-4' />,
       <>
         <p className='font-medium'>{t('pass')}</p>
-        {view?.reason ? <p className='text-muted-foreground'>{view.reason}</p> : null}
-        {view?.reused ? <p className='text-muted-foreground text-xs'>{t('reused')}</p> : null}
-        {remaining}
+        {view?.reason ? <CollapsibleReason text={view.reason} /> : null}
+        {view?.reused || remaining ? (
+          <p className='text-muted-foreground text-xs'>
+            {[
+              view?.reused ? t('reused') : null,
+              view?.remainingToday !== null && view?.remainingToday !== undefined
+                ? t('remainingToday', { count: view.remainingToday })
+                : null
+            ]
+              .filter(Boolean)
+              .join(' ')}
+          </p>
+        ) : null}
       </>
     )
 
@@ -149,6 +159,36 @@ export function LotVerificationStatus({
         </Button>
       )}
     </>
+  )
+}
+
+/** Lý do AI nêu khi Đạt thường dài (liệt kê từng phòng): mặc định hiện 2 dòng, bấm để xem đủ. */
+function CollapsibleReason({ text }: { text: string }) {
+  const t = useTranslations('design.pipeline.verify')
+  const [open, setOpen] = useState(false)
+  const [overflows, setOverflows] = useState(false)
+  const ref = useRef<HTMLParagraphElement>(null)
+  // Câu ngắn vừa 2 dòng thì không cần nút.
+  useLayoutEffect(() => {
+    const element = ref.current
+    if (element && !open) setOverflows(element.scrollHeight > element.clientHeight + 1)
+  }, [open, text])
+  return (
+    <div className='space-y-0.5'>
+      <p ref={ref} className={cn('text-muted-foreground', !open && 'line-clamp-2')}>
+        {text}
+      </p>
+      {overflows || open ? (
+        <button
+          type='button'
+          aria-expanded={open}
+          onClick={() => setOpen((value) => !value)}
+          className='text-primary text-xs font-medium hover:underline'
+        >
+          {open ? t('less') : t('more')}
+        </button>
+      ) : null}
+    </div>
   )
 }
 

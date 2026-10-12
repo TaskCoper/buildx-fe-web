@@ -2393,6 +2393,8 @@
         "reused": "This image was checked before, so the earlier result is reused and does not count towards your limit.",
         "remainingToday": "You have {count} new image checks left today.",
         "replaceHint": "Please replace it with a drawing or plan of the lot to continue.",
+        "more": "Show more",
+        "less": "Show less",
         "retry": "Check again",
         "reload": "Reload",
         "loadError": "The check result could not be loaded.",

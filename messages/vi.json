@@ -2393,6 +2393,8 @@
         "reused": "Ảnh này đã được soi trước đây nên dùng lại kết quả cũ, không tính vào hạn mức.",
         "remainingToday": "Hôm nay bạn còn {count} lần soi ảnh mới.",
         "replaceHint": "Bạn thay một ảnh bản vẽ hoặc sơ đồ lô đất khác để tiếp tục.",
+        "more": "Xem thêm",
+        "less": "Thu gọn",
         "retry": "Soi lại",
         "reload": "Tải lại",
         "loadError": "Chưa đọc được kết quả soi ảnh.",

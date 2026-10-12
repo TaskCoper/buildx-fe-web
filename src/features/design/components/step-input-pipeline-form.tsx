@@ -2,7 +2,6 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { AlertTriangle, Loader2, Palette } from 'lucide-react'
-import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
@@ -43,7 +42,7 @@ import { isStageActive, lotVerificationPassed, stageOf } from '../services/pipel
 import type { PackageTier } from '../types/design.types'
 import { ChoiceCards, type ChoiceOption } from './choice-cards'
 import { EstimateAddressField } from './estimate-address-field'
-import { SaveIndicator, SectionCard, StyleCard } from './input-form-parts'
+import { SaveIndicator, SectionCard, StyleGroup } from './input-form-parts'
 import { LotImageField } from './lot-image-field'
 import { LotVerificationStatus } from './lot-verification-status'
 import { PackageSlider } from './package-slider'
@@ -182,6 +181,7 @@ export function StepInputPipelineForm({ projectId, onStageStarted }: StepInputPi
   const invalid = (field: string) => showErrors && missing.includes(field)
   const lotProblem = lotSizeProblem(draft.lotFrontageM, draft.lotDepthM)
   const imageSaving = draft.inputImageUrl !== savedImageUrl
+  const entranceShown = Boolean(draft.inputImageUrl) && passed && !imageSaving
 
   const floorOptions: ChoiceOption[] = (type?.floorCounts ?? [])
     .filter((count) => count >= 1 && count <= 4)
@@ -284,65 +284,65 @@ export function StepInputPipelineForm({ projectId, onStageStarted }: StepInputPi
         <div className='grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_26rem]'>
           <div className='space-y-6'>
             <SectionCard index={1} title={t('groups.lot')}>
-              <div className='grid gap-5 md:grid-cols-2'>
-                <div className='space-y-3'>
+              <div className='space-y-6'>
+                <div
+                  className={cn('grid gap-5', draft.inputImageUrl && 'md:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]')}
+                >
                   <LotImageField
                     estimateId={projectId}
                     value={draft.inputImageUrl}
                     disabled={disabled}
                     invalid={invalid('inputImageUrl') || invalid('lotVerification')}
+                    entranceSide={entranceShown ? (draft.entranceSide ?? DEFAULT_ENTRANCE_SIDE) : null}
                     onUploaded={(url) => input.patch({ inputImageUrl: url })}
                     onRemove={() => input.patch({ inputImageUrl: null })}
                   />
                   {draft.inputImageUrl ? (
-                    <LotVerificationStatus
-                      view={imageSaving ? null : verification.current.data}
-                      loading={!imageSaving && verification.current.isPending}
-                      loadError={!imageSaving && verification.current.isError}
-                      requesting={verification.request.isPending}
-                      waitingForSave={imageSaving}
-                      locked={locked}
-                      onRequest={() =>
-                        verification.request.mutate(undefined, {
-                          onError: (error) => toast.error(verification.messageOf(error))
-                        })
-                      }
-                      onReload={() => void verification.current.refetch()}
-                    />
-                  ) : null}
-                  {draft.inputImageUrl && passed && !imageSaving ? (
-                    // Khối "Xác nhận trước khi vẽ" của app demo (BR-PROJ-002 khoản 5): cạnh cửa vào trên bản vẽ lô. Chưa
-                    // bấm thì hiện Trái là mặc định nhưng không gửi; BE dùng cạnh trái và ghi nhận là mặc định.
-                    <div id='field-entranceSide' className='space-y-2 rounded-xl border p-4'>
-                      <p className='text-sm font-medium'>{t('entrance.title')}</p>
-                      <FieldLabel hint={t('entrance.hint')}>{t('entrance.label')}</FieldLabel>
-                      <div className='flex items-center gap-3'>
-                        <ChoiceCards
-                          compact
-                          options={ENTRANCE_SIDES.map((side) => ({ value: side, label: t(`entrance.${side}`) }))}
-                          value={draft.entranceSide ?? DEFAULT_ENTRANCE_SIDE}
-                          onChange={(value) => input.patch({ entranceSide: value as EntranceSide })}
-                        />
-                        <Image
-                          src={draft.inputImageUrl}
-                          alt={t('entrance.thumbAlt')}
-                          width={64}
-                          height={64}
-                          className='size-16 shrink-0 rounded-md border object-contain'
-                          unoptimized
-                        />
-                      </div>
-                      <p className='text-muted-foreground text-xs'>
-                        {draft.entranceSide
-                          ? t('entrance.chosen', { side: t(`entrance.${draft.entranceSide}`).toLowerCase() })
-                          : t('entrance.default', { side: t(`entrance.${DEFAULT_ENTRANCE_SIDE}`).toLowerCase() })}
-                      </p>
+                    // Cùng hàng với ảnh: kết quả soi rồi tới bước xác nhận cạnh có cửa vào; nhãn trống phía trên để thẳng
+                    // hàng với khung ảnh (nhãn "Ảnh lô đất" nằm ở cột trái).
+                    <div className='space-y-4 md:pt-7'>
+                      <LotVerificationStatus
+                        view={imageSaving ? null : verification.current.data}
+                        loading={!imageSaving && verification.current.isPending}
+                        loadError={!imageSaving && verification.current.isError}
+                        requesting={verification.request.isPending}
+                        waitingForSave={imageSaving}
+                        locked={locked}
+                        onRequest={() =>
+                          verification.request.mutate(undefined, {
+                            onError: (error) => toast.error(verification.messageOf(error))
+                          })
+                        }
+                        onReload={() => void verification.current.refetch()}
+                      />
+                      {entranceShown ? (
+                        // Khối "Xác nhận trước khi vẽ" của app demo (BR-PROJ-002 khoản 5): cạnh cửa vào trên bản vẽ lô.
+                        // Chưa bấm thì hiện Trái là mặc định nhưng không gửi; BE dùng cạnh trái và ghi nhận là mặc định.
+                        // Cạnh đang áp dụng được tô ngay trên khung ảnh bên trái.
+                        <div id='field-entranceSide' className='space-y-2'>
+                          <p className='text-muted-foreground text-xs font-medium tracking-wide uppercase'>
+                            {t('entrance.title')}
+                          </p>
+                          <FieldLabel hint={t('entrance.hint')}>{t('entrance.label')}</FieldLabel>
+                          <ChoiceCards
+                            compact
+                            options={ENTRANCE_SIDES.map((side) => ({ value: side, label: t(`entrance.${side}`) }))}
+                            value={draft.entranceSide ?? DEFAULT_ENTRANCE_SIDE}
+                            onChange={(value) => input.patch({ entranceSide: value as EntranceSide })}
+                          />
+                          <p className='text-muted-foreground text-xs text-pretty'>
+                            {draft.entranceSide
+                              ? t('entrance.chosen', { side: t(`entrance.${draft.entranceSide}`).toLowerCase() })
+                              : t('entrance.default', { side: t(`entrance.${DEFAULT_ENTRANCE_SIDE}`).toLowerCase() })}
+                          </p>
+                        </div>
+                      ) : null}
                     </div>
                   ) : null}
                 </div>
 
                 <div className='space-y-5'>
-                  <div id='field-lotSize' className='space-y-2'>
+                  <div id='field-lotSize' className='max-w-md space-y-2'>
                     <FieldLabel hint={t('lotSize.hint')}>{t('lotSize.label')}</FieldLabel>
                     <div className='flex items-center gap-2'>
                       <div className='relative flex-1'>
@@ -507,7 +507,11 @@ export function StepInputPipelineForm({ projectId, onStageStarted }: StepInputPi
                   />
                 </div>
 
-                <div id='field-finishPackage' className='sm:col-span-2'>
+                {/* Lưới 2 cột ghép từng cặp; số ô lẻ (loại không có tum hoặc số tầng) thì gói hoàn thiện chiếm cả hàng. */}
+                <div
+                  id='field-finishPackage'
+                  className={cn((Number(fields.floors) + Number(fields.tum)) % 2 === 1 && 'sm:col-span-2')}
+                >
                   <PackageSlider
                     value={tierOf(draft.finishPackage)}
                     onChange={(tier) => input.patch({ finishPackage: PACKAGE_OF_TIER[tier] })}
@@ -590,54 +594,57 @@ export function StepInputPipelineForm({ projectId, onStageStarted }: StepInputPi
             </SectionCard>
           </div>
 
-          <div className='space-y-6'>
+          {/* Cột phải "Thông tin bổ sung" (mục III.2): một thẻ duy nhất, bám theo khi cuộn để không để trống nửa trang. */}
+          <aside className='lg:sticky lg:top-24 lg:max-h-[calc(100dvh-7rem)] lg:overflow-y-auto lg:overscroll-contain lg:rounded-2xl'>
             {!type ? (
               <section className='bg-card flex min-h-64 flex-col items-center justify-center gap-3 rounded-2xl border border-dashed p-8 text-center'>
                 <Palette className='text-muted-foreground size-8' strokeWidth={1.5} />
                 <h2 className='text-base font-semibold'>{tApi('extra.title')}</h2>
                 <p className='text-muted-foreground max-w-xs text-sm text-pretty'>{tApi('extra.empty')}</p>
               </section>
-            ) : !fields.architecture && !fields.interior ? (
+            ) : (
               <section className='bg-card rounded-2xl border p-5 shadow-xs sm:p-6'>
                 <h2 className='text-base font-semibold'>{tApi('extra.title')}</h2>
-                <p className='text-muted-foreground mt-1 text-sm'>{tApi('extra.none')}</p>
+                {!fields.architecture && !fields.interior ? (
+                  <p className='text-muted-foreground mt-1 text-sm'>{tApi('extra.none')}</p>
+                ) : (
+                  <div className='mt-5 space-y-6'>
+                    {fields.architecture ? (
+                      <StyleGroup
+                        id='field-architectureStyleId'
+                        title={tApi('style.architecture')}
+                        hint={tApi('style.architectureHint')}
+                      >
+                        <ChoiceCards
+                          className='grid-cols-2 sm:grid-cols-2'
+                          options={styleOptions('architecture')}
+                          value={draft.architectureStyleId}
+                          onChange={(value) => input.patch({ architectureStyleId: value })}
+                          invalid={invalid('architectureStyleId')}
+                        />
+                      </StyleGroup>
+                    ) : null}
+                    {fields.architecture && fields.interior ? <hr className='border-border' /> : null}
+                    {fields.interior ? (
+                      <StyleGroup
+                        id='field-interiorStyleId'
+                        title={tApi('style.interior')}
+                        hint={tApi('style.interiorHint')}
+                      >
+                        <ChoiceCards
+                          className='grid-cols-2 sm:grid-cols-2'
+                          options={styleOptions('interior')}
+                          value={draft.interiorStyleId}
+                          onChange={(value) => input.patch({ interiorStyleId: value })}
+                          invalid={invalid('interiorStyleId')}
+                        />
+                      </StyleGroup>
+                    ) : null}
+                  </div>
+                )}
               </section>
-            ) : null}
-
-            {fields.architecture ? (
-              <StyleCard
-                id='field-architectureStyleId'
-                title={tApi('style.architecture')}
-                hint={tApi('style.architectureHint')}
-                required
-              >
-                <ChoiceCards
-                  className='grid-cols-2 sm:grid-cols-2'
-                  options={styleOptions('architecture')}
-                  value={draft.architectureStyleId}
-                  onChange={(value) => input.patch({ architectureStyleId: value })}
-                  invalid={invalid('architectureStyleId')}
-                />
-              </StyleCard>
-            ) : null}
-
-            {fields.interior ? (
-              <StyleCard
-                id='field-interiorStyleId'
-                title={tApi('style.interior')}
-                hint={tApi('style.interiorHint')}
-                required
-              >
-                <ChoiceCards
-                  className='grid-cols-2 sm:grid-cols-2'
-                  options={styleOptions('interior')}
-                  value={draft.interiorStyleId}
-                  onChange={(value) => input.patch({ interiorStyleId: value })}
-                  invalid={invalid('interiorStyleId')}
-                />
-              </StyleCard>
-            ) : null}
-          </div>
+            )}
+          </aside>
         </div>
       </fieldset>
 
@@ -647,16 +654,19 @@ export function StepInputPipelineForm({ projectId, onStageStarted }: StepInputPi
             {t('missingTitle')}: {missingLabels.join(', ')}
           </p>
         ) : null}
-        <SaveIndicator status={input.status} message={input.errorMessage} onRetry={() => void input.retry()} />
-        {quota.data ? (
-          <p className='text-muted-foreground text-center text-xs'>
-            {!quota.data.hasSubscription
-              ? tApi('quota.none')
-              : quota.data.unlimited
-                ? tApi('quota.unlimited')
-                : tApi('quota.plan', { remaining: quota.data.available ?? 0, total: quota.data.limit ?? 0 })}
-          </p>
-        ) : null}
+        {/* Trạng thái lưu nháp và lượt thiết kế còn lại chung một hàng. */}
+        <div className='flex flex-wrap items-center justify-center gap-x-3 gap-y-1'>
+          <SaveIndicator status={input.status} message={input.errorMessage} onRetry={() => void input.retry()} />
+          {quota.data ? (
+            <p className='text-foreground text-center text-xs font-medium'>
+              {!quota.data.hasSubscription
+                ? tApi('quota.none')
+                : quota.data.unlimited
+                  ? tApi('quota.unlimited')
+                  : tApi('quota.plan', { remaining: quota.data.available ?? 0, total: quota.data.limit ?? 0 })}
+            </p>
+          ) : null}
+        </div>
         <p className='text-muted-foreground text-center text-xs'>{t('quotaNote')}</p>
 
         {outOfQuota ? (

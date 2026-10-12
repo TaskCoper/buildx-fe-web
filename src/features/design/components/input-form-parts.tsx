@@ -50,6 +50,30 @@ export function StyleCard({
   )
 }
 
+/** Một nhóm phong cách bên trong thẻ "Thông tin bổ sung" của luồng bốn chặng; luôn bắt buộc khi đang hiện. */
+export function StyleGroup({
+  id,
+  title,
+  hint,
+  children
+}: {
+  id: string
+  title: string
+  hint: string
+  children: ReactNode
+}) {
+  return (
+    <div id={id}>
+      <h3 className='text-sm font-semibold'>
+        {title}
+        <span className='text-destructive ml-0.5'>*</span>
+      </h3>
+      <p className='text-muted-foreground mt-0.5 mb-3 text-xs'>{hint}</p>
+      {children}
+    </div>
+  )
+}
+
 /** Dòng trạng thái tự lưu: chỉ báo "Đã lưu" sau khi BE xác nhận (BR-PROJ-003 khoản 8). */
 export function SaveIndicator({
   status,
