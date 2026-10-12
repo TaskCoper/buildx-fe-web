@@ -3812,6 +3812,7 @@
       "noteHint": "Chỉ admin thấy, không hiện cho khách."
     },
     "bmtPlans": {
+      "searchPlaceholder": "Tìm theo tên gói",
       "description": "Gói thiết kế (bán theo tháng / năm) và gói giám sát (bán theo công trình). Sửa gói là sửa bản nháp — website chỉ đổi khi bấm Công bố. Gói khách đã mua giữ nguyên phiên bản đã chốt.",
       "allKinds": "Mọi loại gói",
       "allSaleStates": "Mọi trạng thái bán",
