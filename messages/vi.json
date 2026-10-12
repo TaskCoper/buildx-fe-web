@@ -2468,7 +2468,8 @@
         "refunded": "Lượt đã giữ được hoàn lại.",
         "retryLimit": "Chặng này đã lỗi quá số lần cho phép. Bạn liên hệ hỗ trợ để được chạy lại.",
         "retry": "Chạy lại",
-        "nextStageLocked": "Chặng Dự toán sẽ mở trong bản cập nhật tới. Bản vẽ 2D của bạn được lưu lại để dùng cho các chặng sau.",
+        "nextStage": "Bản vẽ 2D đã xong. Bước tiếp theo là lập dự toán chi phí từ bản vẽ này.",
+        "toEstimate": "Sang chặng Dự toán",
         "result": {
           "lot": "Kích thước lô",
           "lotSource": {
@@ -2494,14 +2495,82 @@
           "lotValue": "{width} m × {depth} m"
         }
       },
+      "estimate": {
+        "pageTitle": "Dự toán",
+        "pageTitleWithProject": "Dự toán: {name} ({id})",
+        "loadError": "Không tải được trạng thái dự toán.",
+        "resultLoadError": "Không tải được kết quả dự toán.",
+        "reload": "Tải lại",
+        "locked": "Chặng Dự toán chưa mở",
+        "lockedHint": "Dự toán được lập từ bản vẽ 2D. Bạn cần hoàn tất chặng Bản vẽ 2D trước.",
+        "viewPlan": "Xem bản vẽ 2D",
+        "notStarted": "Chưa tạo dự toán",
+        "notStartedHint": "Hệ thống bóc tách 3 phần (phần thô · hoàn thiện · nội thất) từ bản vẽ 2D đã có. Chặng này không tính thêm lượt thiết kế.",
+        "start": "Tạo dự toán",
+        "startError": "Chưa tạo được dự toán. Bạn thử lại nhé.",
+        "queued": "Đang chờ tới lượt",
+        "queuedHint": "Yêu cầu của bạn đã được nhận. Hệ thống sẽ bắt đầu lập dự toán khi tới lượt; bạn có thể rời trang và quay lại sau.",
+        "running": "Đang bóc tách khối lượng và lập dự toán",
+        "runningHint": "Thường mất 4–6 phút. Bạn có thể rời trang và quay lại sau.",
+        "progress": "Đã xong {done}/{total} bước",
+        "progressUnknown": "Đã xong {done} bước",
+        "deadline": "Hạn hoàn tất: {time}",
+        "readyToast": "Đã lập xong dự toán.",
+        "failed": "Chưa lập được dự toán",
+        "failure": {
+          "incomplete": "AI trả về dự toán thiếu thông tin cần thiết.",
+          "blocked": "AI từ chối xử lý nội dung của bản dự toán này.",
+          "timedOut": "Lần chạy vượt quá thời gian cho phép.",
+          "serviceDown": "Dịch vụ AI đang gặp sự cố.",
+          "generic": "Đã có lỗi trong lúc lập dự toán."
+        },
+        "retriesLeft": "Bạn còn {count} lần chạy lại.",
+        "retryUnknown": "Bạn có thể bấm Chạy lại.",
+        "retryLimit": "Chặng này đã lỗi quá số lần cho phép. Bạn liên hệ hỗ trợ để được chạy lại.",
+        "retry": "Chạy lại",
+        "result": {
+          "title": "Dự toán",
+          "tabs": {
+            "structure": "Phần thô",
+            "finishing": "Hoàn thiện",
+            "interior": "Nội thất"
+          },
+          "columns": {
+            "item": "Hạng mục",
+            "unit": "ĐV",
+            "quantity": "Khối lượng",
+            "unitPrice": "Đơn giá",
+            "amount": "Thành tiền"
+          },
+          "emptyPart": "Phần này không có hạng mục nào.",
+          "partTotal": {
+            "structure": "Tổng phần thô",
+            "finishing": "Tổng hoàn thiện",
+            "interior": "Tổng nội thất"
+          },
+          "grandTotal": "Tổng dự toán",
+          "money": "{value} đ",
+          "pricePerM2": "Đơn giá trên m² sàn quy đổi",
+          "pricePerM2Value": "{value} đ/m²",
+          "floorArea": "Tổng sàn quy đổi: {value} m²",
+          "schedule": {
+            "title": "Thời gian thi công dự kiến",
+            "structure": "Phần thô",
+            "finishing": "Hoàn thiện",
+            "interior": "Nội thất",
+            "total": "Tổng thời gian"
+          },
+          "advice": "Tư vấn từ BuildX",
+          "nextStageLocked": "Chặng Phối cảnh 3D sẽ mở trong bản cập nhật tới. Dự toán của bạn được lưu lại để dùng cho các chặng sau."
+        }
+      },
       "locked": {
         "pageTitle": {
-          "3": "Dự toán",
           "5": "Hồ sơ"
         },
         "title": "Chặng này chưa mở",
-        "description": "Phiên bản hiện tại mới có chặng Bản vẽ 2D. Dự toán, phối cảnh 3D và hồ sơ sẽ mở trong các bản cập nhật tới.",
-        "backToPlan": "Xem bản vẽ 2D"
+        "description": "Phiên bản hiện tại có chặng Bản vẽ 2D và Dự toán. Phối cảnh 3D và hồ sơ sẽ mở trong các bản cập nhật tới.",
+        "backToEstimate": "Xem dự toán"
       }
     }
   },

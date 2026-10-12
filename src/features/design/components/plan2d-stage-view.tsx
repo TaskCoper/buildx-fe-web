@@ -1,15 +1,15 @@
 'use client'
 
-import { AlertCircle, Clock, Download, Loader2, Lock, PencilLine, RefreshCw } from 'lucide-react'
+import { AlertCircle, ArrowRight, Clock, Download, Loader2, PencilLine, RefreshCw } from 'lucide-react'
 import Image from 'next/image'
 import { useLocale, useTranslations } from 'next-intl'
-import { useState, type ReactNode } from 'react'
+import { useState } from 'react'
 import { toast } from 'sonner'
 
 import { Link } from '@/i18n/navigation'
 import type { Locale } from '@/i18n/routing'
 import { Button } from '@/shared/components/ui/button'
-import { designInputRoute } from '@/shared/constants/routes'
+import { designEstimateRoute, designInputRoute } from '@/shared/constants/routes'
 import { cn } from '@/shared/lib/utils'
 import { formatDisplayDate } from '@/shared/utils'
 import { estimatePipelineApi } from '../api/estimate-pipeline.api'
@@ -17,8 +17,9 @@ import { useEstimateDetail } from '../hooks/use-estimate-detail'
 import { usePlan2dResult } from '../hooks/use-plan2d-result'
 import { useStageRun } from '../hooks/use-stage-run'
 import { useStages } from '../hooks/use-stages'
-import { progressPercent, stageOf, type StageView } from '../services/pipeline.logic'
+import { stageOf, type StageView } from '../services/pipeline.logic'
 import type { Plan2dDrawing, Plan2dResult } from '../schemas/pipeline-api.schema'
+import { StageRunProgress, StageStateCard as StateCard } from './pipeline-state-card'
 
 /** Mã lỗi lần chạy → câu cho khách (`design.pipeline.plan.failure.<key>`); chi tiết kỹ thuật chỉ ở phần Admin. */
 function failureKey(code: string | null | undefined) {
@@ -80,7 +81,7 @@ export function Plan2dStageView({ projectId }: { projectId: string }) {
           <Loader2 className='size-5 animate-spin' />
         </div>
       )
-    return <Plan2dResultView result={result.data} />
+    return <Plan2dResultView result={result.data} projectId={projectId} />
   }
 
   if (plan2d.status === 'Queued' || plan2d.status === 'Running') return <RunningCard stage={plan2d} />
@@ -88,31 +89,9 @@ export function Plan2dStageView({ projectId }: { projectId: string }) {
   return <NotStartedCard projectId={projectId} />
 }
 
-function StateCard({
-  icon,
-  title,
-  description,
-  children
-}: {
-  icon: ReactNode
-  title: string
-  description?: string
-  children?: ReactNode
-}) {
-  return (
-    <section className='bg-card mx-auto flex max-w-xl flex-col items-center gap-3 rounded-2xl border p-8 text-center shadow-xs'>
-      {icon}
-      <h2 className='text-lg font-semibold text-balance'>{title}</h2>
-      {description ? <p className='text-muted-foreground text-sm text-pretty'>{description}</p> : null}
-      {children ? <div className='mt-2 flex flex-wrap justify-center gap-2'>{children}</div> : null}
-    </section>
-  )
-}
-
 function RunningCard({ stage }: { stage: StageView }) {
   const t = useTranslations('design.pipeline.plan')
   const locale = useLocale() as Locale
-  const percent = progressPercent(stage.progress)
   const queued = stage.status === 'Queued'
   return (
     <StateCard
@@ -122,28 +101,21 @@ function RunningCard({ stage }: { stage: StageView }) {
       title={queued ? t('queued') : t('running')}
       description={queued ? t('queuedHint') : t('runningHint')}
     >
-      <div className='w-full max-w-sm space-y-2'>
-        {stage.progress ? (
-          <>
-            <div className='bg-muted h-2 overflow-hidden rounded-full'>
-              <div
-                className='bg-primary h-full rounded-full transition-[width] duration-500'
-                style={{ width: `${percent ?? 0}%` }}
-              />
-            </div>
-            <p className='text-muted-foreground text-xs'>
-              {stage.progress.total
-                ? t('progress', { done: stage.progress.done, total: stage.progress.total })
-                : t('progressUnknown', { done: stage.progress.done })}
-            </p>
-          </>
-        ) : null}
-        {stage.deadlineUtc ? (
-          <p className='text-muted-foreground text-xs'>
-            {t('deadline', { time: formatDisplayDate(stage.deadlineUtc, locale, { time: true }) })}
-          </p>
-        ) : null}
-      </div>
+      <StageRunProgress
+        progress={stage.progress}
+        progressText={
+          stage.progress
+            ? stage.progress.total
+              ? t('progress', { done: stage.progress.done, total: stage.progress.total })
+              : t('progressUnknown', { done: stage.progress.done })
+            : undefined
+        }
+        deadlineText={
+          stage.deadlineUtc
+            ? t('deadline', { time: formatDisplayDate(stage.deadlineUtc, locale, { time: true }) })
+            : undefined
+        }
+      />
     </StateCard>
   )
 }
@@ -226,8 +198,11 @@ function FailedCard({ projectId, stage }: { projectId: string; stage: StageView 
 
 const LOT_SOURCES = ['customer', 'image', 'description', 'default'] as const
 
-/** Kết quả chặng 2D gửi khách: kích thước lô và nguồn, diện tích, phòng từng tầng, lưu ý, bản vẽ từng tầng. */
-export function Plan2dResultView({ result }: { result: Plan2dResult }) {
+/**
+ * Kết quả chặng 2D gửi khách: kích thước lô và nguồn, diện tích, phòng từng tầng, lưu ý, bản vẽ từng tầng. Cuối màn có
+ * nút sang chặng Dự toán (khách tự bấm từng chặng, BR-PROJ-010 khoản 2).
+ */
+export function Plan2dResultView({ result, projectId }: { result: Plan2dResult; projectId: string }) {
   const t = useTranslations('design.pipeline.plan')
   const [kind, setKind] = useState<'technical' | 'furniture'>('technical')
   const source = LOT_SOURCES.find((value) => value === result.lot?.source) ?? null
@@ -329,9 +304,14 @@ export function Plan2dResultView({ result }: { result: Plan2dResult }) {
         </div>
       </section>
 
-      <section className='bg-muted/40 flex items-start gap-3 rounded-2xl border border-dashed p-5 text-sm'>
-        <Lock className='text-muted-foreground mt-0.5 size-4 shrink-0' />
-        <p className='text-muted-foreground text-pretty'>{t('nextStageLocked')}</p>
+      <section className='bg-card flex flex-col gap-3 rounded-2xl border p-5 text-sm shadow-xs sm:flex-row sm:items-center sm:justify-between'>
+        <p className='text-pretty'>{t('nextStage')}</p>
+        <Button asChild className='shrink-0'>
+          <Link href={designEstimateRoute(projectId)}>
+            {t('toEstimate')}
+            <ArrowRight className='size-4' />
+          </Link>
+        </Button>
       </section>
     </div>
   )

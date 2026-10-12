@@ -2468,7 +2468,8 @@
         "refunded": "The reserved credit was returned.",
         "retryLimit": "This stage has failed too many times. Please contact support to run it again.",
         "retry": "Run again",
-        "nextStageLocked": "The Estimate stage will open in an upcoming update. Your 2D drawings are kept for the next stages.",
+        "nextStage": "Your 2D drawings are done. The next step is to estimate the cost from these drawings.",
+        "toEstimate": "Go to the Estimate stage",
         "result": {
           "lot": "Lot size",
           "lotSource": {
@@ -2494,14 +2495,82 @@
           "lotValue": "{width} m × {depth} m"
         }
       },
+      "estimate": {
+        "pageTitle": "Estimate",
+        "pageTitleWithProject": "Estimate: {name} ({id})",
+        "loadError": "The estimate status could not be loaded.",
+        "resultLoadError": "The estimate could not be loaded.",
+        "reload": "Reload",
+        "locked": "The Estimate stage is not open yet",
+        "lockedHint": "The estimate is built from the 2D drawings. Please finish the 2D drawings stage first.",
+        "viewPlan": "View 2D drawings",
+        "notStarted": "No estimate yet",
+        "notStartedHint": "The system breaks the cost down into 3 parts (structure · finishing · interior) from your 2D drawings. This stage does not use another design credit.",
+        "start": "Create estimate",
+        "startError": "The estimate could not be started. Please try again.",
+        "queued": "Waiting for a slot",
+        "queuedHint": "Your request has been received. The estimate starts when a slot is free; you can leave this page and come back later.",
+        "running": "Measuring quantities and preparing the estimate",
+        "runningHint": "This usually takes 4–6 minutes. You can leave this page and come back later.",
+        "progress": "{done}/{total} steps done",
+        "progressUnknown": "{done} steps done",
+        "deadline": "Due by: {time}",
+        "readyToast": "Your estimate is ready.",
+        "failed": "The estimate could not be created",
+        "failure": {
+          "incomplete": "The AI returned an estimate with missing information.",
+          "blocked": "The AI declined to process the content of this estimate.",
+          "timedOut": "The run took longer than allowed.",
+          "serviceDown": "The AI service is having problems.",
+          "generic": "Something went wrong while preparing the estimate."
+        },
+        "retriesLeft": "You can run it again {count} more times.",
+        "retryUnknown": "You can press Run again.",
+        "retryLimit": "This stage has failed too many times. Please contact support to run it again.",
+        "retry": "Run again",
+        "result": {
+          "title": "Estimate",
+          "tabs": {
+            "structure": "Structure",
+            "finishing": "Finishing",
+            "interior": "Interior"
+          },
+          "columns": {
+            "item": "Item",
+            "unit": "Unit",
+            "quantity": "Quantity",
+            "unitPrice": "Unit price",
+            "amount": "Amount"
+          },
+          "emptyPart": "This part has no items.",
+          "partTotal": {
+            "structure": "Structure total",
+            "finishing": "Finishing total",
+            "interior": "Interior total"
+          },
+          "grandTotal": "Estimate total",
+          "money": "{value} VND",
+          "pricePerM2": "Cost per m² of converted floor area",
+          "pricePerM2Value": "{value} VND/m²",
+          "floorArea": "Converted floor area: {value} m²",
+          "schedule": {
+            "title": "Estimated construction time",
+            "structure": "Structure",
+            "finishing": "Finishing",
+            "interior": "Interior",
+            "total": "Total time"
+          },
+          "advice": "Advice from BuildX",
+          "nextStageLocked": "The 3D renders stage will open in an upcoming update. Your estimate is kept for the next stages."
+        }
+      },
       "locked": {
         "pageTitle": {
-          "3": "Estimate",
           "5": "Dossier"
         },
         "title": "This stage is not open yet",
-        "description": "This version only has the 2D drawings stage. Estimate, 3D renders and dossier will open in upcoming updates.",
-        "backToPlan": "View 2D drawings"
+        "description": "This version has the 2D drawings and Estimate stages. 3D renders and dossier will open in upcoming updates.",
+        "backToEstimate": "View estimate"
       }
     }
   },

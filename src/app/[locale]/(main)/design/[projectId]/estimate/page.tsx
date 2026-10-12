@@ -4,7 +4,7 @@ import type { Locale } from '@/i18n/routing'
 import { ProtectedRoute } from '@/shared/auth'
 import { env } from '@/shared/config/env'
 import { pageMetadata } from '@/shared/lib/page-metadata'
-import { PipelineLockedView } from '../pipeline-locked-view'
+import { StepEstimateStageView } from './step-estimate-stage-view'
 import { StepEstimateView } from './step-estimate-view'
 
 export const generateMetadata = pageMetadata('designEstimate')
@@ -23,7 +23,8 @@ interface PageProps {
 
 /**
  * Màn hình 6 + 7 — Bước 2: màn hình chờ AI sinh dự toán rồi màn hình kết quả
- * (mục III.3). Cùng một route, chuyển trạng thái tại chỗ.
+ * (mục III.3). Cùng một route, chuyển trạng thái tại chỗ. Bật luồng bốn chặng thì
+ * route này là màn chặng Dự toán (STORY-PROJ-008, TDD-PROJ-009 mục P).
  */
 export default async function DesignEstimatePage({ params }: PageProps) {
   const { locale, projectId } = await params
@@ -32,7 +33,7 @@ export default async function DesignEstimatePage({ params }: PageProps) {
   return (
     <ProtectedRoute>
       {env.NEXT_PUBLIC_ESTIMATE_PIPELINE_ENABLED && !env.NEXT_PUBLIC_USE_MOCK_API ? (
-        <PipelineLockedView projectId={projectId} step={3} />
+        <StepEstimateStageView projectId={projectId} />
       ) : (
         <StepEstimateView projectId={projectId} />
       )}

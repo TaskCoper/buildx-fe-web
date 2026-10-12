@@ -5,11 +5,11 @@ import { useTranslations } from 'next-intl'
 
 import { Link } from '@/i18n/navigation'
 import { Button } from '@/shared/components/ui/button'
-import { designPlanRoute } from '@/shared/constants/routes'
+import { designEstimateRoute } from '@/shared/constants/routes'
 
 /**
- * Chặng chưa mở trong luồng bốn chặng. Đợt 1 mới có chặng Bản vẽ 2D, nên Dự toán, Phối cảnh 3D và Hồ sơ hiện thông báo
- * này thay cho màn của luồng cũ (TDD-PROJ-006, `EnabledStages`).
+ * Chặng chưa mở trong luồng bốn chặng. Đợt 2 có chặng Bản vẽ 2D và Dự toán, nên Hồ sơ hiện thông báo này thay cho màn
+ * của luồng cũ (TDD-PROJ-006, `EnabledStages`), kèm nút về chặng Dự toán.
  */
 export function PipelineStageLocked({ projectId }: { projectId: string }) {
   const t = useTranslations('design.pipeline.locked')
@@ -19,7 +19,7 @@ export function PipelineStageLocked({ projectId }: { projectId: string }) {
       <h2 className='text-lg font-semibold'>{t('title')}</h2>
       <p className='text-muted-foreground text-sm text-pretty'>{t('description')}</p>
       <Button asChild variant='outline' className='mt-2'>
-        <Link href={designPlanRoute(projectId)}>{t('backToPlan')}</Link>
+        <Link href={designEstimateRoute(projectId)}>{t('backToEstimate')}</Link>
       </Button>
     </section>
   )

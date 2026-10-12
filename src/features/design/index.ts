@@ -13,6 +13,7 @@ export { StepInputApiForm } from './components/step-input-api-form'
 // Luồng bốn chặng (TDD-PROJ-006/007)
 export { StepInputPipelineForm } from './components/step-input-pipeline-form'
 export { Plan2dStageView, Plan2dResultView } from './components/plan2d-stage-view'
+export { EstimateStageView, EstimateStageResultView } from './components/estimate-stage-view'
 export { PipelineStageLocked } from './components/pipeline-stage-locked'
 export { usePipelineSteps } from './hooks/use-pipeline-steps'
 export { useStages } from './hooks/use-stages'

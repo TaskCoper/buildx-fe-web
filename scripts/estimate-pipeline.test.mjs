@@ -525,3 +525,36 @@ test('mỗi nhóm lỗi và mỗi trạng thái nấc đều có câu ở cả v
       assert.ok(design.pipeline.verify.failure[kind], `${locale}: verify.failure.${kind}`)
   }
 })
+
+test('chặng Dự toán: mọi nhóm lỗi, tab, cột và dòng thời gian thi công đều có câu ở cả vi và en', async () => {
+  const messages = {
+    vi: JSON.parse(await readFile(resolve(root, 'messages/vi.json'), 'utf8')),
+    en: JSON.parse(await readFile(resolve(root, 'messages/en.json'), 'utf8'))
+  }
+  const failureKinds = ['incomplete', 'blocked', 'timedOut', 'serviceDown', 'generic']
+  for (const locale of ['vi', 'en']) {
+    const copy = messages[locale].design.pipeline.estimate
+    for (const kind of failureKinds) assert.ok(copy.failure[kind], `${locale}: estimate.failure.${kind}`)
+    for (const part of estimate.ESTIMATE_PARTS) {
+      assert.ok(copy.result.tabs[part], `${locale}: estimate.result.tabs.${part}`)
+      assert.ok(copy.result.partTotal[part], `${locale}: estimate.result.partTotal.${part}`)
+    }
+    for (const key of estimate.ESTIMATE_SCHEDULE_KEYS)
+      assert.ok(copy.result.schedule[key], `${locale}: estimate.result.schedule.${key}`)
+    for (const column of ['item', 'unit', 'quantity', 'unitPrice', 'amount'])
+      assert.ok(copy.result.columns[column], `${locale}: estimate.result.columns.${column}`)
+    assert.match(copy.result.money, /\{value\}/, `${locale}: estimate.result.money có {value}`)
+  }
+  // Nhãn tiếng Việt lấy đúng của app demo (PART_LABELS, partTableHtml, estimateHtml).
+  const vi = messages.vi.design.pipeline.estimate.result
+  assert.deepEqual(vi.tabs, { structure: 'Phần thô', finishing: 'Hoàn thiện', interior: 'Nội thất' })
+  assert.deepEqual(vi.partTotal, {
+    structure: 'Tổng phần thô',
+    finishing: 'Tổng hoàn thiện',
+    interior: 'Tổng nội thất'
+  })
+  assert.deepEqual(Object.values(vi.columns), ['Hạng mục', 'ĐV', 'Khối lượng', 'Đơn giá', 'Thành tiền'])
+  assert.equal(vi.grandTotal, 'Tổng dự toán')
+  assert.equal(vi.emptyPart, 'Phần này không có hạng mục nào.')
+  assert.equal(vi.money, '{value} đ')
+})
