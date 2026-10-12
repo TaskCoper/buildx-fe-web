@@ -2,6 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { AlertTriangle, Loader2, Palette } from 'lucide-react'
+import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
@@ -27,12 +28,15 @@ import { takeAddressSeed } from '../services/address-seed.storage'
 import {
   BEDROOMS_MAX,
   BEDROOMS_MIN,
+  DEFAULT_ENTRANCE_SIDE,
   descriptionLength,
+  ENTRANCE_SIDES,
   lotSizeProblem,
   PIPELINE_DESCRIPTION_MAX_LENGTH,
   selectedType,
   stylesFor,
   visibleFields,
+  type EntranceSide,
   type FinishPackage
 } from '../services/estimate-input.logic'
 import { isStageActive, lotVerificationPassed, stageOf } from '../services/pipeline.logic'
@@ -305,6 +309,35 @@ export function StepInputPipelineForm({ projectId, onStageStarted }: StepInputPi
                       }
                       onReload={() => void verification.current.refetch()}
                     />
+                  ) : null}
+                  {draft.inputImageUrl && passed && !imageSaving ? (
+                    // Khối "Xác nhận trước khi vẽ" của app demo (BR-PROJ-002 khoản 5): cạnh cửa vào trên bản vẽ lô. Chưa
+                    // bấm thì hiện Trái là mặc định nhưng không gửi; BE dùng cạnh trái và ghi nhận là mặc định.
+                    <div id='field-entranceSide' className='space-y-2 rounded-xl border p-4'>
+                      <p className='text-sm font-medium'>{t('entrance.title')}</p>
+                      <FieldLabel hint={t('entrance.hint')}>{t('entrance.label')}</FieldLabel>
+                      <div className='flex items-center gap-3'>
+                        <ChoiceCards
+                          compact
+                          options={ENTRANCE_SIDES.map((side) => ({ value: side, label: t(`entrance.${side}`) }))}
+                          value={draft.entranceSide ?? DEFAULT_ENTRANCE_SIDE}
+                          onChange={(value) => input.patch({ entranceSide: value as EntranceSide })}
+                        />
+                        <Image
+                          src={draft.inputImageUrl}
+                          alt={t('entrance.thumbAlt')}
+                          width={64}
+                          height={64}
+                          className='size-16 shrink-0 rounded-md border object-contain'
+                          unoptimized
+                        />
+                      </div>
+                      <p className='text-muted-foreground text-xs'>
+                        {draft.entranceSide
+                          ? t('entrance.chosen', { side: t(`entrance.${draft.entranceSide}`).toLowerCase() })
+                          : t('entrance.default', { side: t(`entrance.${DEFAULT_ENTRANCE_SIDE}`).toLowerCase() })}
+                      </p>
+                    </div>
                   ) : null}
                 </div>
 

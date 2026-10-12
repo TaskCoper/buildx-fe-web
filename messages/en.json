@@ -2299,6 +2299,18 @@
           "scope": "Building type & size"
         },
         "notSupported": "The new inputs are not enabled for this estimate yet, so 2D drawings cannot be created. Please try again later, or contact support if this message persists.",
+        "entrance": {
+          "title": "Confirm before drawing",
+          "label": "Entrance side",
+          "hint": "The side of the lot drawing with the main door or gate (facing the road). Defaults to the left side.",
+          "thumbAlt": "Lot image",
+          "default": "Default: the entrance is on the {side} side of the drawing. If your drawing has the entrance on another side, tap that side.",
+          "chosen": "You chose: the entrance is on the {side} side of the drawing.",
+          "Left": "Left",
+          "Right": "Right",
+          "Top": "Top",
+          "Bottom": "Bottom"
+        },
         "lotSize": {
           "label": "Lot size (frontage × depth)",
           "hint": "Optional. If you enter it, fill in both boxes, in metres. Leave both empty to let the system read the size from the lot image or description.",

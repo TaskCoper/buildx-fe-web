@@ -2299,6 +2299,18 @@
           "scope": "Loại công trình & quy mô"
         },
         "notSupported": "Hệ thống chưa bật đầu vào mới cho bản dự toán này nên chưa tạo được bản vẽ 2D. Bạn thử lại sau, hoặc liên hệ hỗ trợ nếu vẫn thấy thông báo này.",
+        "entrance": {
+          "title": "Xác nhận trước khi vẽ",
+          "label": "Cạnh có cửa vào",
+          "hint": "Cạnh của bản vẽ lô có cửa chính hoặc cổng (giáp đường). Mặc định là cạnh trái.",
+          "thumbAlt": "Ảnh lô đất",
+          "default": "Mặc định: cửa vào ở cạnh {side} bản vẽ. Nếu bản vẽ của bạn có cửa vào ở cạnh khác, chạm vào cạnh đó.",
+          "chosen": "Bạn đã chọn: cửa vào ở cạnh {side} bản vẽ.",
+          "Left": "Trái",
+          "Right": "Phải",
+          "Top": "Trên",
+          "Bottom": "Dưới"
+        },
         "lotSize": {
           "label": "Kích thước lô (mặt tiền × chiều sâu)",
           "hint": "Không bắt buộc. Nếu nhập thì nhập đủ cả hai ô, đơn vị mét. Để trống thì hệ thống đọc kích thước từ ảnh lô hoặc mô tả.",
