@@ -1,4 +1,11 @@
-import { designDossierRoute, designEstimateRoute, designInputRoute, designPlanRoute } from '@/shared/constants/routes'
+import { resumeStep } from './pipeline.logic'
+import {
+  designRender3dRoute,
+  designDossierRoute,
+  designEstimateRoute,
+  designInputRoute,
+  designPlanRoute
+} from '@/shared/constants/routes'
 import { PROJECTS_PAGE_SIZE } from '../constants/design.constants'
 import type { DesignStep, Project, ProjectSort, ProjectStatus } from '../types/design.types'
 
@@ -122,8 +129,16 @@ export const RESUME_ROUTE_BY_STATUS: Record<ProjectStatus, (projectId: string) =
 
 export function resumeProjectRoute(project: Pick<Project, 'id' | 'status' | 'pipeline'>): string {
   // Luồng bốn chặng: bản nháp về Nhập liệu, còn lại mở màn chặng (đợt 1 chỉ có Bản vẽ 2D).
-  if (project.pipeline)
-    return project.pipeline.state === 'Draft' ? designInputRoute(project.id) : designPlanRoute(project.id)
+  if (project.pipeline) {
+    const routes = {
+      1: designInputRoute,
+      2: designPlanRoute,
+      3: designEstimateRoute,
+      4: designRender3dRoute,
+      5: designDossierRoute
+    }
+    return routes[resumeStep(project.pipeline.state, project.pipeline.lastSucceededStage)](project.id)
+  }
   return RESUME_ROUTE_BY_STATUS[project.status](project.id)
 }
 

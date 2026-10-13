@@ -147,6 +147,7 @@ const finiteOrNull = (value: unknown): number | null =>
  * ======================================================================== */
 
 export interface CatalogBuildingType {
+  aiAvailable?: boolean
   buildingTypeId: string
   name: string
   /** Mã gốc của app demo (`nha-pho`, `can-ho`…); NULL khi Admin chưa gắn (BR-PROJ-004 khoản 19). */
@@ -215,7 +216,7 @@ export function applyBuildingType(
   buildingTypeId: string
 ): EstimateInputDraft {
   const type = catalog.buildingTypes.find((item) => item.buildingTypeId === buildingTypeId)
-  if (!type) return { ...draft, buildingTypeId }
+  if (!type || type.aiAvailable === false) return draft
   return {
     ...draft,
     buildingTypeId,
@@ -524,6 +525,7 @@ export function pipelineMissingFields(
   if (!draft.finishPackage) missing.push('finishPackage')
 
   const type = selectedType(catalog, draft)
+  if (type?.aiAvailable === false) missing.push('catalogMapping')
   const fields = visibleFields(type)
   if (fields.floors && draft.floorCount === null) missing.push('floorCount')
   if (fields.tum && draft.hasTum === null) missing.push('hasTum')

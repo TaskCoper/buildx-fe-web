@@ -9,7 +9,7 @@ import {
   Collapse,
   Descriptions,
   Empty,
-  Input,
+  Drawer,
   Modal,
   Space,
   Table,
@@ -23,7 +23,7 @@ import type { Locale } from '@/i18n/routing'
 import { PERMISSIONS, hasPermission, useAuth } from '@/shared/auth'
 import { isApiError } from '@/shared/lib/api'
 import { formatDisplayDate } from '@/shared/utils'
-import { estimatePipelineAdminApi } from '../../api/bmt/estimate-pipeline.api'
+import { estimatePipelineAdminApi, type PipelineRunListItem } from '../../api/bmt/estimate-pipeline.api'
 import {
   canResetStage,
   PIPELINE_STAGES,
@@ -32,6 +32,7 @@ import {
   type RunRow
 } from '../../api/bmt/estimate-pipeline.logic'
 import { AdminPage } from '../common/admin-page'
+import { PipelineRunList } from './pipeline-run-list'
 
 const { Text, Paragraph } = Typography
 
@@ -44,7 +45,7 @@ const STATE_COLOR: Record<string, string> = {
 }
 
 /**
- * CHI TIẾT LUỒNG AI của một bản dự toán (STORY-PROJ-012 ALT-01–03). Tìm theo mã `BUILDX-…`; xem từng lần chạy với mã
+ * DANH SÁCH VÀ CHI TIẾT LUỒNG AI (STORY-PROJ-012 ALT-01–03). Mở màn hình tải ngay các lượt chạy khách; xem từng lần với mã
  * lỗi, model, phiên bản, token và chi phí ước tính. Đặt lại bộ đếm lỗi và xem nhật ký thô cần quyền vận hành
  * `estimate.pipeline.operate`; mỗi lần mở nhật ký thô đều được BE ghi lại người xem.
  */
@@ -57,7 +58,8 @@ export function EstimatePipelineInspector() {
   const canInspect = hasPermission(user, PERMISSIONS.ESTIMATE_PIPELINE_INSPECT)
   const { message, modal } = App.useApp()
   const queryClient = useQueryClient()
-  const [code, setCode] = useState('')
+  const [selected, setSelected] = useState<PipelineRunListItem | null>(null)
+  const code = selected?.estimateCode ?? ''
   const [raw, setRaw] = useState<{ callId: string; content: unknown } | null>(null)
 
   const detail = useQuery({
@@ -227,79 +229,88 @@ export function EstimatePipelineInspector() {
   return (
     <AdminPage title={tAdmin('nav.estimatePipeline')} description={t('description')}>
       {!canInspect ? <Alert type='warning' showIcon title={t('needInspect')} /> : null}
-      <Input.Search
-        placeholder={t('searchPlaceholder')}
-        enterButton={t('search')}
-        allowClear
-        style={{ maxWidth: 420 }}
-        onSearch={(value) => setCode(value.trim())}
-        disabled={!canInspect}
-      />
-      {detail.isError ? (
-        <Alert
-          type='error'
-          showIcon
-          title={isApiError(detail.error) ? detail.error.message : tAdmin('feedback.apiError')}
-        />
-      ) : null}
-      {detail.isFetching && !data ? <Text type='secondary'>{t('loading')}</Text> : null}
-      {data ? (
-        <>
-          <Card size='small'>
-            <Descriptions
-              size='small'
-              column={{ xs: 1, md: 3 }}
-              items={[
-                { key: 'code', label: t('code'), children: data.code || code },
-                { key: 'name', label: t('name'), children: data.name || '—' },
-                { key: 'id', label: t('estimateId'), children: <Text copyable>{data.estimateId}</Text> }
-              ]}
-            />
-          </Card>
-          <Card size='small' title={t('stagesTitle')}>
-            <Space wrap>
-              {PIPELINE_STAGES.map((stage) => {
-                const resettable = canResetStage(data.runs, stage)
-                return (
-                  <Space key={stage} size={4}>
-                    <Text>{t(`stage.${stage}`)}</Text>
-                    {canOperate ? (
-                      <Button
-                        size='small'
-                        disabled={!resettable || !data.estimateId}
-                        loading={reset.isPending && reset.variables?.stage === stage}
-                        onClick={() =>
-                          modal.confirm({
-                            title: t('resetConfirmTitle', { stage: t(`stage.${stage}`) }),
-                            content: t('resetConfirmBody'),
-                            okText: t('reset'),
-                            onOk: () => reset.mutateAsync({ estimateId: data.estimateId, stage })
-                          })
-                        }
-                      >
-                        {t('reset')}
-                      </Button>
-                    ) : null}
-                  </Space>
-                )
-              })}
-            </Space>
-            {canOperate ? null : (
-              <Paragraph type='secondary' style={{ margin: '8px 0 0' }}>
-                {t('needOperate')}
-              </Paragraph>
-            )}
-          </Card>
-          {data.runs.length ? <Collapse items={data.runs.map(runPanel)} /> : <Empty description={t('noRuns')} />}
-          {data.internal ? (
-            <Card size='small' title={t('internal')}>
-              <pre className='max-h-96 overflow-auto text-xs whitespace-pre-wrap'>
-                {JSON.stringify(data.internal, null, 2)}
-              </pre>
+      {canInspect ? <PipelineRunList onSelect={setSelected} /> : null}
+      <Drawer
+        open={selected !== null}
+        onClose={() => setSelected(null)}
+        title={selected?.estimateName ?? t('viewDetails')}
+        size='large'
+        styles={{ wrapper: { width: 'min(1200px, 100vw)' } }}
+      >
+        {detail.isError ? (
+          <Alert
+            type='error'
+            showIcon
+            title={isApiError(detail.error) ? detail.error.message : tAdmin('feedback.apiError')}
+          />
+        ) : null}
+        {detail.isFetching && !data ? <Text type='secondary'>{t('loading')}</Text> : null}
+        {data ? (
+          <>
+            <Card size='small'>
+              <Descriptions
+                size='small'
+                column={{ xs: 1, md: 3 }}
+                items={[
+                  { key: 'code', label: t('code'), children: data.code || code },
+                  { key: 'name', label: t('name'), children: selected?.estimateName || data.name || '—' },
+                  { key: 'id', label: t('estimateId'), children: <Text copyable>{data.estimateId}</Text> }
+                ]}
+              />
             </Card>
-          ) : null}
-        </>
-      ) : null}
+            <Card size='small' title={t('stagesTitle')}>
+              <Space wrap>
+                {PIPELINE_STAGES.map((stage) => {
+                  const resettable = canResetStage(data.runs, stage)
+                  return (
+                    <Space key={stage} size={4}>
+                      <Text>{t(`stage.${stage}`)}</Text>
+                      {canOperate ? (
+                        <Button
+                          size='small'
+                          disabled={!resettable || !data.estimateId}
+                          loading={reset.isPending && reset.variables?.stage === stage}
+                          onClick={() =>
+                            modal.confirm({
+                              title: t('resetConfirmTitle', { stage: t(`stage.${stage}`) }),
+                              content: t('resetConfirmBody'),
+                              okText: t('reset'),
+                              onOk: () => reset.mutateAsync({ estimateId: data.estimateId, stage })
+                            })
+                          }
+                        >
+                          {t('reset')}
+                        </Button>
+                      ) : null}
+                    </Space>
+                  )
+                })}
+              </Space>
+              {canOperate ? null : (
+                <Paragraph type='secondary' style={{ margin: '8px 0 0' }}>
+                  {t('needOperate')}
+                </Paragraph>
+              )}
+            </Card>
+            {data.runs.length ? (
+              <Collapse
+                key={selected?.runId}
+                defaultActiveKey={selected ? [selected.runId] : []}
+                items={data.runs.map(runPanel)}
+              />
+            ) : (
+              <Empty description={t('noRuns')} />
+            )}
+            {data.internal ? (
+              <Card size='small' title={t('internal')}>
+                <pre className='max-h-96 overflow-auto text-xs whitespace-pre-wrap'>
+                  {JSON.stringify(data.internal, null, 2)}
+                </pre>
+              </Card>
+            ) : null}
+          </>
+        ) : null}
+      </Drawer>
 
       <Modal
         open={raw !== null}

@@ -128,6 +128,9 @@ export const ADMIN_ROUTES = {
 
   // Luồng AI tạo dự toán (STORY-PROJ-011, STORY-PROJ-012)
   /** Cấu hình AI: model, hạn chờ, giới hạn lỗi, hạn mức soi ảnh, giới hạn gọi AI (TDD-PROJ-008). */
+  ESTIMATE_AI_RULES: '/admin/estimate-ai-rules',
+  ESTIMATE_PROMPTS: '/admin/estimate-prompts',
+  ESTIMATE_PRICE_RULES: '/admin/estimate-price-rules',
   ESTIMATE_AI_CONFIG: '/admin/estimate-ai-config',
   /** Miền giá theo tỉnh (BR-PROJ-013). */
   PRICING_REGIONS: '/admin/pricing-regions',

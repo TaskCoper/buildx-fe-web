@@ -125,6 +125,9 @@ export const ADMIN_NAV = [
     icon: RobotOutlined,
     items: [
       { key: 'estimateAiConfig', href: ADMIN_ROUTES.ESTIMATE_AI_CONFIG, icon: SettingOutlined },
+      { key: 'estimateAiRules', href: ADMIN_ROUTES.ESTIMATE_AI_RULES, icon: SettingOutlined },
+      { key: 'estimatePrompts', href: ADMIN_ROUTES.ESTIMATE_PROMPTS, icon: EditOutlined },
+      { key: 'estimatePriceRules', href: ADMIN_ROUTES.ESTIMATE_PRICE_RULES, icon: FileTextOutlined },
       { key: 'pricingRegions', href: ADMIN_ROUTES.PRICING_REGIONS, icon: EnvironmentOutlined },
       { key: 'estimatePipeline', href: ADMIN_ROUTES.ESTIMATE_PIPELINE, icon: MonitorOutlined }
     ]

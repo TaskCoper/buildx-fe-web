@@ -88,3 +88,8 @@ export { newAdminId, slugify, todayKey } from './services/admin.service'
 export { SupervisionContentManager } from './components/home/supervision-content-manager'
 export { PlansContentManager } from './components/home/plans-content-manager'
 export { ConsultationContentManager } from './components/home/consultation-content-manager'
+
+export { PriceRuleEditor } from './components/estimate/price-rule-editor'
+
+export { AiRuleEditor } from './components/estimate/ai-rule-editor'
+export { AiPromptEditor } from './components/estimate/ai-prompt-editor'

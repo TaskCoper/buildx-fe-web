@@ -2,6 +2,8 @@ import { env } from '@/shared/config/env'
 import { http, isApiError } from '@/shared/lib/api'
 
 import {
+  dossierResultSchema,
+  type DossierStageResult,
   render3dResultSchema,
   type Render3dResult,
   estimateResultSchema,
@@ -57,6 +59,9 @@ export const estimatePipelineApi = {
    */
   getEstimateResult: async (estimateId: string, signal?: AbortSignal): Promise<EstimateStageResult> =>
     estimateResultSchema.parse(await http.get<unknown>(`/estimates/${estimateId}/stages/Estimate/result`, { signal })),
+
+  getDossierResult: async (estimateId: string, signal?: AbortSignal): Promise<DossierStageResult> =>
+    dossierResultSchema.parse(await http.get<unknown>(`/estimates/${estimateId}/stages/Dossier/result`, { signal })),
 
   getRender3dResult: async (estimateId: string, signal?: AbortSignal): Promise<Render3dResult> =>
     render3dResultSchema.parse(await http.get<unknown>(`/estimates/${estimateId}/stages/Render3d/result`, { signal })),

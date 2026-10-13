@@ -1,3 +1,4 @@
+import { z } from 'zod'
 import { http } from '@/shared/lib/api'
 
 import {
@@ -26,7 +27,44 @@ export interface ConfigRevisionRow {
   note: string | null
 }
 
+const pipelineRunListItem = z.object({
+  runId: z.guid(),
+  estimateId: z.guid(),
+  estimateCode: z.string(),
+  estimateName: z.string(),
+  estimateDeleted: z.boolean(),
+  customerId: z.guid(),
+  customerName: z.string(),
+  customerEmail: z.string(),
+  stage: z.enum(['Plan2d', 'Estimate', 'Render3d', 'Dossier']),
+  state: z.enum(['Queued', 'Running', 'Succeeded', 'Failed', 'TimedOut']),
+  acceptedAtUtc: z.string(),
+  finishedAtUtc: z.string().nullable(),
+  failureCode: z.string().nullable()
+})
+const pipelineRunList = z.object({
+  items: z.array(pipelineRunListItem),
+  pageIndex: z.number().int(),
+  pageSize: z.number().int(),
+  totalCount: z.number().int()
+})
+export type PipelineRunListItem = z.infer<typeof pipelineRunListItem>
+export interface PipelineRunFilters {
+  search: string
+  stage?: string
+  state?: string
+  pageIndex: number
+  pageSize: number
+}
+
 export const estimatePipelineAdminApi = {
+  listRuns: async (filters: PipelineRunFilters) => {
+    const query = new URLSearchParams({ pageIndex: String(filters.pageIndex), pageSize: String(filters.pageSize) })
+    if (filters.search.trim()) query.set('search', filters.search.trim())
+    if (filters.stage) query.set('stage', filters.stage)
+    if (filters.state) query.set('state', filters.state)
+    return pipelineRunList.parse(await http.get<unknown>(`/admin/estimate-pipeline/runs?${query}`))
+  },
   getConfig: async (): Promise<PipelineConfigView> =>
     normalizePipelineConfig(await http.get<unknown>('/admin/estimate-pipeline/config')),
 

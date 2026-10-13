@@ -1,3 +1,6 @@
+import { estimatePipelineApi } from './estimate-pipeline.api'
+import { dossierContentSchema } from '../schemas/pipeline-api.schema'
+import { dossierEstimate } from '../services/dossier.logic'
 import { env } from '@/shared/config/env'
 import { http, isApiError } from '@/shared/lib/api'
 import type { PagedResult } from '@/shared/types'
@@ -276,6 +279,27 @@ export const bmtDesignApi = {
    * "sẵn sàng" khi tệp PDF đã xuất xong (`exportAvailability`); chưa thì `idle` và nút Nhận hồ sơ sẽ yêu cầu xuất.
    */
   getDossier: async (projectId: string): Promise<Dossier> => {
+    if (PIPELINE) {
+      const stages = await estimatePipelineApi.getStages(projectId)
+      if (stages.find((stage) => stage.stage === 'Dossier')?.status !== 'Succeeded') return idleDossier(projectId)
+      const [stage, result, share] = await Promise.all([
+        estimatePipelineApi.getDossierResult(projectId),
+        estimateGenerationApi.getResult(projectId),
+        activeShare(projectId)
+      ])
+      const pdf = stage.documents.find((file) => file.role === 'dossier-pdf')!
+      return {
+        ...idleDossier(projectId),
+        status: 'ready',
+        documents: stage.documents,
+        pdfUrl: estimatePipelineApi.fileHref(pdf.fileUrl),
+        pdfSize: pdf.sizeBytes,
+        shareToken: share?.shareId ?? null,
+        shareUrl: share?.url ?? null,
+        shareExpiry: share ? expiryDateOf(share) : null,
+        images: imagesOf(projectId, result.dossier.files)
+      }
+    }
     const detail = await estimateInputApi.getEstimate(projectId)
     if (estimateStateKind(detail.state) !== 'succeeded') return idleDossier(projectId)
     const [result, share] = await Promise.all([estimateGenerationApi.getResult(projectId), activeShare(projectId)])
@@ -346,6 +370,21 @@ export const bmtDesignApi = {
   getSharedEstimate: async (shareId: string, token: string): Promise<SharedDossier | null> => {
     try {
       const shared = await estimateGenerationApi.getShared(shareId, token)
+      const real = dossierContentSchema.safeParse(shared.dossier?.content)
+      if (real.success) {
+        const result = dossierEstimate(shareId, real.data.estimate)
+        return {
+          projectName: shared.estimateName,
+          projectCode: shared.estimateCode,
+          address: real.data.project.address,
+          createdAt: real.data.project.quoteDate,
+          sections: result.sections,
+          grandTotal: result.grandTotal,
+          estimatedFloorArea: result.estimatedFloorArea,
+          drawings: real.data.drawings,
+          files: shared.dossier?.files ?? []
+        }
+      }
       const mapped = mapEstimateContent(shared.dossier?.content, { projectId: shareId, areaM2: 0 })
       return {
         projectName: shared.estimateName,
@@ -501,5 +540,9 @@ function imagesOf(projectId: string, files: ResultFile[] | undefined): DossierIm
     const found = files?.filter((file) => file.roleKey === role).sort((a, b) => a.ordinal - b.ordinal)[0]
     return found ? estimateGenerationApi.resultFileUrl(projectId, found.fileId) : null
   }
-  return { cover: urlOf('cover-image'), floorPlan: urlOf('floor-plan-2d'), perspective: urlOf('perspective') }
+  return {
+    cover: urlOf('cover') ?? urlOf('cover-image'),
+    floorPlan: urlOf('floor-plan') ?? urlOf('floor-plan-2d'),
+    perspective: urlOf('perspective')
+  }
 }

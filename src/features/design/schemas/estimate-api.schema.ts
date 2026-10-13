@@ -50,6 +50,7 @@ export const estimateCatalogSchema = z.object({
   buildingTypes: z.array(
     z.object({
       buildingTypeId: z.string().uuid(),
+      aiAvailable: z.boolean().optional(),
       name: z.string(),
       // Mã gốc của app demo (TDD-PROJ-007 mục B); BE cũ không trả.
       baseCode: z.string().nullable().optional(),

@@ -6,7 +6,7 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import { Link } from '@/i18n/navigation'
 import { Button } from '@/shared/components/ui/button'
-import { designEstimateRoute } from '@/shared/constants/routes'
+import { designDossierRoute, designEstimateRoute } from '@/shared/constants/routes'
 import { estimatePipelineApi } from '../api/estimate-pipeline.api'
 import { useRender3dResult } from '../hooks/use-render3d-result'
 import { useStageRun } from '../hooks/use-stage-run'
@@ -107,6 +107,11 @@ export function Render3dStageView({ projectId }: { projectId: string }) {
                     ? errors('retriesLeft', { count: retry.count })
                     : errors('retryUnknown')}
               </p>
+            )}
+            {done && (
+              <Button asChild>
+                <Link href={designDossierRoute(projectId)}>{t('continueDossier')}</Link>
+              </Button>
             )}
             {(stage.status === 'Ready' || (failed && retry.kind !== 'limit')) && (
               <Button onClick={() => void start()} disabled={run.isPending}>

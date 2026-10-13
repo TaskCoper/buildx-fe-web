@@ -624,3 +624,20 @@ test('3D: không giữ prompt hoặc khóa kho ngoài hợp đồng khách hàng
   assert.equal('prompt' in actual, false)
   assert.equal('objectKey' in actual.items[0], false)
 })
+
+// STORY-PROJ-013 readiness: keep incomplete types visible, block selection and generation.
+test('incomplete building type cannot replace a draft selection and remains visibly selected in an old draft', () => {
+  const old = input.draftFromInput({ buildingTypeId: 'old', description: 'Keep customer input' })
+  const catalog = input.normalizeCatalog({ buildingTypes: [
+    { buildingTypeId: 'old', name: 'Old', aiAvailable: true, floorsEnabled: false, tumEnabled: false, architectureEnabled: false, interiorEnabled: false },
+    { buildingTypeId: 'new', name: 'New', aiAvailable: false, floorsEnabled: false, tumEnabled: false, architectureEnabled: false, interiorEnabled: false }
+  ] })
+  assert.equal(catalog.buildingTypes.length, 2)
+  assert.equal(input.applyBuildingType(old, catalog, 'new'), old)
+  const savedUnavailable = { ...old, buildingTypeId: 'new' }
+  assert.equal(input.selectedType(catalog, savedUnavailable).name, 'New')
+  assert.ok(input.pipelineMissingFields(savedUnavailable, catalog, { lotVerificationPassed: false }).includes('catalogMapping'))
+  catalog.buildingTypes[1].aiAvailable = true
+  assert.equal(input.applyBuildingType(old, catalog, 'new').buildingTypeId, 'new')
+  assert.equal(input.applyBuildingType(old, catalog, 'new').description, 'Keep customer input')
+})

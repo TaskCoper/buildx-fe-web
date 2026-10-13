@@ -18,6 +18,7 @@ export const PERMISSIONS = {
   /** Đặt lại bộ đếm lỗi và đọc bản thô của nhật ký AI (mỗi lần đọc đều ghi vết). */
   ESTIMATE_PIPELINE_OPERATE: 'estimate.pipeline.operate',
   /** Miền giá theo tỉnh (đợt 1), luật giá (đợt 2). */
+  ESTIMATE_AI_RULES_MANAGE: 'estimate.ai-rules.manage',
   ESTIMATE_PRICING_MANAGE: 'estimate.pricing.manage',
   PAYMENT_CONNECTION_MANAGE: 'payment.connection.manage',
   CONSULTATION_MANAGE: 'consultation.manage',

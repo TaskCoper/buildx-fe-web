@@ -82,7 +82,8 @@ export function useEstimateInput(projectId: string, options: EstimateInputOption
   const catalog = useQuery({
     queryKey: designKeys.estimateCatalog(projectId),
     queryFn: () => estimateInputApi.getCatalog(projectId),
-    staleTime: STATIC_STALE
+    staleTime: pipeline ? 0 : STATIC_STALE,
+    refetchInterval: pipeline ? 15000 : false
   })
   const provinces = useQuery({
     queryKey: [...designKeys.locations(), 'provinces'],

@@ -1,5 +1,11 @@
 # Trạng thái dựng khung — SAVICO AI
 
+Ngày 13/10/2026, theo yêu cầu mới, đã build/start bản W4 ở port3000, thay W2 cũ và dừng3001. API vẫn ở8080. Browser customer giữ dự toán đã điền; chưa chạy AI.
+
+Ngày 13/10/2026, Admin Quy tắc AI / Theo loại công trình chuyển từ bảng chỉ có quy tắc đã lưu sang toàn bộ danh mục dự toán, kèm trạng thái và phần còn thiếu. Form Cấu hình lưu chung lô đất và các mái trong một phiên bản, giữ bản nhập khi API lỗi. Khách thấy loại chưa cấu hình với nhãn Chưa hỗ trợ và không chọn được; trạng thái cập nhật mỗi 15 giây, bản nháp cũ giữ dữ liệu. Đã kiểm 35 test frontend, typecheck/lint/format/build; browser thật đọc đủ năm loại và form 390px. Backend có kiểm PostgreSQL cho lưu nguyên khối và mở loại sau khi đủ cấu hình. Local3001/8080 đã cập nhật; chưa commit/push.
+
+Ngày 13/10/2026, sửa màn Admin Tra cứu lần chạy AI theo yêu cầu người dùng: trước đây phải nhập mã dự toán; nay mở trang là thấy danh sách lượt chạy của khách hàng, mới nhất trước. Bảng có phân trang, lọc bước/trạng thái, tìm kiếm tùy chọn và nút Xem chi tiết mở đúng lượt được chọn. Giữ các quyền xem/vận hành hiện có. Typecheck, lint, format và build production đạt; browser Admin thật tự hiện 8 lượt, tìm theo mã còn 2 lượt và mở đúng chi tiết model/token/thời gian/chi phí. Đã build/start local cổng 3001; chưa commit/push.
+
 
 Ngày 13/10/2026, hoàn thành chặng Phối cảnh 3D theo TDD-PROJ-010 trên nhánh `feature/estimate-pipeline-w3`. Trước đây chưa có màn dựng 3D; nay kết quả Dự toán có nút sang bước 4, tiến độ và thư viện ảnh theo tầng, giữ ảnh khi tải lại/lỗi và chạy tiếp phần thiếu. Admin xem được nguồn artifact/lần chạy và bốn cờ kiểm ảnh. Một lần Live được người dùng cho phép đã tạo đủ 8 ảnh 1280×720 trong khoảng 214,8 giây; tải lại trên production local vẫn đủ ảnh. Đã kiểm 34 ca frontend, TypeScript, ESLint, Prettier, build và browser 1440/390 px; lỗi mạng/retry kiểm bằng dữ liệu phát lại, không gọi thêm AI. `/en` vẫn chuyển về `/vi` theo proxy hiện có. Local đợt 3 chạy ở http://localhost:3001; bước Hồ sơ sẽ làm ở đợt tiếp theo. Chưa push, chưa đưa lên develop hoặc triển khai môi trường chung.
 

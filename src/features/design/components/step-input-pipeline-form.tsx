@@ -423,13 +423,20 @@ export function StepInputPipelineForm({ projectId, onStageStarted }: StepInputPi
                     </SelectTrigger>
                     <SelectContent>
                       {catalog.data.buildingTypes.map((option) => (
-                        <SelectItem key={option.buildingTypeId} value={option.buildingTypeId}>
+                        <SelectItem
+                          key={option.buildingTypeId}
+                          value={option.buildingTypeId}
+                          disabled={option.aiAvailable === false}
+                        >
                           {option.name}
+                          {option.aiAvailable === false ? ` — ${t('notSupported')}` : ''}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                  {invalid('catalogMapping') ? (
+                  {invalid('catalogMapping') ||
+                  catalog.data.buildingTypes.find((item) => item.buildingTypeId === draft.buildingTypeId)
+                    ?.aiAvailable === false ? (
                     <p className='text-destructive text-xs'>{t('missing.catalogMapping')}</p>
                   ) : null}
                 </div>

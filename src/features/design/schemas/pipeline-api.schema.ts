@@ -228,3 +228,44 @@ export const render3dResultSchema = z.object({
   notes: z.array(z.string())
 })
 export type Render3dResult = z.infer<typeof render3dResultSchema>
+
+export const dossierDocumentSchema = z
+  .object({
+    role: z.enum(['dossier-pdf', 'render3d-pdf', 'architecture-pdf', 'estimate-xlsx']),
+    fileUrl: z.string().regex(/^\/api\/v1\/estimates\/[^/]+\/stage-files\//),
+    contentType: z.enum(['application/pdf', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']),
+    sizeBytes: z.number().int().positive(),
+    pageCount: z.number().int().positive().nullable()
+  })
+  .refine((file) =>
+    file.role === 'estimate-xlsx'
+      ? file.contentType.endsWith('sheet') && file.pageCount === null
+      : file.contentType === 'application/pdf' && file.pageCount !== null
+  )
+export const dossierResultSchema = z.object({
+  schemaVersion: z.literal(1),
+  runId: z.string().uuid(),
+  projectName: z.string(),
+  projectCode: z.string(),
+  printedProjectName: z.string(),
+  documents: z
+    .array(dossierDocumentSchema)
+    .length(4)
+    .refine((files) => new Set(files.map((file) => file.role)).size === 4)
+})
+export type DossierStageResult = z.infer<typeof dossierResultSchema>
+export type DossierDocument = z.infer<typeof dossierDocumentSchema>
+export const dossierContentSchema = z.object({
+  schemaVersion: z.literal(1),
+  project: z.object({ projectName: z.string(), projectCode: z.string(), address: z.string(), quoteDate: z.string() }),
+  estimate: estimateResultSchema,
+  drawings: z.array(
+    z.object({
+      fileId: z.string().uuid(),
+      label: z.string(),
+      kind: z.enum(['2d', '3d']),
+      floorIndex: z.number().int().nullable(),
+      sheetCode: z.string()
+    })
+  )
+})

@@ -1,3 +1,5 @@
+import type { DossierDocument } from '../schemas/pipeline-api.schema'
+
 /**
  * Loại công trình — 5 nhóm theo Phụ lục A, trường 3. Quyết định các trường hiển
  * thị phía sau và danh mục "Kiểu kiến trúc & phong cách".
@@ -193,6 +195,7 @@ export type DossierStatus = 'idle' | 'rendering' | 'ready'
 
 /** Bộ hồ sơ thi công sau khi render xong (mục III.4c). */
 export interface Dossier {
+  documents?: DossierDocument[]
   projectId: string
   status: DossierStatus
   pdfUrl: string | null
@@ -219,6 +222,7 @@ export interface DossierImages {
  * (mục III.4c). Không kèm số điện thoại hay thông tin cá nhân khác.
  */
 export interface SharedDossier {
+  drawings?: { fileId: string; label: string }[]
   /** Id ảnh kết quả theo vai trò — người xem tải về bằng token của link. */
   files?: { fileId: string; roleKey: string }[]
   projectName: string

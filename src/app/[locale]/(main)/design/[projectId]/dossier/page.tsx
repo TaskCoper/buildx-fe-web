@@ -4,7 +4,7 @@ import type { Locale } from '@/i18n/routing'
 import { ProtectedRoute } from '@/shared/auth'
 import { env } from '@/shared/config/env'
 import { pageMetadata } from '@/shared/lib/page-metadata'
-import { PipelineLockedView } from '../pipeline-locked-view'
+import { PipelineDossierView } from './pipeline-dossier-view'
 import { StepDossierView } from './step-dossier-view'
 
 export const generateMetadata = pageMetadata('designDossier')
@@ -32,7 +32,7 @@ export default async function DesignDossierPage({ params }: PageProps) {
   return (
     <ProtectedRoute>
       {env.NEXT_PUBLIC_ESTIMATE_PIPELINE_ENABLED && !env.NEXT_PUBLIC_USE_MOCK_API ? (
-        <PipelineLockedView projectId={projectId} step={5} />
+        <PipelineDossierView projectId={projectId} />
       ) : (
         <StepDossierView projectId={projectId} />
       )}

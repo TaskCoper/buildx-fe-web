@@ -19,6 +19,8 @@ export { usePipelineSteps } from './hooks/use-pipeline-steps'
 export { useStages } from './hooks/use-stages'
 export { useEstimateDetailName } from './hooks/use-estimate-detail-name'
 export {
+  isStageActive,
+  stageOf,
   PIPELINE_STAGES,
   PIPELINE_STEPS,
   pipelineStepStates,
@@ -160,6 +162,7 @@ export type {
   DesignStyle,
   Dossier,
   DossierStatus,
+  DossierImages,
   EstimateLineItem,
   EstimateResult,
   EstimateSection,
@@ -177,3 +180,9 @@ export type {
 export { DesignLoadError } from './components/design-load-error'
 
 export { Render3dStageView } from './components/render3d-stage-view'
+
+export { estimatePipelineApi } from './api/estimate-pipeline.api'
+export { designKeys } from './api/design.keys'
+export { useStageRun } from './hooks/use-stage-run'
+export { dossierEstimate } from './services/dossier.logic'
+export { StageRunProgress, StageStateCard } from './components/pipeline-state-card'
