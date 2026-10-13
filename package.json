@@ -13,6 +13,7 @@
     "test:auth": "node --test scripts/route-access.test.mjs",
     "test:cms-cache": "node --test scripts/cms-cache.test.mjs",
     "test:api-error": "node --test scripts/api-error.test.mjs",
+    "test:estimate-pipeline": "node --test scripts/estimate-pipeline.test.mjs",
     "test:handbook": "node --test scripts/handbook-cms.test.mjs scripts/handbook-admin.test.mjs",
     "test:home": "node --test scripts/home-cms.test.mjs scripts/home-admin.test.mjs scripts/home-contract.test.mjs",
     "test:contractors": "node --test scripts/contractors-content.test.mjs scripts/contractor-compare.test.mjs",

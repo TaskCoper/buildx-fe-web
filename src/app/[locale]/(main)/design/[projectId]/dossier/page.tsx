@@ -2,7 +2,9 @@ import { setRequestLocale } from 'next-intl/server'
 
 import type { Locale } from '@/i18n/routing'
 import { ProtectedRoute } from '@/shared/auth'
+import { env } from '@/shared/config/env'
 import { pageMetadata } from '@/shared/lib/page-metadata'
+import { PipelineDossierView } from './pipeline-dossier-view'
 import { StepDossierView } from './step-dossier-view'
 
 export const generateMetadata = pageMetadata('designDossier')
@@ -29,7 +31,11 @@ export default async function DesignDossierPage({ params }: PageProps) {
 
   return (
     <ProtectedRoute>
-      <StepDossierView projectId={projectId} />
+      {env.NEXT_PUBLIC_ESTIMATE_PIPELINE_ENABLED && !env.NEXT_PUBLIC_USE_MOCK_API ? (
+        <PipelineDossierView projectId={projectId} />
+      ) : (
+        <StepDossierView projectId={projectId} />
+      )}
     </ProtectedRoute>
   )
 }

@@ -1,12 +1,13 @@
 'use client'
 
-import { CheckCircle2, Clock, FolderClosed, SquarePen } from 'lucide-react'
+import { CheckCircle2, Clock, FolderClosed, Layers, SquarePen } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { useCallback, useState, type CSSProperties } from 'react'
 
+import { env } from '@/shared/config/env'
 import { cn } from '@/shared/lib/utils'
-import { PROJECT_STAT_CARDS, type ProjectStatCard } from '../constants/design.constants'
+import { PIPELINE_PROJECT_STAT_CARDS, PROJECT_STAT_CARDS, type ProjectStatCard } from '../constants/design.constants'
 import type { ProjectCounts } from '../services/project-list.service'
 import type { ProjectStatus } from '../types/design.types'
 import { AnimatedNumber } from './animated-number'
@@ -23,8 +24,14 @@ const CARD_META: Record<ProjectStatCard, { status: ProjectStatus | null; icon: L
   total: { status: null, icon: FolderClosed, tone: 'bg-muted text-muted-foreground' },
   designing: { status: 'designing', icon: SquarePen, tone: 'bg-accent text-primary-strong' },
   review: { status: 'review', icon: Clock, tone: 'bg-warning/15 text-warning-strong' },
-  completed: { status: 'completed', icon: CheckCircle2, tone: 'bg-accent text-primary-strong' }
+  completed: { status: 'completed', icon: CheckCircle2, tone: 'bg-accent text-primary-strong' },
+  inProgress: { status: 'inProgress', icon: Layers, tone: 'bg-accent text-primary-strong' }
 }
+
+/** Luồng bốn chặng không có "Chờ duyệt"; thay bằng "Đang làm dở" (BR-PROJ-008 khoản 2). */
+const STAT_CARDS: readonly ProjectStatCard[] = env.NEXT_PUBLIC_ESTIMATE_PIPELINE_ENABLED
+  ? PIPELINE_PROJECT_STAT_CARDS
+  : PROJECT_STAT_CARDS
 
 /** Số một chữ số hiển thị dạng "06" như Hình 02. */
 const pad = (value: number) => String(value).padStart(2, '0')
@@ -96,14 +103,14 @@ export function ProjectStatCards({ counts, activeStatus, onSelect }: ProjectStat
 
   return (
     <ul className='grid grid-cols-2 gap-4 lg:grid-cols-4'>
-      {PROJECT_STAT_CARDS.map((key, index) => {
+      {STAT_CARDS.map((key, index) => {
         const { status, icon: Icon, tone } = CARD_META[key]
         const active = activeStatus === status
         return (
           <StatCard
             key={key}
             value={counts[key]}
-            label={t(key)}
+            label={env.NEXT_PUBLIC_ESTIMATE_PIPELINE_ENABLED ? t(`pipeline.${key}`) : t(key)}
             active={active}
             tone={tone}
             Icon={Icon}

@@ -1,4 +1,11 @@
-import { designDossierRoute, designEstimateRoute, designInputRoute } from '@/shared/constants/routes'
+import { resumeStep } from './pipeline.logic'
+import {
+  designRender3dRoute,
+  designDossierRoute,
+  designEstimateRoute,
+  designInputRoute,
+  designPlanRoute
+} from '@/shared/constants/routes'
 import { PROJECTS_PAGE_SIZE } from '../constants/design.constants'
 import type { DesignStep, Project, ProjectSort, ProjectStatus } from '../types/design.types'
 
@@ -22,6 +29,8 @@ export interface ProjectCounts {
   designing: number
   review: number
   completed: number
+  failed: number
+  inProgress: number
 }
 
 /**
@@ -95,7 +104,9 @@ export function countProjects(projects: readonly Project[]): ProjectCounts {
     input: projects.filter((p) => p.status === 'input').length,
     designing: projects.filter((p) => p.status === 'designing').length,
     review: projects.filter((p) => p.status === 'review').length,
-    completed: projects.filter((p) => p.status === 'completed').length
+    completed: projects.filter((p) => p.status === 'completed').length,
+    failed: projects.filter((p) => p.status === 'failed').length,
+    inProgress: projects.filter((p) => p.status === 'inProgress').length
   }
 }
 
@@ -110,10 +121,24 @@ export const RESUME_ROUTE_BY_STATUS: Record<ProjectStatus, (projectId: string) =
   input: designInputRoute,
   designing: designEstimateRoute,
   review: designEstimateRoute,
-  completed: designDossierRoute
+  completed: designDossierRoute,
+  // Luồng bốn chặng (đợt 1 chỉ có chặng 2D): lần chạy lỗi hoặc đang làm dở mở màn chặng.
+  failed: designPlanRoute,
+  inProgress: designPlanRoute
 }
 
-export function resumeProjectRoute(project: Pick<Project, 'id' | 'status'>): string {
+export function resumeProjectRoute(project: Pick<Project, 'id' | 'status' | 'pipeline'>): string {
+  // Luồng bốn chặng: bản nháp về Nhập liệu, còn lại mở màn chặng (đợt 1 chỉ có Bản vẽ 2D).
+  if (project.pipeline) {
+    const routes = {
+      1: designInputRoute,
+      2: designPlanRoute,
+      3: designEstimateRoute,
+      4: designRender3dRoute,
+      5: designDossierRoute
+    }
+    return routes[resumeStep(project.pipeline.state, project.pipeline.lastSucceededStage)](project.id)
+  }
   return RESUME_ROUTE_BY_STATUS[project.status](project.id)
 }
 

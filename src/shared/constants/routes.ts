@@ -126,6 +126,17 @@ export const ADMIN_ROUTES = {
   CONSTRUCTION_SITES: '/admin/construction-sites',
   ACCESS_AUDIT: '/admin/access-audit',
 
+  // Luồng AI tạo dự toán (STORY-PROJ-011, STORY-PROJ-012)
+  /** Cấu hình AI: model, hạn chờ, giới hạn lỗi, hạn mức soi ảnh, giới hạn gọi AI (TDD-PROJ-008). */
+  ESTIMATE_AI_RULES: '/admin/estimate-ai-rules',
+  ESTIMATE_PROMPTS: '/admin/estimate-prompts',
+  ESTIMATE_PRICE_RULES: '/admin/estimate-price-rules',
+  ESTIMATE_AI_CONFIG: '/admin/estimate-ai-config',
+  /** Miền giá theo tỉnh (BR-PROJ-013). */
+  PRICING_REGIONS: '/admin/pricing-regions',
+  /** Chi tiết luồng AI của một bản dự toán: lần chạy, đặt lại bộ đếm lỗi, nhật ký thô. */
+  ESTIMATE_PIPELINE: '/admin/estimate-pipeline',
+
   // Danh mục nhập liệu công trình (spec admin #1, #17)
   BUILDING_TYPES: '/admin/building-types',
   STYLES: '/admin/styles',
@@ -166,6 +177,9 @@ export const designInputRoute = (projectId: string) => `${ROUTES.DESIGN}/${proje
 
 /** Bước 2 — Nhận dự toán (màn chờ + kết quả dùng chung một route). */
 export const designEstimateRoute = (projectId: string) => `${ROUTES.DESIGN}/${projectId}/estimate`
+
+/** Luồng bốn chặng — chặng Bản vẽ 2D: chạy chặng, chờ và xem kết quả (TDD-PROJ-006/007). */
+export const designPlanRoute = (projectId: string) => `${ROUTES.DESIGN}/${projectId}/plan`
 
 /** Bước 3 — Hồ sơ thi công (chưa render / đang render / hoàn tất). */
 export const designDossierRoute = (projectId: string) => `${ROUTES.DESIGN}/${projectId}/dossier`
@@ -288,3 +302,5 @@ export const PROTECTED_ROUTE_PREFIXES: readonly string[] = [
  * trong layout — và backend vẫn là nơi phân quyền thật sự.
  */
 export const ADMIN_ROUTE_PREFIX: string = ADMIN_ROUTES.DASHBOARD
+
+export const designRender3dRoute = (projectId: string) => `${ROUTES.DESIGN}/${projectId}/render3d`

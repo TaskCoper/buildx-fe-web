@@ -527,7 +527,40 @@
       "ExportFailed": "The export file couldn't be created. Please try again.",
       "AuditLogImmutable": "Audit logs can't be edited or deleted.",
       "InvalidCmsCacheTarget": "The page or language to refresh is invalid.",
-      "CmsAuthorizationUnavailable": "Unable to verify content refresh permissions. Please try again."
+      "CmsAuthorizationUnavailable": "Unable to verify content refresh permissions. Please try again.",
+      "PipelineUnavailable": "Estimates are temporarily under maintenance. Please come back in a few minutes.",
+      "PipelineBusy": "The system is busy. Please try again in a few minutes.",
+      "AiServiceUnavailable": "The AI service is temporarily unavailable. Please try again in a few minutes.",
+      "StageUnavailable": "This step is not open yet.",
+      "StagePrerequisiteNotMet": "Please complete the previous step first.",
+      "StageAlreadySucceeded": "This step is already complete.",
+      "StageRunInProgress": "Another step of this estimate is running.",
+      "StageRetryLimitReached": "This step has failed too many times. Please contact support.",
+      "LegacyResultExists": "This estimate still has a result from the old version. Please create a new estimate.",
+      "InvalidStageInput": "Some details are missing for this step.",
+      "LotImageRequired": "Please upload a lot image first.",
+      "LotImageInvalid": "The lot image format or size is not allowed.",
+      "LotVerificationRequired": "The lot image has not been checked yet.",
+      "EstimateInputLocked": "The input is locked and cannot be changed.",
+      "LotVerificationBusy": "The system is busy, so the image was not checked. Please try again later.",
+      "StageResultNotReady": "This step is not complete yet.",
+      "PipelineEnabled": "This estimate uses the new flow and cannot be submitted the old way.",
+      "InvalidPipelineConfig": "The AI configuration is not valid. Please check the highlighted fields.",
+      "VersionConflict": "Someone else just saved this data. Please reload and edit again.",
+      "StageResetNotAllowed": "Nothing to reset: the step is running, has succeeded or has no counted failures.",
+      "AiCallRawNotFound": "This call has no raw log.",
+      "AuditWriteFailed": "The view could not be recorded, so the raw log was not opened. Please try again later.",
+      "InvalidAiRuleSet": "AI rule data is invalid. Check the highlighted fields.",
+      "InvalidPromptInstruction": "Instructions or template variables are invalid.",
+      "AiRuleRevisionNotFound": "Rule revision was not found.",
+      "RuleRevisionIncompatible": "The source revision is incompatible with the current prompt catalog.",
+      "AiPromptNotFound": "Prompt was not found.",
+      "PromptFixtureUnavailable": "The fixture or case is unavailable.",
+      "PromptPreviewStale": "Sources or draft changed. Preview again.",
+      "PromptTrialNotFound": "Trial or result file was not found.",
+      "PromptTrialInterrupted": "The trial was interrupted and will not run again automatically.",
+      "PromptTrialCostIncomplete": "Cost data for this trial is incomplete.",
+      "PromptTrialLastFailed": "The latest trial of these instructions did not pass."
     }
   },
   "validation": {
@@ -1606,7 +1639,18 @@
         "current": "In progress",
         "pending": "Not started",
         "justDone": "Just completed",
-        "doneOn": "Completed on {date}"
+        "doneOn": "Completed on {date}",
+        "running": "Running",
+        "failed": "Not successful",
+        "ready": "Ready",
+        "locked": "Not open yet"
+      },
+      "pipeline": {
+        "1": "Enter details",
+        "2": "2D drawings",
+        "3": "Estimate",
+        "4": "3D renders",
+        "5": "Dossier"
       }
     },
     "entry": {
@@ -1931,14 +1975,18 @@
       "statusPending": "Not rendered",
       "filesTitle": "Dossier files",
       "files": {
-        "exterior": "3D exterior render",
+        "exterior": "3D perspectives",
         "architecture": "Architectural drawings",
         "structure": "Structural drawings",
-        "estimate": "Detailed cost estimate"
+        "estimate": "Detailed cost estimate",
+        "full": "Design and estimate dossier"
       },
       "downloadTitle": "Download & share",
       "packagedNote": "The download is already packaged for you.",
-      "exportError": "Could not download the PDF dossier. Please try again."
+      "exportError": "Could not download the PDF dossier. Please try again.",
+      "fileSize": "{pages} pages · {size} MB",
+      "downloadFile": "Download file",
+      "workbookSize": "4 sheets · {size} MB"
     },
     "share": {
       "eyebrow": "Shared dossier",
@@ -2007,7 +2055,15 @@
         "total": "Total projects",
         "designing": "In design",
         "review": "Awaiting approval",
-        "completed": "Completed"
+        "completed": "Completed",
+        "inProgress": "In progress",
+        "pipeline": {
+          "total": "All projects",
+          "designing": "Processing",
+          "review": "Awaiting approval",
+          "completed": "Completed",
+          "inProgress": "In progress"
+        }
       },
       "search": {
         "label": "Search projects",
@@ -2018,7 +2074,9 @@
         "input": "Collecting input",
         "designing": "In design",
         "review": "Awaiting approval",
-        "completed": "Completed"
+        "completed": "Completed",
+        "failed": "Failed",
+        "inProgress": "In progress"
       },
       "sort": {
         "label": "Sort",
@@ -2030,7 +2088,9 @@
         "input": "Collecting input",
         "designing": "In design",
         "review": "Awaiting approval",
-        "completed": "Completed"
+        "completed": "Completed",
+        "failed": "Failed",
+        "inProgress": "In progress"
       },
       "steps": {
         "1": "Input",
@@ -2080,7 +2140,22 @@
       },
       "createdAt": "Created {date}",
       "progressLabel": "Design & estimate progress",
-      "codeLabel": "Estimate code"
+      "codeLabel": "Estimate code",
+      "pipelineSteps": {
+        "1": "Input",
+        "2": "2D",
+        "3": "Estimate",
+        "4": "3D",
+        "5": "Dossier"
+      },
+      "pipelineStatus": {
+        "input": "Draft",
+        "designing": "Processing",
+        "review": "Awaiting approval",
+        "completed": "Completed",
+        "failed": "Failed",
+        "inProgress": "In progress"
+      }
     },
     "phonePrompt": {
       "title": "Add your phone number",
@@ -2230,6 +2305,327 @@
       "load": {
         "error": "Could not load the estimate. You can try reading it again.",
         "retry": "Reload"
+      }
+    },
+    "pipeline": {
+      "input": {
+        "groups": {
+          "lot": "Lot",
+          "scope": "Building type & size"
+        },
+        "notSupported": "Not supported yet",
+        "entrance": {
+          "title": "Confirm before drawing",
+          "label": "Entrance side",
+          "hint": "The side of the lot drawing with the main door or gate (facing the road). Defaults to the left side.",
+          "thumbAlt": "Lot image",
+          "default": "Default: the entrance is on the {side} side of the drawing. If your drawing has the entrance on another side, tap that side.",
+          "chosen": "You chose: the entrance is on the {side} side of the drawing.",
+          "Left": "Left",
+          "Right": "Right",
+          "Top": "Top",
+          "Bottom": "Bottom"
+        },
+        "lotSize": {
+          "label": "Lot size (frontage × depth)",
+          "hint": "Optional. If you enter it, fill in both boxes, in metres. Leave both empty to let the system read the size from the lot image or description.",
+          "frontage": "Frontage",
+          "depth": "Depth",
+          "format": "Enter a number above 0 with at most 2 decimals.",
+          "pair": "Enter both frontage and depth, or leave both empty.",
+          "unit": "m"
+        },
+        "bedrooms": {
+          "label": "Bedrooms wanted",
+          "hint": "From 1 to 10. If the lot is too small, the plan may have fewer rooms and will explain why.",
+          "placeholder": "Choose the number of bedrooms",
+          "option": "{count} bedrooms"
+        },
+        "garage": {
+          "label": "Car garage",
+          "hint": "No garage by default. If the frontage is too narrow, the plan will leave the garage out and explain why.",
+          "yes": "With garage",
+          "no": "No garage"
+        },
+        "description": {
+          "label": "Notes for the AI architect",
+          "hint": "Optional, up to 4,000 characters. Describe what the lot image cannot show.",
+          "placeholder": "For example: home for a family of 5, altar room on the top floor, open living room and kitchen…"
+        },
+        "lock": {
+          "noEdit": "You need an active design plan with remaining credits to save details and create drawings.",
+          "generating": "The 2D drawings are being created, so the details cannot be changed now. If the run fails, the details will be unlocked again.",
+          "generated": "The 2D drawings are done, so the input is locked. You can still rename the estimate.",
+          "viewPlan": "View 2D drawings"
+        },
+        "missingTitle": "Some details are missing",
+        "missing": {
+          "inputImageUrl": "lot image",
+          "lotVerification": "an accepted lot image",
+          "desiredBedrooms": "number of bedrooms",
+          "lotSize": "lot size (both boxes, within the limits of the building type)",
+          "buildingTypeId": "building type",
+          "provinceCode": "province / city",
+          "wardCode": "ward / commune",
+          "addressDetail": "street address",
+          "location": "map location (pick a suggestion)",
+          "finishPackage": "finish package",
+          "floorCount": "number of floors",
+          "hasTum": "roof room",
+          "architectureStyleId": "architecture style",
+          "interiorStyleId": "interior style",
+          "catalogMapping": "This building type is not fully configured. Choose another type or contact support.",
+          "pricingRegion": "this province has no price region yet. Please contact support"
+        },
+        "quotaNote": "One design credit covers the whole set: 2D drawings, estimate, 3D renders and dossier. It is only used when the 2D drawings succeed.",
+        "submit": "Create 2D drawings"
+      },
+      "lotImage": {
+        "label": "Lot image",
+        "hint": "A hand sketch, technical drawing, floor plan or cadastral map showing the lot shape or rooms. Photos of real houses or land cannot be used.",
+        "constraints": "JPG, PNG or WebP, up to 10 MB, at least 640×480 pixels; the long side may be at most 3 times the short side.",
+        "upload": "Upload lot image",
+        "uploading": "Uploading…",
+        "replace": "Replace",
+        "remove": "Remove image",
+        "uploadError": "The image could not be uploaded. Please try again.",
+        "problem": {
+          "type": "Only JPG, PNG or WebP images are accepted.",
+          "size": "The image is too large (max 10 MB).",
+          "tooSmall": "The image is too small; it needs at least 640×480 pixels.",
+          "aspect": "The image is too long or too narrow: the long side may be at most 3 times the short side.",
+          "tooLarge": "The image has too many pixels. Please resize it and upload again."
+        }
+      },
+      "verify": {
+        "waitingForSave": "Saving the new image; it will be checked once saved.",
+        "checking": "Checking the lot image…",
+        "checkingHint": "This usually takes under a minute. You can keep filling in the other fields.",
+        "notChecked": "This image has not been checked yet.",
+        "check": "Check image",
+        "pass": "Image accepted",
+        "fail": "Image not accepted",
+        "reused": "This image was checked before, so the earlier result is reused and does not count towards your limit.",
+        "remainingToday": "You have {count} new image checks left today.",
+        "replaceHint": "Please replace it with a drawing or plan of the lot to continue.",
+        "more": "Show more",
+        "less": "Show less",
+        "retry": "Check again",
+        "reload": "Reload",
+        "loadError": "The check result could not be loaded.",
+        "issue": {
+          "not_a_plot": "The image is not a drawing or plan of the lot.",
+          "no_layout": "The drawing does not show the lot shape or rooms.",
+          "multiple_floors": "One image shows two or more floor plans. Please upload an image with a single floor plan.",
+          "other": "The image does not meet the requirements."
+        },
+        "failure": {
+          "quota": "You have used all new image checks for today. Please try again tomorrow; images checked before can still reuse their result.",
+          "unavailable": "The image could not be checked because the AI service has a problem. This attempt does not count towards your limit.",
+          "invalidImage": "The image format or size is not allowed. Please use another image.",
+          "busy": "The system is busy, so the image was not checked. Please try again in a few minutes.",
+          "other": "The image could not be checked. Please try again."
+        },
+        "requestError": {
+          "locked": "The input is locked, so a new image cannot be checked.",
+          "noImage": "Please upload a lot image before checking.",
+          "aiPaused": "The AI service is temporarily unavailable. Please try again in a few minutes.",
+          "busy": "The system is busy. Please try again in a few minutes.",
+          "other": "The check request could not be sent. Please try again."
+        }
+      },
+      "runError": {
+        "inProgress": "Another step of this estimate is running. Please wait for it to finish.",
+        "alreadySucceeded": "This step is already complete.",
+        "prerequisite": "Please complete the previous step first.",
+        "retryLimit": "This step has failed too many times. Please contact support to run it again.",
+        "versionConflict": "The details were just changed elsewhere. Please reload the page and try again.",
+        "idempotencyConflict": "This request clashes with an earlier click. Please reload the page and try again.",
+        "invalidInput": "Some details are missing for the 2D drawings.",
+        "maintenance": "Estimates are temporarily under maintenance. Please come back in a few minutes.",
+        "busy": "The system is busy. Please try again in a few minutes; this click did not use a credit.",
+        "aiPaused": "The AI service is temporarily unavailable. Please try again in a few minutes; this click did not use a credit.",
+        "stageUnavailable": "This step is not open yet.",
+        "quota": "Your design plan has no credits left.",
+        "subscription": "You need an active design plan to create drawings.",
+        "notFound": "The estimate was not found.",
+        "network": "Connection lost. Check your network and click again; retrying will not use another credit.",
+        "other": "The drawings could not be created. Please try again.",
+        "legacyResult": "This estimate still has a result from the old version, so the new flow cannot run. Please create a new estimate."
+      },
+      "plan": {
+        "pageTitle": "2D drawings",
+        "pageTitleWithProject": "2D drawings: {name} ({id})",
+        "loadError": "The drawing status could not be loaded.",
+        "resultLoadError": "The 2D result could not be loaded.",
+        "reload": "Reload",
+        "notStarted": "2D drawings not created yet",
+        "notStartedHint": "Check your details in the Enter details step, then create the drawings.",
+        "start": "Create 2D drawings",
+        "editInput": "Edit details",
+        "queued": "Waiting for a slot",
+        "queuedHint": "Your request has been received. Drawing starts when a slot is free; you can leave this page and come back later.",
+        "running": "Planning and drawing",
+        "runningHint": "The system plans the layout, then draws the technical and furnished plan for each floor. You can leave this page and come back later.",
+        "progress": "{done}/{total} steps done",
+        "progressUnknown": "{done} steps done",
+        "deadline": "Deadline: {time}",
+        "failed": "The 2D drawings could not be created",
+        "failure": {
+          "DrawingUnavailable": "The AI could not draw one of the plans, even after a second try.",
+          "AiOutputIncomplete": "The AI returned an incomplete plan.",
+          "AiContentBlocked": "The AI refused to process the content you sent. Please review the image and notes.",
+          "StageTimedOut": "The run took longer than allowed.",
+          "AiServiceDown": "The AI service has a problem.",
+          "generic": "Something went wrong while creating the drawings."
+        },
+        "retriesLeft": "The reserved credit was returned. You can run it again {count} more times.",
+        "refunded": "The reserved credit was returned.",
+        "retryLimit": "This step has failed too many times. Please contact support to run it again.",
+        "retry": "Run again",
+        "nextStage": "Your 2D drawings are done. The next step is to estimate the cost from these drawings.",
+        "toEstimate": "Go to the Estimate step",
+        "result": {
+          "lot": "Lot size",
+          "lotSource": {
+            "customer": "As you entered",
+            "image": "Read from the lot image",
+            "description": "Read from your notes",
+            "default": "Default size for the building type"
+          },
+          "totalFloorArea": "Total floor area",
+          "builtArea": "Built area",
+          "room": "Room",
+          "size": "Size",
+          "area": "Area",
+          "notes": "Notes",
+          "drawings": "Drawings",
+          "kind": {
+            "technical": "Technical plan",
+            "furniture": "Furnished plan"
+          },
+          "floor": "Floor {index}",
+          "download": "Download",
+          "areaValue": "{value} m²",
+          "lotValue": "{width} m × {depth} m"
+        }
+      },
+      "estimate": {
+        "pageTitle": "Estimate",
+        "pageTitleWithProject": "Estimate: {name} ({id})",
+        "loadError": "The estimate status could not be loaded.",
+        "resultLoadError": "The estimate could not be loaded.",
+        "reload": "Reload",
+        "locked": "The Estimate step is not open yet",
+        "lockedHint": "The estimate is built from the 2D drawings. Please finish the 2D drawings step first.",
+        "viewPlan": "View 2D drawings",
+        "notStarted": "No estimate yet",
+        "notStartedHint": "The system breaks the cost down into 3 parts (structure · finishing · interior) from your 2D drawings. This step does not use another design credit.",
+        "start": "Create estimate",
+        "startError": "The estimate could not be started. Please try again.",
+        "queued": "Waiting for a slot",
+        "queuedHint": "Your request has been received. The estimate starts when a slot is free; you can leave this page and come back later.",
+        "running": "Measuring quantities and preparing the estimate",
+        "runningHint": "This usually takes 4–6 minutes. You can leave this page and come back later.",
+        "progress": "{done}/{total} steps done",
+        "progressUnknown": "{done} steps done",
+        "deadline": "Due by: {time}",
+        "readyToast": "Your estimate is ready.",
+        "failed": "The estimate could not be created",
+        "failure": {
+          "incomplete": "The AI returned an estimate with missing information.",
+          "blocked": "The AI declined to process the content of this estimate.",
+          "timedOut": "The run took longer than allowed.",
+          "serviceDown": "The AI service is having problems.",
+          "generic": "Something went wrong while preparing the estimate."
+        },
+        "retriesLeft": "You can run it again {count} more times.",
+        "retryUnknown": "You can press Run again.",
+        "retryLimit": "This step has failed too many times. Please contact support to run it again.",
+        "retry": "Run again",
+        "result": {
+          "title": "Estimate",
+          "tabs": {
+            "structure": "Structure",
+            "finishing": "Finishing",
+            "interior": "Interior"
+          },
+          "columns": {
+            "item": "Item",
+            "unit": "Unit",
+            "quantity": "Quantity",
+            "unitPrice": "Unit price",
+            "amount": "Amount"
+          },
+          "emptyPart": "This part has no items.",
+          "partTotal": {
+            "structure": "Structure total",
+            "finishing": "Finishing total",
+            "interior": "Interior total"
+          },
+          "grandTotal": "Estimate total",
+          "money": "{value} VND",
+          "pricePerM2": "Cost per m² of converted floor area",
+          "pricePerM2Value": "{value} VND/m²",
+          "floorArea": "Converted floor area: {value} m²",
+          "schedule": {
+            "title": "Estimated construction time",
+            "structure": "Structure",
+            "finishing": "Finishing",
+            "interior": "Interior",
+            "total": "Total time"
+          },
+          "advice": "Advice from BuildX",
+          "nextStageLocked": "The 3D renders step will open in an upcoming update. Your estimate is kept for the next steps."
+        },
+        "toRender3d": "Continue to 3D perspectives"
+      },
+      "locked": {
+        "pageTitle": {
+          "5": "Dossier"
+        },
+        "title": "This step is not open yet",
+        "description": "This version has the 2D drawings and Estimate steps. 3D renders and dossier will open in upcoming updates.",
+        "backToEstimate": "View estimate"
+      },
+      "render3d": {
+        "pageTitle": "3D perspectives",
+        "pageTitleWithProject": "{name} · {id} — 3D perspectives",
+        "loading": "Loading perspectives",
+        "locked": "3D perspectives are locked",
+        "lockedHint": "Complete the estimate to create perspectives.",
+        "back": "Back to estimate",
+        "ready": "Ready to create 3D perspectives",
+        "noQuota": "No additional design credit is used.",
+        "start": "Create 3D perspectives",
+        "running": "Creating 3D perspectives",
+        "runningHint": "Completed images appear below. You can leave and return later.",
+        "preparing": "Preparing the image list",
+        "progress": "{done}/{total} images completed",
+        "failed": "3D perspectives are incomplete",
+        "retry": "Continue missing images",
+        "succeeded": "3D perspectives completed",
+        "dossierNext": "All images are ready for the dossier. Dossier creation will be available in the next release.",
+        "notes": "Notes on selected views",
+        "pending": "Image pending",
+        "openImage": "Open image: {name}",
+        "reloadImage": "Reload image",
+        "loadError": "Could not refresh data. Previously loaded images remain below.",
+        "reload": "Reload",
+        "continueDossier": "Continue to dossier"
+      },
+      "dossier": {
+        "loading": "Loading dossier…",
+        "locked": "Complete 3D perspectives first",
+        "back": "Back to 3D",
+        "running": "Preparing dossier",
+        "failed": "Dossier could not be completed",
+        "failureHint": "Saved files will be checked before continuing. This error does not use design credits.",
+        "retry": "Retry",
+        "progress": "{done}/{total} files complete",
+        "noQuota": "Creating a dossier does not use design credits.",
+        "reload": "Reload",
+        "loadError": "Could not load the dossier."
       }
     }
   },
@@ -2934,7 +3330,8 @@
       "content": "Content",
       "catalog": "Construction catalogue",
       "packages": "Plans",
-      "access": "Staff & access"
+      "access": "Staff & access",
+      "estimatePipeline": "Estimate AI flow"
     },
     "charts": {
       "viewChart": "View chart",
@@ -2998,7 +3395,13 @@
       "assignments": "Supervision assignments",
       "constructionSites": "Construction sites",
       "plansContent": "Consultation packages",
-      "supervisionContent": "Supervision packages"
+      "supervisionContent": "Supervision packages",
+      "estimateAiConfig": "AI configuration",
+      "pricingRegions": "Price regions by province",
+      "estimatePipeline": "AI run lookup",
+      "estimatePriceRules": "Price rules",
+      "estimateAiRules": "AI rules",
+      "estimatePrompts": "AI prompts"
     },
     "actions": {
       "create": "Add new",
@@ -4477,7 +4880,23 @@
       "styleAssignPlaceholder": "Select building types",
       "assignedTypes": "Assigned to building types",
       "typeGroupOff": "{name} (group off)",
-      "httpsUrl": "Must be a URL starting with https://, up to 2048 characters."
+      "httpsUrl": "Must be a URL starting with https://, up to 2048 characters.",
+      "baseCode": "AI base code",
+      "baseCodeHint": "The AI flow uses this code to pick the lot, floor, roof and garage rules. Estimates using a type without it cannot create 2D drawings.",
+      "baseCodeMissing": "No base code",
+      "baseCodes": {
+        "nha-pho": "Townhouse",
+        "villa-biet-thu": "Villa",
+        "nha-mai": "Pitched-roof house",
+        "nha-vuon-cap4": "Garden / single-storey house",
+        "can-ho": "Apartment"
+      },
+      "defaultBaseStyleCode": "Default base style code",
+      "defaultBaseStyleCodeHint": "Used when this type has no architecture style choice, e.g. apartments use hien-dai.",
+      "baseStyleCode": "AI base style code",
+      "baseStyleCodeHint": "Architecture style code of the demo app, e.g. hien-dai or mai-thai-hien-dai. It must fit the base code of every assigned building type.",
+      "promptDescriptor": "Description for the AI",
+      "promptDescriptorHint": "Required, up to 1,000 characters. The AI uses it to draw the furnished plan in this style."
     },
     "library": {
       "libraryTitle": "Template library",
@@ -6462,6 +6881,405 @@
       "searchByCode": "Search by record code",
       "needs": "Customer description",
       "noNeeds": "The customer has not entered a description."
+    },
+    "estimateAiConfig": {
+      "description": "AI models, deadlines, failure limits, image check limits and AI call limits of the estimate flow. Each save creates a new version; runs already accepted keep the version they started with. API keys are not edited here.",
+      "save": "Save new version",
+      "saved": "New configuration version saved.",
+      "reload": "Reload",
+      "currentVersion": "Using version {version}",
+      "conflictTitle": "Someone else just saved the configuration",
+      "conflictBody": "Reload to see the latest version, then edit again. Your unsaved changes will be lost.",
+      "parametersInvalid": "Parameters must be a JSON object, for example {\"reasoning\": \"low\"}.",
+      "minutes": "min",
+      "stage": {
+        "Plan2d": "2D drawings",
+        "Estimate": "Estimate",
+        "Render3d": "3D renders",
+        "Dossier": "Dossier"
+      },
+      "task": {
+        "lotVerify": "Lot image check",
+        "plan2dSpec": "2D layout plan",
+        "plan2dImage": "2D drawings",
+        "estimate": "Estimate",
+        "render3dImage": "3D renders",
+        "render3dCheck": "3D render check"
+      },
+      "stages": {
+        "title": "Deadlines and failure limits per step",
+        "hint": "A run that passes its deadline fails and does not count towards the failure limit. The limit only counts failures caused by the AI result.",
+        "stage": "Step",
+        "timeoutMinutes": "Deadline",
+        "retryLimit": "Failure limit"
+      },
+      "verify": {
+        "title": "Lot image check",
+        "dailyLimit": "New checks per account per day",
+        "systemDailyLimit": "New checks for the whole system per day",
+        "timeoutSeconds": "Deadline of one check (seconds)"
+      },
+      "load": {
+        "title": "Overload and cost protection",
+        "hint": "When the queue is full or the AI service is paused, customers are refused at once and keep their credit. Exceeding the cost threshold only sends an alert.",
+        "maxQueuedRuns": "Queue limit (waiting runs)",
+        "failureThreshold": "Consecutive failures before pausing",
+        "openMinutes": "Pause duration (minutes)",
+        "runCostAlertUsd": "Cost alert per run (USD)"
+      },
+      "limits": {
+        "imagesPerMinute": "Images per minute (whole system)",
+        "imageConcurrency": "Images drawn at once",
+        "textConcurrency": "Text calls at once",
+        "anthropicConcurrency": "Anthropic calls at once",
+        "lotVerifyConcurrency": "Image checks at once"
+      },
+      "outline": {
+        "title": "House outline check on 2D drawings",
+        "redraw": "Redraw when the outline is off",
+        "tolerance": "Ratio tolerance",
+        "minOverlap": "Minimum overlap"
+      },
+      "tasks": {
+        "title": "Model per task",
+        "task": "Task",
+        "provider": "Provider",
+        "model": "Model",
+        "fallbackModel": "Fallback model",
+        "parameters": "Parameters (JSON)",
+        "render3dParameters": "3D options: renderViewReference, renderDuplicateGuard, renderQc (true/false); renderDuplicateMaxDistance (integer 0–64). Defaults: false, false, false and 10."
+      },
+      "prices": {
+        "title": "Token prices (USD / 1M tokens)",
+        "hint": "Used for the estimated AI cost in the log; not invoice figures.",
+        "model": "Model",
+        "inputPerMTok": "Input",
+        "cachedInputPerMTok": "Cached input",
+        "outputPerMTok": "Output",
+        "cacheWritePerMTok": "Cache write",
+        "add": "Add model",
+        "remove": "Remove"
+      },
+      "note": "Note for this version",
+      "noteHint": "For example: change the 3D image model, raise the images-per-minute limit.",
+      "appliesToNewRuns": "The new version only applies to runs and image checks accepted after saving.",
+      "revisions": {
+        "title": "Saved versions",
+        "number": "Version",
+        "createdAt": "Saved at",
+        "createdBy": "Saved by",
+        "note": "Note"
+      }
+    },
+    "pricingRegions": {
+      "description": "Each province belongs to the North, Central or South region; the Central Highlands provinces belong to the Central region. The region is fixed when the customer runs the 2D stage, so changes only apply to later runs.",
+      "save": "Save {count} changes",
+      "saved": "Price regions saved.",
+      "discard": "Discard changes",
+      "reload": "Reload",
+      "conflictTitle": "A province was just edited by someone else",
+      "conflictBody": "Reload to see the latest data, then edit again. Your unsaved changes will be lost.",
+      "problems": "{count} provinces have no region yet.",
+      "search": "Search province / city",
+      "tableVersion": "Table version: {version}",
+      "code": "Code",
+      "province": "Province / city",
+      "region": "Price region",
+      "choose": "Choose region",
+      "edited": "Edited",
+      "regions": {
+        "North": "North",
+        "Central": "Central",
+        "South": "South"
+      }
+    },
+    "estimatePipeline": {
+      "description": "Customer runs, newest first. Open a run for details, tokens and estimated AI costs.",
+      "searchPlaceholder": "Search customer, email, estimate name or code",
+      "search": "Search",
+      "loading": "Loading…",
+      "needInspect": "You do not have permission to view AI run details.",
+      "needOperate": "You can only view. Resetting failures and viewing raw logs need the operate permission.",
+      "code": "Estimate code",
+      "name": "Name",
+      "estimateId": "Internal ID",
+      "stagesTitle": "Reset failure count per step",
+      "stage": {
+        "Plan2d": "2D drawings",
+        "Estimate": "Estimate",
+        "Render3d": "3D renders",
+        "Dossier": "Dossier"
+      },
+      "reset": "Reset count",
+      "resetDone": "Failure count reset. The customer can run this step again.",
+      "resetConfirmTitle": "Reset the failure count of {step}?",
+      "resetConfirmBody": "The customer can run this step again up to the configured limit. This does not start the step, does not grant or refund credits, and records who did it.",
+      "counted": "Counted",
+      "noRuns": "This estimate has no runs yet.",
+      "noSteps": "No saved steps yet.",
+      "noCalls": "No AI calls yet.",
+      "run": {
+        "id": "Run ID",
+        "finishedAt": "Finished",
+        "pipelineVersion": "Pipeline version",
+        "configRevision": "Config version",
+        "ruleSetRevision": "Rule set version",
+        "failureDetail": "Failure detail"
+      },
+      "step": {
+        "key": "Step",
+        "attempt": "Calls used",
+        "model": "Model",
+        "promptVersion": "Prompt version",
+        "completedAt": "Completed at",
+        "origin": "Image source",
+        "created": "Created in this run",
+        "reused": "Reused from run"
+      },
+      "call": {
+        "task": "Task",
+        "model": "Model",
+        "startedAt": "Started",
+        "duration": "Duration",
+        "tokens": "Tokens in / out",
+        "retries": "Retries",
+        "outcome": "Outcome",
+        "cost": "Estimated cost"
+      },
+      "viewRaw": "View raw log",
+      "rawTitle": "Raw log of the AI call",
+      "rawAudited": "This view has been recorded (viewer, time, call). Images are not in the raw log, only their identifiers.",
+      "internal": "Internal part (staff only)",
+      "allStages": "All stages",
+      "allStates": "All statuses",
+      "refresh": "Refresh",
+      "noMatchingRuns": "No matching runs.",
+      "totalRuns": "{total} runs",
+      "customer": "Customer",
+      "project": "Estimate",
+      "deletedProject": "Deleted estimate",
+      "runStage": "Stage",
+      "runState": "Status",
+      "actions": "Actions",
+      "viewDetails": "View details",
+      "state": {
+        "Queued": "Queued",
+        "Running": "Running",
+        "Succeeded": "Succeeded",
+        "Failed": "Failed",
+        "TimedOut": "Timed out"
+      },
+      "acceptedAt": "Accepted"
+    },
+    "priceRules": {
+      "title": "Price rules",
+      "description": "Manage pricing documents and version history. Changes apply to new runs.",
+      "PriceFramework": "Price framework",
+      "TakeoffRules": "Takeoff rules",
+      "loadError": "Unable to load data. Please retry.",
+      "saved": "Version {number} saved.",
+      "reload": "Load current version",
+      "reloadConfirm": "Loading the current version will discard your draft. Continue?",
+      "retry": "Retry",
+      "version": "Version {number}",
+      "frameworkHelp": "Price bands are calculated from sections 3–5. Editing section 2 does not change anchors or package factors.",
+      "content": "Content",
+      "note": "Change note (required)",
+      "preview": "Preview price bands",
+      "save": "Save new version",
+      "bands": "Price bands — million VND/m²",
+      "priceType": "Price type",
+      "part": "Cost part",
+      "package": "Package",
+      "current": "Current",
+      "new": "After change",
+      "history": "Version history",
+      "number": "Version",
+      "date": "Saved at",
+      "author": "Saved by",
+      "seed": "Initial data",
+      "restoredFrom": "Restored from",
+      "actions": "Actions",
+      "before": "Before",
+      "after": "After",
+      "restore": "Restore",
+      "restoreConfirm": "Restoring version {number} creates a new version and preserves history. Your draft is discarded only after a successful restore.",
+      "historyHelp": "Select two versions to compare. Enter a change note above before restoring.",
+      "comparison": "Content changes",
+      "added": "Added",
+      "removed": "Removed",
+      "same": "Unchanged"
+    },
+    "aiRules": {
+      "title": "AI rules",
+      "description": "Edit one rule group at a time. Saving creates a new version and preserves other groups.",
+      "groups": {
+        "baseTypes": "Building type",
+        "roofRules": "Roof matrix",
+        "packageStages": "Package × step",
+        "regionInstructions": "Region instructions",
+        "instructions": "General instructions"
+      },
+      "invalid": "Check the field data types.",
+      "switchTitle": "Switch rule group",
+      "noteRequired": "Enter a note before saving or restoring.",
+      "regionHelp": "Choose 2D / Estimate / 3D for each topic. The three Render3dWeather rows always belong to 3D.",
+      "add": "Add row",
+      "edit": "Edit",
+      "remove": "Delete",
+      "removeConfirm": "Remove this row from your draft? The change applies only after saving a new version.",
+      "yes": "Yes",
+      "no": "No",
+      "restoreHelp": "Rules and prompts share version history. Restoring here replaces the entire rule set, including prompts.",
+      "restoreConfirm": "Restore the entire rule set from version {number}, including prompts, as a new version?",
+      "apply": "Apply to draft",
+      "required": "This field is required.",
+      "max": "Maximum {max} characters.",
+      "fields": {
+        "baseCode": "Base code",
+        "defaultLotWidthM": "Default lot width m",
+        "defaultLotDepthM": "Default lot depth m",
+        "maxFloors": "Max floors",
+        "hasRoof": "Has roof",
+        "allowsTum": "Allows tum",
+        "hasStructurePart": "Has structure part",
+        "lotMinSideM": "Lot min side m",
+        "lotMaxSideM": "Lot max side m",
+        "lotMinAreaM2": "Lot min area m2",
+        "lotMaxAreaM2": "Lot max area m2",
+        "carFrontageMinM": "Car frontage min m",
+        "garageFrontageMinM": "Garage frontage min m",
+        "garageMinAreaM2": "Garage min area m2",
+        "bedroomMinAreaM2": "Bedroom min area m2",
+        "bedroomMinSideM": "Bedroom min side m",
+        "instruction": "Instruction",
+        "baseStyleCode": "Base style code",
+        "roofKind": "Roof kind",
+        "slopeFactor": "Slope factor",
+        "conversionFactor": "Conversion factor",
+        "nameVi": "Name vi",
+        "descriptionVi": "Description vi",
+        "assumptionVi": "Assumption vi",
+        "render3dText": "Render3d text",
+        "package": "Package",
+        "stage": "Step",
+        "text": "Text",
+        "region": "Region",
+        "topic": "Topic",
+        "enabled": "Enabled",
+        "sortOrder": "Sort order",
+        "buildingTypeId": "Building type",
+        "styleId": "Architectural style"
+      },
+      "values": {
+        "Plan2d": "2D drawings",
+        "Estimate": "Estimate",
+        "Render3d": "3D render",
+        "North": "North",
+        "Central": "Central",
+        "South": "South",
+        "Basic": "Basic",
+        "Standard": "Standard",
+        "Vip": "Premium"
+      },
+      "defaultRoof": "Default for building type",
+      "catalogHelp": "Select catalog entries; rules are saved by ID. For a new type, add its default roof before its building-type rules. A style-specific row takes precedence over the default.",
+      "configure": "Configure",
+      "ready": "Ready",
+      "notReady": "Incomplete",
+      "readiness": "Configuration status",
+      "missingConfiguration": "Missing configuration",
+      "typeHelp": "All types from the current estimate catalog. Incomplete types remain visible to customers but cannot be selected. Lot and roof rules are saved together in one revision.",
+      "lotRules": "Lot rules and limits",
+      "roofSettings": "Default and style-specific roofs",
+      "addStyleRoof": "Add style-specific roof",
+      "configureType": "Configure: {name}",
+      "catalogMappingHelp": "Type mapping, architecture styles and interior descriptions are edited in the building catalog. Saving these rules does not fill those fields automatically.",
+      "copyType": "Copy lot rules and default roof from a configured type",
+      "copyConfirm": "Replace the lot rules and default roof you are editing? Style-specific roofs will be retained.",
+      "discardTitle": "Discard unsaved changes?",
+      "missingReasons": {
+        "baseMapping": "AI building type mapping",
+        "baseRule": "Lot rules and limits",
+        "defaultRoof": "Default roof (including no roof)",
+        "architectureMapping": "Architecture style AI mapping",
+        "defaultArchitectureMapping": "Default architecture style",
+        "interiorDescriptor": "Interior style AI description"
+      }
+    },
+    "aiPrompts": {
+      "title": "AI prompts",
+      "description": "Edit instructions for each prompt. Schemas and algorithms are managed by the application.",
+      "select": "Select prompt",
+      "affected": "Affected tasks:",
+      "variables": "Required variables: {variables}.",
+      "noVariables": "No format variables.",
+      "optional": "This slot may be empty.",
+      "required": "This slot requires content.",
+      "restoreHelp": "Restoring here replaces only the selected prompt instructions and preserves other groups.",
+      "restoreConfirm": "Restore the selected prompt instructions from version {number} as a new version?",
+      "trialWarning": "Latest trial failed",
+      "trialWarningHelp": "You can still save these instructions. Save anyway?"
+    },
+    "promptTrials": {
+      "title": "Preview and trial",
+      "help": "Choose a packaged fixture to preview and try one task. Saving the draft first is optional.",
+      "fixture": "Fixture",
+      "case": "Case",
+      "preview": "Preview",
+      "run": "Run trial",
+      "liveTitle": "Run a Live trial",
+      "liveConfirm": "The prompt and fixture images will be sent to the configured provider. Charges may apply even if validation fails. Run this trial?",
+      "stale": "The draft changed. Preview it again before running a trial.",
+      "sources": "Rules revision {version} · Fixture version {fixture}",
+      "prompt": "Composed prompt",
+      "system": "System instructions",
+      "user": "User content",
+      "schema": "Output schema (read only)",
+      "imageSchema": "Image output is checked for format, dimensions and task conditions.",
+      "references": "Sources, fixture images and matched instructions",
+      "history": "Your trial history",
+      "created": "Created",
+      "state": "State",
+      "view": "View",
+      "result": "Trial result",
+      "cost": "Estimated cost",
+      "unknownCost": "Cost data is incomplete",
+      "fake": "Fake: recorded response; no Live AI call.",
+      "differentDraft": "This result does not validate the current draft.",
+      "structurePassed": "Structure checks passed",
+      "validationFailed": "Validation failed",
+      "download": "Open result file",
+      "qualityHelp": "Passing structure checks does not mean the design quality has been approved.",
+      "cases": {
+        "lot-verify": "Verify lot image",
+        "spec": "2D specification",
+        "technical-ground": "Ground floor technical",
+        "technical-upper": "Upper floor technical",
+        "furniture": "2D furniture",
+        "estimate-main": "Main estimate",
+        "estimate-takeoff": "Takeoff follow-up",
+        "estimate-analysis": "Analysis follow-up",
+        "estimate-price-split": "Split prices",
+        "estimate-price-review": "Review prices",
+        "apartment-day": "Apartment day",
+        "apartment-night": "Apartment night",
+        "apartment-qc": "Apartment quality check",
+        "exterior-day": "Exterior day",
+        "exterior-night": "Exterior night",
+        "exterior-qc": "Exterior quality check",
+        "room": "Room render",
+        "room-view": "Referenced room view",
+        "room-qc": "Room quality check",
+        "regeneration": "Regeneration instructions"
+      },
+      "states": {
+        "Queued": "Queued",
+        "Running": "Running",
+        "Succeeded": "Succeeded",
+        "Failed": "Failed",
+        "TimedOut": "Timed out"
+      }
     }
   },
   "contractors": {
@@ -8197,7 +9015,8 @@
     "checkoutDone": "Order complete",
     "checkoutFailed": "Payment unsuccessful",
     "share": "Shared project dossier",
-    "googleCallback": "Sign in with Google"
+    "googleCallback": "Sign in with Google",
+    "designPlan": "2D drawings"
   },
   "address": {
     "searching": "Searching addresses…",

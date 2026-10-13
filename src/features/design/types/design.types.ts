@@ -1,3 +1,5 @@
+import type { DossierDocument } from '../schemas/pipeline-api.schema'
+
 /**
  * Loại công trình — 5 nhóm theo Phụ lục A, trường 3. Quyết định các trường hiển
  * thị phía sau và danh mục "Kiểu kiến trúc & phong cách".
@@ -46,7 +48,7 @@ export type DesignStep = 1 | 2 | 3
  * Hoàn tất. Backend chưa chốt trường này nên suy ra từ bước đang dừng
  * (`projectStatus` trong `project-list.service`).
  */
-export type ProjectStatus = 'input' | 'designing' | 'review' | 'completed'
+export type ProjectStatus = 'input' | 'designing' | 'review' | 'completed' | 'failed' | 'inProgress'
 
 /** Thứ tự sắp xếp lưới dự án — dropdown "Mới cập nhật" (mục IV.1). */
 export type ProjectSort = 'recent' | 'oldest' | 'name'
@@ -83,6 +85,14 @@ export interface Project {
    * chưa chạy dự toán — thẻ khi đó chỉ in ngày tạo và loại công trình.
    */
   floorArea?: number | null
+  /**
+   * Luồng bốn chặng (BR-PROJ-008 khoản 2): trạng thái danh sách và chặng đã thành công gần nhất. Có trường này thì thẻ
+   * dùng mini-stepper năm nấc và mở tiếp theo chặng, không theo `currentStep` của luồng cũ.
+   */
+  pipeline?: {
+    state: 'Draft' | 'Processing' | 'Failed' | 'InProgress' | 'Completed'
+    lastSucceededStage: 'Plan2d' | 'Estimate' | 'Render3d' | 'Dossier' | null
+  }
 }
 
 /**
@@ -185,6 +195,7 @@ export type DossierStatus = 'idle' | 'rendering' | 'ready'
 
 /** Bộ hồ sơ thi công sau khi render xong (mục III.4c). */
 export interface Dossier {
+  documents?: DossierDocument[]
   projectId: string
   status: DossierStatus
   pdfUrl: string | null
@@ -211,6 +222,7 @@ export interface DossierImages {
  * (mục III.4c). Không kèm số điện thoại hay thông tin cá nhân khác.
  */
 export interface SharedDossier {
+  drawings?: { fileId: string; label: string }[]
   /** Id ảnh kết quả theo vai trò — người xem tải về bằng token của link. */
   files?: { fileId: string; roleKey: string }[]
   projectName: string

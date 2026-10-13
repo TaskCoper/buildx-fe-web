@@ -59,6 +59,10 @@ export { CostGroupManager } from './components/estimate/cost-group-manager'
 export { CostItemManager } from './components/estimate/cost-item-manager'
 export { MaterialPriceManager } from './components/estimate/material-price-manager'
 export { EstimateAdviceEditor } from './components/estimate/estimate-advice-editor'
+// Luồng AI tạo dự toán (STORY-PROJ-011, STORY-PROJ-012)
+export { AiConfigEditor } from './components/estimate/ai-config-editor'
+export { PricingRegionEditor } from './components/estimate/pricing-region-editor'
+export { EstimatePipelineInspector } from './components/estimate/estimate-pipeline-inspector'
 
 export { ADMIN_NAV, ADMIN_NAV_ITEMS, type AdminNavGroup, type AdminNavItem } from './components/layout/admin-nav.config'
 export { adminApi } from './api/admin.api'
@@ -84,3 +88,8 @@ export { newAdminId, slugify, todayKey } from './services/admin.service'
 export { SupervisionContentManager } from './components/home/supervision-content-manager'
 export { PlansContentManager } from './components/home/plans-content-manager'
 export { ConsultationContentManager } from './components/home/consultation-content-manager'
+
+export { PriceRuleEditor } from './components/estimate/price-rule-editor'
+
+export { AiRuleEditor } from './components/estimate/ai-rule-editor'
+export { AiPromptEditor } from './components/estimate/ai-prompt-editor'

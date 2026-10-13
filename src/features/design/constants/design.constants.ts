@@ -71,11 +71,25 @@ export const DESIGN_STEPS: readonly DesignStep[] = [1, 2, 3] as const
 export const PROJECT_STATUSES: readonly ProjectStatus[] = ['input', 'designing', 'review', 'completed'] as const
 
 /**
+ * Chip lọc của luồng bốn chặng (BR-PROJ-008 khoản 2): Nháp, Đang xử lý, Thất bại, Đang làm dở, Hoàn tất. Không có
+ * "Chờ duyệt" vì luồng mới không có bước duyệt.
+ */
+export const PIPELINE_PROJECT_STATUSES: readonly ProjectStatus[] = [
+  'input',
+  'designing',
+  'failed',
+  'inProgress',
+  'completed'
+] as const
+
+/**
  * 4 thẻ đếm nhanh theo Hình 02 — không có thẻ "Đang nhập liệu"; trạng thái đó
  * chỉ xuất hiện ở hàng chip lọc.
  */
 export const PROJECT_STAT_CARDS = ['total', 'designing', 'review', 'completed'] as const
-export type ProjectStatCard = (typeof PROJECT_STAT_CARDS)[number]
+/** Thẻ đếm của luồng bốn chặng: thay "Chờ duyệt" bằng "Đang làm dở". */
+export const PIPELINE_PROJECT_STAT_CARDS = ['total', 'designing', 'inProgress', 'completed'] as const
+export type ProjectStatCard = (typeof PROJECT_STAT_CARDS)[number] | (typeof PIPELINE_PROJECT_STAT_CARDS)[number]
 
 /** Dropdown sắp xếp — mặc định "Mới cập nhật" (mục IV.1). */
 export const PROJECT_SORTS: readonly ProjectSort[] = ['recent', 'oldest', 'name'] as const
@@ -93,6 +107,15 @@ export const STEP_HELP_TOPIC: Record<DesignStep, string> = {
   1: 'input',
   2: 'read-estimate',
   3: 'dossier'
+}
+
+/** Nút "?" của thanh tiến trình năm bước (luồng bốn chặng): Nhập liệu, ba chặng giữa, Hồ sơ. */
+export const PIPELINE_STEP_HELP_TOPIC: Record<1 | 2 | 3 | 4 | 5, string> = {
+  1: 'input',
+  2: 'read-estimate',
+  3: 'read-estimate',
+  4: 'read-estimate',
+  5: 'dossier'
 }
 
 /**

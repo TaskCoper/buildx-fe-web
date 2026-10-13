@@ -26,6 +26,14 @@ const publicEnvSchema = z.object({
     .default('false')
     .transform((v) => v === 'true'),
   /**
+   * Luồng dự toán bốn chặng (2D → Dự toán → 3D → Hồ sơ, TDD-PROJ-006/007). Bật khi backend đã bật
+   * `EstimatePipelineOption__Mode`; tắt thì giữ nguyên luồng ba bước cũ. Không suy ra từ phản hồi API.
+   */
+  NEXT_PUBLIC_ESTIMATE_PIPELINE_ENABLED: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((v) => v === 'true'),
+  /**
    * Khoá VietMap CÔNG KHAI — chỉ để render bản đồ xem trước trong trình duyệt.
    * Khoá tra toạ độ là biến `VIETMAP_API_KEY` riêng, KHÔNG có tiền tố
    * NEXT_PUBLIC_ nên chỉ đọc được ở máy chủ (route `/api/geocode`); đừng gộp hai
@@ -43,6 +51,7 @@ const parsed = publicEnvSchema.safeParse({
   NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
   NEXT_PUBLIC_USE_MOCK_AUTH: process.env.NEXT_PUBLIC_USE_MOCK_AUTH,
   NEXT_PUBLIC_USE_MOCK_API: process.env.NEXT_PUBLIC_USE_MOCK_API,
+  NEXT_PUBLIC_ESTIMATE_PIPELINE_ENABLED: process.env.NEXT_PUBLIC_ESTIMATE_PIPELINE_ENABLED,
   NEXT_PUBLIC_VIETMAP_API_KEY: process.env.NEXT_PUBLIC_VIETMAP_API_KEY
 })
 

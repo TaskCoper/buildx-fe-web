@@ -1,6 +1,8 @@
 'use client'
 
-import { Fragment } from 'react'
+import { estimateGenerationApi, fetchSharedBlob } from '../api/estimate-generation.api'
+import { saveBlob } from '../hooks/use-shared-files'
+import { Fragment, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useLocale, useTranslations } from 'next-intl'
 
@@ -51,11 +53,13 @@ function SharedImage({
 function SharedFiles({
   shareId,
   token,
-  files
+  files,
+  drawings
 }: {
   shareId: string
   token: string
   files: { fileId: string; roleKey: string }[]
+  drawings?: { fileId: string; label: string }[]
 }) {
   const t = useTranslations('design.share')
   const { download, pending, failed, failureMessage } = useSharedDownload(shareId, token)
@@ -64,10 +68,12 @@ function SharedFiles({
     ['cover-image', t('images.cover')],
     ['floor-plan-2d', t('images.floorPlan')]
   ] as const
-  const images = roles.flatMap(([role, label]) => {
-    const file = files.find((item) => item.roleKey === role)
-    return file ? [{ fileId: file.fileId, label }] : []
-  })
+  const images =
+    drawings ??
+    roles.flatMap(([role, label]) => {
+      const file = files.find((item) => item.roleKey === role)
+      return file ? [{ fileId: file.fileId, label }] : []
+    })
 
   return (
     <>
@@ -103,9 +109,61 @@ function SharedFiles({
             </Button>
           ))}
         </div>
+        {files.some((file) => file.roleKey === 'render3d-pdf') && (
+          <div className='flex flex-wrap gap-3'>
+            {files
+              .filter((file) => ['render3d-pdf', 'architecture-pdf'].includes(file.roleKey))
+              .map((file) => (
+                <SharedDocument key={file.fileId} shareId={shareId} token={token} file={file} />
+              ))}
+          </div>
+        )}
         {failed ? <p className='text-destructive text-sm'>{failureMessage ?? t('downloadFailed')}</p> : null}
       </section>
     </>
+  )
+}
+
+function SharedDocument({
+  shareId,
+  token,
+  file
+}: {
+  shareId: string
+  token: string
+  file: { fileId: string; roleKey: string }
+}) {
+  const t = useTranslations('design.dossier')
+  const ts = useTranslations('design.share')
+  const [pending, setPending] = useState(false)
+  const [failed, setFailed] = useState(false)
+  const download = async () => {
+    setPending(true)
+    setFailed(false)
+    try {
+      const { blob, fileName } = await fetchSharedBlob(
+        estimateGenerationApi.publicFilePath(shareId, file.fileId),
+        token
+      )
+      saveBlob(blob, fileName ?? `${file.roleKey}.pdf`)
+    } catch {
+      setFailed(true)
+    } finally {
+      setPending(false)
+    }
+  }
+  return (
+    <div>
+      <Button variant='outline' disabled={pending} onClick={() => void download()}>
+        <Download className='size-4' />
+        {t(file.roleKey === 'render3d-pdf' ? 'files.exterior' : 'files.architecture')}
+      </Button>
+      {failed && (
+        <p role='alert' className='text-destructive text-sm'>
+          {ts('downloadFailed')}
+        </p>
+      )}
+    </div>
   )
 }
 
@@ -197,7 +255,9 @@ export function SharedDossierView({ token, share }: { token: string; share?: { s
         </Table>
       </section>
 
-      {share && data.files ? <SharedFiles shareId={share.shareId} token={share.token} files={data.files} /> : null}
+      {share && data.files ? (
+        <SharedFiles shareId={share.shareId} token={share.token} files={data.files} drawings={data.drawings} />
+      ) : null}
 
       <p className='text-muted-foreground text-xs'>{tEstimate('xlsx.note')}</p>
     </div>

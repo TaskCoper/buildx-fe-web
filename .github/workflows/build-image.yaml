@@ -39,6 +39,7 @@ jobs:
       NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
       NEXT_PUBLIC_USE_MOCK_AUTH: ${{ secrets.NEXT_PUBLIC_USE_MOCK_AUTH || 'false' }}
       NEXT_PUBLIC_USE_MOCK_API: ${{ secrets.NEXT_PUBLIC_USE_MOCK_API || 'false' }}
+      NEXT_PUBLIC_ESTIMATE_PIPELINE_ENABLED: ${{ secrets.NEXT_PUBLIC_ESTIMATE_PIPELINE_ENABLED || 'false' }}
       NEXT_PUBLIC_VIETMAP_API_KEY: ${{ secrets.NEXT_PUBLIC_VIETMAP_API_KEY }}
       # Compose requires a network name while parsing; builds do not attach to it.
       NETWORK: buildx-image-build

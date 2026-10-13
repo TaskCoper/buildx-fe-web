@@ -5,8 +5,9 @@ import { useTranslations } from 'next-intl'
 
 import { Input } from '@/shared/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select'
+import { env } from '@/shared/config/env'
 import { cn } from '@/shared/lib/utils'
-import { PROJECT_SORTS, PROJECT_STATUSES } from '../constants/design.constants'
+import { PIPELINE_PROJECT_STATUSES, PROJECT_SORTS, PROJECT_STATUSES } from '../constants/design.constants'
 import type { ProjectSort, ProjectStatus } from '../types/design.types'
 
 interface ProjectFiltersProps {
@@ -19,7 +20,10 @@ interface ProjectFiltersProps {
 }
 
 /** `all` chỉ tồn tại ở giao diện; trong state nó là `status: null`. */
-const CHIPS = ['all', ...PROJECT_STATUSES] as const
+const CHIPS = [
+  'all',
+  ...(env.NEXT_PUBLIC_ESTIMATE_PIPELINE_ENABLED ? PIPELINE_PROJECT_STATUSES : PROJECT_STATUSES)
+] as const
 
 /**
  * Hàng công cụ của khối "DỰ ÁN CỦA TÔI" (mục IV.1, Hình 02) — một dòng: ô tìm
@@ -68,7 +72,9 @@ export function ProjectFilters({
                     : 'bg-card text-muted-foreground hover:bg-accent/40 hover:text-foreground'
                 )}
               >
-                {t(`filters.${chip}`)}
+                {chip !== 'all' && env.NEXT_PUBLIC_ESTIMATE_PIPELINE_ENABLED
+                  ? t(`pipelineStatus.${chip}`)
+                  : t(`filters.${chip}`)}
               </button>
             </li>
           )

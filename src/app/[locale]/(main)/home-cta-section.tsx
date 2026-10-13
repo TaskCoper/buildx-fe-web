@@ -22,7 +22,11 @@ export function HomeCtaSection() {
           id: activeProject.id,
           name: activeProject.name,
           href: resumeProjectRoute(activeProject),
-          status: activeProject.status
+          // Luồng bốn chặng có thêm "Thất bại", "Đang làm dở": dải CTA chỉ có ba nhãn dở dang nên gộp vào "đang thiết kế".
+          status:
+            activeProject.status === 'failed' || activeProject.status === 'inProgress'
+              ? 'designing'
+              : activeProject.status
         }
       : null
 
