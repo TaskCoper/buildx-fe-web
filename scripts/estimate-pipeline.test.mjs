@@ -266,6 +266,13 @@ test('Đi tiếp, Thử lại, Sang bước Hồ sơ theo trạng thái hai ch�
     contactSupport: false,
     toDossier: true
   })
+  // Bản cũ đã xong Dự toán, chưa chạy 3D: Đi tiếp chỉ chạy 3D.
+  assert.deepEqual(act(s('Succeeded', 'r2'), s('Ready')), {
+    next: true,
+    retry: false,
+    contactSupport: false,
+    toDossier: false
+  })
   assert.deepEqual(act(s('Running', 'r2'), s('Queued', 'r5')), {
     next: false,
     retry: false,

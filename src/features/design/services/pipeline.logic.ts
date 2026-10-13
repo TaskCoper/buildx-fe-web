@@ -144,7 +144,10 @@ export function pipelineStepStates(
 
 /** Thao tác hiện ở bước Dự toán & 3D (BR-PROJ-010 khoản 2–4, BR-PROJ-011 khoản 9). */
 export interface StageGroupActions {
-  /** Đi tiếp: chưa chặng nào trong cặp có lần chạy và có chặng Sẵn sàng. */
+  /**
+   * Đi tiếp: có chặng Sẵn sàng (chưa từng chạy), không chặng nào đang chạy và không cần Thử lại. Gồm cả bản đã xong Dự
+   * toán theo luồng cũ mà chưa chạy 3D: Đi tiếp chỉ chạy 3D (BR-PROJ-010 khoản 2).
+   */
   next: boolean
   /** Thử lại: có chặng Lỗi còn chạy lại được, kể cả khi chặng kia đang chạy. */
   retry: boolean
@@ -162,8 +165,9 @@ export function stageGroupActions(estimate: GroupStage, render3d: GroupStage): S
   const canRetry = (stage: GroupStage) => status(stage) === 'Failed' && (stage?.retriesLeft ?? 1) > 0
   const failed = pair.filter((stage) => status(stage) === 'Failed')
   const toDossier = pair.every((stage) => status(stage) === 'Succeeded')
-  const next = !toDossier && pair.every((stage) => !stage?.runId) && pair.some((stage) => status(stage) === 'Ready')
   const retry = pair.some(canRetry)
+  const next =
+    !retry && pair.some((stage) => status(stage) === 'Ready') && !pair.some((stage) => isStageActive(status(stage)))
   const contactSupport =
     failed.length > 0 && !retry && !pair.some((stage) => isStageActive(status(stage)) || status(stage) === 'Ready')
   return { next, retry, contactSupport, toDossier }
