@@ -393,6 +393,44 @@ export function useMatchedTemplates(criteria: LibraryMatchCriteria | null | unde
   })
 }
 
+/** Nguồn mẫu ở màn chờ: khớp đủ thông tin dự toán, hay chỉ cùng loại công trình. */
+export type WaitingTemplateSource = 'match' | 'sameType'
+
+/**
+ * Mẫu ở màn chờ AI (BR-LIB-001 khoản 16, STORY-LIB-002 ALT-03): tìm khớp đủ trước; không có mẫu khớp thì lấy mẫu cùng
+ * loại công trình qua route lọc công khai. Không có gì hoặc lỗi thì `items` rỗng để màn chờ chỉ hiện tiến độ.
+ */
+export function useWaitingTemplates(criteria: LibraryMatchCriteria | null | undefined, kind: HandbookTemplateKind) {
+  const matched = useMatchedTemplates(criteria, kind)
+  const fallback = Boolean(criteria) && matched.isSuccess && matched.data.totalCount === 0
+  const sameType = useQuery({
+    queryKey: handbookKeys.sameType(criteria?.buildingTypeId ?? '', kind),
+    queryFn: () => handbookApi.listSameBuildingType(kind, criteria!.buildingTypeId),
+    enabled: fallback,
+    staleTime: STATIC_CONTENT_STALE_TIME,
+    retry: 1,
+    refetchOnWindowFocus: false
+  })
+  if (!criteria || matched.isError) return { items: [], totalCount: 0, source: null, isPending: false }
+  if (matched.isPending) return { items: [], totalCount: 0, source: null, isPending: true }
+  if (!fallback)
+    return {
+      items: matched.data.items,
+      totalCount: matched.data.totalCount,
+      source: 'match' as const,
+      isPending: false
+    }
+  if (sameType.isPending) return { items: [], totalCount: 0, source: null, isPending: true }
+  if (sameType.isError || !sameType.data.items.length)
+    return { items: [], totalCount: 0, source: null, isPending: false }
+  return {
+    items: sameType.data.items,
+    totalCount: sameType.data.totalCount,
+    source: 'sameType' as const,
+    isPending: false
+  }
+}
+
 /**
  * Năm mẫu cho panel cẩm nang cá nhân hóa (màn chờ Bước 2 và Bước 3).
  *

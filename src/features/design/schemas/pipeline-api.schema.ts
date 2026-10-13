@@ -59,6 +59,10 @@ export const stageRunAcceptedSchema = z.object({
 })
 export type StageRunAccepted = z.infer<typeof stageRunAcceptedSchema>
 
+/** `POST …/stage-runs` (Đi tiếp/Thử lại): các lần chạy được nhận cùng lúc, thứ tự Dự toán rồi 3D (TDD-PROJ-006). */
+export const stageRunGroupAcceptedSchema = z.object({ runs: z.array(stageRunAcceptedSchema) })
+export type StageRunGroupAccepted = z.infer<typeof stageRunGroupAcceptedSchema>
+
 const verificationState = z.enum(['Pending', 'Processing', 'Completed', 'Failed'])
 
 /** `POST …/lot-verifications` (202/200) và `GET …/lot-verifications/current`. */

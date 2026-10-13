@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Loader2, Lock } from 'lucide-react'
 import { useTranslations } from 'next-intl'
@@ -8,13 +8,15 @@ import { toast } from 'sonner'
 import { Link } from '@/i18n/navigation'
 import { useAuth } from '@/shared/auth'
 import { Button } from '@/shared/components/ui/button'
-import { designRender3dRoute } from '@/shared/constants/routes'
+import { designEstimateRoute } from '@/shared/constants/routes'
 import { PersonalizedPanel } from '@/features/handbook'
 import {
   estimatePipelineApi,
   designKeys,
   useStageRun,
   isStageActive,
+  dossierAutoKey,
+  dossierAutoStart,
   stageOf,
   dossierEstimate,
   StageRunProgress,
@@ -36,7 +38,7 @@ import {
 export function PipelineDossierView({ projectId }: { projectId: string }) {
   const t = useTranslations('design.pipeline.dossier')
   const td = useTranslations('design.dossier')
-  const steps = usePipelineSteps(projectId, 5)
+  const steps = usePipelineSteps(projectId, 4)
   const stage = stageOf(steps.stages.data, 'Dossier')
   const done = stage?.status === 'Succeeded'
   const busy = isStageActive(stage?.status)
@@ -77,8 +79,26 @@ export function PipelineDossierView({ projectId }: { projectId: string }) {
     void client.invalidateQueries({ queryKey: designKeys.dossier(projectId) })
     void client.invalidateQueries({ queryKey: designKeys.projects() })
   }, [done, client, projectId])
+  // Hồ sơ tự tạo khi khách vào bước này lần đầu (BR-PROJ-010 khoản 4, TDD-PROJ-011): khóa cố định nên tải lại trang hay
+  // mở hai tab chỉ tạo một lần chạy. Lần chạy trước đã lỗi thì không tự chạy lại; khách bấm Chạy lại.
+  const [autoPending, setAutoPending] = useState(false)
+  const autoTried = useRef(false)
+  useEffect(() => {
+    if (autoTried.current || !dossierAutoStart(stage, autoPending)) return
+    autoTried.current = true
+    setAutoPending(true)
+    estimatePipelineApi
+      .startRun(projectId, 'Dossier', undefined, dossierAutoKey(projectId))
+      .catch((error: unknown) => {
+        if (!['inProgress', 'alreadySucceeded'].includes(run.kindOf(error))) toast.error(run.messageOf(error))
+      })
+      .finally(() => {
+        setAutoPending(false)
+        void client.invalidateQueries({ queryKey: designKeys.stages(projectId) })
+      })
+  }, [stage, autoPending, projectId, run, client])
   const start = async () => {
-    if (run.isPending || busy) return
+    if (run.isPending || busy || autoPending) return
     try {
       await run.mutateAsync(undefined)
     } catch (error) {
@@ -103,10 +123,10 @@ export function PipelineDossierView({ projectId }: { projectId: string }) {
   return (
     <>
       <StepProgress
-        pipeline={{ current: 5, states: steps.states }}
+        pipeline={{ current: 4, states: steps.states }}
         title={td('pageTitle')}
         currentDone={done}
-        previousStep={{ href: designRender3dRoute(projectId), label: t('back') }}
+        previousStep={{ href: designEstimateRoute(projectId), label: t('back') }}
         animateEntrance={false}
       />
       {error ? (
@@ -126,7 +146,7 @@ export function PipelineDossierView({ projectId }: { projectId: string }) {
       ) : stage?.status === 'Locked' ? (
         <StageStateCard icon={<Lock />} title={t('locked')}>
           <Button asChild variant='outline'>
-            <Link href={designRender3dRoute(projectId)}>{t('back')}</Link>
+            <Link href={designEstimateRoute(projectId)}>{t('back')}</Link>
           </Button>
         </StageStateCard>
       ) : !available || sources.isPending || project.isPending || (done && dossier.isPending) ? (
@@ -160,8 +180,8 @@ export function PipelineDossierView({ projectId }: { projectId: string }) {
           result={sources.data?.estimate}
           images={sources.data?.images}
           onRender={() => void start()}
-          isRendering={busy || run.isPending}
-          renderActive={busy || failed || run.isPending || run.isError}
+          isRendering={busy || run.isPending || autoPending}
+          renderActive={busy || failed || run.isPending || run.isError || autoPending}
           renderContent={
             <div className='space-y-4' aria-live='polite'>
               <h2 className='font-semibold'>{t(failed || (run.isError && !busy) ? 'failed' : 'running')}</h2>

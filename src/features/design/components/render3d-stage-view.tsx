@@ -16,7 +16,7 @@ import { estimateFailureKind, stageRetryState } from '../services/estimate-stage
 import { isStageActive, stageOf } from '../services/pipeline.logic'
 import { StageRunProgress, StageStateCard } from './pipeline-state-card'
 
-export function Render3dStageView({ projectId }: { projectId: string }) {
+export function Render3dStageView({ projectId, embedded = false }: { projectId: string; embedded?: boolean }) {
   const t = useTranslations('design.pipeline.render3d')
   const errors = useTranslations('design.pipeline.estimate')
   const stages = useStages(projectId)
@@ -108,12 +108,13 @@ export function Render3dStageView({ projectId }: { projectId: string }) {
                     : errors('retryUnknown')}
               </p>
             )}
-            {done && (
+            {done && !embedded && (
               <Button asChild>
                 <Link href={designDossierRoute(projectId)}>{t('continueDossier')}</Link>
               </Button>
             )}
-            {(stage.status === 'Ready' || (failed && retry.kind !== 'limit')) && (
+            {/* Trong bước Dự toán & 3D, chạy và thử lại dùng thanh thao tác chung. */}
+            {!embedded && (stage.status === 'Ready' || (failed && retry.kind !== 'limit')) && (
               <Button onClick={() => void start()} disabled={run.isPending}>
                 {run.isPending && <Loader2 className='size-4 animate-spin' />}
                 {t(failed ? 'retry' : 'start')}

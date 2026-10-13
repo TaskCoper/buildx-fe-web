@@ -560,7 +560,8 @@
       "PromptTrialNotFound": "Không tìm thấy lần thử hoặc tệp kết quả.",
       "PromptTrialInterrupted": "Lần thử bị gián đoạn và không tự chạy lại.",
       "PromptTrialCostIncomplete": "Chưa đủ dữ liệu chi phí cho lần thử.",
-      "PromptTrialLastFailed": "Lần thử gần nhất của lời dặn này chưa đạt."
+      "PromptTrialLastFailed": "Lần thử gần nhất của lời dặn này chưa đạt.",
+      "StageRunGroupRequired": "Hãy dùng nút Đi tiếp hoặc Thử lại để chạy dự toán và phối cảnh 3D cùng lúc."
     }
   },
   "validation": {
@@ -1419,7 +1420,10 @@
         "count": "({count} mẫu)",
         "empty": "Chưa có mẫu bản vẽ 2D nào khớp với dự án của bạn.",
         "error": "Chưa tải được mẫu liên quan. Việc lập dự toán vẫn đang chạy bình thường.",
-        "note": "Đây là mẫu tham khảo trong thư viện khớp thông tin bạn đã nhập, không phải kết quả AI vừa tạo."
+        "note": "Đây là mẫu tham khảo trong thư viện khớp thông tin bạn đã nhập, không phải kết quả AI vừa tạo.",
+        "sameType2d": "Mẫu bản vẽ 2D cùng loại công trình",
+        "sameType3d": "Mẫu nội thất 3D cùng loại công trình",
+        "sameTypeNote": "Thư viện chưa có mẫu khớp đủ thông tin dự án của bạn; đây là mẫu cùng loại công trình để tham khảo, không phải kết quả AI vừa tạo."
       }
     },
     "read": {
@@ -1648,9 +1652,8 @@
       "pipeline": {
         "1": "Nhập liệu",
         "2": "Bản vẽ 2D",
-        "3": "Dự toán",
-        "4": "Phối cảnh 3D",
-        "5": "Hồ sơ"
+        "3": "Dự toán & 3D",
+        "4": "Hồ sơ"
       }
     },
     "entry": {
@@ -2451,7 +2454,8 @@
         "notFound": "Không tìm thấy bản dự toán.",
         "network": "Mất kết nối. Bạn kiểm tra mạng rồi bấm lại; lần bấm lại không bị trừ thêm lượt.",
         "other": "Chưa tạo được bản vẽ. Bạn thử lại nhé.",
-        "legacyResult": "Bản dự toán này còn kết quả của phiên bản cũ nên chưa chạy được luồng mới. Bạn tạo bản dự toán mới."
+        "legacyResult": "Bản dự toán này còn kết quả của phiên bản cũ nên chưa chạy được luồng mới. Bạn tạo bản dự toán mới.",
+        "groupRequired": "Hãy dùng nút Đi tiếp hoặc Thử lại để chạy dự toán và phối cảnh 3D cùng lúc."
       },
       "plan": {
         "pageTitle": "Bản vẽ 2D",
@@ -2483,8 +2487,8 @@
         "refunded": "Lượt đã giữ được hoàn lại.",
         "retryLimit": "Bước này đã lỗi quá số lần cho phép. Bạn liên hệ hỗ trợ để được chạy lại.",
         "retry": "Chạy lại",
-        "nextStage": "Bản vẽ 2D đã xong. Bước tiếp theo là lập dự toán chi phí từ bản vẽ này.",
-        "toEstimate": "Sang bước Dự toán",
+        "nextStage": "Bản vẽ 2D đã xong. Bấm Đi tiếp để hệ thống lập dự toán và dựng phối cảnh 3D cùng lúc.",
+        "toEstimate": "Đi tiếp",
         "result": {
           "lot": "Kích thước lô",
           "lotSource": {
@@ -2582,7 +2586,7 @@
       },
       "locked": {
         "pageTitle": {
-          "5": "Hồ sơ"
+          "4": "Hồ sơ"
         },
         "title": "Bước này chưa mở",
         "description": "Phiên bản hiện tại có bước Bản vẽ 2D và Dự toán. Phối cảnh 3D và hồ sơ sẽ mở trong các bản cập nhật tới.",
@@ -2593,7 +2597,7 @@
         "pageTitleWithProject": "{name} · {id} — Phối cảnh 3D",
         "loading": "Đang tải phối cảnh",
         "locked": "Chưa mở phối cảnh 3D",
-        "lockedHint": "Hoàn tất Dự toán để tạo phối cảnh.",
+        "lockedHint": "Hoàn tất Bản vẽ 2D để tạo phối cảnh.",
         "back": "Về Dự toán",
         "ready": "Sẵn sàng tạo phối cảnh 3D",
         "noQuota": "Không tính thêm lượt thiết kế.",
@@ -2605,7 +2609,7 @@
         "failed": "Chưa hoàn thành phối cảnh 3D",
         "retry": "Chạy tiếp các ảnh còn thiếu",
         "succeeded": "Phối cảnh 3D đã hoàn thành",
-        "dossierNext": "Đã đủ ảnh cho bước Hồ sơ. Chức năng tạo hồ sơ sẽ được mở ở đợt tiếp theo.",
+        "dossierNext": "Đã đủ ảnh cho bước Hồ sơ.",
         "notes": "Lưu ý về các góc chụp",
         "pending": "Chưa có ảnh",
         "openImage": "Mở ảnh {name}",
@@ -2617,7 +2621,7 @@
       "dossier": {
         "loading": "Đang tải Hồ sơ…",
         "locked": "Hoàn tất Phối cảnh 3D trước",
-        "back": "Về Phối cảnh 3D",
+        "back": "Về Dự toán & 3D",
         "running": "Đang dựng Hồ sơ",
         "failed": "Chưa dựng được Hồ sơ",
         "failureHint": "Các tệp đã lưu sẽ được kiểm tra để tiếp tục. Lỗi này không trừ lượt thiết kế.",
@@ -2625,7 +2629,31 @@
         "progress": "Đã hoàn tất {done}/{total} tệp",
         "noQuota": "Tạo Hồ sơ không trừ lượt thiết kế.",
         "reload": "Tải lại",
-        "loadError": "Chưa tải được dữ liệu Hồ sơ."
+        "loadError": "Chưa tải được dữ liệu Hồ sơ.",
+        "autoStarting": "Đang bắt đầu tạo hồ sơ…"
+      },
+      "group": {
+        "pageTitle": "Dự toán & phối cảnh 3D",
+        "pageTitleWithProject": "Dự toán & phối cảnh 3D — {name} ({id})",
+        "tabs": {
+          "estimate": "Dự toán",
+          "render3d": "Phối cảnh 3D"
+        },
+        "next": "Đi tiếp",
+        "nextHint": "Hệ thống sẽ lập dự toán và dựng phối cảnh 3D cùng lúc, không trừ thêm lượt.",
+        "retry": "Thử lại",
+        "retryHint": "Chạy lại phần đang lỗi; phần đã xong được giữ nguyên.",
+        "contactSupport": "Phần này đã lỗi quá số lần cho phép. Vui lòng liên hệ hỗ trợ.",
+        "toDossier": "Sang bước Hồ sơ",
+        "dossierWaiting": "Bước Hồ sơ mở khi cả dự toán và phối cảnh 3D đã xong.",
+        "status": {
+          "Ready": "Sẵn sàng",
+          "Queued": "Đang chờ",
+          "Running": "Đang chạy",
+          "Succeeded": "Xong",
+          "Failed": "Lỗi",
+          "Locked": "Chưa mở"
+        }
       }
     }
   },

@@ -109,13 +109,12 @@ export const STEP_HELP_TOPIC: Record<DesignStep, string> = {
   3: 'dossier'
 }
 
-/** Nút "?" của thanh tiến trình năm bước (luồng bốn chặng): Nhập liệu, ba chặng giữa, Hồ sơ. */
-export const PIPELINE_STEP_HELP_TOPIC: Record<1 | 2 | 3 | 4 | 5, string> = {
+/** Nút "?" của thanh tiến trình bốn bước (luồng bốn chặng): Nhập liệu, Bản vẽ 2D, Dự toán & 3D, Hồ sơ. */
+export const PIPELINE_STEP_HELP_TOPIC: Record<1 | 2 | 3 | 4, string> = {
   1: 'input',
   2: 'read-estimate',
   3: 'read-estimate',
-  4: 'read-estimate',
-  5: 'dossier'
+  4: 'dossier'
 }
 
 /**

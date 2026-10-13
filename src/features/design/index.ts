@@ -24,6 +24,9 @@ export {
   PIPELINE_STAGES,
   PIPELINE_STEPS,
   pipelineStepStates,
+  waitingTemplateKind,
+  dossierAutoStart,
+  dossierAutoKey,
   type PipelineStep,
   type PipelineStepState,
   type StageName,
@@ -180,6 +183,8 @@ export type {
 export { DesignLoadError } from './components/design-load-error'
 
 export { Render3dStageView } from './components/render3d-stage-view'
+export { StageGroupView, type StageGroupTab } from './components/stage-group-view'
+export { useStageGroupRun } from './hooks/use-stage-group-run'
 
 export { estimatePipelineApi } from './api/estimate-pipeline.api'
 export { designKeys } from './api/design.keys'

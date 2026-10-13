@@ -3,10 +3,10 @@
 import { AlertCircle, ArrowRight, Clock, Download, Loader2, PencilLine, RefreshCw } from 'lucide-react'
 import Image from 'next/image'
 import { useLocale, useTranslations } from 'next-intl'
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { toast } from 'sonner'
 
-import { Link } from '@/i18n/navigation'
+import { Link, useRouter } from '@/i18n/navigation'
 import type { Locale } from '@/i18n/routing'
 import { Button } from '@/shared/components/ui/button'
 import { designEstimateRoute, designInputRoute } from '@/shared/constants/routes'
@@ -15,9 +15,10 @@ import { formatDisplayDate } from '@/shared/utils'
 import { estimatePipelineApi } from '../api/estimate-pipeline.api'
 import { useEstimateDetail } from '../hooks/use-estimate-detail'
 import { usePlan2dResult } from '../hooks/use-plan2d-result'
+import { useStageGroupRun } from '../hooks/use-stage-group-run'
 import { useStageRun } from '../hooks/use-stage-run'
 import { useStages } from '../hooks/use-stages'
-import { stageOf, type StageView } from '../services/pipeline.logic'
+import { stageGroupActions, stageOf, type StageView } from '../services/pipeline.logic'
 import type { Plan2dDrawing, Plan2dResult } from '../schemas/pipeline-api.schema'
 import { StageRunProgress, StageStateCard as StateCard } from './pipeline-state-card'
 
@@ -42,7 +43,7 @@ function failureKey(code: string | null | undefined) {
  * chạy kèm tiến độ x/y), báo lỗi kèm số lần chạy lại còn lại, và hiện kết quả khi thành công. Không tự chạy lại; chạy
  * lại là thao tác của khách và giữ lượt mới vì lượt cũ đã được hoàn (BR-PROJ-011 khoản 5).
  */
-export function Plan2dStageView({ projectId }: { projectId: string }) {
+export function Plan2dStageView({ projectId, waitingPanel }: { projectId: string; waitingPanel?: ReactNode }) {
   const t = useTranslations('design.pipeline.plan')
   const stages = useStages(projectId)
   const plan2d = stageOf(stages.data, 'Plan2d')
@@ -84,7 +85,14 @@ export function Plan2dStageView({ projectId }: { projectId: string }) {
     return <Plan2dResultView result={result.data} projectId={projectId} />
   }
 
-  if (plan2d.status === 'Queued' || plan2d.status === 'Running') return <RunningCard stage={plan2d} />
+  // Trong lúc chờ, lớp app ghép mẫu 2D tham khảo của thư viện vào dưới thẻ tiến độ (BR-LIB-001 khoản 16).
+  if (plan2d.status === 'Queued' || plan2d.status === 'Running')
+    return (
+      <div className='space-y-6'>
+        <RunningCard stage={plan2d} />
+        {waitingPanel}
+      </div>
+    )
   if (plan2d.status === 'Failed') return <FailedCard projectId={projectId} stage={plan2d} />
   return <NotStartedCard projectId={projectId} />
 }
@@ -306,14 +314,47 @@ export function Plan2dResultView({ result, projectId }: { result: Plan2dResult; 
 
       <section className='bg-card flex flex-col gap-3 rounded-2xl border p-5 text-sm shadow-xs sm:flex-row sm:items-center sm:justify-between'>
         <p className='text-pretty'>{t('nextStage')}</p>
-        <Button asChild className='shrink-0'>
-          <Link href={designEstimateRoute(projectId)}>
-            {t('toEstimate')}
-            <ArrowRight className='size-4' />
-          </Link>
-        </Button>
+        <GoNextButton projectId={projectId} label={t('toEstimate')} />
       </section>
     </div>
+  )
+}
+
+/**
+ * Đi tiếp từ kết quả 2D (STORY-PROJ-002 bước 8): lần đầu thì tiếp nhận cùng lúc Dự toán và 3D rồi mở bước Dự toán & 3D;
+ * đã chạy rồi thì chỉ mở bước đó (BR-PROJ-010 khoản 2).
+ */
+function GoNextButton({ projectId, label }: { projectId: string; label: string }) {
+  const stages = useStages(projectId)
+  const run = useStageGroupRun(projectId)
+  const router = useRouter()
+  const actions = stageGroupActions(stageOf(stages.data, 'Estimate'), stageOf(stages.data, 'Render3d'))
+  if (!actions.next)
+    return (
+      <Button asChild className='shrink-0'>
+        <Link href={designEstimateRoute(projectId)}>
+          {label}
+          <ArrowRight className='size-4' />
+        </Link>
+      </Button>
+    )
+  const go = async () => {
+    if (run.isPending) return
+    try {
+      await run.mutateAsync()
+      router.push(designEstimateRoute(projectId))
+    } catch (error) {
+      const kind = run.kindOf(error)
+      if (kind === 'inProgress' || kind === 'alreadySucceeded') router.push(designEstimateRoute(projectId))
+      else toast.error(run.messageOf(error))
+    }
+  }
+  return (
+    <Button className='shrink-0' onClick={() => void go()} disabled={run.isPending}>
+      {run.isPending ? <Loader2 className='size-4 animate-spin' /> : null}
+      {label}
+      <ArrowRight className='size-4' />
+    </Button>
   )
 }
 

@@ -1,19 +1,16 @@
-import { setRequestLocale } from 'next-intl/server'
-import { notFound } from 'next/navigation'
+import { redirect } from '@/i18n/navigation'
 import type { Locale } from '@/i18n/routing'
-import { ProtectedRoute } from '@/shared/auth'
-import { env } from '@/shared/config/env'
-import { StepRender3dView } from './step-render3d-view'
+import { designEstimateRoute } from '@/shared/constants/routes'
+
 export function generateStaticParams() {
   return []
 }
+
+/**
+ * Phối cảnh 3D nay là một tab của bước Dự toán & 3D (hai chặng chạy cùng lúc, BR-PROJ-010 sửa 13/10/2026). Giữ route cũ
+ * để link đã gửi vẫn mở đúng tab.
+ */
 export default async function Render3dPage({ params }: { params: Promise<{ locale: Locale; projectId: string }> }) {
   const { locale, projectId } = await params
-  setRequestLocale(locale)
-  if (!env.NEXT_PUBLIC_ESTIMATE_PIPELINE_ENABLED || env.NEXT_PUBLIC_USE_MOCK_API) notFound()
-  return (
-    <ProtectedRoute>
-      <StepRender3dView projectId={projectId} />
-    </ProtectedRoute>
-  )
+  redirect({ href: `${designEstimateRoute(projectId)}?tab=render3d`, locale })
 }

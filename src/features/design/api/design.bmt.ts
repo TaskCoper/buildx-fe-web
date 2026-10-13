@@ -42,6 +42,8 @@ interface BmtEstimateListItem {
   state: string
   /** Luồng bốn chặng: chặng đã thành công gần nhất (`Plan2d`…); thiếu hoặc null khi chưa có chặng nào. */
   lastSucceededStage?: string | null
+  /** Luồng bốn chặng: mọi chặng đã thành công theo thứ tự chặng. */
+  succeededStages?: string[] | null
   createdAtUtc: string
   modifiedAtUtc: string
 }
@@ -109,13 +111,21 @@ const PIPELINE = env.NEXT_PUBLIC_ESTIMATE_PIPELINE_ENABLED
  */
 function pipelineFields(
   state: string,
-  lastSucceededStage?: string | null
+  lastSucceededStage?: string | null,
+  succeededStages?: string[] | null
 ): Pick<Project, 'currentStep' | 'status' | 'pipeline'> {
   const listState = normalizeListState(state)
+  const last = normalizeStageName(lastSucceededStage)
+  const succeeded = (succeededStages ?? []).map(normalizeStageName).filter((stage) => stage !== null)
   return {
     currentStep: listState === 'Draft' ? 1 : listState === 'Completed' ? 3 : 2,
     status: projectStatusOfListState(listState),
-    pipeline: { state: listState, lastSucceededStage: normalizeStageName(lastSucceededStage) }
+    // BE cũ chưa trả `succeededStages`: suy tối thiểu từ chặng gần nhất để không mở sai bước.
+    pipeline: {
+      state: listState,
+      lastSucceededStage: last,
+      succeededStages: succeeded.length > 0 || !last ? succeeded : [last]
+    }
   }
 }
 
@@ -164,7 +174,7 @@ export const bmtDesignApi = {
         ...(await Promise.all(
           page.items.map(async (item) =>
             PIPELINE
-              ? { ...toProject(item, 1), ...pipelineFields(item.state, item.lastSucceededStage) }
+              ? { ...toProject(item, 1), ...pipelineFields(item.state, item.lastSucceededStage, item.succeededStages) }
               : toProject(item, await resolveStep(item.estimateId, item.state))
           )
         ))

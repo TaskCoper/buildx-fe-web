@@ -38,7 +38,7 @@ import { StageRunProgress, StageStateCard } from './pipeline-state-card'
  * giây), Lỗi (câu chung theo mã lỗi, số lần chạy lại còn lại hoặc báo liên hệ hỗ trợ — BR-PROJ-011) và Thành công
  * (bảng dự toán theo màn của app demo).
  */
-export function EstimateStageView({ projectId }: { projectId: string }) {
+export function EstimateStageView({ projectId, embedded = false }: { projectId: string; embedded?: boolean }) {
   const t = useTranslations('design.pipeline.estimate')
   const stages = useStages(projectId)
   const stage = stageOf(stages.data, 'Estimate')
@@ -68,6 +68,7 @@ export function EstimateStageView({ projectId }: { projectId: string }) {
         </StageStateCard>
       )
     if (!result.data) return <Spinner />
+    if (embedded) return <EstimateStageResultView result={result.data} />
     return (
       <div className='space-y-6'>
         <EstimateStageResultView result={result.data} />
@@ -81,8 +82,9 @@ export function EstimateStageView({ projectId }: { projectId: string }) {
   }
 
   if (stage && isStageActive(stage.status)) return <RunningCard stage={stage} />
-  if (stage?.status === 'Failed') return <FailedCard projectId={projectId} stage={stage} />
-  if (stage?.status === 'Ready') return <NotStartedCard projectId={projectId} />
+  // Trong bước Dự toán & 3D, nút chạy nằm ở thanh thao tác chung (Đi tiếp/Thử lại), không ở từng tab.
+  if (stage?.status === 'Failed') return <FailedCard projectId={projectId} stage={stage} embedded={embedded} />
+  if (stage?.status === 'Ready') return <NotStartedCard projectId={projectId} embedded={embedded} />
   // Chưa mở, hoặc BE chưa trả chặng Dự toán trong danh sách: khách cần xong chặng 2D trước.
   return (
     <StageStateCard
@@ -168,27 +170,30 @@ function useRunEstimate(projectId: string) {
   return { start, busy: run.isPending }
 }
 
-function NotStartedCard({ projectId }: { projectId: string }) {
+function NotStartedCard({ projectId, embedded }: { projectId: string; embedded: boolean }) {
   const t = useTranslations('design.pipeline.estimate')
+  const tGroup = useTranslations('design.pipeline.group')
   const { start, busy } = useRunEstimate(projectId)
   return (
     <StageStateCard
       icon={<Calculator className='text-primary size-6' />}
       title={t('notStarted')}
-      description={t('notStartedHint')}
+      description={embedded ? tGroup('nextHint') : t('notStartedHint')}
     >
       <Button asChild variant='outline'>
         <Link href={designPlanRoute(projectId)}>{t('viewPlan')}</Link>
       </Button>
-      <Button onClick={() => void start()} disabled={busy}>
-        {busy ? <Loader2 className='size-4 animate-spin' /> : null}
-        {t('start')}
-      </Button>
+      {embedded ? null : (
+        <Button onClick={() => void start()} disabled={busy}>
+          {busy ? <Loader2 className='size-4 animate-spin' /> : null}
+          {t('start')}
+        </Button>
+      )}
     </StageStateCard>
   )
 }
 
-function FailedCard({ projectId, stage }: { projectId: string; stage: StageView }) {
+function FailedCard({ projectId, stage, embedded }: { projectId: string; stage: StageView; embedded: boolean }) {
   const t = useTranslations('design.pipeline.estimate')
   const { start, busy } = useRunEstimate(projectId)
   const retry = stageRetryState(stage)
@@ -210,7 +215,7 @@ function FailedCard({ projectId, stage }: { projectId: string; stage: StageView 
           <Button asChild variant='outline'>
             <Link href={designPlanRoute(projectId)}>{t('viewPlan')}</Link>
           </Button>
-          {retry.kind === 'limit' ? null : (
+          {retry.kind === 'limit' || embedded ? null : (
             <Button onClick={() => void start()} disabled={busy}>
               {busy ? <Loader2 className='size-4 animate-spin' /> : <RefreshCw className='size-4' />}
               {t('retry')}

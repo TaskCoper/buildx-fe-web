@@ -8,6 +8,8 @@ export const handbookKeys = {
   templateList: (filter: HandbookFilter) => [...handbookKeys.templates(), filter] as const,
   matched: (criteria: LibraryMatchCriteria, kind: HandbookTemplateKind) =>
     [...handbookKeys.templates(), 'matched', kind, criteria] as const,
+  sameType: (buildingTypeId: string, kind: HandbookTemplateKind) =>
+    [...handbookKeys.templates(), 'same-type', kind, buildingTypeId] as const,
   templateDetail: (id: string) => [...handbookKeys.templates(), 'detail', id] as const,
 
   articles: () => [...handbookKeys.all, 'articles'] as const,

@@ -2,20 +2,23 @@
  * Luồng dự toán bốn chặng (TDD-PROJ-006/007) — logic thuần, không React, không HTTP, không import giá trị nên chạy
  * được bằng `node --test` (xem `scripts/estimate-pipeline.test.mjs`).
  *
- * Bốn chặng nối nhau: Bản vẽ 2D → Dự toán → Phối cảnh 3D → Hồ sơ. Thanh tiến trình của khách có năm bước: Nhập liệu
- * rồi bốn chặng.
+ * Bốn chặng: Bản vẽ 2D, rồi Dự toán và Phối cảnh 3D chạy cùng lúc, sau cùng là Hồ sơ (BR-PROJ-010, sửa 13/10/2026).
+ * Thanh tiến trình của khách có bốn bước: Nhập liệu → Bản vẽ 2D → Dự toán & 3D → Hồ sơ.
  */
 
 export type StageName = 'Plan2d' | 'Estimate' | 'Render3d' | 'Dossier'
 
 export const PIPELINE_STAGES: readonly StageName[] = ['Plan2d', 'Estimate', 'Render3d', 'Dossier']
 
-/** Bước của thanh tiến trình năm bước: 1 Nhập liệu, 2 Bản vẽ 2D, 3 Dự toán, 4 Phối cảnh 3D, 5 Hồ sơ. */
-export type PipelineStep = 1 | 2 | 3 | 4 | 5
+/** Bước của thanh tiến trình bốn bước: 1 Nhập liệu, 2 Bản vẽ 2D, 3 Dự toán & 3D (hai chặng chạy cùng lúc), 4 Hồ sơ. */
+export type PipelineStep = 1 | 2 | 3 | 4
 
-export const PIPELINE_STEPS: readonly PipelineStep[] = [1, 2, 3, 4, 5]
+export const PIPELINE_STEPS: readonly PipelineStep[] = [1, 2, 3, 4]
 
-export const STEP_OF_STAGE: Record<StageName, PipelineStep> = { Plan2d: 2, Estimate: 3, Render3d: 4, Dossier: 5 }
+export const STEP_OF_STAGE: Record<StageName, PipelineStep> = { Plan2d: 2, Estimate: 3, Render3d: 3, Dossier: 4 }
+
+/** Cặp chặng chạy cùng lúc sau 2D, cùng một nút Đi tiếp/Thử lại (BR-PROJ-010 khoản 2–3). */
+export const PARALLEL_STAGES: readonly StageName[] = ['Estimate', 'Render3d']
 
 /**
  * Trạng thái chặng khách thấy (`GET /stages`, TDD-PROJ-006 State Diagram): Chưa mở, Sẵn sàng, Đang chờ, Đang chạy,
@@ -99,37 +102,92 @@ export function stageOf<T extends Pick<StageView, 'stage'>>(stages: readonly T[]
   return stages?.find((stage) => stage.stage === name)
 }
 
-/** Trạng thái một nấc của thanh tiến trình năm bước. */
+/** Trạng thái một nấc của thanh tiến trình bốn bước. */
 export type PipelineStepState = 'done' | 'current' | 'running' | 'failed' | 'ready' | 'locked'
+
+function stageStepState(status: StageStatus): PipelineStepState {
+  if (status === 'Succeeded') return 'done'
+  if (isStageActive(status)) return 'running'
+  if (status === 'Failed') return 'failed'
+  return status === 'Ready' ? 'ready' : 'locked'
+}
+
+/** Gộp trạng thái Dự toán và 3D thành một nấc: xong khi cả hai xong; đang chạy khi có chặng chạy; lỗi khi có chặng lỗi. */
+function groupStepState(statuses: readonly StageStatus[]): PipelineStepState {
+  if (statuses.every((status) => status === 'Succeeded')) return 'done'
+  if (statuses.some(isStageActive)) return 'running'
+  if (statuses.some((status) => status === 'Failed')) return 'failed'
+  return statuses.some((status) => status === 'Ready') ? 'ready' : 'locked'
+}
 
 /**
  * Nấc của thanh tiến trình theo trạng thái các chặng. Nấc 1 (Nhập liệu) xong khi chặng 2D đã được tiếp nhận hoặc
- * thành công; `current` là nấc của màn đang mở để tô màu thương hiệu.
+ * thành công; nấc 3 gộp Dự toán và 3D; `current` là nấc của màn đang mở để tô màu thương hiệu.
  */
 export function pipelineStepStates(
   stages: readonly Pick<StageView, 'stage' | 'status'>[] | undefined,
   current: PipelineStep
 ): Record<PipelineStep, PipelineStepState> {
-  const plan2d = stageOf(stages, 'Plan2d')?.status
-  const inputDone = plan2d === 'Succeeded' || isStageActive(plan2d)
-  const result = { 1: inputDone ? 'done' : 'ready' } as Record<PipelineStep, PipelineStepState>
-  for (const stage of PIPELINE_STAGES) {
-    const status = stageOf(stages, stage)?.status ?? (stage === 'Plan2d' ? 'Ready' : 'Locked')
-    result[STEP_OF_STAGE[stage]] =
-      status === 'Succeeded'
-        ? 'done'
-        : isStageActive(status)
-          ? 'running'
-          : status === 'Failed'
-            ? 'failed'
-            : status === 'Ready'
-              ? 'ready'
-              : 'locked'
+  const statusOf = (stage: StageName) => stageOf(stages, stage)?.status ?? (stage === 'Plan2d' ? 'Ready' : 'Locked')
+  const plan2d = statusOf('Plan2d')
+  const result: Record<PipelineStep, PipelineStepState> = {
+    1: plan2d === 'Succeeded' || isStageActive(plan2d) ? 'done' : 'ready',
+    2: stageStepState(plan2d),
+    3: groupStepState(PARALLEL_STAGES.map(statusOf)),
+    4: stageStepState(statusOf('Dossier'))
   }
   if (result[current] !== 'done' && result[current] !== 'running' && result[current] !== 'failed') {
     result[current] = 'current'
   }
   return result
+}
+
+/** Thao tác hiện ở bước Dự toán & 3D (BR-PROJ-010 khoản 2–4, BR-PROJ-011 khoản 9). */
+export interface StageGroupActions {
+  /** Đi tiếp: chưa chặng nào trong cặp có lần chạy và có chặng Sẵn sàng. */
+  next: boolean
+  /** Thử lại: có chặng Lỗi còn chạy lại được, kể cả khi chặng kia đang chạy. */
+  retry: boolean
+  /** Mọi chặng đang lỗi đều đã hết số lần chạy lại và không còn chặng nào chạy được: báo liên hệ hỗ trợ. */
+  contactSupport: boolean
+  /** Sang bước Hồ sơ: cả hai chặng đã thành công. */
+  toDossier: boolean
+}
+
+type GroupStage = Pick<StageView, 'status' | 'runId' | 'retriesLeft'> | undefined
+
+export function stageGroupActions(estimate: GroupStage, render3d: GroupStage): StageGroupActions {
+  const pair = [estimate, render3d]
+  const status = (stage: GroupStage): StageStatus => stage?.status ?? 'Locked'
+  const canRetry = (stage: GroupStage) => status(stage) === 'Failed' && (stage?.retriesLeft ?? 1) > 0
+  const failed = pair.filter((stage) => status(stage) === 'Failed')
+  const toDossier = pair.every((stage) => status(stage) === 'Succeeded')
+  const next = !toDossier && pair.every((stage) => !stage?.runId) && pair.some((stage) => status(stage) === 'Ready')
+  const retry = pair.some(canRetry)
+  const contactSupport =
+    failed.length > 0 && !retry && !pair.some((stage) => isStageActive(status(stage)) || status(stage) === 'Ready')
+  return { next, retry, contactSupport, toDossier }
+}
+
+/** Idempotency-Key cố định khi tự tạo hồ sơ: tải lại trang hay mở hai tab chỉ tạo một lần chạy (TDD-PROJ-011). */
+export function dossierAutoKey(estimateId: string): string {
+  return `dossier-auto:${estimateId}`
+}
+
+/**
+ * Có tự tạo hồ sơ khi khách vào bước Hồ sơ không (BR-PROJ-010 khoản 4): chỉ khi chặng Sẵn sàng và chưa có lần chạy nào.
+ * Lần chạy trước đã lỗi thì không tự chạy lại; khách bấm Chạy lại (STORY-PROJ-010 ALT-05).
+ */
+export function dossierAutoStart(dossier: Pick<StageView, 'status' | 'runId'> | undefined, pending: boolean): boolean {
+  return !pending && dossier?.status === 'Ready' && !dossier.runId
+}
+
+/** Loại mẫu thư viện cho màn chờ: 2D khi chặng 2D đang chạy, 3D khi Dự toán hoặc 3D đang chạy (BR-LIB-001 khoản 16). */
+export function waitingTemplateKind(
+  stages: readonly Pick<StageView, 'stage' | 'status'>[] | undefined
+): '2d' | '3d' | null {
+  if (isStageActive(stageOf(stages, 'Plan2d')?.status)) return '2d'
+  return PARALLEL_STAGES.some((stage) => isStageActive(stageOf(stages, stage)?.status)) ? '3d' : null
 }
 
 /* ===========================================================================
@@ -139,6 +197,7 @@ export function pipelineStepStates(
 /** Nhóm lỗi khi bấm chạy chặng — mỗi nhóm một câu cho khách (khóa `design.pipeline.runError.<kind>`). */
 export type StageRunErrorKind =
   | 'inProgress'
+  | 'groupRequired'
   | 'alreadySucceeded'
   | 'prerequisite'
   | 'retryLimit'
@@ -169,6 +228,8 @@ export function stageRunErrorKind(error: ErrorLike | null | undefined): StageRun
   switch (errorCode(error)) {
     case 'StageRunInProgress':
       return 'inProgress'
+    case 'StageRunGroupRequired':
+      return 'groupRequired'
     case 'StageAlreadySucceeded':
       return 'alreadySucceeded'
     case 'StagePrerequisiteNotMet':
@@ -395,28 +456,40 @@ export function normalizeStageName(raw: string | null | undefined): StageName | 
 }
 
 /**
- * Nấc của mini-stepper năm bước trên thẻ dự án: các chặng tới `lastSucceededStage` đã xong; nấc kế tiếp đang làm
- * (hoặc đang chạy / lỗi theo trạng thái danh sách); còn lại chưa tới. Hoàn tất thì cả năm nấc xong.
+ * Nấc của mini-stepper bốn bước trên thẻ dự án, tính từ các chặng đã xong: nấc đầu tiên chưa xong là nấc đang làm
+ * (hoặc lỗi theo trạng thái danh sách); các nấc sau chưa tới. Hoàn tất thì cả bốn nấc xong.
  */
 export function pipelineMiniSteps(
   state: PipelineListState,
-  lastSucceededStage: StageName | null
+  succeededStages: readonly StageName[]
 ): Record<PipelineStep, 'done' | 'current' | 'failed' | 'pending'> {
+  const done: Record<PipelineStep, boolean> = {
+    1: state !== 'Draft',
+    2: succeededStages.includes('Plan2d'),
+    3: PARALLEL_STAGES.every((stage) => succeededStages.includes(stage)),
+    4: state === 'Completed' || succeededStages.includes('Dossier')
+  }
+  if (state === 'Completed') for (const step of PIPELINE_STEPS) done[step] = true
   const result = {} as Record<PipelineStep, 'done' | 'current' | 'failed' | 'pending'>
-  const lastDone: number =
-    state === 'Completed' ? 5 : lastSucceededStage ? STEP_OF_STAGE[lastSucceededStage] : state === 'Draft' ? 0 : 1
+  let reached = false
   for (const step of PIPELINE_STEPS) {
-    if (step <= lastDone) result[step] = 'done'
-    else if (step === lastDone + 1) result[step] = state === 'Failed' ? 'failed' : 'current'
-    else result[step] = 'pending'
+    if (done[step] && !reached) result[step] = 'done'
+    else if (!reached) {
+      reached = true
+      result[step] = state === 'Failed' ? 'failed' : 'current'
+    } else result[step] = 'pending'
   }
   return result
 }
 
-/** Bước khách nên mở tiếp: bản nháp → Nhập liệu; còn lại → chặng kế tiếp sau chặng đã xong gần nhất. */
-export function resumeStep(state: PipelineListState, lastSucceededStage: StageName | null): PipelineStep {
+/**
+ * Bước khách nên mở tiếp (TDD-PROJ-006, chạy cùng lúc khoản 8): có Hồ sơ hoặc đã xong cả Dự toán và 3D → Hồ sơ; có 2D
+ * → Dự toán & 3D; đã có lần chạy 2D → Bản vẽ 2D; còn lại → Nhập liệu.
+ */
+export function resumeStep(state: PipelineListState, succeededStages: readonly StageName[]): PipelineStep {
   if (state === 'Draft') return 1
-  if (state === 'Completed') return 5
-  const after = lastSucceededStage ? STEP_OF_STAGE[lastSucceededStage] + 1 : 2
-  return Math.min(5, after) as PipelineStep
+  if (state === 'Completed' || succeededStages.includes('Dossier')) return 4
+  if (PARALLEL_STAGES.every((stage) => succeededStages.includes(stage))) return 4
+  if (succeededStages.includes('Plan2d')) return 3
+  return 2
 }

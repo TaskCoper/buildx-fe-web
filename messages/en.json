@@ -560,7 +560,8 @@
       "PromptTrialNotFound": "Trial or result file was not found.",
       "PromptTrialInterrupted": "The trial was interrupted and will not run again automatically.",
       "PromptTrialCostIncomplete": "Cost data for this trial is incomplete.",
-      "PromptTrialLastFailed": "The latest trial of these instructions did not pass."
+      "PromptTrialLastFailed": "The latest trial of these instructions did not pass.",
+      "StageRunGroupRequired": "Use Continue or Try again to run the estimate and the 3D renders together."
     }
   },
   "validation": {
@@ -1419,7 +1420,10 @@
         "count": "({count})",
         "empty": "No 2D floor plan in the library matches your project yet.",
         "error": "Couldn't load related templates. Your estimate is still being prepared as normal.",
-        "note": "These are reference templates from the library that match what you entered — not something the AI just generated."
+        "note": "These are reference templates from the library that match what you entered — not something the AI just generated.",
+        "sameType2d": "2D drawings of the same building type",
+        "sameType3d": "3D interiors of the same building type",
+        "sameTypeNote": "No template matches all your project details yet; these share your building type and are for reference only, not the AI result."
       }
     },
     "read": {
@@ -1646,11 +1650,10 @@
         "locked": "Not open yet"
       },
       "pipeline": {
-        "1": "Enter details",
+        "1": "Input",
         "2": "2D drawings",
-        "3": "Estimate",
-        "4": "3D renders",
-        "5": "Dossier"
+        "3": "Estimate & 3D",
+        "4": "Dossier"
       }
     },
     "entry": {
@@ -2451,7 +2454,8 @@
         "notFound": "The estimate was not found.",
         "network": "Connection lost. Check your network and click again; retrying will not use another credit.",
         "other": "The drawings could not be created. Please try again.",
-        "legacyResult": "This estimate still has a result from the old version, so the new flow cannot run. Please create a new estimate."
+        "legacyResult": "This estimate still has a result from the old version, so the new flow cannot run. Please create a new estimate.",
+        "groupRequired": "Use Continue or Try again to run the estimate and the 3D renders together."
       },
       "plan": {
         "pageTitle": "2D drawings",
@@ -2483,8 +2487,8 @@
         "refunded": "The reserved credit was returned.",
         "retryLimit": "This step has failed too many times. Please contact support to run it again.",
         "retry": "Run again",
-        "nextStage": "Your 2D drawings are done. The next step is to estimate the cost from these drawings.",
-        "toEstimate": "Go to the Estimate step",
+        "nextStage": "2D drawings are ready. Press Continue to prepare the estimate and the 3D renders at the same time.",
+        "toEstimate": "Continue",
         "result": {
           "lot": "Lot size",
           "lotSource": {
@@ -2582,7 +2586,7 @@
       },
       "locked": {
         "pageTitle": {
-          "5": "Dossier"
+          "4": "Dossier"
         },
         "title": "This step is not open yet",
         "description": "This version has the 2D drawings and Estimate steps. 3D renders and dossier will open in upcoming updates.",
@@ -2593,7 +2597,7 @@
         "pageTitleWithProject": "{name} · {id} — 3D perspectives",
         "loading": "Loading perspectives",
         "locked": "3D perspectives are locked",
-        "lockedHint": "Complete the estimate to create perspectives.",
+        "lockedHint": "Finish the 2D drawings to create the renders.",
         "back": "Back to estimate",
         "ready": "Ready to create 3D perspectives",
         "noQuota": "No additional design credit is used.",
@@ -2605,7 +2609,7 @@
         "failed": "3D perspectives are incomplete",
         "retry": "Continue missing images",
         "succeeded": "3D perspectives completed",
-        "dossierNext": "All images are ready for the dossier. Dossier creation will be available in the next release.",
+        "dossierNext": "All renders are ready for the dossier.",
         "notes": "Notes on selected views",
         "pending": "Image pending",
         "openImage": "Open image: {name}",
@@ -2617,7 +2621,7 @@
       "dossier": {
         "loading": "Loading dossier…",
         "locked": "Complete 3D perspectives first",
-        "back": "Back to 3D",
+        "back": "Back to estimate & 3D",
         "running": "Preparing dossier",
         "failed": "Dossier could not be completed",
         "failureHint": "Saved files will be checked before continuing. This error does not use design credits.",
@@ -2625,7 +2629,31 @@
         "progress": "{done}/{total} files complete",
         "noQuota": "Creating a dossier does not use design credits.",
         "reload": "Reload",
-        "loadError": "Could not load the dossier."
+        "loadError": "Could not load the dossier.",
+        "autoStarting": "Starting your dossier…"
+      },
+      "group": {
+        "pageTitle": "Estimate & 3D renders",
+        "pageTitleWithProject": "Estimate & 3D renders — {name} ({id})",
+        "tabs": {
+          "estimate": "Estimate",
+          "render3d": "3D renders"
+        },
+        "next": "Continue",
+        "nextHint": "We will prepare the estimate and the 3D renders at the same time, with no extra credit used.",
+        "retry": "Try again",
+        "retryHint": "Runs the failed part again; finished results are kept.",
+        "contactSupport": "This part has failed too many times. Please contact support.",
+        "toDossier": "Go to dossier",
+        "dossierWaiting": "The dossier step opens once both the estimate and the 3D renders are ready.",
+        "status": {
+          "Ready": "Ready",
+          "Queued": "Queued",
+          "Running": "Running",
+          "Succeeded": "Done",
+          "Failed": "Failed",
+          "Locked": "Locked"
+        }
       }
     }
   },

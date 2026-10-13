@@ -220,25 +220,91 @@ test('tiến độ x/y đọc cả dạng đối tượng và chuỗi, không đ
   assert.equal(pipeline.progressPercent({ done: 3, total: null }), null)
 })
 
-test('thanh tiến trình năm bước theo trạng thái chặng', () => {
-  const states = pipeline.pipelineStepStates(
-    [
-      { stage: 'Plan2d', status: 'Succeeded' },
-      { stage: 'Estimate', status: 'Failed' },
-      { stage: 'Render3d', status: 'Locked' },
-      { stage: 'Dossier', status: 'Locked' }
-    ],
-    2
-  )
-  assert.deepEqual(states, { 1: 'done', 2: 'done', 3: 'failed', 4: 'locked', 5: 'locked' })
-  const fresh = pipeline.pipelineStepStates(undefined, 1)
-  assert.deepEqual(fresh, { 1: 'current', 2: 'ready', 3: 'locked', 4: 'locked', 5: 'locked' })
+// UT-PROJ-568 — thanh bốn bước; nấc 3 gộp Dự toán và 3D chạy cùng lúc (BR-PROJ-010 khoản 10).
+test('thanh tiến trình bốn bước, nấc Dự toán & 3D gộp hai chặng', () => {
+  const at = (estimate, render3d, dossier = 'Locked') =>
+    pipeline.pipelineStepStates(
+      [
+        { stage: 'Plan2d', status: 'Succeeded' },
+        { stage: 'Estimate', status: estimate },
+        { stage: 'Render3d', status: render3d },
+        { stage: 'Dossier', status: dossier }
+      ],
+      3
+    )
+  assert.deepEqual(at('Ready', 'Ready'), { 1: 'done', 2: 'done', 3: 'current', 4: 'locked' })
+  assert.equal(at('Running', 'Succeeded')[3], 'running')
+  assert.equal(at('Failed', 'Running')[3], 'running')
+  assert.equal(at('Failed', 'Succeeded')[3], 'failed')
+  assert.deepEqual(at('Succeeded', 'Succeeded', 'Ready'), { 1: 'done', 2: 'done', 3: 'done', 4: 'ready' })
+  assert.deepEqual(pipeline.pipelineStepStates(undefined, 1), { 1: 'current', 2: 'ready', 3: 'locked', 4: 'locked' })
+  assert.deepEqual(pipeline.PIPELINE_STEPS, [1, 2, 3, 4])
+  assert.deepEqual(pipeline.STEP_OF_STAGE, { Plan2d: 2, Estimate: 3, Render3d: 3, Dossier: 4 })
+})
+
+// UT-PROJ-570 — nút ở bước Dự toán & 3D (BR-PROJ-010 khoản 2–4, BR-PROJ-011 khoản 9).
+test('Đi tiếp, Thử lại, Sang bước Hồ sơ theo trạng thái hai chặng', () => {
+  const s = (status, runId = null, retriesLeft = 3) => ({ status, runId, retriesLeft })
+  const act = pipeline.stageGroupActions
+  assert.deepEqual(act(s('Ready'), s('Ready')), { next: true, retry: false, contactSupport: false, toDossier: false })
+  assert.deepEqual(act(s('Running', 'r2'), s('Failed', 'r5', 2)), {
+    next: false,
+    retry: true,
+    contactSupport: false,
+    toDossier: false
+  })
+  assert.equal(act(s('Failed', 'r2', 0), s('Failed', 'r5', 1)).retry, true)
+  assert.deepEqual(act(s('Failed', 'r2', 0), s('Failed', 'r5', 0)), {
+    next: false,
+    retry: false,
+    contactSupport: true,
+    toDossier: false
+  })
+  assert.deepEqual(act(s('Succeeded', 'r2'), s('Succeeded', 'r5')), {
+    next: false,
+    retry: false,
+    contactSupport: false,
+    toDossier: true
+  })
+  assert.deepEqual(act(s('Running', 'r2'), s('Queued', 'r5')), {
+    next: false,
+    retry: false,
+    contactSupport: false,
+    toDossier: false
+  })
+})
+
+// UT-PROJ-572 — tự tạo hồ sơ chỉ khi Sẵn sàng và chưa có lần chạy nào, khóa cố định theo bản dự toán.
+test('tự tạo hồ sơ khi vào bước Hồ sơ lần đầu', () => {
+  assert.equal(pipeline.dossierAutoKey('D1'), 'dossier-auto:D1')
+  assert.equal(pipeline.dossierAutoStart({ status: 'Ready', runId: null }, false), true)
+  assert.equal(pipeline.dossierAutoStart({ status: 'Failed', runId: 'R7' }, false), false)
+  assert.equal(pipeline.dossierAutoStart({ status: 'Locked', runId: null }, false), false)
+  assert.equal(pipeline.dossierAutoStart({ status: 'Running', runId: 'R7' }, false), false)
+  assert.equal(pipeline.dossierAutoStart({ status: 'Succeeded', runId: 'R7' }, false), false)
+  assert.equal(pipeline.dossierAutoStart({ status: 'Ready', runId: null }, true), false)
+  assert.equal(pipeline.dossierAutoStart(undefined, false), false)
+})
+
+// UT-LIB-091 — loại mẫu thư viện của màn chờ theo chặng đang chạy (BR-LIB-001 khoản 16).
+test('màn chờ hiện mẫu 2D khi chạy 2D, mẫu 3D khi chạy Dự toán hoặc 3D', () => {
+  const kind = (plan2d, estimate, render3d) =>
+    pipeline.waitingTemplateKind([
+      { stage: 'Plan2d', status: plan2d },
+      { stage: 'Estimate', status: estimate },
+      { stage: 'Render3d', status: render3d }
+    ])
+  assert.equal(kind('Running', 'Locked', 'Locked'), '2d')
+  assert.equal(kind('Succeeded', 'Queued', 'Ready'), '3d')
+  assert.equal(kind('Succeeded', 'Succeeded', 'Running'), '3d')
+  assert.equal(kind('Succeeded', 'Succeeded', 'Succeeded'), null)
 })
 
 test('lỗi khi bấm chạy chặng ánh xạ đúng nhóm', () => {
   const kind = (code, status = 409) => pipeline.stageRunErrorKind({ status, code })
   assert.equal(kind('StageRetryLimitReached'), 'retryLimit')
   assert.equal(kind('StageRunInProgress'), 'inProgress')
+  assert.equal(kind('StageRunGroupRequired'), 'groupRequired')
   assert.equal(kind('LegacyResultExists'), 'legacyResult')
   assert.equal(kind('InvalidStageInput', 422), 'invalidInput')
   assert.equal(kind('PipelineUnavailable', 503), 'maintenance')
@@ -278,42 +344,42 @@ test('năm trạng thái danh sách, Succeeded là bí danh của Completed', ()
   assert.equal(pipeline.projectStatusOfListState('Completed'), 'completed')
 })
 
-test('mini-stepper năm nấc theo chặng đã xong gần nhất', () => {
-  assert.deepEqual(pipeline.pipelineMiniSteps('Draft', null), {
-    1: 'current',
-    2: 'pending',
-    3: 'pending',
-    4: 'pending',
-    5: 'pending'
-  })
-  assert.deepEqual(pipeline.pipelineMiniSteps('Processing', null), {
+test('mini-stepper bốn nấc theo các chặng đã xong', () => {
+  assert.deepEqual(pipeline.pipelineMiniSteps('Draft', []), { 1: 'current', 2: 'pending', 3: 'pending', 4: 'pending' })
+  assert.deepEqual(pipeline.pipelineMiniSteps('Processing', []), {
     1: 'done',
     2: 'current',
     3: 'pending',
-    4: 'pending',
-    5: 'pending'
+    4: 'pending'
   })
-  assert.deepEqual(pipeline.pipelineMiniSteps('InProgress', 'Plan2d'), {
+  assert.deepEqual(pipeline.pipelineMiniSteps('InProgress', ['Plan2d']), {
     1: 'done',
     2: 'done',
     3: 'current',
-    4: 'pending',
-    5: 'pending'
+    4: 'pending'
   })
-  assert.deepEqual(pipeline.pipelineMiniSteps('Failed', 'Plan2d'), {
+  assert.deepEqual(pipeline.pipelineMiniSteps('Failed', ['Plan2d', 'Render3d']), {
     1: 'done',
     2: 'done',
     3: 'failed',
-    4: 'pending',
-    5: 'pending'
+    4: 'pending'
   })
-  assert.deepEqual(pipeline.pipelineMiniSteps('Completed', 'Dossier'), {
+  assert.deepEqual(pipeline.pipelineMiniSteps('Completed', ['Plan2d', 'Estimate', 'Render3d', 'Dossier']), {
     1: 'done',
     2: 'done',
     3: 'done',
-    4: 'done',
-    5: 'done'
+    4: 'done'
   })
+})
+
+// UT-PROJ-569 — mở bước theo các chặng đã xong (TDD-PROJ-006, chạy cùng lúc khoản 8).
+test('mở tiếp đúng bước theo succeededStages', () => {
+  assert.equal(pipeline.resumeStep('Draft', []), 1)
+  assert.equal(pipeline.resumeStep('Processing', []), 2)
+  assert.equal(pipeline.resumeStep('InProgress', ['Plan2d']), 3)
+  assert.equal(pipeline.resumeStep('Failed', ['Plan2d', 'Render3d']), 3)
+  assert.equal(pipeline.resumeStep('InProgress', ['Plan2d', 'Estimate', 'Render3d']), 4)
+  assert.equal(pipeline.resumeStep('Completed', ['Plan2d', 'Estimate', 'Render3d', 'Dossier']), 4)
 })
 
 /* ---------------------------------------------------------------------------
@@ -628,15 +694,35 @@ test('3D: không giữ prompt hoặc khóa kho ngoài hợp đồng khách hàng
 // STORY-PROJ-013 readiness: keep incomplete types visible, block selection and generation.
 test('incomplete building type cannot replace a draft selection and remains visibly selected in an old draft', () => {
   const old = input.draftFromInput({ buildingTypeId: 'old', description: 'Keep customer input' })
-  const catalog = input.normalizeCatalog({ buildingTypes: [
-    { buildingTypeId: 'old', name: 'Old', aiAvailable: true, floorsEnabled: false, tumEnabled: false, architectureEnabled: false, interiorEnabled: false },
-    { buildingTypeId: 'new', name: 'New', aiAvailable: false, floorsEnabled: false, tumEnabled: false, architectureEnabled: false, interiorEnabled: false }
-  ] })
+  const catalog = input.normalizeCatalog({
+    buildingTypes: [
+      {
+        buildingTypeId: 'old',
+        name: 'Old',
+        aiAvailable: true,
+        floorsEnabled: false,
+        tumEnabled: false,
+        architectureEnabled: false,
+        interiorEnabled: false
+      },
+      {
+        buildingTypeId: 'new',
+        name: 'New',
+        aiAvailable: false,
+        floorsEnabled: false,
+        tumEnabled: false,
+        architectureEnabled: false,
+        interiorEnabled: false
+      }
+    ]
+  })
   assert.equal(catalog.buildingTypes.length, 2)
   assert.equal(input.applyBuildingType(old, catalog, 'new'), old)
   const savedUnavailable = { ...old, buildingTypeId: 'new' }
   assert.equal(input.selectedType(catalog, savedUnavailable).name, 'New')
-  assert.ok(input.pipelineMissingFields(savedUnavailable, catalog, { lotVerificationPassed: false }).includes('catalogMapping'))
+  assert.ok(
+    input.pipelineMissingFields(savedUnavailable, catalog, { lotVerificationPassed: false }).includes('catalogMapping')
+  )
   catalog.buildingTypes[1].aiAvailable = true
   assert.equal(input.applyBuildingType(old, catalog, 'new').buildingTypeId, 'new')
   assert.equal(input.applyBuildingType(old, catalog, 'new').description, 'Keep customer input')

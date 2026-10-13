@@ -39,6 +39,7 @@ const BmtHandbookApi = {
   // lại của trang (nổi bật, nền tảng, bản tin) dùng mock.
   listTemplates: bmtHandbookApi.listTemplates,
   matchTemplates: bmtHandbookApi.matchTemplates,
+  listSameBuildingType: bmtHandbookApi.listSameBuildingType,
   getTemplate: bmtHandbookApi.getTemplate,
   getLibraryFilters: bmtHandbookApi.getLibraryFilters,
   listTemplateIdsByStyle: bmtHandbookApi.listTemplateIdsByStyle,

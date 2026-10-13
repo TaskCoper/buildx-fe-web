@@ -84,10 +84,10 @@ export function MyProjects({ renderSupervision }: MyProjectsProps = {}) {
         {projects.map((project) => {
           const done = project.status === 'completed'
           const pipeline = project.pipeline
-            ? pipelineMiniSteps(project.pipeline.state, project.pipeline.lastSucceededStage)
+            ? pipelineMiniSteps(project.pipeline.state, project.pipeline.succeededStages)
             : null
           const currentStep = project.pipeline
-            ? resumeStep(project.pipeline.state, project.pipeline.lastSucceededStage)
+            ? resumeStep(project.pipeline.state, project.pipeline.succeededStages)
             : project.currentStep
           const shownSteps = pipeline ? PIPELINE_STEPS : DESIGN_STEPS
           // Hình S24: nửa trên của thẻ và khối giám sát mỗi phần cao đúng MỘT

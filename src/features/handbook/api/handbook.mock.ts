@@ -54,6 +54,11 @@ export const mockHandbookApi = {
     ..._args: [criteria: LibraryMatchCriteria, kind: HandbookTemplateKind, pageSize?: number]
   ): Promise<{ items: HandbookTemplate[]; totalCount: number }> => ({ items: [], totalCount: 0 }),
 
+  /** Mock không có danh mục thật nên không có mẫu cùng loại công trình để đối chiếu. */
+  listSameBuildingType: async (
+    ..._args: [kind: HandbookTemplateKind, buildingTypeId: string, pageSize?: number]
+  ): Promise<{ items: HandbookTemplate[]; totalCount: number }> => ({ items: [], totalCount: 0 }),
+
   getTemplate: async (id: string): Promise<HandbookTemplate | null> => {
     await mockDelay()
     const template = cmsDb.find('handbookTemplates', id)

@@ -86,12 +86,14 @@ export interface Project {
    */
   floorArea?: number | null
   /**
-   * Luồng bốn chặng (BR-PROJ-008 khoản 2): trạng thái danh sách và chặng đã thành công gần nhất. Có trường này thì thẻ
-   * dùng mini-stepper năm nấc và mở tiếp theo chặng, không theo `currentStep` của luồng cũ.
+   * Luồng bốn chặng (BR-PROJ-008 khoản 2): trạng thái danh sách và các chặng đã thành công. Có trường này thì thẻ dùng
+   * mini-stepper bốn nấc và mở tiếp theo chặng, không theo `currentStep` của luồng cũ.
    */
   pipeline?: {
     state: 'Draft' | 'Processing' | 'Failed' | 'InProgress' | 'Completed'
     lastSucceededStage: 'Plan2d' | 'Estimate' | 'Render3d' | 'Dossier' | null
+    /** Mọi chặng đã thành công (Dự toán và 3D chạy cùng lúc nên một chặng gần nhất không đủ, TDD-PROJ-006). */
+    succeededStages: ('Plan2d' | 'Estimate' | 'Render3d' | 'Dossier')[]
   }
 }
 

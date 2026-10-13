@@ -10,10 +10,12 @@ import {
   lotVerificationSchema,
   plan2dResultSchema,
   stageRunAcceptedSchema,
+  stageRunGroupAcceptedSchema,
   stagesSchema,
   type EstimateStageResult,
   type Plan2dResult,
-  type StageRunAccepted
+  type StageRunAccepted,
+  type StageRunGroupAccepted
 } from '../schemas/pipeline-api.schema'
 import type { LotVerificationView, StageName, StageView } from '../services/pipeline.logic'
 
@@ -47,6 +49,15 @@ export const estimatePipelineApi = {
         inputVersion === null || inputVersion === undefined ? {} : { inputVersion },
         { headers: { 'Idempotency-Key': key } }
       )
+    ),
+
+  /**
+   * Đi tiếp/Thử lại ở bước Dự toán & 3D: BE tự chọn các chặng còn chạy được trong cặp và nhận cả hoặc không chặng nào
+   * (BR-PROJ-010 khoản 2–3). Khóa giữ nguyên khi thử lại cùng lần bấm sau lỗi mạng/máy chủ.
+   */
+  startGroupRun: async (estimateId: string, key: string): Promise<StageRunGroupAccepted> =>
+    stageRunGroupAcceptedSchema.parse(
+      await http.post<unknown>(`/estimates/${estimateId}/stage-runs`, {}, { headers: { 'Idempotency-Key': key } })
     ),
 
   /** Kết quả chặng 2D gửi khách; chỉ có khi chặng đã thành công (409 `StageResultNotReady` nếu chưa). */

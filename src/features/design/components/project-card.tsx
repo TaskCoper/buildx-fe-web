@@ -98,13 +98,13 @@ function MiniStepper({ project }: { project: Project }) {
     return () => window.clearTimeout(timer)
   }, [phase])
 
-  // Luồng bốn chặng: năm nấc Nhập liệu → 2D → Dự toán → 3D → Hồ sơ theo chặng đã xong gần nhất.
+  // Luồng bốn chặng: bốn nấc Nhập liệu → 2D → Dự toán & 3D → Hồ sơ theo các chặng đã xong.
   const pipelineStates = project.pipeline
-    ? pipelineMiniSteps(project.pipeline.state, project.pipeline.lastSucceededStage)
+    ? pipelineMiniSteps(project.pipeline.state, project.pipeline.succeededStages)
     : null
   const steps: readonly number[] = pipelineStates ? PIPELINE_STEPS : DESIGN_STEPS
   const stateOf = (step: number) =>
-    pipelineStates ? pipelineStates[step as 1 | 2 | 3 | 4 | 5] : miniStepState(step as 1 | 2 | 3, project)
+    pipelineStates ? pipelineStates[step as 1 | 2 | 3 | 4] : miniStepState(step as 1 | 2 | 3, project)
 
   return (
     <ol data-stepper-phase={phase} className='mt-1.5 flex min-w-0 items-start'>

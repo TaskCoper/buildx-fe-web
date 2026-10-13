@@ -8,7 +8,7 @@ import { PipelineStageLocked, StepProgress, usePipelineSteps, type PipelineStep 
  * Luồng bốn chặng bật mà khách mở màn Hồ sơ của luồng cũ: chặng Hồ sơ chưa có, hiện thông báo chưa mở thay cho màn cũ
  * (màn cũ đọc kết quả `mock-v1`, không đúng với bản dự toán của luồng mới). Chặng Dự toán đã có màn riêng từ đợt 2.
  */
-export function PipelineLockedView({ projectId, step }: { projectId: string; step: Extract<PipelineStep, 5> }) {
+export function PipelineLockedView({ projectId, step }: { projectId: string; step: Extract<PipelineStep, 4> }) {
   const t = useTranslations('design.pipeline.locked')
   const steps = usePipelineSteps(projectId, step)
   return (
