@@ -25,7 +25,7 @@ import { useLocale, useTranslations } from 'next-intl'
 import { cloneElement, isValidElement, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
-import { Link, useRouter } from '@/i18n/navigation'
+import { Link } from '@/i18n/navigation'
 import type { Locale } from '@/i18n/routing'
 import { useCmsCollection } from '@/shared/cms'
 import {
@@ -51,7 +51,6 @@ import { Tabs, TabsList, TabsTrigger } from '@/shared/components/ui/tabs'
 import {
   CONTRACTOR_PREVIEW_ID,
   contractorCompareRoute,
-  contractorFirmRoute,
   contractorInvitationsRoute,
   contractorInviteRoute,
   contractorMatchesRoute
@@ -76,8 +75,9 @@ import { ProjectPickerDialog } from './project-picker-dialog'
 interface ContractorProfileProps {
   projectId: string
   contractorId: string
-  /** Tab đang mở, lấy từ `?tab=` để chia sẻ được đường dẫn tới đúng tab. */
+  /** Tab đang mở, lưu ở `?tab=` để chia sẻ được đường dẫn tới đúng tab. */
   tab: ContractorTab
+  onTabChange: (tab: ContractorTab) => void
 }
 
 /** Bề ngang trang, đo từ ảnh S13: khối nội dung chiếm 90% bề ngang màn. */
@@ -231,11 +231,10 @@ function InviteButton({
  *   vi). Năm thành lập, quy mô đội ngũ và văn phòng chuyển sang cột trái, nằm
  *   ngay dưới đoạn giới thiệu.
  */
-export function ContractorProfile({ projectId, contractorId, tab }: ContractorProfileProps) {
+export function ContractorProfile({ projectId, contractorId, tab, onTabChange }: ContractorProfileProps) {
   const t = useTranslations('contractors.firm')
   const tCommon = useTranslations('contractors.common')
   const locale = useLocale() as Locale
-  const router = useRouter()
 
   const openPicker = useProjectPickerStore((s) => s.openPicker)
   /** Xem thử — chưa gắn hồ sơ dự án nào (xem `CONTRACTOR_PREVIEW_ID`). */
@@ -420,11 +419,7 @@ export function ContractorProfile({ projectId, contractorId, tab }: ContractorPr
 
       <div className='grid gap-x-[1.4%] gap-y-5 lg:grid-cols-[79%_minmax(0,1fr)]'>
         <div className='min-w-0'>
-          <Tabs
-            value={tab}
-            onValueChange={(next) => router.replace(contractorFirmRoute(projectId, contractorId, next))}
-            className='gap-5'
-          >
+          <Tabs value={tab} onValueChange={(next) => onTabChange(next as ContractorTab)} className='gap-5'>
             {/* Nhận diện + chỉ số + tab: một thẻ duy nhất, đúng ảnh S13. */}
             <motion.div
               initial={{ opacity: 0, y: 16 }}

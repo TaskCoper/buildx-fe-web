@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
-import { getTranslations } from 'next-intl/server'
+import { getMessages, getTranslations } from 'next-intl/server'
+import type { AbstractIntlMessages } from 'next-intl'
 import type { ReactNode } from 'react'
 
 import type { Locale } from '@/i18n/routing'
@@ -25,6 +26,15 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
  * thêm một module qua dynamic ssr:false. AuthBootstrap vẫn trả loading trong
  * HTML ban đầu; không đưa hồ sơ hay dữ liệu quản trị vào cache của server.
  */
-export default function AdminLayout({ children }: { children: ReactNode }) {
-  return <AdminApp>{children}</AdminApp>
+export default async function AdminLayout({
+  children,
+  params
+}: {
+  children: ReactNode
+  params: Promise<{ locale: string }>
+}) {
+  const { locale } = await params
+  // Layout gốc đã bỏ nhánh `admin` khỏi bảng chữ của site khách; khu quản trị nhận lại đúng nhánh đó ở đây.
+  const { admin } = await getMessages({ locale: locale as Locale })
+  return <AdminApp adminMessages={admin as AbstractIntlMessages}>{children}</AdminApp>
 }

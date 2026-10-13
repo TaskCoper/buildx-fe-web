@@ -1,6 +1,7 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import { NextIntlClientProvider, useLocale, useMessages, type AbstractIntlMessages } from 'next-intl'
+import { useMemo, type ReactNode } from 'react'
 
 import { AdminRouteGuard, AdminShell } from '@/features/admin'
 import { AdminGuard, ProtectedRoute } from '@/shared/auth'
@@ -19,16 +20,23 @@ import { AdminForbidden } from './admin-forbidden'
  *      có quyền" KÈM đường quay ra, thay vì nội dung. Cả hai lớp guard là UX;
  *      backend .NET mới là nơi phân quyền thật sự.
  */
-export function AdminApp({ children }: { children: ReactNode }) {
+export function AdminApp({ children, adminMessages }: { children: ReactNode; adminMessages: AbstractIntlMessages }) {
+  const locale = useLocale()
+  const siteMessages = useMessages()
+  // Bảng chữ của site khách không có nhánh `admin` (layout gốc bỏ đi để trang khách nhẹ hơn); ghép lại cho khu quản trị.
+  const messages = useMemo(() => ({ ...siteMessages, admin: adminMessages }), [siteMessages, adminMessages])
+
   return (
-    <AntdProvider>
-      <ProtectedRoute>
-        <AdminGuard fallback={<AdminForbidden />}>
-          <AdminShell userSlot={<AdminAccount />}>
-            <AdminRouteGuard>{children}</AdminRouteGuard>
-          </AdminShell>
-        </AdminGuard>
-      </ProtectedRoute>
-    </AntdProvider>
+    <NextIntlClientProvider locale={locale} messages={messages}>
+      <AntdProvider>
+        <ProtectedRoute>
+          <AdminGuard fallback={<AdminForbidden />}>
+            <AdminShell userSlot={<AdminAccount />}>
+              <AdminRouteGuard>{children}</AdminRouteGuard>
+            </AdminShell>
+          </AdminGuard>
+        </ProtectedRoute>
+      </AntdProvider>
+    </NextIntlClientProvider>
   )
 }
