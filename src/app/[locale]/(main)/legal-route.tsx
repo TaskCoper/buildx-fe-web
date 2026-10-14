@@ -26,6 +26,7 @@ export async function legalMetadata(locale: Locale, doc: LegalSectionKey): Promi
 export async function LegalRoute({ locale, doc }: { locale: Locale; doc: LegalSectionKey }) {
   setRequestLocale(locale)
 
-  const saved = legalPageOf(await fetchPageSections(FOOTER_PAGE_KEY, locale), doc)
-  return saved ? <LegalHtmlPage html={saved.body} /> : <LegalPage doc={doc} />
+  // Chỉ nội dung quyết định có dùng bản admin soạn hay không; tên tab do `legalMetadata` lo riêng.
+  const body = legalPageOf(await fetchPageSections(FOOTER_PAGE_KEY, locale), doc)?.body
+  return body ? <LegalHtmlPage html={body} /> : <LegalPage doc={doc} />
 }

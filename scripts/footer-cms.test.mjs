@@ -112,11 +112,16 @@ test('SOCIAL_NETWORKS: mỗi mạng một trường, không trùng', () => {
   assert.equal(new Set(footer.SOCIAL_NETWORKS.map((item) => item.field)).size, 5)
 })
 
-test('legalPageOf: chỉ trả trang khi admin đã soạn nội dung', () => {
+test('legalPageOf: tên tab và nội dung độc lập, chỉ undefined khi admin chưa sửa gì', () => {
   assert.equal(footer.legalPageOf(undefined, 'terms'), undefined)
   assert.equal(footer.legalPageOf({}, 'terms'), undefined)
-  assert.equal(footer.legalPageOf(sectionsOf(['terms', { title: 'Chỉ có tiêu đề' }]), 'terms'), undefined)
   assert.equal(footer.legalPageOf(sectionsOf(['terms', { body: '   ' }]), 'terms'), undefined)
+
+  // Sửa mỗi tên tab: khối chỉ có `title` (màn admin bỏ trường giống bản có sẵn) — tên tab vẫn phải đổi.
+  assert.deepEqual(footer.legalPageOf(sectionsOf(['terms', { title: ' Chỉ có tiêu đề ' }]), 'terms'), {
+    title: 'Chỉ có tiêu đề',
+    body: undefined
+  })
 
   assert.deepEqual(
     footer.legalPageOf(sectionsOf(['privacy', { title: ' Riêng tư ', body: '<h2>A</h2><p>B</p>' }]), 'privacy'),
