@@ -54,7 +54,7 @@ export function StepPlanView({ projectId }: { projectId: string }) {
           projectId={projectId}
           waitingPanel={
             waiting ? (
-              <PersonalizedPanel filter={{}} kind='2d' topic='architecture' matchCriteria={criteria} />
+              <PersonalizedPanel filter={{}} kind='2d' topic='architecture' matchCriteria={criteria} matchedOnly />
             ) : undefined
           }
           waitingPanelCollapsed={panelMinimized}
