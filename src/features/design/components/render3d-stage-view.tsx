@@ -10,6 +10,7 @@ import { designDossierRoute, designEstimateRoute } from '@/shared/constants/rout
 import { estimatePipelineApi } from '../api/estimate-pipeline.api'
 import { useRender3dResult } from '../hooks/use-render3d-result'
 import { useStageRun } from '../hooks/use-stage-run'
+import { useStageEtaText } from '../hooks/use-stage-eta'
 import { useStages } from '../hooks/use-stages'
 import type { Render3dResult } from '../schemas/pipeline-api.schema'
 import { estimateFailureKind, stageRetryState } from '../services/estimate-stage.logic'
@@ -37,6 +38,7 @@ export function Render3dStageView({
   const run = useStageRun(projectId, 'Render3d')
   const busy = isStageActive(stage?.status)
   const retry = stageRetryState(stage ?? {})
+  const etaText = useStageEtaText(stage?.acceptedAtUtc)
   const start = async () => {
     if (run.isPending) return
     try {
@@ -113,6 +115,7 @@ export function Render3dStageView({
                 />
               )}
               {busy && !result.data?.planReady && <p className='text-muted-foreground text-sm'>{t('preparing')}</p>}
+              {busy && <p className='text-muted-foreground text-xs'>{etaText}</p>}
               {failed && (
                 <p className='text-muted-foreground text-sm'>
                   {retry.kind === 'limit'

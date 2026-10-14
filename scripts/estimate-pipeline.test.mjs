@@ -734,3 +734,17 @@ test('incomplete building type cannot replace a draft selection and remains visi
   assert.equal(input.applyBuildingType(old, catalog, 'new').buildingTypeId, 'new')
   assert.equal(input.applyBuildingType(old, catalog, 'new').description, 'Keep customer input')
 })
+
+test('thời gian ước tính: trong 4 phút là khoảng 3–4 phút, quá 4 phút là quá giờ, thiếu mốc coi như bình thường', () => {
+  const accepted = '2026-10-14T00:00:00Z'
+  const at = (minutes) => Date.parse(accepted) + minutes * 60_000
+  assert.deepEqual(pipeline.STAGE_TYPICAL_MINUTES, { min: 3, max: 4 })
+  assert.equal(pipeline.stageEtaState(accepted, at(1)), 'typical')
+  assert.equal(pipeline.stageEtaState(accepted, at(4)), 'typical')
+  assert.equal(pipeline.stageEtaState(accepted, at(4.1)), 'overdue')
+  assert.equal(pipeline.stageEtaState(null, at(30)), 'typical')
+  assert.equal(pipeline.stageEtaState('không-phải-ngày', at(30)), 'typical')
+  assert.equal(pipeline.stageEtaRemainingMs(accepted, at(1)), 3 * 60_000)
+  assert.equal(pipeline.stageEtaRemainingMs(accepted, at(5)), null)
+  assert.equal(pipeline.stageEtaRemainingMs(undefined, at(1)), null)
+})

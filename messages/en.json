@@ -2473,7 +2473,6 @@
         "runningHint": "The system plans the layout, then draws the technical and furnished plan for each floor. You can leave this page and come back later.",
         "progress": "{done}/{total} steps done",
         "progressUnknown": "{done} steps done",
-        "deadline": "Deadline: {time}",
         "failed": "The 2D drawings could not be created",
         "failure": {
           "DrawingUnavailable": "The AI could not draw one of the plans, even after a second try.",
@@ -2530,10 +2529,9 @@
         "queued": "Waiting for a slot",
         "queuedHint": "Your request has been received. The estimate starts when a slot is free; you can leave this page and come back later.",
         "running": "Measuring quantities and preparing the estimate",
-        "runningHint": "This usually takes 4–6 minutes. You can leave this page and come back later.",
+        "runningHint": "You can leave this page and come back later.",
         "progress": "{done}/{total} steps done",
         "progressUnknown": "{done} steps done",
-        "deadline": "Due by: {time}",
         "readyToast": "Your estimate is ready.",
         "failed": "The estimate could not be created",
         "failure": {
@@ -2654,6 +2652,10 @@
           "Failed": "Failed",
           "Locked": "Locked"
         }
+      },
+      "eta": {
+        "typical": "AI usually takes about {min}–{max} minutes.",
+        "overdue": "This is taking longer than usual; the system is still working on it."
       }
     }
   },

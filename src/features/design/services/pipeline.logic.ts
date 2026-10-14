@@ -186,6 +186,30 @@ export function dossierAutoStart(dossier: Pick<StageView, 'status' | 'runId'> | 
   return !pending && dossier?.status === 'Ready' && !dossier.runId
 }
 
+/**
+ * Thời gian AI thường cần cho mỗi chặng, hiện cho khách thay giờ hạn hoàn tất (người dùng chốt 14/10/2026: mọi chặng
+ * ghi “khoảng 3–4 phút”). Đây là con số để khách ước lượng, không phải hạn xử lý của hệ thống (`deadlineUtc`).
+ */
+export const STAGE_TYPICAL_MINUTES = { min: 3, max: 4 } as const
+
+/**
+ * `overdue` khi lần chạy đã quá thời gian thường cần tính từ lúc tiếp nhận: màn đổi sang câu trấn an, không hiện giờ hạn.
+ * Thiếu `acceptedAtUtc` thì coi như còn trong khoảng thường cần.
+ */
+export function stageEtaState(acceptedAtUtc: string | null | undefined, nowMs: number): 'typical' | 'overdue' {
+  const accepted = acceptedAtUtc ? Date.parse(acceptedAtUtc) : Number.NaN
+  if (Number.isNaN(accepted)) return 'typical'
+  return nowMs - accepted > STAGE_TYPICAL_MINUTES.max * 60_000 ? 'overdue' : 'typical'
+}
+
+/** Mili-giây còn lại tới lúc chuyển sang `overdue`; `null` khi không cần hẹn giờ (thiếu mốc hoặc đã quá). */
+export function stageEtaRemainingMs(acceptedAtUtc: string | null | undefined, nowMs: number): number | null {
+  const accepted = acceptedAtUtc ? Date.parse(acceptedAtUtc) : Number.NaN
+  if (Number.isNaN(accepted)) return null
+  const remaining = accepted + STAGE_TYPICAL_MINUTES.max * 60_000 - nowMs
+  return remaining > 0 ? remaining : null
+}
+
 /** Loại mẫu thư viện cho màn chờ: 2D khi chặng 2D đang chạy, 3D khi Dự toán hoặc 3D đang chạy (BR-LIB-001 khoản 16). */
 export function waitingTemplateKind(
   stages: readonly Pick<StageView, 'stage' | 'status'>[] | undefined

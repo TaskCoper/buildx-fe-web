@@ -2,21 +2,20 @@
 
 import { AlertCircle, ArrowRight, Clock, Download, Loader2, PencilLine, RefreshCw } from 'lucide-react'
 import Image from 'next/image'
-import { useLocale, useTranslations } from 'next-intl'
+import { useTranslations } from 'next-intl'
 import { useState, type ReactNode } from 'react'
 import { toast } from 'sonner'
 
 import { Link, useRouter } from '@/i18n/navigation'
-import type { Locale } from '@/i18n/routing'
 import { Button } from '@/shared/components/ui/button'
 import { designEstimateRoute, designInputRoute } from '@/shared/constants/routes'
 import { cn } from '@/shared/lib/utils'
-import { formatDisplayDate } from '@/shared/utils'
 import { estimatePipelineApi } from '../api/estimate-pipeline.api'
 import { useEstimateDetail } from '../hooks/use-estimate-detail'
 import { usePlan2dResult } from '../hooks/use-plan2d-result'
 import { useStageGroupRun } from '../hooks/use-stage-group-run'
 import { useStageRun } from '../hooks/use-stage-run'
+import { useStageEtaText } from '../hooks/use-stage-eta'
 import { useStages } from '../hooks/use-stages'
 import { stageGroupActions, stageOf, type StageView } from '../services/pipeline.logic'
 import type { Plan2dDrawing, Plan2dResult } from '../schemas/pipeline-api.schema'
@@ -107,8 +106,8 @@ export function Plan2dStageView({
 
 function RunningCard({ stage }: { stage: StageView }) {
   const t = useTranslations('design.pipeline.plan')
-  const locale = useLocale() as Locale
   const queued = stage.status === 'Queued'
+  const etaText = useStageEtaText(stage.acceptedAtUtc)
   return (
     <StateCard
       icon={
@@ -126,11 +125,7 @@ function RunningCard({ stage }: { stage: StageView }) {
               : t('progressUnknown', { done: stage.progress.done })
             : undefined
         }
-        deadlineText={
-          stage.deadlineUtc
-            ? t('deadline', { time: formatDisplayDate(stage.deadlineUtc, locale, { time: true }) })
-            : undefined
-        }
+        etaText={etaText}
       />
     </StateCard>
   )

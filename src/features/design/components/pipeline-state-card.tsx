@@ -27,17 +27,17 @@ export function StageStateCard({
 }
 
 /**
- * Thanh tiến độ x/y bước do executor ghi (TDD-PROJ-006, `progress`) và hạn hoàn tất. Không đoán phần trăm theo thời
- * gian: chưa biết tổng thì thanh không hiện, chỉ còn dòng chữ.
+ * Thanh tiến độ x/y bước do executor ghi (TDD-PROJ-006, `progress`) và dòng thời gian ước tính. Không đoán phần trăm theo
+ * thời gian: chưa biết tổng thì thanh không hiện, chỉ còn dòng chữ.
  */
 export function StageRunProgress({
   progress,
   progressText,
-  deadlineText
+  etaText
 }: {
   progress: StageProgress | null | undefined
   progressText?: string
-  deadlineText?: string
+  etaText?: string
 }) {
   const percent = progressPercent(progress)
   return (
@@ -53,7 +53,7 @@ export function StageRunProgress({
           {progressText ? <p className='text-muted-foreground text-xs'>{progressText}</p> : null}
         </>
       ) : null}
-      {deadlineText ? <p className='text-muted-foreground text-xs'>{deadlineText}</p> : null}
+      {etaText ? <p className='text-muted-foreground text-xs'>{etaText}</p> : null}
     </div>
   )
 }

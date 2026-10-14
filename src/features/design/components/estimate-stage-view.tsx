@@ -12,10 +12,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs'
 import { designPlanRoute, designRender3dRoute } from '@/shared/constants/routes'
 import { isApiError } from '@/shared/lib/api'
-import { formatDisplayDate } from '@/shared/utils'
 import { useEstimateDetail } from '../hooks/use-estimate-detail'
 import { useEstimateStageResult } from '../hooks/use-estimate-stage-result'
 import { useStageRun } from '../hooks/use-stage-run'
+import { useStageEtaText } from '../hooks/use-stage-eta'
 import { useStages } from '../hooks/use-stages'
 import type { EstimateStageResult } from '../schemas/pipeline-api.schema'
 import {
@@ -137,8 +137,8 @@ function useReadyToast(status: StageStatus | undefined) {
 
 function RunningCard({ stage }: { stage: StageView }) {
   const t = useTranslations('design.pipeline.estimate')
-  const locale = useLocale() as Locale
   const queued = stage.status === 'Queued'
+  const etaText = useStageEtaText(stage.acceptedAtUtc)
   return (
     <StageStateCard
       icon={
@@ -156,11 +156,7 @@ function RunningCard({ stage }: { stage: StageView }) {
               : t('progressUnknown', { done: stage.progress.done })
             : undefined
         }
-        deadlineText={
-          stage.deadlineUtc
-            ? t('deadline', { time: formatDisplayDate(stage.deadlineUtc, locale, { time: true }) })
-            : undefined
-        }
+        etaText={etaText}
       />
     </StageStateCard>
   )

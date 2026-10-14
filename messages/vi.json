@@ -2473,7 +2473,6 @@
         "runningHint": "Hệ thống lập phương án mặt bằng rồi vẽ bản kỹ thuật và bản nội thất cho từng tầng. Bạn có thể rời trang và quay lại sau.",
         "progress": "Đã xong {done}/{total} bước",
         "progressUnknown": "Đã xong {done} bước",
-        "deadline": "Hạn hoàn tất: {time}",
         "failed": "Chưa tạo được bản vẽ 2D",
         "failure": {
           "DrawingUnavailable": "AI chưa vẽ được một bản vẽ dù đã thử vẽ lại.",
@@ -2530,10 +2529,9 @@
         "queued": "Đang chờ tới lượt",
         "queuedHint": "Yêu cầu của bạn đã được nhận. Hệ thống sẽ bắt đầu lập dự toán khi tới lượt; bạn có thể rời trang và quay lại sau.",
         "running": "Đang bóc tách khối lượng và lập dự toán",
-        "runningHint": "Thường mất 4–6 phút. Bạn có thể rời trang và quay lại sau.",
+        "runningHint": "Bạn có thể rời trang và quay lại sau.",
         "progress": "Đã xong {done}/{total} bước",
         "progressUnknown": "Đã xong {done} bước",
-        "deadline": "Hạn hoàn tất: {time}",
         "readyToast": "Đã lập xong dự toán.",
         "failed": "Chưa lập được dự toán",
         "failure": {
@@ -2654,6 +2652,10 @@
           "Failed": "Lỗi",
           "Locked": "Chưa mở"
         }
+      },
+      "eta": {
+        "typical": "AI thường xử lý trong khoảng {min}–{max} phút.",
+        "overdue": "Lần này mất nhiều thời gian hơn thường lệ, hệ thống vẫn đang xử lý."
       }
     }
   },
