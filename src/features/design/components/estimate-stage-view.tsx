@@ -2,7 +2,7 @@
 
 import { AlertCircle, Calculator, Clock, Loader2, Lock, RefreshCw } from 'lucide-react'
 import { useLocale, useTranslations } from 'next-intl'
-import { Fragment, useEffect, useRef, useState } from 'react'
+import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react'
 import { toast } from 'sonner'
 
 import { Link } from '@/i18n/navigation'
@@ -31,6 +31,7 @@ import {
 } from '../services/estimate-stage.logic'
 import { isStageActive, stageOf, type StageStatus, type StageView } from '../services/pipeline.logic'
 import { StageRunProgress, StageStateCard } from './pipeline-state-card'
+import { StageWaitingLayout } from './stage-waiting-layout'
 
 /**
  * Màn chặng Dự toán của luồng bốn chặng (STORY-PROJ-008, TDD-PROJ-009 mục P): Chưa mở (chặng 2D chưa xong), Sẵn sàng
@@ -38,7 +39,18 @@ import { StageRunProgress, StageStateCard } from './pipeline-state-card'
  * giây), Lỗi (câu chung theo mã lỗi, số lần chạy lại còn lại hoặc báo liên hệ hỗ trợ — BR-PROJ-011) và Thành công
  * (bảng dự toán theo màn của app demo).
  */
-export function EstimateStageView({ projectId, embedded = false }: { projectId: string; embedded?: boolean }) {
+export function EstimateStageView({
+  projectId,
+  embedded = false,
+  waitingPanel,
+  waitingPanelCollapsed = false
+}: {
+  projectId: string
+  embedded?: boolean
+  /** Mẫu thư viện do lớp app ghép vào cột trái trong lúc chặng chạy (BR-LIB-001 khoản 16). */
+  waitingPanel?: ReactNode
+  waitingPanelCollapsed?: boolean
+}) {
   const t = useTranslations('design.pipeline.estimate')
   const stages = useStages(projectId)
   const stage = stageOf(stages.data, 'Estimate')
@@ -81,7 +93,12 @@ export function EstimateStageView({ projectId, embedded = false }: { projectId: 
     )
   }
 
-  if (stage && isStageActive(stage.status)) return <RunningCard stage={stage} />
+  if (stage && isStageActive(stage.status))
+    return (
+      <StageWaitingLayout panel={waitingPanel} collapsed={waitingPanelCollapsed}>
+        <RunningCard stage={stage} />
+      </StageWaitingLayout>
+    )
   // Trong bước Dự toán & 3D, nút chạy nằm ở thanh thao tác chung (Đi tiếp/Thử lại), không ở từng tab.
   if (stage?.status === 'Failed') return <FailedCard projectId={projectId} stage={stage} embedded={embedded} />
   if (stage?.status === 'Ready') return <NotStartedCard projectId={projectId} embedded={embedded} />

@@ -22,18 +22,20 @@ export type StageGroupTab = 'estimate' | 'render3d'
  * Bước Dự toán & 3D (BR-PROJ-010 khoản 2–4, 10; STORY-PROJ-003, 008, 009): hai chặng chạy cùng lúc, xem trên một màn hai
  * tab. Thanh thao tác chung có Đi tiếp (lần đầu), Thử lại (chạy lại các chặng đang lỗi, kể cả khi chặng kia còn chạy) và
  * Sang bước Hồ sơ (cả hai xong). Mỗi tab hiện kết quả ngay khi chặng của tab xong. `waitingPanel` là mẫu thư viện do lớp
- * app ghép vào khi có chặng đang chạy (BR-LIB-001 khoản 16).
+ * app ghép vào; tab nào có chặng đang chạy thì hiện mẫu ở cột trái, tiến độ ở cột phải (BR-LIB-001 khoản 16).
  */
 export function StageGroupView({
   projectId,
   tab,
   onTabChange,
-  waitingPanel
+  waitingPanel,
+  waitingPanelCollapsed = false
 }: {
   projectId: string
   tab: StageGroupTab
   onTabChange: (tab: StageGroupTab) => void
   waitingPanel?: ReactNode
+  waitingPanelCollapsed?: boolean
 }) {
   const t = useTranslations('design.pipeline.group')
   const stages = useStages(projectId)
@@ -105,14 +107,23 @@ export function StageGroupView({
           </TabsTrigger>
         </TabsList>
         <TabsContent value='estimate'>
-          <EstimateStageView projectId={projectId} embedded />
+          <EstimateStageView
+            projectId={projectId}
+            embedded
+            waitingPanel={waitingPanel}
+            waitingPanelCollapsed={waitingPanelCollapsed}
+          />
         </TabsContent>
         <TabsContent value='render3d'>
-          <Render3dStageView key={projectId} projectId={projectId} embedded />
+          <Render3dStageView
+            key={projectId}
+            projectId={projectId}
+            embedded
+            waitingPanel={waitingPanel}
+            waitingPanelCollapsed={waitingPanelCollapsed}
+          />
         </TabsContent>
       </Tabs>
-
-      {waitingPanel}
     </div>
   )
 }

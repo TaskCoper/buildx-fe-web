@@ -12,7 +12,7 @@ import {
   usePipelineSteps,
   waitingTemplateKind
 } from '@/features/design'
-import { PersonalizedPanel } from '@/features/handbook'
+import { PersonalizedPanel, useHandbookPanelStore } from '@/features/handbook'
 import { useRouter } from '@/i18n/navigation'
 import { env } from '@/shared/config/env'
 import { designInputRoute } from '@/shared/constants/routes'
@@ -29,6 +29,7 @@ export function StepPlanView({ projectId }: { projectId: string }) {
   const steps = usePipelineSteps(projectId, 2)
   const estimate = useEstimateDetailName(projectId)
   const criteria = useMatchCriteria(projectId)
+  const panelMinimized = useHandbookPanelStore((s) => s.minimized)
   const waiting = waitingTemplateKind(steps.stages.data) === '2d'
 
   useEffect(() => {
@@ -56,6 +57,7 @@ export function StepPlanView({ projectId }: { projectId: string }) {
               <PersonalizedPanel filter={{}} kind='2d' topic='architecture' matchCriteria={criteria} />
             ) : undefined
           }
+          waitingPanelCollapsed={panelMinimized}
         />
       </div>
     </>

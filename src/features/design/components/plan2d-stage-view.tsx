@@ -21,6 +21,7 @@ import { useStages } from '../hooks/use-stages'
 import { stageGroupActions, stageOf, type StageView } from '../services/pipeline.logic'
 import type { Plan2dDrawing, Plan2dResult } from '../schemas/pipeline-api.schema'
 import { StageRunProgress, StageStateCard as StateCard } from './pipeline-state-card'
+import { StageWaitingLayout } from './stage-waiting-layout'
 
 /** Mã lỗi lần chạy → câu cho khách (`design.pipeline.plan.failure.<key>`); chi tiết kỹ thuật chỉ ở phần Admin. */
 function failureKey(code: string | null | undefined) {
@@ -43,7 +44,15 @@ function failureKey(code: string | null | undefined) {
  * chạy kèm tiến độ x/y), báo lỗi kèm số lần chạy lại còn lại, và hiện kết quả khi thành công. Không tự chạy lại; chạy
  * lại là thao tác của khách và giữ lượt mới vì lượt cũ đã được hoàn (BR-PROJ-011 khoản 5).
  */
-export function Plan2dStageView({ projectId, waitingPanel }: { projectId: string; waitingPanel?: ReactNode }) {
+export function Plan2dStageView({
+  projectId,
+  waitingPanel,
+  waitingPanelCollapsed = false
+}: {
+  projectId: string
+  waitingPanel?: ReactNode
+  waitingPanelCollapsed?: boolean
+}) {
   const t = useTranslations('design.pipeline.plan')
   const stages = useStages(projectId)
   const plan2d = stageOf(stages.data, 'Plan2d')
@@ -85,13 +94,12 @@ export function Plan2dStageView({ projectId, waitingPanel }: { projectId: string
     return <Plan2dResultView result={result.data} projectId={projectId} />
   }
 
-  // Trong lúc chờ, lớp app ghép mẫu 2D tham khảo của thư viện vào dưới thẻ tiến độ (BR-LIB-001 khoản 16).
+  // Trong lúc chờ, lớp app ghép mẫu 2D tham khảo của thư viện vào cột trái, tiến độ ở cột phải (BR-LIB-001 khoản 16).
   if (plan2d.status === 'Queued' || plan2d.status === 'Running')
     return (
-      <div className='space-y-6'>
+      <StageWaitingLayout panel={waitingPanel} collapsed={waitingPanelCollapsed}>
         <RunningCard stage={plan2d} />
-        {waitingPanel}
-      </div>
+      </StageWaitingLayout>
     )
   if (plan2d.status === 'Failed') return <FailedCard projectId={projectId} stage={plan2d} />
   return <NotStartedCard projectId={projectId} />

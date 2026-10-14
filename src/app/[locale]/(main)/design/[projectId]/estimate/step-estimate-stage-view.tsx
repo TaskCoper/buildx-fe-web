@@ -13,7 +13,7 @@ import {
   waitingTemplateKind,
   type StageGroupTab
 } from '@/features/design'
-import { PersonalizedPanel } from '@/features/handbook'
+import { PersonalizedPanel, useHandbookPanelStore } from '@/features/handbook'
 import { usePathname, useRouter } from '@/i18n/navigation'
 import { designPlanRoute } from '@/shared/constants/routes'
 
@@ -28,6 +28,7 @@ export function StepEstimateStageView({ projectId }: { projectId: string }) {
   const steps = usePipelineSteps(projectId, 3)
   const estimate = useEstimateDetailName(projectId)
   const criteria = useMatchCriteria(projectId)
+  const panelMinimized = useHandbookPanelStore((s) => s.minimized)
   const searchParams = useSearchParams()
   const router = useRouter()
   const pathname = usePathname()
@@ -54,6 +55,7 @@ export function StepEstimateStageView({ projectId }: { projectId: string }) {
           waitingPanel={
             waiting ? <PersonalizedPanel filter={{}} kind='3d' topic='interior' matchCriteria={criteria} /> : undefined
           }
+          waitingPanelCollapsed={panelMinimized}
         />
       </div>
     </>

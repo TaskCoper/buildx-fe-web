@@ -2,7 +2,7 @@
 
 import { AlertCircle, Box, Check, Loader2, Lock, RefreshCw } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { toast } from 'sonner'
 import { Link } from '@/i18n/navigation'
 import { Button } from '@/shared/components/ui/button'
@@ -15,8 +15,20 @@ import type { Render3dResult } from '../schemas/pipeline-api.schema'
 import { estimateFailureKind, stageRetryState } from '../services/estimate-stage.logic'
 import { isStageActive, stageOf } from '../services/pipeline.logic'
 import { StageRunProgress, StageStateCard } from './pipeline-state-card'
+import { StageWaitingLayout } from './stage-waiting-layout'
 
-export function Render3dStageView({ projectId, embedded = false }: { projectId: string; embedded?: boolean }) {
+export function Render3dStageView({
+  projectId,
+  embedded = false,
+  waitingPanel,
+  waitingPanelCollapsed = false
+}: {
+  projectId: string
+  embedded?: boolean
+  /** Mẫu thư viện do lớp app ghép vào cột trái trong lúc chặng chạy; ảnh đã xong vẫn hiện bên dưới, đủ bề rộng. */
+  waitingPanel?: ReactNode
+  waitingPanelCollapsed?: boolean
+}) {
   const t = useTranslations('design.pipeline.render3d')
   const errors = useTranslations('design.pipeline.estimate')
   const stages = useStages(projectId)
@@ -68,60 +80,62 @@ export function Render3dStageView({ projectId, embedded = false }: { projectId: 
         </div>
       )}
       {stage && (
-        <StageStateCard
-          icon={
-            busy ? (
-              <Loader2 className='size-6 animate-spin' />
-            ) : failed ? (
-              <AlertCircle className='text-destructive size-6' />
-            ) : done ? (
-              <Check className='text-primary size-6' />
-            ) : (
-              <Box className='size-6' />
-            )
-          }
-          title={t(done ? 'succeeded' : failed ? 'failed' : busy ? 'running' : 'ready')}
-          description={
-            failed
-              ? errors(`failure.${estimateFailureKind(stage.failureCode)}`)
-              : t(done ? 'dossierNext' : busy ? 'runningHint' : 'noQuota')
-          }
-        >
-          <div className='w-full space-y-3' aria-live='polite'>
-            {(busy || result.data?.planReady) && (
-              <StageRunProgress
-                progress={result.data?.progress}
-                progressText={
-                  result.data?.progress.total != null
-                    ? t('progress', result.data.progress as { done: number; total: number })
-                    : t('preparing')
-                }
-              />
-            )}
-            {busy && !result.data?.planReady && <p className='text-muted-foreground text-sm'>{t('preparing')}</p>}
-            {failed && (
-              <p className='text-muted-foreground text-sm'>
-                {retry.kind === 'limit'
-                  ? errors('retryLimit')
-                  : retry.kind === 'left'
-                    ? errors('retriesLeft', { count: retry.count })
-                    : errors('retryUnknown')}
-              </p>
-            )}
-            {done && !embedded && (
-              <Button asChild>
-                <Link href={designDossierRoute(projectId)}>{t('continueDossier')}</Link>
-              </Button>
-            )}
-            {/* Trong bước Dự toán & 3D, chạy và thử lại dùng thanh thao tác chung. */}
-            {!embedded && (stage.status === 'Ready' || (failed && retry.kind !== 'limit')) && (
-              <Button onClick={() => void start()} disabled={run.isPending}>
-                {run.isPending && <Loader2 className='size-4 animate-spin' />}
-                {t(failed ? 'retry' : 'start')}
-              </Button>
-            )}
-          </div>
-        </StageStateCard>
+        <StageWaitingLayout panel={busy ? waitingPanel : undefined} collapsed={waitingPanelCollapsed}>
+          <StageStateCard
+            icon={
+              busy ? (
+                <Loader2 className='size-6 animate-spin' />
+              ) : failed ? (
+                <AlertCircle className='text-destructive size-6' />
+              ) : done ? (
+                <Check className='text-primary size-6' />
+              ) : (
+                <Box className='size-6' />
+              )
+            }
+            title={t(done ? 'succeeded' : failed ? 'failed' : busy ? 'running' : 'ready')}
+            description={
+              failed
+                ? errors(`failure.${estimateFailureKind(stage.failureCode)}`)
+                : t(done ? 'dossierNext' : busy ? 'runningHint' : 'noQuota')
+            }
+          >
+            <div className='w-full space-y-3' aria-live='polite'>
+              {(busy || result.data?.planReady) && (
+                <StageRunProgress
+                  progress={result.data?.progress}
+                  progressText={
+                    result.data?.progress.total != null
+                      ? t('progress', result.data.progress as { done: number; total: number })
+                      : t('preparing')
+                  }
+                />
+              )}
+              {busy && !result.data?.planReady && <p className='text-muted-foreground text-sm'>{t('preparing')}</p>}
+              {failed && (
+                <p className='text-muted-foreground text-sm'>
+                  {retry.kind === 'limit'
+                    ? errors('retryLimit')
+                    : retry.kind === 'left'
+                      ? errors('retriesLeft', { count: retry.count })
+                      : errors('retryUnknown')}
+                </p>
+              )}
+              {done && !embedded && (
+                <Button asChild>
+                  <Link href={designDossierRoute(projectId)}>{t('continueDossier')}</Link>
+                </Button>
+              )}
+              {/* Trong bước Dự toán & 3D, chạy và thử lại dùng thanh thao tác chung. */}
+              {!embedded && (stage.status === 'Ready' || (failed && retry.kind !== 'limit')) && (
+                <Button onClick={() => void start()} disabled={run.isPending}>
+                  {run.isPending && <Loader2 className='size-4 animate-spin' />}
+                  {t(failed ? 'retry' : 'start')}
+                </Button>
+              )}
+            </div>
+          </StageStateCard>
+        </StageWaitingLayout>
       )}
       {result.data && <Render3dGallery result={result.data} />}
     </div>
