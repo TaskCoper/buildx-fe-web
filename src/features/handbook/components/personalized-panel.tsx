@@ -43,6 +43,11 @@ interface PersonalizedPanelProps {
   /** Chủ đề bài viết: kiến trúc (Bước 2) hoặc nội thất (Bước 3). */
   topic: 'architecture' | 'interior'
   longWait?: boolean
+  /**
+   * Màn chờ của luồng bốn chặng chỉ hiện mẫu khớp. Khi bật, lúc điều kiện khớp còn đang tải thì hiện khung chờ thay cho lưới
+   * mẫu ngẫu nhiên (tránh lưới đổi hẳn sau nửa giây) và không tải trang 100 mẫu.
+   */
+  matchedOnly?: boolean
 }
 
 /**
@@ -58,7 +63,8 @@ export const PersonalizedPanel = memo(function PersonalizedPanel({
   topic,
   filterLabel,
   matchCriteria = null,
-  longWait = false
+  longWait = false,
+  matchedOnly = false
 }: PersonalizedPanelProps) {
   const t = useTranslations('handbook.panel')
   const tab = useHandbookPanelStore((s) => s.tab)
@@ -77,9 +83,13 @@ export const PersonalizedPanel = memo(function PersonalizedPanel({
   const [selectedTemplate, setSelectedTemplate] = useState<HandbookTemplate | null>(null)
   const [selectedArticle, setSelectedArticle] = useState<HandbookArticle | null>(null)
 
-  const { templates, isPending: templatesPending } = usePersonalizedTemplates(filter, kind)
+  // Màn chờ của dự toán thật chỉ dùng mẫu khớp, nên không tải thêm cả trang 100 mẫu để chọn ngẫu nhiên.
+  const matchedMode = matchedOnly || Boolean(matchCriteria)
+  const { templates, isPending: templatesPending } = usePersonalizedTemplates(filter, kind, { enabled: !matchedMode })
   const { data: articles, isPending: articlesPending } = useHandbookArticles(topic)
   const waiting = useWaitingTemplates(matchCriteria, kind)
+  // Lưới mẫu đang hiện lấy từ đâu thì đợi đúng nguồn đó: query 100 mẫu bị tắt ở màn chờ nên luôn `isPending`.
+  const gridPending = matchedMode ? !matchCriteria || waiting.isPending : templatesPending
 
   // Màn chờ của dự toán thật mà thư viện không có mẫu nào (khớp đủ hay cùng loại công trình), hoặc tải lỗi: chỉ hiện tiến
   // độ, không hiện phần mẫu tham khảo (STORY-LIB-002/AC-013, ST-LIB-047).
@@ -181,7 +191,7 @@ export const PersonalizedPanel = memo(function PersonalizedPanel({
               <p className='text-muted-foreground truncate text-xs'>
                 {activeTab === 'articles'
                   ? t('tabs.articles')
-                  : matchCriteria
+                  : matchedMode
                     ? t('matched.label')
                     : (filterLabel ?? t(kind === '2d' ? 'fallback2d' : 'fallback3d'))}
               </p>
@@ -197,7 +207,7 @@ export const PersonalizedPanel = memo(function PersonalizedPanel({
                 key={activeTab}
                 className='min-h-0 flex-1 overflow-y-auto p-4'
                 onScroll={(event) => {
-                  if (activeTab === 'templates' ? templatesPending : articlesPending) return
+                  if (activeTab === 'templates' ? gridPending : articlesPending) return
                   scrollPositions.current[activeTab] = event.currentTarget.scrollTop
                 }}
                 ref={(node) => {
@@ -211,7 +221,9 @@ export const PersonalizedPanel = memo(function PersonalizedPanel({
                 exit={{ opacity: 0 }}
                 transition={{ duration: reduced ? 0 : 0.18 }}
               >
-                {activeTab === 'templates' && matchCriteria ? (
+                {activeTab === 'templates' && matchedMode && !matchCriteria ? (
+                  <PanelSkeleton />
+                ) : activeTab === 'templates' && matchCriteria ? (
                   <MatchedTemplates
                     kind={kind}
                     waiting={waiting}

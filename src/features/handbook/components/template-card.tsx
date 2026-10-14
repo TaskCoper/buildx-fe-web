@@ -7,6 +7,7 @@ import { Link, useRouter } from '@/i18n/navigation'
 import { Badge } from '@/shared/components/ui/badge'
 import { handbookTemplateRoute } from '@/shared/constants/routes'
 import { cn } from '@/shared/lib/utils'
+import { isProtectedContentUrl } from '../api/handbook.library.logic'
 import { useHandbookReadStore } from '../store/handbook-read.store'
 import type { HandbookFloor, HandbookTemplate, HandbookTemplateStyles } from '../types/handbook.types'
 import { ReadBadge } from './read-badge'
@@ -76,6 +77,9 @@ export function TemplateCard({
   const markRead = useHandbookReadStore((s) => s.markRead)
   const { specs } = template
   const inPanel = variant === 'panel'
+  // Panel màn chờ lấy thẳng ảnh thu nhỏ trên CDN: đi qua `/_next/image` thì máy chủ FE phải resize ở lần đầu (0,5–3,6 giây
+  // mỗi ảnh trên prod, cache mất sau mỗi lần deploy) nên thẻ hiện trước, ảnh hiện sau rất lâu. Ảnh bảo vệ vẫn đi route cũ.
+  const directImage = inPanel && !isProtectedContentUrl(template.imageUrl)
   const [pressing, setPressing] = useState(false)
   const [blocked, setBlocked] = useState(false)
   const [previewing, setPreviewing] = useState(false)
@@ -231,6 +235,7 @@ export function TemplateCard({
                     floor={frame}
                     className='size-full'
                     sizes='(max-width: 768px) 100vw, 320px'
+                    original={directImage}
                   />
                 </div>
               ))}
@@ -260,6 +265,7 @@ export function TemplateCard({
             template={template}
             className='template-card-figure-motion aspect-3/2 w-full'
             sizes='(max-width: 768px) 100vw, 320px'
+            original={directImage}
           />
         )}
       </div>

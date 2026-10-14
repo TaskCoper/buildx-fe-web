@@ -53,7 +53,9 @@ export function StepEstimateStageView({ projectId }: { projectId: string }) {
           tab={tab}
           onTabChange={setTab}
           waitingPanel={
-            waiting ? <PersonalizedPanel filter={{}} kind='3d' topic='interior' matchCriteria={criteria} /> : undefined
+            waiting ? (
+              <PersonalizedPanel filter={{}} kind='3d' topic='interior' matchCriteria={criteria} matchedOnly />
+            ) : undefined
           }
           waitingPanelCollapsed={panelMinimized}
         />

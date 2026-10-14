@@ -20,11 +20,12 @@ import type { HandbookTemplateStyles, LibraryFilterOptions } from '../types/hand
 const STATIC_CONTENT_STALE_TIME = 5 * 60 * 1000
 
 /** Toàn bộ mẫu trong thư viện — dùng cho trang Cẩm nang và panel màn chờ. */
-export function useHandbookTemplates() {
+export function useHandbookTemplates({ enabled = true }: { enabled?: boolean } = {}) {
   return useQuery({
     queryKey: handbookKeys.templates(),
     queryFn: () => handbookApi.listTemplates(),
-    staleTime: STATIC_CONTENT_STALE_TIME
+    staleTime: STATIC_CONTENT_STALE_TIME,
+    enabled
   })
 }
 
@@ -438,8 +439,12 @@ export function useWaitingTemplates(criteria: LibraryMatchCriteria | null | unde
  * while the user reads them — re-rolling on every render would make the panel
  * flicker during the progress ticks.
  */
-export function usePersonalizedTemplates(filter: HandbookFilter, kind: HandbookTemplateKind) {
-  const query = useHandbookTemplates()
+export function usePersonalizedTemplates(
+  filter: HandbookFilter,
+  kind: HandbookTemplateKind,
+  { enabled = true }: { enabled?: boolean } = {}
+) {
+  const query = useHandbookTemplates({ enabled })
   const pool = query.data
 
   const templates = useMemo(() => {
