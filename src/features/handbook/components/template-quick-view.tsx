@@ -33,6 +33,11 @@ export function TemplateQuickView({ template, onClose }: TemplateQuickViewProps)
   const floorId = template && selection.templateId === template.id ? selection.floorId : ''
 
   const activeFloor = template ? resolveFloor(template, floorId) : undefined
+  // Cùng cách `TemplateFigure` chọn nguồn ảnh: có file thật thì vẽ ảnh, không thì dựng SVG.
+  const figureFloor = activeFloor ?? template?.floors[0]
+  const hasImage = Boolean(
+    activeFloor?.imageUrl ?? (activeFloor ? undefined : template?.imageUrl) ?? figureFloor?.imageUrl
+  )
 
   function selectFloor(nextFloorId: string) {
     if (!template) return
@@ -67,9 +72,13 @@ export function TemplateQuickView({ template, onClose }: TemplateQuickViewProps)
                 <TemplateFigure
                   template={template}
                   floor={activeFloor}
-                  /* Mẫu 2D để bản vẽ tự quyết chiều cao (như trang chi tiết) —
-                     ép tỉ lệ 4/3 làm bản vẽ ngang lọt thỏm giữa khung trắng. */
-                  className={cn('w-full shrink-0 rounded-xl border', template.kind === '3d' && 'aspect-16/9')}
+                  /* Ảnh thật được vẽ kiểu `fill` (nằm tuyệt đối trong khung) nên khung PHẢI có chiều cao: thiếu
+                     tỉ lệ thì mẫu 2D có file bản vẽ cao 0px và popup trống trơn. Chỉ bản vẽ dựng bằng SVG (chưa có
+                     file) mới tự quyết chiều cao; ép tỉ lệ cho nó làm bản vẽ ngang lọt thỏm giữa khung trắng. */
+                  className={cn(
+                    'w-full shrink-0 rounded-xl border',
+                    template.kind === '3d' ? 'aspect-16/9' : hasImage && 'aspect-4/3'
+                  )}
                   sizes='(max-width: 768px) 100vw, 560px'
                   watermark
                 />
