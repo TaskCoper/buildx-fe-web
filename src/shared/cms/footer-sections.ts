@@ -82,18 +82,22 @@ export function footerContentOf(sections: HomeSections | undefined): FooterConte
   return { contact, social }
 }
 
-/** Nội dung một trang pháp lý do admin soạn. */
+/**
+ * Phần admin đã sửa của một trang pháp lý. Hai trường độc lập: màn admin chỉ lưu trường khác bản có sẵn, nên sửa mỗi tên
+ * tab thì khối chỉ có `title`, sửa mỗi nội dung thì khối chỉ có `body`.
+ */
 export interface LegalPageContent {
-  /** Tiêu đề tab trình duyệt; để trống thì dùng tiêu đề có sẵn. */
+  /** Tiêu đề tab trình duyệt; vắng mặt thì dùng tiêu đề có sẵn. */
   title?: string
-  /** HTML đã được backend làm sạch. */
-  body: string
+  /** HTML đã được backend làm sạch; vắng mặt thì dùng bản pháp lý có sẵn trong ứng dụng. */
+  body?: string
 }
 
-/** Trang pháp lý admin đã soạn; `undefined` khi chưa lưu hoặc nội dung rỗng, để trang dùng bản có sẵn. */
+/** Phần admin đã sửa của trang pháp lý; `undefined` khi chưa sửa gì, để trang dùng hoàn toàn bản có sẵn. */
 export function legalPageOf(sections: HomeSections | undefined, key: LegalSectionKey): LegalPageContent | undefined {
   if (!sections) return undefined
+  const title = sectionText(sections, key, 'title')
   const body = sectionText(sections, key, 'body')
-  if (!body) return undefined
-  return { title: sectionText(sections, key, 'title'), body }
+  if (!title && !body) return undefined
+  return { title, body }
 }
