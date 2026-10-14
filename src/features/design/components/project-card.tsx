@@ -13,11 +13,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/shared/components/ui/dropdown-menu'
-import { designDossierRoute, designEstimateRoute, designInputRoute } from '@/shared/constants/routes'
+import { designDossierRoute, designEstimateRoute, designInputRoute, designPlanRoute } from '@/shared/constants/routes'
 import { cn } from '@/shared/lib/utils'
 import { formatDisplayDate } from '@/shared/utils'
 import { DESIGN_STEPS } from '../constants/design.constants'
-import { miniStepState } from '../services/project-list.service'
+import { PIPELINE_STEPS, pipelineMiniSteps } from '../services/pipeline.logic'
+import { miniStepState, resumeProjectRoute } from '../services/project-list.service'
 import type { Project, ProjectStatus } from '../types/design.types'
 
 interface ProjectCardProps {
@@ -38,7 +39,9 @@ const ACTION_BY_STATUS: Record<
   input: { route: designInputRoute, labelKey: 'continueInput' },
   designing: { route: designEstimateRoute, labelKey: 'open' },
   review: { route: designEstimateRoute, labelKey: 'viewEstimate' },
-  completed: { route: designDossierRoute, labelKey: 'viewDossier' }
+  completed: { route: designDossierRoute, labelKey: 'viewDossier' },
+  failed: { route: designPlanRoute, labelKey: 'open' },
+  inProgress: { route: designPlanRoute, labelKey: 'open' }
 }
 
 /**
@@ -49,7 +52,9 @@ const BADGE_CLASS: Record<ProjectStatus, string> = {
   input: 'bg-muted text-muted-foreground',
   designing: 'bg-accent text-primary-strong',
   review: 'bg-warning/15 text-warning-strong',
-  completed: 'bg-primary text-primary-foreground'
+  completed: 'bg-primary text-primary-foreground',
+  failed: 'bg-destructive/10 text-destructive',
+  inProgress: 'bg-accent text-primary-strong'
 }
 
 /** Chấm "đang làm": chờ duyệt là mốc chờ người khác nên tô vàng, còn lại xanh. */
@@ -93,14 +98,22 @@ function MiniStepper({ project }: { project: Project }) {
     return () => window.clearTimeout(timer)
   }, [phase])
 
+  // Luồng bốn chặng: bốn nấc Nhập liệu → 2D → Dự toán & 3D → Hồ sơ theo các chặng đã xong.
+  const pipelineStates = project.pipeline
+    ? pipelineMiniSteps(project.pipeline.state, project.pipeline.succeededStages)
+    : null
+  const steps: readonly number[] = pipelineStates ? PIPELINE_STEPS : DESIGN_STEPS
+  const stateOf = (step: number) =>
+    pipelineStates ? pipelineStates[step as 1 | 2 | 3 | 4] : miniStepState(step as 1 | 2 | 3, project)
+
   return (
     <ol data-stepper-phase={phase} className='mt-1.5 flex min-w-0 items-start'>
-      {DESIGN_STEPS.map((step, index) => {
-        const state = miniStepState(step, project)
-        const next = DESIGN_STEPS[index + 1]
+      {steps.map((step, index) => {
+        const state = stateOf(step)
+        const next = steps[index + 1]
         // Đoạn nối sáng lên khi nấc kế tiếp đã bắt đầu — đọc được tiến độ mà
         // không cần nhìn từng chấm.
-        const linkReached = next ? miniStepState(next, project) !== 'pending' : false
+        const linkReached = next ? stateOf(next) !== 'pending' : false
 
         return (
           <Fragment key={step}>
@@ -112,6 +125,7 @@ function MiniStepper({ project }: { project: Project }) {
                   'flex size-[18px] items-center justify-center rounded-full max-md:text-xs text-[10px] leading-none font-semibold',
                   state === 'done' && 'bg-primary text-primary-foreground',
                   state === 'current' && currentDotClass(project.status),
+                  state === 'failed' && 'bg-destructive text-white',
                   state === 'pending' && 'border-border text-muted-foreground border bg-transparent'
                 )}
               >
@@ -123,7 +137,7 @@ function MiniStepper({ project }: { project: Project }) {
                   state === 'pending' ? 'text-muted-foreground' : 'text-foreground'
                 )}
               >
-                {t(`steps.${step}`)}
+                {pipelineStates ? t(`pipelineSteps.${step as 1 | 2 | 3 | 4 | 5}`) : t(`steps.${step as 1 | 2 | 3}`)}
               </span>
             </li>
 
@@ -255,14 +269,14 @@ export function ProjectCard({ project, onRename, onDelete }: ProjectCardProps) {
               BADGE_CLASS[project.status]
             )}
           >
-            {t(`status.${project.status}`)}
+            {project.pipeline ? t(`pipelineStatus.${project.status}`) : t(`status.${project.status}`)}
             {project.status === 'completed' ? <Check className='size-3' strokeWidth={3} /> : null}
           </span>
 
           {/* `after:absolute after:inset-0` biến cả thẻ thành vùng bấm mà không
               phải lồng nút ⋮ vào trong thẻ <a>. */}
           <Link
-            href={action.route(project.id)}
+            href={project.pipeline ? resumeProjectRoute(project) : action.route(project.id)}
             className='text-primary hover:text-primary-strong inline-flex shrink-0 items-center gap-1 text-[13px] font-medium transition-colors after:absolute after:inset-0 after:content-[""]'
           >
             {t(`action.${action.labelKey}`)}

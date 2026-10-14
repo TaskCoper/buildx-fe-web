@@ -87,7 +87,10 @@ export function localizeApiError(facts: ApiErrorFacts, translator: ApiErrorTrans
   }
 
   const server = facts.serverMessage?.trim()
-  if (translator.locale === 'vi' && server && hasVietnamese(server)) return server
+  if (translator.locale === 'vi' && server && hasVietnamese(server)) {
+    // Keep server details while using the current UI term for pipeline steps.
+    return server.replaceAll('CHẶNG', 'BƯỚC').replaceAll('Chặng', 'Bước').replaceAll('chặng', 'bước')
+  }
 
   for (const code of [facts.messageCode, facts.code]) {
     const byCode = code ? translator.text(`codes.${code}`) : null

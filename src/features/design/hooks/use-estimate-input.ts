@@ -13,6 +13,8 @@ import {
   inputBody,
   missingFields,
   normalizeSaved,
+  pipelineMissingFields,
+  supportsPipelineInput,
   type EstimateInputBody,
   type EstimateInputDraft
 } from '../services/estimate-input.logic'
@@ -34,6 +36,11 @@ export type LockReason = 'noEdit' | 'generating' | 'generated' | null
 
 const GENERATING_STATES = ['Pending', 'Processing']
 
+/** Luồng bốn chặng: BE từ chối lưu vì chặng 2D đang chạy / đã xong (`EstimateInputLocked`). */
+function lockOfDenied(deniedCode: string | null): LockReason {
+  return deniedCode === 'EstimateInputLocked' ? 'generating' : null
+}
+
 function lockReasonOf(detail: EstimateDetail | undefined, deniedCode: string | null): LockReason {
   if (deniedCode === 'GenerationInProgress') return 'generating'
   if (deniedCode === 'EstimateAlreadyGenerated') return 'generated'
@@ -50,8 +57,21 @@ function lockReasonOf(detail: EstimateDetail | undefined, deniedCode: string | n
  * Mỗi lần lưu gửi ĐỦ mọi trường kèm `changedFields` = trường khác bản đã lưu. Các lần lưu chạy NỐI TIẾP (mỗi lần
  * tăng `inputVersion`). Xung đột phiên bản giữ nội dung đang nhập và chặn ghi đến khi khách chủ động tải bản đã lưu.
  */
-export function useEstimateInput(projectId: string) {
+export interface EstimateInputOptions {
+  /**
+   * Luồng bốn chặng (TDD-PROJ-007): gửi thêm các ô mới khi BE đã hỗ trợ, tính trường thiếu theo chặng 2D thay cho
+   * "diện tích, ảnh hoặc mô tả", và khóa đầu vào theo chặng 2D (`stageLock`) thay cho trạng thái tác vụ AI cũ.
+   */
+  pipeline?: boolean
+  /** Khóa do lần chạy chặng 2D (đang chờ/đang chạy/đã thành công) — tính từ `GET /stages` ở nơi gọi. */
+  stageLock?: LockReason
+  /** Ảnh lô hiện tại đã soi Đạt chưa (chỉ dùng để tô trường thiếu ngay khi nhập). */
+  lotVerificationPassed?: boolean
+}
+
+export function useEstimateInput(projectId: string, options: EstimateInputOptions = {}) {
   const queryClient = useQueryClient()
+  const pipeline = Boolean(options.pipeline)
 
   const detail = useQuery({
     queryKey: designKeys.estimateDetail(projectId),
@@ -62,7 +82,8 @@ export function useEstimateInput(projectId: string) {
   const catalog = useQuery({
     queryKey: designKeys.estimateCatalog(projectId),
     queryFn: () => estimateInputApi.getCatalog(projectId),
-    staleTime: STATIC_STALE
+    staleTime: pipeline ? 0 : STATIC_STALE,
+    refetchInterval: pipeline ? 15000 : false
   })
   const provinces = useQuery({
     queryKey: [...designKeys.locations(), 'provinces'],
@@ -84,6 +105,8 @@ export function useEstimateInput(projectId: string) {
   const chainRef = useRef<Promise<boolean>>(Promise.resolve(true))
   const deniedRef = useRef(false)
   const coordinatesSupported = true
+  // Chỉ gửi ô mới khi BE đã trả các khoá đó (BE cũ từ chối tên lạ trong `changedFields`).
+  const pipelineFieldsRef = useRef(false)
   const conflictRef = useRef(false)
   const editsFrozenRef = useRef(false)
   const autoRetryRef = useRef(false)
@@ -103,8 +126,9 @@ export function useEstimateInput(projectId: string) {
     draftRef.current = initial
     savedRef.current = normalizeSaved(detail.data.input)
     versionRef.current = detail.data.inputVersion
+    pipelineFieldsRef.current = pipeline && supportsPipelineInput(detail.data.input)
     setDraft(initial)
-  }, [detail.data, projectId])
+  }, [detail.data, pipeline, projectId])
 
   const wardsProvince = draft?.provinceCode ?? null
   const datasetVersion = provinces.data?.datasetVersion ?? null
@@ -127,13 +151,14 @@ export function useEstimateInput(projectId: string) {
       const saved = savedRef.current
       if (!current || !saved || deniedRef.current || conflictRef.current) return false
       const withCoordinates = true
-      const changed = changedFields(saved, current, withCoordinates)
+      const withPipeline = pipelineFieldsRef.current
+      const changed = changedFields(saved, current, withCoordinates, withPipeline)
       if (changed.length === 0 && !requestRef.current) {
         setStatus((previous) => (previous === 'idle' ? previous : 'saved'))
         return true
       }
 
-      const body = inputBody(current, withCoordinates)
+      const body = inputBody(current, withCoordinates, withPipeline)
       const addressChanged = changed.some((field) => ['provinceCode', 'wardCode', 'addressDetail'].includes(field))
       if (!requestRef.current && addressChanged && (body.latitude === null || body.longitude === null)) {
         setStatus('error')
@@ -161,7 +186,7 @@ export function useEstimateInput(projectId: string) {
         }
         const confirmed = normalizeSaved(fresh.input)
         const latest = draftRef.current ?? current
-        const editedWhileSaving = changedFields(request.body.input, latest, true)
+        const editedWhileSaving = changedFields(request.body.input, latest, true, withPipeline)
         const reconciled = draftFromInput(fresh.input)
         for (const field of editedWhileSaving) Object.assign(reconciled, { [field]: latest[field] })
         savedRef.current = confirmed
@@ -184,7 +209,8 @@ export function useEstimateInput(projectId: string) {
           // Không tự thử lại dữ liệu sai, hạn mức hoặc dataset đã thay đổi.
           if (error.status > 0 && error.status < 500) requestRef.current = null
           // Quyền / gói / lượt / đang khoá: không tự thử lại để vượt khoá (BR-PROJ-003 phần Except).
-          const locked = code === 'GenerationInProgress' || code === 'EstimateAlreadyGenerated'
+          const locked =
+            code === 'GenerationInProgress' || code === 'EstimateAlreadyGenerated' || code === 'EstimateInputLocked'
           if (error.status === 403 || code === 'QuotaUnavailable' || locked) {
             deniedRef.current = true
             setDeniedCode(code ?? 'AccessForbidden')
@@ -311,9 +337,18 @@ export function useEstimateInput(projectId: string) {
     [patch, provinces.data?.datasetVersion]
   )
 
+  const lotVerificationPassed = Boolean(options.lotVerificationPassed)
   const missing = useMemo(
-    () => (draft ? missingFields(draft, catalog.data, coordinatesSupported) : []),
-    [catalog.data, coordinatesSupported, draft]
+    () =>
+      !draft
+        ? []
+        : pipeline
+          ? pipelineMissingFields(draft, catalog.data, {
+              requireCoordinates: coordinatesSupported,
+              lotVerificationPassed
+            })
+          : missingFields(draft, catalog.data, coordinatesSupported),
+    [catalog.data, coordinatesSupported, draft, lotVerificationPassed, pipeline]
   )
 
   const reloadSaved = useCallback(async () => {
@@ -323,6 +358,7 @@ export function useEstimateInput(projectId: string) {
       savedRef.current = normalizeSaved(fresh.input)
       versionRef.current = fresh.inputVersion
       draftRef.current = loaded
+      pipelineFieldsRef.current = pipeline && supportsPipelineInput(fresh.input)
       requestRef.current = null
       conflictRef.current = false
       deniedRef.current = false
@@ -334,9 +370,11 @@ export function useEstimateInput(projectId: string) {
     } catch (error) {
       setErrorMessage(isApiError(error) ? error.message : null)
     }
-  }, [projectId, queryClient])
+  }, [pipeline, projectId, queryClient])
 
-  const lock = lockReasonOf(detail.data, deniedCode)
+  const lock = pipeline
+    ? (lockOfDenied(deniedCode) ?? options.stageLock ?? (detail.data?.canEdit === false ? 'noEdit' : null))
+    : lockReasonOf(detail.data, deniedCode)
 
   /** Giữ nguyên bản vừa lưu trong lúc kiểm tra và gửi Generate. */
   const freezeEdits = useCallback(() => {
@@ -365,6 +403,8 @@ export function useEstimateInput(projectId: string) {
     hold,
     freezeEdits,
     coordinatesSupported,
+    /** BE đã có đầu vào của luồng bốn chặng (trả khoá `desiredBedrooms`). */
+    pipelineSupported: pipeline && supportsPipelineInput(detail.data?.input),
     flush,
     retry: conflictRef.current ? reloadSaved : flush
   }

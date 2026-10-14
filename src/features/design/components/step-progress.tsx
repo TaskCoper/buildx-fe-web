@@ -10,7 +10,8 @@ import { Link } from '@/i18n/navigation'
 import { cn } from '@/shared/lib/utils'
 import { formatDisplayDate } from '@/shared/utils'
 import { usePageEntrance } from '@/shared/hooks'
-import { DESIGN_STEPS, STEP_HELP_TOPIC } from '../constants/design.constants'
+import { DESIGN_STEPS, PIPELINE_STEP_HELP_TOPIC, STEP_HELP_TOPIC } from '../constants/design.constants'
+import { PIPELINE_STEPS, type PipelineStep, type PipelineStepState } from '../services/pipeline.logic'
 import type { DesignStep } from '../types/design.types'
 import { HelpLink } from './help-link'
 
@@ -21,7 +22,13 @@ import { HelpLink } from './help-link'
  * hiện phía trên thanh, theo Hình 04.
  */
 interface StepProgressProps {
-  current: DesignStep
+  /** Luồng ba bước cũ. Bỏ trống khi dùng `pipeline`. */
+  current?: DesignStep
+  /**
+   * Luồng bốn chặng: năm bước Nhập liệu → Bản vẽ 2D → Dự toán → Phối cảnh 3D → Hồ sơ (TDD-PROJ-006). Trạng thái từng
+   * nấc tính từ `GET /stages` (`pipelineStepStates`); nấc chưa mở ghi "Chưa mở".
+   */
+  pipeline?: { current: PipelineStep; states: Record<PipelineStep, PipelineStepState> }
   /** Tiêu đề màn hình hiện phía trên thanh (Hình 04, 07, 08). */
   title?: string
   /** Dòng phụ dưới tiêu đề — ví dụ địa chỉ · loại nhà · quy mô ở màn kết quả dự toán. */
@@ -49,8 +56,23 @@ interface StepProgressProps {
   animateEntrance?: boolean
 }
 
+/** Một nấc đã tính sẵn trạng thái, dùng chung cho hai luồng. */
+interface StepItem {
+  step: number
+  label: string
+  done: boolean
+  active: boolean
+  /** Nấc của màn đang mở (kể cả khi đã xong) — điều khiển hiệu ứng nối. */
+  isCurrent: boolean
+  /** Dòng trạng thái nhỏ dưới tên nấc. */
+  status: string
+  /** Nấc lỗi tô màu cảnh báo thay vì màu thương hiệu. */
+  failed?: boolean
+}
+
 export function StepProgress({
-  current,
+  current = 1,
+  pipeline,
   title,
   subtitle,
   back,
@@ -66,6 +88,38 @@ export function StepProgress({
     entranceKey ?? `design.step.${current}`,
     { enabled: animateEntrance }
   )
+
+  const items: StepItem[] = pipeline
+    ? PIPELINE_STEPS.map((step) => {
+        const state = pipeline.states[step]
+        return {
+          step,
+          label: t(`pipeline.${step}`),
+          done: state === 'done',
+          active: step === pipeline.current && state !== 'done',
+          isCurrent: step === pipeline.current,
+          failed: state === 'failed',
+          status: t(`status.${state === 'current' ? 'current' : state === 'done' ? 'done' : state}`)
+        }
+      })
+    : DESIGN_STEPS.map((step) => {
+        const done = step < current || (step === current && currentDone)
+        const active = step === current && !currentDone
+        return {
+          step,
+          label: t(`${step}`),
+          done,
+          active,
+          isCurrent: step === current,
+          status:
+            step === current && currentDone
+              ? currentDoneAt
+                ? t('status.doneOn', { date: formatDisplayDate(currentDoneAt, locale) })
+                : t('status.justDone')
+              : t(done ? 'status.done' : active ? 'status.current' : 'status.pending')
+        }
+      })
+  const helpTopic = pipeline ? PIPELINE_STEP_HELP_TOPIC[pipeline.current] : STEP_HELP_TOPIC[current]
 
   return (
     <>
@@ -135,9 +189,7 @@ export function StepProgress({
            */}
           <div className='bg-card relative rounded-2xl border px-4 py-4 shadow-sm sm:px-6'>
             <ol className='flex items-start'>
-              {DESIGN_STEPS.map((step, index) => {
-                const done = step < current || (step === current && currentDone)
-                const active = step === current && !currentDone
+              {items.map(({ step, label, done, active, isCurrent, failed, status }, index) => {
                 return (
                   <li
                     key={step}
@@ -148,7 +200,7 @@ export function StepProgress({
                     style={
                       {
                         '--entrance-order-delay': `${index * 220}ms`,
-                        zIndex: DESIGN_STEPS.length - index
+                        zIndex: items.length - index
                       } as CSSProperties
                     }
                     className='relative flex min-w-0 flex-1 flex-col items-center gap-1.5'
@@ -166,7 +218,7 @@ export function StepProgress({
                         {done || active ? (
                           <span
                             data-step-connector-fill
-                            data-current={step === current}
+                            data-current={isCurrent}
                             className='bg-primary absolute inset-0 origin-left rounded-full'
                           />
                         ) : null}
@@ -181,8 +233,9 @@ export function StepProgress({
                       className={cn(
                         'relative z-10 flex size-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold transition-colors',
                         done && 'bg-primary text-primary-foreground',
-                        active && 'bg-primary text-primary-foreground',
-                        !done && !active && 'bg-muted text-muted-foreground border'
+                        active && !failed && 'bg-primary text-primary-foreground',
+                        failed && 'bg-destructive text-white',
+                        !done && !active && !failed && 'bg-muted text-muted-foreground border'
                       )}
                     >
                       {done ? <Check className='size-4.5' /> : step}
@@ -195,16 +248,12 @@ export function StepProgress({
                           active ? 'text-primary-strong' : done ? 'text-foreground' : 'text-muted-foreground'
                         )}
                       >
-                        {t(`${step}`)}
+                        {label}
                       </span>
-                      <span className='text-muted-foreground block truncate text-xs'>
-                        {step === current && currentDone
-                          ? currentDoneAt
-                            ? t('status.doneOn', {
-                                date: formatDisplayDate(currentDoneAt, locale)
-                              })
-                            : t('status.justDone')
-                          : t(done ? 'status.done' : active ? 'status.current' : 'status.pending')}
+                      <span
+                        className={cn('block truncate text-xs', failed ? 'text-destructive' : 'text-muted-foreground')}
+                      >
+                        {status}
                       </span>
                     </span>
                   </li>
@@ -214,7 +263,7 @@ export function StepProgress({
 
             {/* Nút "?" mở đúng video hướng dẫn của bước đang làm. Đặt tuyệt đối
                 ở góc phải để không chiếm một cột trong lưới chia đều. */}
-            <HelpLink topic={STEP_HELP_TOPIC[current]} className='absolute top-3 right-3 shrink-0' />
+            <HelpLink topic={helpTopic} className='absolute top-3 right-3 shrink-0' />
           </div>
         </div>
       </nav>

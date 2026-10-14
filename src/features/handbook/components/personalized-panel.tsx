@@ -9,7 +9,7 @@ import { useChatContextStore } from '@/shared/chat-context'
 import { Button } from '@/shared/components/ui/button'
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import { cn } from '@/shared/lib/utils'
-import { useHandbookArticles, useMatchedTemplates, usePersonalizedTemplates } from '../hooks/use-handbook'
+import { useHandbookArticles, usePersonalizedTemplates, useWaitingTemplates } from '../hooks/use-handbook'
 import { useHandbookPanelStore } from '../store/handbook-panel.store'
 import type {
   HandbookArticle,
@@ -79,6 +79,11 @@ export const PersonalizedPanel = memo(function PersonalizedPanel({
 
   const { templates, isPending: templatesPending } = usePersonalizedTemplates(filter, kind)
   const { data: articles, isPending: articlesPending } = useHandbookArticles(topic)
+  const waiting = useWaitingTemplates(matchCriteria, kind)
+
+  // Màn chờ của dự toán thật mà thư viện không có mẫu nào (khớp đủ hay cùng loại công trình), hoặc tải lỗi: chỉ hiện tiến
+  // độ, không hiện phần mẫu tham khảo (STORY-LIB-002/AC-013, ST-LIB-047).
+  if (matchCriteria && !waiting.isPending && waiting.items.length === 0) return null
 
   if (minimized) {
     return (
@@ -208,7 +213,8 @@ export const PersonalizedPanel = memo(function PersonalizedPanel({
               >
                 {activeTab === 'templates' && matchCriteria ? (
                   <MatchedTemplates
-                    criteria={matchCriteria}
+                    kind={kind}
+                    waiting={waiting}
                     selectedId={selectedTemplateId}
                     onOpen={(value) => {
                       setSelectedTemplateId(value.id)
@@ -269,70 +275,46 @@ export const PersonalizedPanel = memo(function PersonalizedPanel({
   )
 })
 
-/** Một nhóm mẫu khớp (2D hoặc 3D) kèm tiêu đề và số lượng. Nhóm rỗng không hiện, trừ khi `emptyText` được truyền. */
-function MatchedGroup({
-  kind,
-  criteria,
-  selectedId,
-  onOpen,
-  emptyText
-}: {
-  kind: HandbookTemplateKind
-  criteria: LibraryMatchCriteria
-  selectedId: string | null
-  onOpen: (template: HandbookTemplate) => void
-  emptyText?: string
-}) {
-  const t = useTranslations('handbook.panel.matched')
-  const { data, isPending, isError } = useMatchedTemplates(criteria, kind)
-
-  if (isPending) return <PanelSkeleton />
-  // Lỗi thư viện không được làm hỏng màn chờ AI: chỉ báo nhẹ, không chặn gì.
-  if (isError) return <p className='text-muted-foreground text-sm'>{t('error')}</p>
-  if (!data.items.length) return emptyText ? <p className='text-muted-foreground text-sm'>{emptyText}</p> : null
-
-  return (
-    <section className='space-y-3'>
-      <h3 className='text-sm font-semibold'>
-        {t(kind === '2d' ? 'title2d' : 'title3d')}
-        <span className='text-muted-foreground ml-1.5 font-normal'>{t('count', { count: data.totalCount })}</span>
-      </h3>
-      <div data-handbook-panel-grid className='grid grid-cols-2 gap-3 lg:grid-cols-3'>
-        {data.items.map((template, index) => (
-          <div
-            key={template.id}
-            data-panel-card
-            style={{ '--panel-card-delay': `${index * 65}ms` } as React.CSSProperties}
-          >
-            <TemplateCard template={template} variant='panel' selected={selectedId === template.id} onOpen={onOpen} />
-          </div>
-        ))}
-      </div>
-    </section>
-  )
-}
-
 /**
- * Mẫu thư viện liên quan tới dự toán đang lập: 2D rồi 3D, đều khớp đúng đầu vào đã gửi AI. Chưa có mẫu 2D khớp thì nói
- * thẳng thay vì lấp bằng mẫu không liên quan; mẫu 3D chỉ hiện khi có.
+ * Mẫu thư viện ở màn chờ của dự toán đang lập, đúng loại của chặng đang chạy (2D khi chạy 2D, 3D khi chạy Dự toán và 3D).
+ * Mẫu cùng loại công trình có nhãn riêng để khách biết chưa khớp đủ thông tin dự toán (BR-LIB-001 khoản 16).
  */
 function MatchedTemplates({
-  criteria,
+  kind,
+  waiting,
   selectedId,
   onOpen
 }: {
-  criteria: LibraryMatchCriteria
+  kind: HandbookTemplateKind
+  waiting: { items: HandbookTemplate[]; totalCount: number; source: 'match' | 'sameType' | null; isPending: boolean }
   selectedId: string | null
   onOpen: (template: HandbookTemplate) => void
 }) {
   const t = useTranslations('handbook.panel.matched')
+  if (waiting.isPending) return <PanelSkeleton />
+  const sameType = waiting.source === 'sameType'
   return (
     <div className='space-y-5'>
-      <MatchedGroup kind='2d' criteria={criteria} selectedId={selectedId} onOpen={onOpen} emptyText={t('empty')} />
-      <MatchedGroup kind='3d' criteria={criteria} selectedId={selectedId} onOpen={onOpen} />
+      <section className='space-y-3'>
+        <h3 className='text-sm font-semibold'>
+          {t(sameType ? (kind === '2d' ? 'sameType2d' : 'sameType3d') : kind === '2d' ? 'title2d' : 'title3d')}
+          <span className='text-muted-foreground ml-1.5 font-normal'>{t('count', { count: waiting.totalCount })}</span>
+        </h3>
+        <div data-handbook-panel-grid className='grid grid-cols-2 gap-3 lg:grid-cols-3'>
+          {waiting.items.map((template, index) => (
+            <div
+              key={template.id}
+              data-panel-card
+              style={{ '--panel-card-delay': `${index * 65}ms` } as React.CSSProperties}
+            >
+              <TemplateCard template={template} variant='panel' selected={selectedId === template.id} onOpen={onOpen} />
+            </div>
+          ))}
+        </div>
+      </section>
       <p className='text-muted-foreground flex items-center gap-1.5 text-xs'>
         <Info className='size-3.5 shrink-0' />
-        {t('note')}
+        {t(sameType ? 'sameTypeNote' : 'note')}
       </p>
     </div>
   )

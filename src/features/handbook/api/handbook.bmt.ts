@@ -404,6 +404,21 @@ export const bmtHandbookApi = {
     return { items: page.items.map(toTemplateSummary), totalCount: page.totalCount }
   },
 
+  /**
+   * Mẫu cùng loại công trình cho màn chờ khi không có mẫu khớp đủ (BR-LIB-001 khoản 16): route lọc công khai, chỉ lọc
+   * loại mẫu và loại công trình, không gửi tầng/tum/phong cách. Lỗi để hook xử lý (màn chờ ẩn phần mẫu, AI không ảnh hưởng).
+   */
+  async listSameBuildingType(
+    kind: HandbookTemplateKind,
+    buildingTypeId: string,
+    pageSize = 6
+  ): Promise<{ items: HandbookTemplate[]; totalCount: number }> {
+    const page = await http.get<PagedResult<BmtDesignTemplateSummary>>('/design-templates', {
+      params: { drawingKind: kind === '3d' ? '3D' : '2D', buildingTypeId, pageIndex: 1, pageSize }
+    })
+    return { items: page.items.map(toTemplateSummary), totalCount: page.totalCount }
+  },
+
   /** Danh sách mẫu công khai (`GET /design-templates`). Rỗng/lỗi → danh sách rỗng (không mock). */
   async listTemplates(): Promise<HandbookTemplate[]> {
     try {

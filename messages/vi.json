@@ -527,7 +527,41 @@
       "ExportFailed": "Chưa tạo được tệp xuất. Vui lòng thử lại.",
       "AuditLogImmutable": "Nhật ký không thể sửa hoặc xoá.",
       "InvalidCmsCacheTarget": "Trang hoặc ngôn ngữ cần làm mới không hợp lệ.",
-      "CmsAuthorizationUnavailable": "Chưa kiểm tra được quyền làm mới nội dung. Vui lòng thử lại."
+      "CmsAuthorizationUnavailable": "Chưa kiểm tra được quyền làm mới nội dung. Vui lòng thử lại.",
+      "PipelineUnavailable": "Tạo dự toán đang tạm bảo trì. Bạn quay lại sau ít phút.",
+      "PipelineBusy": "Hệ thống đang bận. Bạn thử lại sau vài phút.",
+      "AiServiceUnavailable": "Dịch vụ AI đang tạm gián đoạn. Bạn thử lại sau ít phút.",
+      "StageUnavailable": "Bước này chưa mở.",
+      "StagePrerequisiteNotMet": "Bạn cần hoàn tất bước trước.",
+      "StageAlreadySucceeded": "Bước này đã hoàn tất.",
+      "StageRunInProgress": "Bản dự toán đang xử lý một bước.",
+      "StageRetryLimitReached": "Bước này đã lỗi quá số lần cho phép. Bạn liên hệ hỗ trợ.",
+      "LegacyResultExists": "Bản dự toán này còn kết quả của phiên bản cũ. Bạn tạo bản dự toán mới.",
+      "InvalidStageInput": "Còn thiếu thông tin để chạy bước này.",
+      "LotImageRequired": "Bạn tải ảnh lô đất lên trước.",
+      "LotImageInvalid": "Ảnh lô đất không đúng định dạng hoặc kích thước cho phép.",
+      "LotVerificationRequired": "Ảnh lô đất chưa được soi.",
+      "EstimateInputLocked": "Thông tin đầu vào đang khóa nên chưa sửa được.",
+      "LotVerificationBusy": "Hệ thống đang bận nên chưa soi được ảnh. Bạn thử lại sau.",
+      "StageResultNotReady": "Bước này chưa hoàn tất.",
+      "PipelineEnabled": "Bản dự toán dùng luồng mới, không gửi theo cách cũ được nữa.",
+      "InvalidPipelineConfig": "Cấu hình AI chưa hợp lệ. Bạn xem lại các ô được đánh dấu.",
+      "VersionConflict": "Dữ liệu vừa được người khác lưu. Bạn tải lại rồi sửa tiếp.",
+      "StageResetNotAllowed": "Không có gì cần đặt lại: bước đang chạy, đã thành công hoặc chưa có lần lỗi nào được tính.",
+      "AiCallRawNotFound": "Lời gọi này không có nhật ký thô.",
+      "AuditWriteFailed": "Chưa ghi được dấu vết xem nên không mở được nhật ký thô. Bạn thử lại sau.",
+      "InvalidAiRuleSet": "Dữ liệu quy tắc AI không hợp lệ. Kiểm tra các trường được đánh dấu.",
+      "InvalidPromptInstruction": "Lời dặn hoặc biến chèn không hợp lệ.",
+      "AiRuleRevisionNotFound": "Không tìm thấy phiên bản quy tắc.",
+      "RuleRevisionIncompatible": "Phiên bản nguồn không phù hợp với bộ prompt hiện tại.",
+      "AiPromptNotFound": "Không tìm thấy prompt.",
+      "PromptFixtureUnavailable": "Bộ mẫu hoặc tình huống không dùng được.",
+      "PromptPreviewStale": "Nguồn hoặc bản nhập đã thay đổi. Hãy xem trước lại.",
+      "PromptTrialNotFound": "Không tìm thấy lần thử hoặc tệp kết quả.",
+      "PromptTrialInterrupted": "Lần thử bị gián đoạn và không tự chạy lại.",
+      "PromptTrialCostIncomplete": "Chưa đủ dữ liệu chi phí cho lần thử.",
+      "PromptTrialLastFailed": "Lần thử gần nhất của lời dặn này chưa đạt.",
+      "StageRunGroupRequired": "Hãy dùng nút Đi tiếp hoặc Thử lại để chạy dự toán và phối cảnh 3D cùng lúc."
     }
   },
   "validation": {
@@ -1386,7 +1420,10 @@
         "count": "({count} mẫu)",
         "empty": "Chưa có mẫu bản vẽ 2D nào khớp với dự án của bạn.",
         "error": "Chưa tải được mẫu liên quan. Việc lập dự toán vẫn đang chạy bình thường.",
-        "note": "Đây là mẫu tham khảo trong thư viện khớp thông tin bạn đã nhập, không phải kết quả AI vừa tạo."
+        "note": "Đây là mẫu tham khảo trong thư viện khớp thông tin bạn đã nhập, không phải kết quả AI vừa tạo.",
+        "sameType2d": "Mẫu bản vẽ 2D cùng loại công trình",
+        "sameType3d": "Mẫu nội thất 3D cùng loại công trình",
+        "sameTypeNote": "Thư viện chưa có mẫu khớp đủ thông tin dự án của bạn; đây là mẫu cùng loại công trình để tham khảo, không phải kết quả AI vừa tạo."
       }
     },
     "read": {
@@ -1606,7 +1643,17 @@
         "current": "Đang thực hiện",
         "pending": "Chưa bắt đầu",
         "justDone": "Vừa hoàn thành",
-        "doneOn": "Hoàn thành ngày {date}"
+        "doneOn": "Hoàn thành ngày {date}",
+        "running": "Đang chạy",
+        "failed": "Chưa thành công",
+        "ready": "Sẵn sàng",
+        "locked": "Chưa mở"
+      },
+      "pipeline": {
+        "1": "Nhập liệu",
+        "2": "Bản vẽ 2D",
+        "3": "Dự toán & 3D",
+        "4": "Hồ sơ"
       }
     },
     "entry": {
@@ -1931,14 +1978,18 @@
       "statusPending": "Chưa render",
       "filesTitle": "Tệp hồ sơ",
       "files": {
-        "exterior": "Phối cảnh 3D ngoại thất",
+        "exterior": "Phối cảnh 3D",
         "architecture": "Bản vẽ kiến trúc",
         "structure": "Bản vẽ kết cấu",
-        "estimate": "Bảng dự toán chi tiết"
+        "estimate": "Bảng dự toán chi tiết",
+        "full": "Hồ sơ thiết kế & dự toán"
       },
       "downloadTitle": "Tải xuống & chia sẻ",
       "packagedNote": "Tệp tải về đã được đóng gói sẵn.",
-      "exportError": "Chưa tải được hồ sơ PDF. Bạn thử tải lại."
+      "exportError": "Chưa tải được hồ sơ PDF. Bạn thử tải lại.",
+      "fileSize": "{pages} trang · {size} MB",
+      "downloadFile": "Tải tệp",
+      "workbookSize": "4 sheet · {size} MB"
     },
     "share": {
       "eyebrow": "Hồ sơ được chia sẻ",
@@ -2007,7 +2058,15 @@
         "total": "Tổng dự án",
         "designing": "Đang thiết kế",
         "review": "Chờ duyệt",
-        "completed": "Đã hoàn tất"
+        "completed": "Đã hoàn tất",
+        "inProgress": "Đang làm dở",
+        "pipeline": {
+          "total": "Tổng dự án",
+          "designing": "Đang xử lý",
+          "review": "Chờ duyệt",
+          "completed": "Hoàn tất",
+          "inProgress": "Đang làm dở"
+        }
       },
       "search": {
         "label": "Tìm dự án",
@@ -2018,7 +2077,9 @@
         "input": "Đang nhập liệu",
         "designing": "Đang thiết kế",
         "review": "Chờ duyệt",
-        "completed": "Hoàn tất"
+        "completed": "Hoàn tất",
+        "failed": "Thất bại",
+        "inProgress": "Đang làm dở"
       },
       "sort": {
         "label": "Sắp xếp",
@@ -2030,7 +2091,9 @@
         "input": "Đang nhập liệu",
         "designing": "Đang thiết kế",
         "review": "Chờ duyệt",
-        "completed": "Hoàn tất"
+        "completed": "Hoàn tất",
+        "failed": "Thất bại",
+        "inProgress": "Đang làm dở"
       },
       "steps": {
         "1": "Nhập liệu",
@@ -2080,7 +2143,22 @@
       },
       "createdAt": "Tạo ngày {date}",
       "progressLabel": "Tiến độ thiết kế – dự toán",
-      "codeLabel": "Mã dự toán"
+      "codeLabel": "Mã dự toán",
+      "pipelineSteps": {
+        "1": "Nhập liệu",
+        "2": "2D",
+        "3": "Dự toán",
+        "4": "3D",
+        "5": "Hồ sơ"
+      },
+      "pipelineStatus": {
+        "input": "Nháp",
+        "designing": "Đang xử lý",
+        "review": "Chờ duyệt",
+        "completed": "Hoàn tất",
+        "failed": "Thất bại",
+        "inProgress": "Đang làm dở"
+      }
     },
     "phonePrompt": {
       "title": "Bổ sung số điện thoại",
@@ -2230,6 +2308,354 @@
       "load": {
         "error": "Chưa tải được dữ liệu dự toán. Bạn có thể thử đọc lại.",
         "retry": "Tải lại"
+      }
+    },
+    "pipeline": {
+      "input": {
+        "groups": {
+          "lot": "Lô đất",
+          "scope": "Loại công trình & quy mô"
+        },
+        "notSupported": "Chưa hỗ trợ",
+        "entrance": {
+          "title": "Xác nhận trước khi vẽ",
+          "label": "Cạnh có cửa vào",
+          "hint": "Cạnh của bản vẽ lô có cửa chính hoặc cổng (giáp đường). Mặc định là cạnh trái.",
+          "thumbAlt": "Ảnh lô đất",
+          "default": "Mặc định: cửa vào ở cạnh {side} bản vẽ. Nếu bản vẽ của bạn có cửa vào ở cạnh khác, chạm vào cạnh đó.",
+          "chosen": "Bạn đã chọn: cửa vào ở cạnh {side} bản vẽ.",
+          "Left": "Trái",
+          "Right": "Phải",
+          "Top": "Trên",
+          "Bottom": "Dưới"
+        },
+        "lotSize": {
+          "label": "Kích thước lô (mặt tiền × chiều sâu)",
+          "hint": "Không bắt buộc. Nếu nhập thì nhập đủ cả hai ô, đơn vị mét. Để trống thì hệ thống đọc kích thước từ ảnh lô hoặc mô tả.",
+          "frontage": "Mặt tiền",
+          "depth": "Chiều sâu",
+          "format": "Nhập số lớn hơn 0, tối đa 2 chữ số thập phân.",
+          "pair": "Nhập đủ cả mặt tiền và chiều sâu, hoặc để trống cả hai.",
+          "unit": "m"
+        },
+        "bedrooms": {
+          "label": "Số phòng ngủ mong muốn",
+          "hint": "Từ 1 đến 10 phòng. Nếu lô không đủ chỗ, phương án có thể ít phòng hơn và sẽ ghi rõ lý do.",
+          "placeholder": "Chọn số phòng ngủ",
+          "option": "{count} phòng ngủ"
+        },
+        "garage": {
+          "label": "Gara ô tô",
+          "hint": "Mặc định là không có gara. Nếu mặt tiền không đủ rộng, phương án sẽ không có gara và ghi rõ lý do.",
+          "yes": "Có gara",
+          "no": "Không có gara"
+        },
+        "description": {
+          "label": "Mô tả cho kiến trúc sư AI",
+          "hint": "Không bắt buộc, tối đa 4.000 ký tự. Ghi những mong muốn ảnh lô chưa thể hiện được.",
+          "placeholder": "Ví dụ: nhà cho gia đình 5 người, có phòng thờ ở tầng trên cùng, phòng khách liền bếp…"
+        },
+        "lock": {
+          "noEdit": "Bạn cần một gói thiết kế đang hoạt động và còn lượt để lưu thông tin và tạo bản vẽ.",
+          "generating": "Bản vẽ 2D đang được tạo nên chưa sửa được thông tin. Nếu lần chạy không thành công, thông tin sẽ được mở lại để bạn sửa.",
+          "generated": "Bản vẽ 2D đã xong nên thông tin đầu vào được khóa. Bạn vẫn đổi được tên bản dự toán.",
+          "viewPlan": "Xem bản vẽ 2D"
+        },
+        "missingTitle": "Còn thiếu thông tin",
+        "missing": {
+          "inputImageUrl": "ảnh lô đất",
+          "lotVerification": "ảnh lô đất đạt yêu cầu",
+          "desiredBedrooms": "số phòng ngủ",
+          "lotSize": "kích thước lô (nhập đủ hai ô, đúng giới hạn của loại công trình)",
+          "buildingTypeId": "loại công trình",
+          "provinceCode": "tỉnh / thành",
+          "wardCode": "phường / xã",
+          "addressDetail": "số nhà, đường",
+          "location": "vị trí trên bản đồ (chọn một dòng gợi ý)",
+          "finishPackage": "gói hoàn thiện",
+          "floorCount": "số tầng",
+          "hasTum": "tum",
+          "architectureStyleId": "kiểu kiến trúc",
+          "interiorStyleId": "phong cách nội thất",
+          "catalogMapping": "Loại công trình này chưa được cấu hình đủ. Vui lòng chọn loại khác hoặc liên hệ hỗ trợ.",
+          "pricingRegion": "tỉnh này chưa có vùng giá. Bạn liên hệ hỗ trợ"
+        },
+        "quotaNote": "Một lượt thiết kế dùng cho cả bộ: bản vẽ 2D, dự toán, phối cảnh 3D và hồ sơ. Lượt chỉ bị trừ khi bản vẽ 2D tạo thành công.",
+        "submit": "Tạo bản vẽ 2D"
+      },
+      "lotImage": {
+        "label": "Ảnh lô đất",
+        "hint": "Ảnh bản vẽ tay, bản vẽ kỹ thuật, mặt bằng hoặc trích lục thể hiện hình dạng lô hoặc các phòng. Ảnh chụp nhà, đất thực tế không dùng được.",
+        "constraints": "JPG, PNG hoặc WebP, tối đa 10 MB, tối thiểu 640×480 điểm ảnh; cạnh dài không quá 3 lần cạnh ngắn.",
+        "upload": "Tải ảnh lô đất lên",
+        "uploading": "Đang tải ảnh…",
+        "replace": "Đổi ảnh",
+        "remove": "Xóa ảnh",
+        "uploadError": "Không tải được ảnh lên. Bạn thử lại nhé.",
+        "problem": {
+          "type": "Chỉ nhận ảnh JPG, PNG hoặc WebP.",
+          "size": "Ảnh quá lớn, tối đa 10 MB.",
+          "tooSmall": "Ảnh quá nhỏ, cần ít nhất 640×480 điểm ảnh.",
+          "aspect": "Ảnh quá dài hoặc quá hẹp: cạnh dài không được quá 3 lần cạnh ngắn.",
+          "tooLarge": "Ảnh có quá nhiều điểm ảnh. Bạn giảm kích thước ảnh rồi tải lại."
+        }
+      },
+      "verify": {
+        "waitingForSave": "Đang lưu ảnh mới, lưu xong hệ thống sẽ soi ảnh.",
+        "checking": "Đang soi ảnh lô đất…",
+        "checkingHint": "Thường xong trong dưới một phút. Bạn có thể tiếp tục nhập các ô khác.",
+        "notChecked": "Ảnh này chưa được soi.",
+        "check": "Soi ảnh",
+        "pass": "Ảnh đạt yêu cầu",
+        "fail": "Ảnh chưa đạt yêu cầu",
+        "reused": "Ảnh này đã được soi trước đây nên dùng lại kết quả cũ, không tính vào hạn mức.",
+        "remainingToday": "Hôm nay bạn còn {count} lần soi ảnh mới.",
+        "replaceHint": "Bạn thay một ảnh bản vẽ hoặc sơ đồ lô đất khác để tiếp tục.",
+        "more": "Xem thêm",
+        "less": "Thu gọn",
+        "retry": "Soi lại",
+        "reload": "Tải lại",
+        "loadError": "Chưa đọc được kết quả soi ảnh.",
+        "issue": {
+          "not_a_plot": "Ảnh không phải bản vẽ hay sơ đồ lô đất.",
+          "no_layout": "Bản vẽ chưa thể hiện hình dạng lô hoặc các phòng.",
+          "multiple_floors": "Một ảnh có từ hai mặt bằng tầng trở lên. Bạn tải ảnh chỉ có một mặt bằng.",
+          "other": "Ảnh chưa đạt yêu cầu."
+        },
+        "failure": {
+          "quota": "Hôm nay bạn đã dùng hết lượt soi ảnh mới. Bạn thử lại vào ngày mai; ảnh đã từng soi vẫn dùng lại được kết quả cũ.",
+          "unavailable": "Chưa soi được ảnh vì dịch vụ AI đang gặp sự cố. Lần này không tính vào hạn mức.",
+          "invalidImage": "Ảnh không đúng định dạng hoặc kích thước cho phép. Bạn thay ảnh khác.",
+          "busy": "Hệ thống đang bận nên chưa soi được ảnh. Bạn thử lại sau ít phút.",
+          "other": "Chưa soi được ảnh. Bạn thử lại nhé."
+        },
+        "requestError": {
+          "locked": "Thông tin đầu vào đang khóa nên chưa soi được ảnh mới.",
+          "noImage": "Bạn tải ảnh lô đất lên trước khi soi.",
+          "aiPaused": "Dịch vụ AI đang tạm gián đoạn. Bạn thử lại sau ít phút.",
+          "busy": "Hệ thống đang bận. Bạn thử lại sau ít phút.",
+          "other": "Chưa gửi được yêu cầu soi ảnh. Bạn thử lại nhé."
+        }
+      },
+      "runError": {
+        "inProgress": "Bản dự toán đang xử lý một bước. Bạn chờ bước đó hoàn tất.",
+        "alreadySucceeded": "Bước này đã hoàn tất.",
+        "prerequisite": "Bạn cần hoàn tất bước trước.",
+        "retryLimit": "Bước này đã lỗi quá số lần cho phép. Bạn liên hệ hỗ trợ để được chạy lại.",
+        "versionConflict": "Thông tin vừa thay đổi ở nơi khác. Bạn tải lại trang rồi bấm lại.",
+        "idempotencyConflict": "Yêu cầu bị trùng với một lần bấm trước. Bạn tải lại trang rồi thử lại.",
+        "invalidInput": "Còn thiếu thông tin để tạo bản vẽ 2D.",
+        "maintenance": "Tạo dự toán đang tạm bảo trì. Bạn quay lại sau ít phút.",
+        "busy": "Hệ thống đang bận. Bạn thử lại sau vài phút; lần bấm này không bị trừ lượt.",
+        "aiPaused": "Dịch vụ AI đang tạm gián đoạn. Bạn thử lại sau ít phút; lần bấm này không bị trừ lượt.",
+        "stageUnavailable": "Bước này chưa mở.",
+        "quota": "Gói thiết kế của bạn đã hết lượt.",
+        "subscription": "Bạn cần một gói thiết kế đang hoạt động để tạo bản vẽ.",
+        "notFound": "Không tìm thấy bản dự toán.",
+        "network": "Mất kết nối. Bạn kiểm tra mạng rồi bấm lại; lần bấm lại không bị trừ thêm lượt.",
+        "other": "Chưa tạo được bản vẽ. Bạn thử lại nhé.",
+        "legacyResult": "Bản dự toán này còn kết quả của phiên bản cũ nên chưa chạy được luồng mới. Bạn tạo bản dự toán mới.",
+        "groupRequired": "Hãy dùng nút Đi tiếp hoặc Thử lại để chạy dự toán và phối cảnh 3D cùng lúc."
+      },
+      "plan": {
+        "pageTitle": "Bản vẽ 2D",
+        "pageTitleWithProject": "Bản vẽ 2D: {name} ({id})",
+        "loadError": "Không tải được trạng thái bản vẽ.",
+        "resultLoadError": "Không tải được kết quả bản vẽ 2D.",
+        "reload": "Tải lại",
+        "notStarted": "Chưa tạo bản vẽ 2D",
+        "notStartedHint": "Bạn kiểm tra lại thông tin ở bước Nhập liệu rồi bấm tạo bản vẽ.",
+        "start": "Tạo bản vẽ 2D",
+        "editInput": "Sửa thông tin",
+        "queued": "Đang chờ tới lượt",
+        "queuedHint": "Yêu cầu của bạn đã được nhận. Hệ thống sẽ bắt đầu vẽ khi tới lượt; bạn có thể rời trang và quay lại sau.",
+        "running": "Đang lập phương án và vẽ bản vẽ",
+        "runningHint": "Hệ thống lập phương án mặt bằng rồi vẽ bản kỹ thuật và bản nội thất cho từng tầng. Bạn có thể rời trang và quay lại sau.",
+        "progress": "Đã xong {done}/{total} bước",
+        "progressUnknown": "Đã xong {done} bước",
+        "failed": "Chưa tạo được bản vẽ 2D",
+        "failure": {
+          "DrawingUnavailable": "AI chưa vẽ được một bản vẽ dù đã thử vẽ lại.",
+          "AiOutputIncomplete": "AI trả về phương án thiếu thông tin.",
+          "AiContentBlocked": "AI từ chối xử lý nội dung bạn gửi. Bạn xem lại ảnh và mô tả.",
+          "StageTimedOut": "Lần chạy vượt quá thời gian cho phép.",
+          "AiServiceDown": "Dịch vụ AI đang gặp sự cố.",
+          "generic": "Đã có lỗi trong lúc tạo bản vẽ."
+        },
+        "retriesLeft": "Lượt đã giữ được hoàn lại. Bạn còn {count} lần chạy lại.",
+        "refunded": "Lượt đã giữ được hoàn lại.",
+        "retryLimit": "Bước này đã lỗi quá số lần cho phép. Bạn liên hệ hỗ trợ để được chạy lại.",
+        "retry": "Chạy lại",
+        "nextStage": "Bản vẽ 2D đã xong. Bấm Đi tiếp để hệ thống lập dự toán và dựng phối cảnh 3D cùng lúc.",
+        "toEstimate": "Đi tiếp",
+        "result": {
+          "lot": "Kích thước lô",
+          "lotSource": {
+            "customer": "Theo số bạn nhập",
+            "image": "Đọc từ ảnh lô đất",
+            "description": "Đọc từ mô tả",
+            "default": "Kích thước mặc định của loại công trình"
+          },
+          "totalFloorArea": "Tổng diện tích sàn",
+          "builtArea": "Diện tích xây dựng",
+          "room": "Phòng",
+          "size": "Kích thước",
+          "area": "Diện tích",
+          "notes": "Lưu ý",
+          "drawings": "Bản vẽ",
+          "kind": {
+            "technical": "Bản vẽ kỹ thuật",
+            "furniture": "Bản vẽ nội thất"
+          },
+          "floor": "Tầng {index}",
+          "download": "Tải về",
+          "areaValue": "{value} m²",
+          "lotValue": "{width} m × {depth} m"
+        }
+      },
+      "estimate": {
+        "pageTitle": "Dự toán",
+        "pageTitleWithProject": "Dự toán: {name} ({id})",
+        "loadError": "Không tải được trạng thái dự toán.",
+        "resultLoadError": "Không tải được kết quả dự toán.",
+        "reload": "Tải lại",
+        "locked": "Bước Dự toán chưa mở",
+        "lockedHint": "Dự toán được lập từ bản vẽ 2D. Bạn cần hoàn tất bước Bản vẽ 2D trước.",
+        "viewPlan": "Xem bản vẽ 2D",
+        "notStarted": "Chưa tạo dự toán",
+        "notStartedHint": "Hệ thống bóc tách 3 phần (phần thô · hoàn thiện · nội thất) từ bản vẽ 2D đã có. Bước này không tính thêm lượt thiết kế.",
+        "start": "Tạo dự toán",
+        "startError": "Chưa tạo được dự toán. Bạn thử lại nhé.",
+        "queued": "Đang chờ tới lượt",
+        "queuedHint": "Yêu cầu của bạn đã được nhận. Hệ thống sẽ bắt đầu lập dự toán khi tới lượt; bạn có thể rời trang và quay lại sau.",
+        "running": "Đang bóc tách khối lượng và lập dự toán",
+        "runningHint": "Bạn có thể rời trang và quay lại sau.",
+        "progress": "Đã xong {done}/{total} bước",
+        "progressUnknown": "Đã xong {done} bước",
+        "readyToast": "Đã lập xong dự toán.",
+        "failed": "Chưa lập được dự toán",
+        "failure": {
+          "incomplete": "AI trả về dự toán thiếu thông tin cần thiết.",
+          "blocked": "AI từ chối xử lý nội dung của bản dự toán này.",
+          "timedOut": "Lần chạy vượt quá thời gian cho phép.",
+          "serviceDown": "Dịch vụ AI đang gặp sự cố.",
+          "generic": "Đã có lỗi trong lúc lập dự toán."
+        },
+        "retriesLeft": "Bạn còn {count} lần chạy lại.",
+        "retryUnknown": "Bạn có thể bấm Chạy lại.",
+        "retryLimit": "Bước này đã lỗi quá số lần cho phép. Bạn liên hệ hỗ trợ để được chạy lại.",
+        "retry": "Chạy lại",
+        "result": {
+          "title": "Dự toán",
+          "tabs": {
+            "structure": "Phần thô",
+            "finishing": "Hoàn thiện",
+            "interior": "Nội thất"
+          },
+          "columns": {
+            "item": "Hạng mục",
+            "unit": "ĐV",
+            "quantity": "Khối lượng",
+            "unitPrice": "Đơn giá",
+            "amount": "Thành tiền"
+          },
+          "emptyPart": "Phần này không có hạng mục nào.",
+          "partTotal": {
+            "structure": "Tổng phần thô",
+            "finishing": "Tổng hoàn thiện",
+            "interior": "Tổng nội thất"
+          },
+          "grandTotal": "Tổng dự toán",
+          "money": "{value} đ",
+          "pricePerM2": "Đơn giá trên m² sàn quy đổi",
+          "pricePerM2Value": "{value} đ/m²",
+          "floorArea": "Tổng sàn quy đổi: {value} m²",
+          "schedule": {
+            "title": "Thời gian thi công dự kiến",
+            "structure": "Phần thô",
+            "finishing": "Hoàn thiện",
+            "interior": "Nội thất",
+            "total": "Tổng thời gian"
+          },
+          "advice": "Tư vấn từ BuildX",
+          "nextStageLocked": "Bước Phối cảnh 3D sẽ mở trong bản cập nhật tới. Dự toán của bạn được lưu lại để dùng cho các bước sau."
+        },
+        "toRender3d": "Tiếp tục: Phối cảnh 3D"
+      },
+      "locked": {
+        "pageTitle": {
+          "4": "Hồ sơ"
+        },
+        "title": "Bước này chưa mở",
+        "description": "Phiên bản hiện tại có bước Bản vẽ 2D và Dự toán. Phối cảnh 3D và hồ sơ sẽ mở trong các bản cập nhật tới.",
+        "backToEstimate": "Xem dự toán"
+      },
+      "render3d": {
+        "pageTitle": "Phối cảnh 3D",
+        "pageTitleWithProject": "{name} · {id} — Phối cảnh 3D",
+        "loading": "Đang tải phối cảnh",
+        "locked": "Chưa mở phối cảnh 3D",
+        "lockedHint": "Hoàn tất Bản vẽ 2D để tạo phối cảnh.",
+        "back": "Về Dự toán",
+        "ready": "Sẵn sàng tạo phối cảnh 3D",
+        "noQuota": "Không tính thêm lượt thiết kế.",
+        "start": "Tạo phối cảnh 3D",
+        "running": "Đang tạo phối cảnh 3D",
+        "runningHint": "Ảnh hoàn thành sẽ hiện bên dưới. Bạn có thể rời trang và quay lại sau.",
+        "preparing": "Đang chuẩn bị danh sách ảnh",
+        "progress": "Đã hoàn thành {done}/{total} ảnh",
+        "failed": "Chưa hoàn thành phối cảnh 3D",
+        "retry": "Chạy tiếp các ảnh còn thiếu",
+        "succeeded": "Phối cảnh 3D đã hoàn thành",
+        "dossierNext": "Đã đủ ảnh cho bước Hồ sơ.",
+        "notes": "Lưu ý về các góc chụp",
+        "pending": "Chưa có ảnh",
+        "openImage": "Mở ảnh {name}",
+        "reloadImage": "Tải lại ảnh",
+        "loadError": "Chưa cập nhật được dữ liệu. Các ảnh đã tải vẫn được giữ bên dưới.",
+        "reload": "Tải lại",
+        "continueDossier": "Tiếp tục tạo Hồ sơ"
+      },
+      "dossier": {
+        "loading": "Đang tải Hồ sơ…",
+        "locked": "Hoàn tất Phối cảnh 3D trước",
+        "back": "Về Dự toán & 3D",
+        "running": "Đang dựng Hồ sơ",
+        "failed": "Chưa dựng được Hồ sơ",
+        "failureHint": "Các tệp đã lưu sẽ được kiểm tra để tiếp tục. Lỗi này không trừ lượt thiết kế.",
+        "retry": "Thử lại",
+        "progress": "Đã hoàn tất {done}/{total} tệp",
+        "noQuota": "Tạo Hồ sơ không trừ lượt thiết kế.",
+        "reload": "Tải lại",
+        "loadError": "Chưa tải được dữ liệu Hồ sơ.",
+        "autoStarting": "Đang bắt đầu tạo hồ sơ…"
+      },
+      "group": {
+        "pageTitle": "Dự toán & phối cảnh 3D",
+        "pageTitleWithProject": "Dự toán & phối cảnh 3D — {name} ({id})",
+        "tabs": {
+          "estimate": "Dự toán",
+          "render3d": "Phối cảnh 3D"
+        },
+        "next": "Đi tiếp",
+        "nextHint": "Hệ thống sẽ lập dự toán và dựng phối cảnh 3D cùng lúc, không trừ thêm lượt.",
+        "retry": "Thử lại",
+        "retryHint": "Chạy lại phần đang lỗi; phần đã xong được giữ nguyên.",
+        "contactSupport": "Phần này đã lỗi quá số lần cho phép. Vui lòng liên hệ hỗ trợ.",
+        "toDossier": "Sang bước Hồ sơ",
+        "dossierWaiting": "Bước Hồ sơ mở khi cả dự toán và phối cảnh 3D đã xong.",
+        "status": {
+          "Ready": "Sẵn sàng",
+          "Queued": "Đang chờ",
+          "Running": "Đang chạy",
+          "Succeeded": "Xong",
+          "Failed": "Lỗi",
+          "Locked": "Chưa mở"
+        }
+      },
+      "eta": {
+        "typical": "AI thường xử lý trong khoảng {min}–{max} phút.",
+        "overdue": "Lần này mất nhiều thời gian hơn thường lệ, hệ thống vẫn đang xử lý."
       }
     }
   },
@@ -2934,7 +3360,8 @@
       "content": "Nội dung",
       "catalog": "Danh mục công trình",
       "packages": "Gói dịch vụ",
-      "access": "Nhân sự & phân quyền"
+      "access": "Nhân sự & phân quyền",
+      "estimatePipeline": "Luồng AI dự toán"
     },
     "charts": {
       "viewChart": "Xem biểu đồ",
@@ -2998,7 +3425,13 @@
       "assignments": "Phân công giám sát",
       "constructionSites": "Công trình",
       "plansContent": "Gói tư vấn",
-      "supervisionContent": "Gói giám sát"
+      "supervisionContent": "Gói giám sát",
+      "estimateAiConfig": "Cấu hình AI",
+      "pricingRegions": "Vùng giá theo tỉnh",
+      "estimatePipeline": "Tra cứu lần chạy AI",
+      "estimatePriceRules": "Luật giá",
+      "estimateAiRules": "Quy tắc AI",
+      "estimatePrompts": "Prompt AI"
     },
     "actions": {
       "create": "Thêm mới",
@@ -4477,7 +4910,23 @@
       "styleAssignPlaceholder": "Chọn loại công trình",
       "assignedTypes": "Đang gán cho loại công trình",
       "typeGroupOff": "{name} (nhóm đang tắt)",
-      "httpsUrl": "Cần URL bắt đầu bằng https://, tối đa 2048 ký tự."
+      "httpsUrl": "Cần URL bắt đầu bằng https://, tối đa 2048 ký tự.",
+      "baseCode": "Mã gốc cho AI",
+      "baseCodeHint": "Luồng AI dùng mã này để chọn luật lô đất, số tầng, mái và gara. Chưa gắn thì bản dự toán dùng loại này chưa tạo được bản vẽ 2D.",
+      "baseCodeMissing": "Chưa gắn mã gốc",
+      "baseCodes": {
+        "nha-pho": "Nhà phố",
+        "villa-biet-thu": "Villa / biệt thự",
+        "nha-mai": "Nhà mái",
+        "nha-vuon-cap4": "Nhà vườn / cấp 4",
+        "can-ho": "Căn hộ"
+      },
+      "defaultBaseStyleCode": "Mã phong cách gốc mặc định",
+      "defaultBaseStyleCodeHint": "Dùng khi loại này không cho chọn phong cách kiến trúc, ví dụ Căn hộ dùng hien-dai.",
+      "baseStyleCode": "Mã phong cách gốc cho AI",
+      "baseStyleCodeHint": "Mã phong cách kiến trúc của app demo, ví dụ hien-dai hoặc mai-thai-hien-dai. Phải hợp với mã gốc của mọi loại công trình được gán.",
+      "promptDescriptor": "Mô tả cho AI",
+      "promptDescriptorHint": "Bắt buộc, tối đa 1.000 ký tự. AI dùng đoạn này để vẽ bản vẽ nội thất theo đúng phong cách."
     },
     "library": {
       "libraryTitle": "Thư viện mẫu",
@@ -6462,6 +6911,405 @@
       "searchByCode": "Tìm theo mã hồ sơ",
       "needs": "Mô tả nhu cầu",
       "noNeeds": "Khách chưa nhập mô tả."
+    },
+    "estimateAiConfig": {
+      "description": "Model AI, hạn chờ, giới hạn lỗi, hạn mức soi ảnh và giới hạn gọi AI của luồng tạo dự toán. Mỗi lần lưu tạo một phiên bản mới; lần chạy đã nhận vẫn dùng phiên bản lúc nhận. Khóa API không sửa ở đây.",
+      "save": "Lưu phiên bản mới",
+      "saved": "Đã lưu phiên bản cấu hình mới.",
+      "reload": "Tải lại",
+      "currentVersion": "Đang dùng phiên bản {version}",
+      "conflictTitle": "Cấu hình vừa được người khác lưu",
+      "conflictBody": "Bạn tải lại để xem phiên bản mới nhất rồi sửa tiếp. Thay đổi chưa lưu của bạn sẽ mất.",
+      "parametersInvalid": "Tham số phải là một đối tượng JSON, ví dụ {\"reasoning\": \"low\"}.",
+      "minutes": "phút",
+      "stage": {
+        "Plan2d": "Bản vẽ 2D",
+        "Estimate": "Dự toán",
+        "Render3d": "Phối cảnh 3D",
+        "Dossier": "Hồ sơ"
+      },
+      "task": {
+        "lotVerify": "Soi ảnh lô",
+        "plan2dSpec": "Lập phương án 2D",
+        "plan2dImage": "Vẽ bản vẽ 2D",
+        "estimate": "Lập dự toán",
+        "render3dImage": "Dựng ảnh 3D",
+        "render3dCheck": "Kiểm ảnh 3D"
+      },
+      "stages": {
+        "title": "Thời gian chờ và số lần lỗi tối đa theo bước",
+        "hint": "Quá hạn chờ thì lần chạy lỗi và không tính vào giới hạn lỗi. Giới hạn lỗi chỉ đếm lần lỗi do kết quả AI.",
+        "stage": "Bước",
+        "timeoutMinutes": "Hạn chờ",
+        "retryLimit": "Giới hạn lỗi"
+      },
+      "verify": {
+        "title": "Soi ảnh lô đất",
+        "dailyLimit": "Số lần soi mới mỗi tài khoản mỗi ngày",
+        "systemDailyLimit": "Trần soi mới của cả hệ thống mỗi ngày",
+        "timeoutSeconds": "Hạn chờ một yêu cầu soi (giây)"
+      },
+      "load": {
+        "title": "Chống quá tải và chi phí",
+        "hint": "Hàng chờ đầy hoặc dịch vụ AI đang tạm ngắt thì khách bị từ chối ngay lúc bấm, không mất lượt. Vượt ngưỡng chi phí chỉ gửi cảnh báo.",
+        "maxQueuedRuns": "Ngưỡng hàng chờ (lần chạy đang chờ)",
+        "failureThreshold": "Số lỗi liên tiếp để tạm ngắt",
+        "openMinutes": "Thời gian tạm ngắt (phút)",
+        "runCostAlertUsd": "Ngưỡng cảnh báo chi phí mỗi lần chạy (USD)"
+      },
+      "limits": {
+        "imagesPerMinute": "Số ảnh mỗi phút (toàn hệ thống)",
+        "imageConcurrency": "Số ảnh vẽ cùng lúc",
+        "textConcurrency": "Số lời gọi văn bản cùng lúc",
+        "anthropicConcurrency": "Số lời gọi Anthropic cùng lúc",
+        "lotVerifyConcurrency": "Số lần soi ảnh cùng lúc"
+      },
+      "outline": {
+        "title": "Kiểm viền nhà trên bản vẽ 2D",
+        "redraw": "Vẽ lại khi viền lệch",
+        "tolerance": "Ngưỡng lệch tỷ lệ",
+        "minOverlap": "Độ trùng khớp tối thiểu"
+      },
+      "tasks": {
+        "title": "Model cho từng việc",
+        "task": "Việc",
+        "provider": "Nhà cung cấp",
+        "model": "Model",
+        "fallbackModel": "Model dự phòng",
+        "parameters": "Tham số (JSON)",
+        "render3dParameters": "Cờ 3D: renderViewReference, renderDuplicateGuard, renderQc (true/false); renderDuplicateMaxDistance (số nguyên 0–64). Mặc định: false, false, false và 10."
+      },
+      "prices": {
+        "title": "Bảng giá token (USD / 1 triệu token)",
+        "hint": "Dùng để tính chi phí AI ước tính trong nhật ký; không phải số liệu hóa đơn.",
+        "model": "Model",
+        "inputPerMTok": "Token vào",
+        "cachedInputPerMTok": "Token vào đã đệm",
+        "outputPerMTok": "Token ra",
+        "cacheWritePerMTok": "Token ghi đệm",
+        "add": "Thêm model",
+        "remove": "Xóa"
+      },
+      "note": "Ghi chú cho phiên bản này",
+      "noteHint": "Ví dụ: đổi model ảnh 3D, nâng giới hạn ảnh mỗi phút.",
+      "appliesToNewRuns": "Phiên bản mới chỉ áp dụng cho lần chạy và yêu cầu soi ảnh được nhận sau khi lưu.",
+      "revisions": {
+        "title": "Các phiên bản đã lưu",
+        "number": "Phiên bản",
+        "createdAt": "Thời điểm lưu",
+        "createdBy": "Người lưu",
+        "note": "Ghi chú"
+      }
+    },
+    "pricingRegions": {
+      "description": "Mỗi tỉnh thuộc miền Bắc, Trung hoặc Nam; các tỉnh Tây Nguyên thuộc miền Trung. Miền giá được chốt lúc khách chạy bản vẽ 2D, nên thay đổi chỉ áp cho lần chạy sau.",
+      "save": "Lưu {count} thay đổi",
+      "saved": "Đã lưu vùng giá.",
+      "discard": "Bỏ thay đổi",
+      "reload": "Tải lại",
+      "conflictTitle": "Có tỉnh vừa được người khác sửa",
+      "conflictBody": "Bạn tải lại để xem dữ liệu mới nhất rồi sửa tiếp. Thay đổi chưa lưu của bạn sẽ mất.",
+      "problems": "Còn {count} tỉnh chưa có miền.",
+      "search": "Tìm tỉnh / thành",
+      "tableVersion": "Phiên bản bảng: {version}",
+      "code": "Mã",
+      "province": "Tỉnh / thành",
+      "region": "Miền giá",
+      "choose": "Chọn miền",
+      "edited": "Đã sửa",
+      "regions": {
+        "North": "Miền Bắc",
+        "Central": "Miền Trung",
+        "South": "Miền Nam"
+      }
+    },
+    "estimatePipeline": {
+      "description": "Các lượt chạy của khách hàng, mới nhất ở trên. Chọn một lượt để xem chi tiết, token và chi phí AI ước tính.",
+      "searchPlaceholder": "Tìm theo khách hàng, email, tên hoặc mã dự toán",
+      "search": "Tìm kiếm",
+      "loading": "Đang tải…",
+      "needInspect": "Bạn chưa có quyền xem chi tiết luồng AI.",
+      "needOperate": "Bạn chỉ có quyền xem. Đặt lại bộ đếm lỗi và xem nhật ký thô cần quyền vận hành.",
+      "code": "Mã dự toán",
+      "name": "Tên",
+      "estimateId": "Mã nội bộ",
+      "stagesTitle": "Đặt lại bộ đếm lỗi theo bước",
+      "stage": {
+        "Plan2d": "Bản vẽ 2D",
+        "Estimate": "Dự toán",
+        "Render3d": "Phối cảnh 3D",
+        "Dossier": "Hồ sơ"
+      },
+      "reset": "Đặt lại bộ đếm",
+      "resetDone": "Đã đặt lại bộ đếm lỗi. Khách có thể chạy lại bước này.",
+      "resetConfirmTitle": "Đặt lại bộ đếm lỗi của bước {stage}?",
+      "resetConfirmBody": "Khách sẽ chạy lại được bước này tối đa bằng giới hạn đang cấu hình. Thao tác không tự chạy bước, không cấp hay hoàn lượt, và được ghi lại người thao tác.",
+      "counted": "Tính vào giới hạn",
+      "noRuns": "Bản dự toán chưa có lần chạy nào.",
+      "noSteps": "Chưa có bước nào được lưu.",
+      "noCalls": "Chưa có lời gọi AI.",
+      "run": {
+        "id": "Mã lần chạy",
+        "finishedAt": "Kết thúc",
+        "pipelineVersion": "Phiên bản xử lý",
+        "configRevision": "Phiên bản cấu hình",
+        "ruleSetRevision": "Phiên bản bộ quy tắc",
+        "failureDetail": "Chi tiết lỗi"
+      },
+      "step": {
+        "key": "Bước",
+        "attempt": "Số lần gọi",
+        "model": "Model",
+        "promptVersion": "Phiên bản prompt",
+        "completedAt": "Xong lúc",
+        "origin": "Nguồn ảnh",
+        "created": "Tạo trong lần này",
+        "reused": "Dùng lại từ lần chạy"
+      },
+      "call": {
+        "task": "Việc",
+        "model": "Model",
+        "startedAt": "Bắt đầu",
+        "duration": "Thời gian",
+        "tokens": "Token vào / ra",
+        "retries": "Thử lại",
+        "outcome": "Kết quả",
+        "cost": "Chi phí ước tính"
+      },
+      "viewRaw": "Xem nhật ký thô",
+      "rawTitle": "Nhật ký thô của lời gọi AI",
+      "rawAudited": "Lần xem này đã được ghi lại (người xem, thời điểm, lời gọi). Ảnh không có trong nhật ký thô, chỉ có thông tin nhận dạng.",
+      "internal": "Phần nội bộ (chỉ nhân viên thấy)",
+      "allStages": "Tất cả bước",
+      "allStates": "Tất cả trạng thái",
+      "refresh": "Làm mới",
+      "noMatchingRuns": "Không có lượt chạy phù hợp.",
+      "totalRuns": "{total} lượt chạy",
+      "customer": "Khách hàng",
+      "project": "Dự toán",
+      "deletedProject": "Dự toán đã xóa",
+      "runStage": "Bước",
+      "runState": "Trạng thái",
+      "actions": "Thao tác",
+      "viewDetails": "Xem chi tiết",
+      "state": {
+        "Queued": "Đang chờ",
+        "Running": "Đang chạy",
+        "Succeeded": "Thành công",
+        "Failed": "Thất bại",
+        "TimedOut": "Quá hạn"
+      },
+      "acceptedAt": "Tiếp nhận"
+    },
+    "priceRules": {
+      "title": "Luật giá",
+      "description": "Quản lý văn bản luật giá và lịch sử phiên bản. Thay đổi áp dụng cho lần chạy mới.",
+      "PriceFramework": "Khung giá tham khảo",
+      "TakeoffRules": "Quy tắc bóc tách",
+      "loadError": "Không tải được dữ liệu. Hãy thử lại.",
+      "saved": "Đã lưu phiên bản {number}.",
+      "reload": "Tải bản hiện hành",
+      "reloadConfirm": "Tải bản hiện hành sẽ bỏ phần bạn đang sửa. Bạn muốn tiếp tục?",
+      "retry": "Thử lại",
+      "version": "Phiên bản {number}",
+      "frameworkHelp": "Dải giá được tính từ đơn giá ở mục 3–5. Sửa chữ mục 2 không thay giá neo hoặc hệ số gói.",
+      "content": "Nội dung",
+      "note": "Ghi chú thay đổi (bắt buộc)",
+      "preview": "Xem trước dải giá",
+      "save": "Lưu phiên bản mới",
+      "bands": "Dải giá — triệu đồng/m²",
+      "priceType": "Loại giá",
+      "part": "Phần chi phí",
+      "package": "Gói",
+      "current": "Hiện hành",
+      "new": "Sau thay đổi",
+      "history": "Lịch sử phiên bản",
+      "number": "Phiên bản",
+      "date": "Thời điểm",
+      "author": "Người lưu",
+      "seed": "Dữ liệu khởi tạo",
+      "restoredFrom": "Khôi phục từ",
+      "actions": "Thao tác",
+      "before": "Bản trước",
+      "after": "Bản sau",
+      "restore": "Khôi phục",
+      "restoreConfirm": "Khôi phục phiên bản {number} sẽ tạo bản mới và giữ lịch sử. Nội dung đang sửa sẽ được bỏ sau khi khôi phục thành công.",
+      "historyHelp": "Chọn hai phiên bản để so sánh. Nhập ghi chú phía trên trước khi khôi phục.",
+      "comparison": "Nội dung thay đổi",
+      "added": "Thêm",
+      "removed": "Xóa",
+      "same": "Giữ nguyên"
+    },
+    "aiRules": {
+      "title": "Quy tắc AI",
+      "description": "Chỉnh từng nhóm quy tắc. Mỗi lần lưu tạo phiên bản mới và giữ nguyên các nhóm còn lại.",
+      "groups": {
+        "baseTypes": "Theo loại công trình",
+        "roofRules": "Ma trận mái",
+        "packageStages": "Gói × bước",
+        "regionInstructions": "Theo miền",
+        "instructions": "Lời dặn chung"
+      },
+      "invalid": "Kiểm tra lại kiểu dữ liệu của các trường.",
+      "switchTitle": "Đổi nhóm quy tắc",
+      "noteRequired": "Nhập ghi chú trước khi lưu hoặc khôi phục.",
+      "regionHelp": "Chọn bước 2D / Dự toán / 3D cho từng chủ đề. Ba dòng Render3dWeather luôn thuộc 3D.",
+      "add": "Thêm dòng",
+      "edit": "Sửa",
+      "remove": "Xóa",
+      "removeConfirm": "Xóa dòng khỏi bản đang sửa? Thay đổi chỉ áp dụng sau khi lưu phiên bản mới.",
+      "yes": "Có",
+      "no": "Không",
+      "restoreHelp": "Rules và Prompt dùng chung lịch sử. Khôi phục tại đây thay toàn bộ bộ quy tắc, gồm các prompt.",
+      "restoreConfirm": "Khôi phục toàn bộ bộ quy tắc từ phiên bản {number}, gồm cả prompt, thành phiên bản mới?",
+      "apply": "Áp dụng vào bản đang sửa",
+      "required": "Nhập giá trị cho trường này.",
+      "max": "Tối đa {max} ký tự.",
+      "fields": {
+        "baseCode": "Mã gốc",
+        "defaultLotWidthM": "Rộng lô mặc định (m)",
+        "defaultLotDepthM": "Sâu lô mặc định (m)",
+        "maxFloors": "Số tầng tối đa",
+        "hasRoof": "Có mái",
+        "allowsTum": "Cho phép tum",
+        "hasStructurePart": "Có phần thô",
+        "lotMinSideM": "Cạnh lô nhỏ nhất (m)",
+        "lotMaxSideM": "Cạnh lô lớn nhất (m)",
+        "lotMinAreaM2": "Diện tích lô nhỏ nhất (m²)",
+        "lotMaxAreaM2": "Diện tích lô lớn nhất (m²)",
+        "carFrontageMinM": "Mặt tiền tối thiểu cho ô tô (m)",
+        "garageFrontageMinM": "Mặt tiền gara tối thiểu (m)",
+        "garageMinAreaM2": "Diện tích gara tối thiểu (m²)",
+        "bedroomMinAreaM2": "Diện tích phòng ngủ tối thiểu (m²)",
+        "bedroomMinSideM": "Cạnh phòng ngủ tối thiểu (m)",
+        "instruction": "Lời dặn",
+        "baseStyleCode": "Mã phong cách",
+        "roofKind": "Kiểu mái",
+        "slopeFactor": "Hệ số dốc",
+        "conversionFactor": "Hệ số quy đổi",
+        "nameVi": "Tên mái",
+        "descriptionVi": "Mô tả mái",
+        "assumptionVi": "Giả định",
+        "render3dText": "Câu tả mái cho 3D",
+        "package": "Gói",
+        "stage": "Bước",
+        "text": "Lời dặn",
+        "region": "Miền",
+        "topic": "Chủ đề",
+        "enabled": "Bật",
+        "sortOrder": "Thứ tự",
+        "buildingTypeId": "Loại công trình",
+        "styleId": "Phong cách kiến trúc"
+      },
+      "values": {
+        "Plan2d": "Bản vẽ 2D",
+        "Estimate": "Dự toán",
+        "Render3d": "Phối cảnh 3D",
+        "North": "Miền Bắc",
+        "Central": "Miền Trung",
+        "South": "Miền Nam",
+        "Basic": "Cơ bản",
+        "Standard": "Tiêu chuẩn",
+        "Vip": "Cao cấp"
+      },
+      "defaultRoof": "Mặc định cho loại công trình",
+      "catalogHelp": "Chọn theo danh mục; cấu hình được lưu bằng ID. Với loại mới, thêm mái mặc định trước rồi thêm quy tắc loại công trình. Phong cách có dòng riêng được ưu tiên hơn mặc định.",
+      "configure": "Cấu hình",
+      "ready": "Đủ cấu hình",
+      "notReady": "Thiếu cấu hình",
+      "readiness": "Trạng thái cấu hình",
+      "missingConfiguration": "Phần còn thiếu",
+      "typeHelp": "Danh sách lấy từ danh mục dự toán hiện hành. Loại thiếu cấu hình vẫn hiện cho khách nhưng chưa được chọn. Cấu hình lô đất và mái được lưu cùng một phiên bản.",
+      "lotRules": "Lô đất và giới hạn",
+      "roofSettings": "Mái mặc định và mái theo phong cách",
+      "addStyleRoof": "Thêm mái theo phong cách",
+      "configureType": "Cấu hình: {name}",
+      "catalogMappingHelp": "Các mục về mã loại, phong cách hoặc mô tả nội thất cần sửa trong Danh mục công trình. Lưu quy tắc tại đây không tự bổ sung các mục đó.",
+      "copyType": "Lấy lô đất và mái mặc định từ loại đã cấu hình",
+      "copyConfirm": "Thay lô đất và mái mặc định đang nhập? Các mái theo phong cách được giữ lại.",
+      "discardTitle": "Bỏ thay đổi chưa lưu?",
+      "missingReasons": {
+        "baseMapping": "Mã loại dùng cho AI",
+        "baseRule": "Quy tắc lô đất và giới hạn",
+        "defaultRoof": "Mái mặc định (kể cả không có mái)",
+        "architectureMapping": "Mã AI của phong cách kiến trúc",
+        "defaultArchitectureMapping": "Phong cách kiến trúc mặc định",
+        "interiorDescriptor": "Mô tả AI của phong cách nội thất"
+      }
+    },
+    "aiPrompts": {
+      "title": "Prompt AI",
+      "description": "Chỉnh lời dặn theo từng prompt. Schema và thuật toán do hệ thống quản lý.",
+      "select": "Chọn prompt",
+      "affected": "Tác vụ chịu ảnh hưởng:",
+      "variables": "Biến bắt buộc: {variables}.",
+      "noVariables": "Không có biến định dạng.",
+      "optional": "Đoạn này được phép để trống.",
+      "required": "Đoạn này phải có nội dung.",
+      "restoreHelp": "Khôi phục tại đây chỉ thay lời dặn của prompt đang chọn; các nhóm khác giữ nguyên.",
+      "restoreConfirm": "Khôi phục lời dặn của prompt đang chọn từ phiên bản {number} thành phiên bản mới?",
+      "trialWarning": "Lần thử gần nhất chưa đạt",
+      "trialWarningHelp": "Bạn vẫn có thể lưu lời dặn này. Tiếp tục lưu?"
+    },
+    "promptTrials": {
+      "title": "Xem trước và chạy thử",
+      "help": "Chọn dữ liệu mẫu của dự án để xem prompt và thử một tác vụ. Bản nhập chưa cần lưu.",
+      "fixture": "Bộ dữ liệu mẫu",
+      "case": "Tình huống",
+      "preview": "Xem trước",
+      "run": "Chạy thử",
+      "liveTitle": "Chạy thử AI thật",
+      "liveConfirm": "Prompt và ảnh mẫu sẽ được gửi đến nhà cung cấp đang cấu hình. Lần thử có thể tính phí, kể cả khi kết quả không đạt. Tiếp tục chạy thử?",
+      "stale": "Bản nhập đã thay đổi. Hãy xem trước lại trước khi chạy thử.",
+      "sources": "Rules phiên bản {version} · Bộ mẫu phiên bản {fixture}",
+      "prompt": "Prompt đã ghép",
+      "system": "Lời dặn hệ thống",
+      "user": "Nội dung yêu cầu",
+      "schema": "Schema đầu ra (chỉ đọc)",
+      "imageSchema": "Đầu ra ảnh được kiểm tra định dạng, kích thước và các điều kiện của tác vụ.",
+      "references": "Nguồn, ảnh mẫu và lời dặn áp dụng",
+      "history": "Lịch sử chạy thử của bạn",
+      "created": "Thời điểm",
+      "state": "Trạng thái",
+      "view": "Xem",
+      "result": "Kết quả chạy thử",
+      "cost": "Chi phí ước tính",
+      "unknownCost": "Chưa đủ dữ liệu chi phí",
+      "fake": "Fake: phản hồi ghi sẵn, không gọi AI thật.",
+      "differentDraft": "Kết quả này không xác nhận bản nhập hiện tại.",
+      "structurePassed": "Đạt kiểm tra cấu trúc",
+      "validationFailed": "Kết quả chưa đạt",
+      "download": "Mở tệp kết quả",
+      "qualityHelp": "Đạt cấu trúc không đồng nghĩa chất lượng thiết kế đã được duyệt.",
+      "cases": {
+        "lot-verify": "Soi ảnh lô",
+        "spec": "Phương án 2D",
+        "technical-ground": "Kỹ thuật tầng trệt",
+        "technical-upper": "Kỹ thuật tầng trên",
+        "furniture": "Nội thất 2D",
+        "estimate-main": "Dự toán chính",
+        "estimate-takeoff": "Bổ sung bóc tách",
+        "estimate-analysis": "Bổ sung phân tích",
+        "estimate-price-split": "Tách đơn giá",
+        "estimate-price-review": "Rà soát giá",
+        "apartment-day": "Căn hộ ban ngày",
+        "apartment-night": "Căn hộ ban đêm",
+        "apartment-qc": "Kiểm ảnh căn hộ",
+        "exterior-day": "Ngoại thất ban ngày",
+        "exterior-night": "Ngoại thất ban đêm",
+        "exterior-qc": "Kiểm ảnh ngoại thất",
+        "room": "Phối cảnh phòng",
+        "room-view": "Góc phòng tham chiếu",
+        "room-qc": "Kiểm ảnh phòng",
+        "regeneration": "Lời dặn dựng lại"
+      },
+      "states": {
+        "Queued": "Đang chờ",
+        "Running": "Đang chạy",
+        "Succeeded": "Đạt",
+        "Failed": "Không đạt",
+        "TimedOut": "Quá hạn"
+      }
     }
   },
   "contractors": {
@@ -8197,7 +9045,8 @@
     "checkoutDone": "Hoàn tất đơn hàng",
     "checkoutFailed": "Thanh toán chưa thành công",
     "share": "Hồ sơ dự án được chia sẻ",
-    "googleCallback": "Đăng nhập bằng Google"
+    "googleCallback": "Đăng nhập bằng Google",
+    "designPlan": "Bản vẽ 2D"
   },
   "address": {
     "searching": "Đang tìm địa chỉ…",

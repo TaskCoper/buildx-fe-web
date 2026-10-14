@@ -1,5 +1,8 @@
 'use client'
 
+import { resumeProjectRoute } from '../services/project-list.service'
+import { PIPELINE_STEPS, pipelineMiniSteps, resumeStep } from '../services/pipeline.logic'
+
 import { ArrowRight, Check, House, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
@@ -16,20 +19,13 @@ import {
 } from '@/shared/components/ui/dropdown-menu'
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import { cn } from '@/shared/lib/utils'
-import { designDossierRoute, designEstimateRoute, designInputRoute } from '@/shared/constants/routes'
 import { formatDisplayDate } from '@/shared/utils'
 import { DESIGN_STEPS } from '../constants/design.constants'
 import { useEstimateBrief } from '../hooks/use-estimate-brief'
 import { useProjects } from '../hooks/use-projects'
 import { DesignLoadError } from './design-load-error'
-import type { DesignStep, Project } from '../types/design.types'
+import type { Project } from '../types/design.types'
 import { DeleteProjectDialog, RenameProjectDialog } from './project-menu-dialogs'
-
-const STEP_ROUTE: Record<DesignStep, (projectId: string) => string> = {
-  1: designInputRoute,
-  2: designEstimateRoute,
-  3: designDossierRoute
-}
 
 interface MyProjectsProps {
   /**
@@ -50,6 +46,7 @@ interface MyProjectsProps {
  */
 export function MyProjects({ renderSupervision }: MyProjectsProps = {}) {
   const t = useTranslations('account.projects')
+  const tp = useTranslations('design.projects')
   const { data: projects, isPending, isError, error, refetch } = useProjects()
 
   const [renaming, setRenaming] = useState<Project | null>(null)
@@ -86,6 +83,13 @@ export function MyProjects({ renderSupervision }: MyProjectsProps = {}) {
       <ul className='grid grid-flow-row-dense items-start gap-4 sm:grid-cols-2'>
         {projects.map((project) => {
           const done = project.status === 'completed'
+          const pipeline = project.pipeline
+            ? pipelineMiniSteps(project.pipeline.state, project.pipeline.succeededStages)
+            : null
+          const currentStep = project.pipeline
+            ? resumeStep(project.pipeline.state, project.pipeline.succeededStages)
+            : project.currentStep
+          const shownSteps = pipeline ? PIPELINE_STEPS : DESIGN_STEPS
           // Hình S24: nửa trên của thẻ và khối giám sát mỗi phần cao đúng MỘT
           // hàng, nên thẻ có giám sát chiếm hai hàng và cột bên cạnh xếp vừa
           // hai thẻ thường. Không khai `row-span-2` thì thẻ ngắn bên cạnh để
@@ -154,9 +158,11 @@ export function MyProjects({ renderSupervision }: MyProjectsProps = {}) {
                       thanh trơn — ba thanh không nói được đang dừng ở bước nào. */}
                     <p className='mt-4 text-sm font-medium'>{t('progressLabel')}</p>
                     <ol className='mt-2.5 flex items-start'>
-                      {DESIGN_STEPS.map((step, index) => {
-                        const reached = done || step <= project.currentStep
-                        const current = !done && step === project.currentStep
+                      {shownSteps.map((step, index) => {
+                        const reached = pipeline ? pipeline[step] !== 'pending' : done || step <= project.currentStep
+                        const current = pipeline
+                          ? pipeline[step] === 'current' || pipeline[step] === 'failed'
+                          : !done && step === project.currentStep
 
                         return (
                           <Fragment key={step}>
@@ -177,16 +183,16 @@ export function MyProjects({ renderSupervision }: MyProjectsProps = {}) {
                                   reached ? 'text-foreground' : 'text-muted-foreground'
                                 )}
                               >
-                                {t('stepShort', { step })}
+                                {pipeline ? tp(`pipelineSteps.${step}`) : t('stepShort', { step })}
                               </span>
                             </li>
 
-                            {index < DESIGN_STEPS.length - 1 ? (
+                            {index < shownSteps.length - 1 ? (
                               <span
                                 aria-hidden
                                 className={cn(
                                   'mt-3 h-0.5 min-w-3 flex-1 rounded-full',
-                                  done || step < project.currentStep ? 'bg-primary' : 'bg-border'
+                                  done || step < currentStep ? 'bg-primary' : 'bg-border'
                                 )}
                               />
                             ) : null}
@@ -207,13 +213,17 @@ export function MyProjects({ renderSupervision }: MyProjectsProps = {}) {
                           done ? 'bg-accent text-primary-strong' : 'bg-info-soft text-info border-info/25 border'
                         )}
                       >
-                        {done ? t('completed') : t('step', { step: project.currentStep })}
+                        {done
+                          ? t('completed')
+                          : project.pipeline
+                            ? tp(`pipelineStatus.${project.status}`)
+                            : t('step', { step: project.currentStep })}
                         {done ? <Check className='size-3' strokeWidth={3} /> : null}
                       </span>
 
                       {/* `after:absolute after:inset-0` biến cả thẻ thành vùng bấm. */}
                       <Link
-                        href={STEP_ROUTE[project.currentStep](project.id)}
+                        href={resumeProjectRoute(project)}
                         className='text-primary hover:text-primary/80 inline-flex items-center gap-1.5 text-sm font-medium underline underline-offset-4 transition-colors after:absolute after:inset-0 after:content-[""]'
                       >
                         {t('open')}

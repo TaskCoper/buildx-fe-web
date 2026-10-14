@@ -17,6 +17,7 @@ import { useApiErrorText, useMounted, usePageEntrance } from '@/shared/hooks'
 import { canShowReadyProjectPopup, cn } from '@/shared/lib'
 import { formatNumber } from '@/shared/utils'
 import { ROUTES, contractorMatchesRoute, shareRoute } from '@/shared/constants/routes'
+import { estimatePipelineApi } from '../api/estimate-pipeline.api'
 import { useDownloadDossier } from '../hooks/use-download-dossier'
 import { costShares } from '../services/estimate.service'
 import type { Dossier, EstimateResult } from '../types/design.types'
@@ -56,7 +57,13 @@ const FILES = [
   { key: 'estimate', kind: 'xlsx' }
 ] as const
 
-type FileKey = (typeof FILES)[number]['key']
+type FileKey = (typeof FILES)[number]['key'] | 'full'
+const PIPELINE_FILES = [
+  { key: 'full', kind: 'pdf', role: 'dossier-pdf' },
+  { key: 'exterior', kind: 'pdf', role: 'render3d-pdf' },
+  { key: 'architecture', kind: 'pdf', role: 'architecture-pdf' },
+  { key: 'estimate', kind: 'xlsx', role: 'estimate-xlsx' }
+] as const
 
 /**
  * Bước 3 — trạng thái ĐÃ render xong (mục IV.8, Hình 11).
@@ -79,6 +86,9 @@ export function DossierReady({
   onFilesEntered
 }: DossierReadyProps) {
   const t = useTranslations('design.dossier')
+  const files = dossier.documents ? PIPELINE_FILES : FILES
+  const documentOf = (key: FileKey) =>
+    dossier.documents?.find((doc) => doc.role === PIPELINE_FILES.find((file) => file.key === key)?.role)
   const apiErrorText = useApiErrorText()
   const reduced = useReducedMotion()
   useEffect(() => {
@@ -173,6 +183,7 @@ export function DossierReady({
   /** Ảnh thu nhỏ của từng tệp — dùng lại chính artefact mà hồ sơ chứa. */
   function thumbnail(key: FileKey) {
     switch (key) {
+      case 'full':
       case 'exterior': {
         // Dự toán thật: ảnh phối cảnh (hoặc ảnh bìa) do AI tạo; dự án mock dùng ảnh mẫu của site.
         const real = dossier.images?.perspective ?? dossier.images?.cover
@@ -287,7 +298,7 @@ export function DossierReady({
           <h2 className='mb-4 font-semibold tracking-tight'>{t('filesTitle')}</h2>
 
           <ul className='grid gap-4 sm:grid-cols-2'>
-            {FILES.map(({ key, kind }, index) => (
+            {files.map(({ key, kind }, index) => (
               <motion.li
                 key={key}
                 data-dossier-file-card
@@ -298,7 +309,7 @@ export function DossierReady({
                   delay: reduced ? 0 : 1.12 + index * 0.18,
                   ease: [0.22, 1, 0.36, 1]
                 }}
-                onAnimationComplete={index === FILES.length - 1 && filesEntering ? onFilesEntered : undefined}
+                onAnimationComplete={index === files.length - 1 && filesEntering ? onFilesEntered : undefined}
                 className='group/file flex gap-3 rounded-xl border p-3'
               >
                 <motion.span
@@ -333,12 +344,33 @@ export function DossierReady({
 
                   {/* Số trang và dung lượng do backend trả khi có file thật —
                       mock chưa dựng file nên chỉ nêu định dạng, không bịa số. */}
-                  <span className='text-muted-foreground text-xs'>{kind.toUpperCase()}</span>
-
-                  <span className='text-primary mt-auto inline-flex items-center gap-1 text-xs font-medium'>
-                    {t('previewAction')}
-                    <ArrowRight className='size-3' />
+                  <span className='text-muted-foreground text-xs'>
+                    {documentOf(key)
+                      ? t(documentOf(key)!.pageCount == null ? 'workbookSize' : 'fileSize', {
+                          size: formatNumber(documentOf(key)!.sizeBytes / 1_000_000, locale, {
+                            maximumFractionDigits: 1
+                          }),
+                          pages: documentOf(key)!.pageCount ?? 4
+                        })
+                      : kind.toUpperCase()}
                   </span>
+
+                  {documentOf(key) ? (
+                    <a
+                      href={estimatePipelineApi.fileHref(documentOf(key)!.fileUrl)}
+                      target='_blank'
+                      rel='noreferrer'
+                      className='text-primary mt-auto inline-flex items-center gap-1 text-xs font-medium'
+                    >
+                      {t('downloadFile')}
+                      <Download className='size-3' />
+                    </a>
+                  ) : (
+                    <span className='text-primary mt-auto inline-flex items-center gap-1 text-xs font-medium'>
+                      {t('previewAction')}
+                      <ArrowRight className='size-3' />
+                    </span>
+                  )}
                 </div>
               </motion.li>
             ))}

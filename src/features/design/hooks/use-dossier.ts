@@ -10,11 +10,11 @@ import { designKeys } from '../api/design.keys'
 import type { Dossier, Project } from '../types/design.types'
 
 /** Trạng thái bộ hồ sơ: chưa render / đang render / đã sẵn sàng (mục III.4). */
-export function useDossier(projectId: string) {
+export function useDossier(projectId: string, { enabled = true }: { enabled?: boolean } = {}) {
   return useQuery({
     queryKey: designKeys.dossier(projectId),
     queryFn: () => designApi.getDossier(projectId),
-    enabled: Boolean(projectId)
+    enabled: Boolean(projectId) && enabled
   })
 }
 

@@ -11,6 +11,15 @@ export const PERMISSIONS = {
   AUDIT_READ: 'audit.read',
   PLAN_MANAGE: 'plan.manage',
   ESTIMATE_CATALOG_MANAGE: 'estimate.catalog.manage',
+  /** Xem và sửa cấu hình AI của luồng dự toán (TDD-PROJ-008 mục H). */
+  ESTIMATE_PIPELINE_CONFIG_MANAGE: 'estimate.pipeline.config.manage',
+  /** Xem lần chạy, cột nhật ký AI và phần nội bộ. */
+  ESTIMATE_PIPELINE_INSPECT: 'estimate.pipeline.inspect',
+  /** Đặt lại bộ đếm lỗi và đọc bản thô của nhật ký AI (mỗi lần đọc đều ghi vết). */
+  ESTIMATE_PIPELINE_OPERATE: 'estimate.pipeline.operate',
+  /** Miền giá theo tỉnh (đợt 1), luật giá (đợt 2). */
+  ESTIMATE_AI_RULES_MANAGE: 'estimate.ai-rules.manage',
+  ESTIMATE_PRICING_MANAGE: 'estimate.pricing.manage',
   PAYMENT_CONNECTION_MANAGE: 'payment.connection.manage',
   CONSULTATION_MANAGE: 'consultation.manage',
   NEWS_MANAGE: 'news.manage',

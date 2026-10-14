@@ -14,7 +14,8 @@ import { Dialog, DialogContent, DialogTitle } from '@/shared/components/ui/dialo
 import { usePageEntrance } from '@/shared/hooks'
 import { formatDisplayDate } from '@/shared/utils'
 import { costShares } from '../services/estimate.service'
-import type { EstimateResult } from '../types/design.types'
+import { ResultImage } from './result-image'
+import type { DossierImages, EstimateResult } from '../types/design.types'
 
 /** Khối THÔNG TIN DỰ ÁN ở đầu trang Bước 3 (mục IV.6). */
 export interface DossierProjectInfo {
@@ -36,6 +37,7 @@ export interface DossierProjectInfo {
 }
 
 interface DossierOverviewProps {
+  images?: DossierImages
   info: DossierProjectInfo
   /** Kết quả Bước 2 — thẻ "Bảng dự toán chi tiết" phải hiện đúng số của dự án. */
   result: EstimateResult | undefined
@@ -63,6 +65,7 @@ const LOCKED_ACTIONS: readonly { key: 'downloadPdf' | 'shareLink' | 'email' | 'q
 ]
 
 interface PreviewBodyProps {
+  images?: DossierImages
   part: PreviewPart
   alt: string
   /** Dữ liệu thật của dự án — thẻ xem trước phải khớp hồ sơ sắp render. */
@@ -72,7 +75,7 @@ interface PreviewBodyProps {
 }
 
 /** Render the real artefact behind each preview card. */
-function PreviewBody({ part, alt, cover, grandTotal, percents }: PreviewBodyProps) {
+function PreviewBody({ part, alt, cover, grandTotal, percents, images }: PreviewBodyProps) {
   const exteriorImage = useSiteImage('render.villa')
   // Bản vẽ mẫu của thư viện 2D — admin thay ở màn "Hình ảnh site". Hiện TRỌN
   // khung vì bản vẽ là ảnh dọc: cắt theo khung 4:3 thì mất dòng ghi kích thước.
@@ -82,8 +85,11 @@ function PreviewBody({ part, alt, cover, grandTotal, percents }: PreviewBodyProp
     case 'cover':
       return <DossierCover className='aspect-4/3 w-full' project={cover} />
     case 'floorPlan':
+      if (images)
+        return <ResultImage className='aspect-4/3 w-full' src={images.floorPlan ?? ''} alt={alt} fit='contain' />
       return <Photo className='aspect-4/3 w-full' src={planImage} alt={alt} sizes='240px' fit='contain' />
     case 'exterior':
+      if (images) return <ResultImage className='aspect-4/3 w-full' src={images.perspective ?? ''} alt={alt} />
       return <Photo className='aspect-4/3 w-full' src={exteriorImage} alt={alt} sizes='240px' />
     case 'estimate':
       return <EstimateSheet className='aspect-4/3 w-full' total={grandTotal} percents={percents} />
@@ -98,6 +104,7 @@ function PreviewBody({ part, alt, cover, grandTotal, percents }: PreviewBodyProp
  * dòng nhắc và badge trạng thái "Chưa render".
  */
 export function DossierOverview({
+  images,
   info,
   result,
   onRender,
@@ -256,6 +263,7 @@ export function DossierOverview({
                   className='bg-card hover:border-primary/40 group flex flex-col overflow-hidden rounded-xl border transition-all duration-300 hover:-translate-y-1 hover:shadow-md'
                 >
                   <PreviewBody
+                    images={images}
                     part={key}
                     alt={t(`preview.${key}`)}
                     cover={cover}
@@ -396,6 +404,7 @@ export function DossierOverview({
           {previewing ? (
             <div className='overflow-hidden rounded-xl border'>
               <PreviewBody
+                images={images}
                 part={previewing}
                 alt={t(`preview.${previewing}`)}
                 cover={cover}

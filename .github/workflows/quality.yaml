@@ -54,6 +54,9 @@ jobs:
       - name: Test auth routing policy
         run: pnpm test:auth
 
+      - name: Test estimate pipeline logic
+        run: pnpm test:estimate-pipeline
+
       - name: Build application
         run: pnpm build
 

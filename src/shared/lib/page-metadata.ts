@@ -9,6 +9,7 @@ export type PageMetaKey =
   | 'design'
   | 'designInput'
   | 'designEstimate'
+  | 'designPlan'
   | 'designDossier'
   | 'contractors'
   | 'contractorMatches'

@@ -16,5 +16,9 @@ export const designKeys = {
   estimateCatalog: (projectId: string) => [...designKeys.project(projectId), 'estimate-catalog'] as const,
   locations: () => [...designKeys.all, 'locations'] as const,
   estimate: (projectId: string) => [...designKeys.project(projectId), 'estimate'] as const,
-  dossier: (projectId: string) => [...designKeys.project(projectId), 'dossier'] as const
+  dossier: (projectId: string) => [...designKeys.project(projectId), 'dossier'] as const,
+  /** Luồng bốn chặng: trạng thái chặng, kết quả soi ảnh lô hiện tại, kết quả từng chặng. */
+  stages: (projectId: string) => [...designKeys.project(projectId), 'stages'] as const,
+  lotVerification: (projectId: string) => [...designKeys.project(projectId), 'lot-verification'] as const,
+  stageResult: (projectId: string, stage: string) => [...designKeys.project(projectId), 'stage-result', stage] as const
 } as const

@@ -154,3 +154,11 @@ test('external, encoded, malformed and traversal return URLs cannot bypass route
   }
   assert.equal(loginDestination(staff(['audit.read']), '/foo/../account'), '/admin')
 })
+
+test('AI admin editors require their exact permission; Admin role is insufficient', () => {
+  for (const [path,permission] of [['/admin/estimate-ai-rules','estimate.ai-rules.manage'],['/admin/estimate-prompts','estimate.ai-rules.manage'],['/admin/estimate-price-rules','estimate.pricing.manage']]) {
+    assert.equal(canAccessAdminRoute(staff(['estimate.pipeline.operate'],['Admin']),path),false)
+    assert.equal(canAccessAdminRoute(staff([permission]),path),true)
+    assert.equal(canAccessAdminRoute({...customer,permissions:[permission]},path),false)
+  }
+})

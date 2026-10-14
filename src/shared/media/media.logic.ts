@@ -14,7 +14,7 @@ export const SCAN_MIME = ['application/pdf', 'image/jpeg', 'image/png'] as const
 const MIB = 1024 * 1024
 
 /** Purpose gửi lên BE. `undefined` là purpose mặc định `Image` (mọi tài khoản đã đăng nhập). */
-export type UploadPurpose = 'ContractorImage' | 'ContractorScan'
+export type UploadPurpose = 'ContractorImage' | 'ContractorScan' | 'EstimateLotImage'
 
 interface Rule {
   types: readonly string[]
@@ -24,7 +24,9 @@ interface Rule {
 const RULES: Record<'Image' | UploadPurpose, Rule> = {
   Image: { types: IMAGE_MIME, maxBytes: 5 * MIB },
   ContractorImage: { types: IMAGE_MIME, maxBytes: 10 * MIB },
-  ContractorScan: { types: SCAN_MIME, maxBytes: 20 * MIB }
+  ContractorScan: { types: SCAN_MIME, maxBytes: 20 * MIB },
+  /** Ảnh lô đất của bản dự toán: JPG/PNG/WebP ≤ 10 MiB, chỉ chủ bản khi đầu vào chưa khóa (BR-PROJ-015, BR-MEDIA-001). */
+  EstimateLotImage: { types: IMAGE_MIME, maxBytes: 10 * MIB }
 }
 
 export function uploadRule(purpose?: UploadPurpose): Rule {
