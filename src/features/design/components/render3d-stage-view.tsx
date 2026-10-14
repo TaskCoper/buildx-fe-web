@@ -79,7 +79,8 @@ export function Render3dStageView({
           </Button>
         </div>
       )}
-      {stage && (
+      {/* Trong bước Dự toán & 3D, chip trạng thái và nút Sang bước Hồ sơ đã báo 3D xong: chỉ còn ảnh, không lặp thẻ. */}
+      {stage && !(done && embedded) && (
         <StageWaitingLayout panel={busy ? waitingPanel : undefined} collapsed={waitingPanelCollapsed}>
           <StageStateCard
             icon={

@@ -2,14 +2,13 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Loader2, Lock } from 'lucide-react'
+import { AlertCircle, Loader2, Lock } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { toast } from 'sonner'
 import { Link } from '@/i18n/navigation'
 import { useAuth } from '@/shared/auth'
 import { Button } from '@/shared/components/ui/button'
 import { designEstimateRoute } from '@/shared/constants/routes'
-import { PersonalizedPanel } from '@/features/handbook'
 import {
   estimatePipelineApi,
   designKeys,
@@ -22,7 +21,6 @@ import {
   StageRunProgress,
   StageStateCard,
   type DossierImages,
-  DossierOverview,
   DossierReady,
   StepProgress,
   useEstimateProjectInfo,
@@ -31,8 +29,7 @@ import {
   useDossier,
   useCreateShareLink,
   useRevokeShareLink,
-  useSendDossierEmail,
-  useMatchCriteria
+  useSendDossierEmail
 } from '@/features/design'
 
 export function PipelineDossierView({ projectId }: { projectId: string }) {
@@ -47,7 +44,6 @@ export function PipelineDossierView({ projectId }: { projectId: string }) {
   const { user } = useAuth()
   const project = useProject(projectId)
   const info = useEstimateProjectInfo(projectId)
-  const criteria = useMatchCriteria(projectId)
   const client = useQueryClient()
   const dossier = useDossier(projectId, { enabled: done })
   const sources = useQuery({
@@ -83,6 +79,7 @@ export function PipelineDossierView({ projectId }: { projectId: string }) {
   // mở hai tab chỉ tạo một lần chạy. Lần chạy trước đã lỗi thì không tự chạy lại; khách bấm Chạy lại.
   const [autoPending, setAutoPending] = useState(false)
   const autoTried = useRef(false)
+  const [autoRejected, setAutoRejected] = useState(false)
   useEffect(() => {
     if (autoTried.current || !dossierAutoStart(stage, autoPending)) return
     autoTried.current = true
@@ -90,7 +87,9 @@ export function PipelineDossierView({ projectId }: { projectId: string }) {
     estimatePipelineApi
       .startRun(projectId, 'Dossier', undefined, dossierAutoKey(projectId))
       .catch((error: unknown) => {
-        if (!['inProgress', 'alreadySucceeded'].includes(run.kindOf(error))) toast.error(run.messageOf(error))
+        if (['inProgress', 'alreadySucceeded'].includes(run.kindOf(error))) return
+        setAutoRejected(true)
+        toast.error(run.messageOf(error))
       })
       .finally(() => {
         setAutoPending(false)
@@ -119,6 +118,9 @@ export function PipelineDossierView({ projectId }: { projectId: string }) {
     packageLabel: info?.packageLabel ?? '',
     styleLabel: info?.styleLabel ?? ''
   }
+  // Tự tạo bị từ chối mà chặng vẫn Sẵn sàng thì cũng coi như lỗi để khách bấm Thử lại, tránh xoay mãi.
+  const autoFailed = autoRejected && stage?.status === 'Ready'
+  const failedNow = (failed || run.isError || autoFailed) && !busy && !run.isPending && !autoPending
   const error = steps.stages.isError || sources.isError || project.isError || (done && dossier.isError)
   return (
     <>
@@ -175,32 +177,33 @@ export function PipelineDossierView({ projectId }: { projectId: string }) {
           }}
         />
       ) : (
-        <DossierOverview
-          info={projectInfo}
-          result={sources.data?.estimate}
-          images={sources.data?.images}
-          onRender={() => void start()}
-          isRendering={busy || run.isPending || autoPending}
-          renderActive={busy || failed || run.isPending || run.isError || autoPending}
-          renderContent={
-            <div className='space-y-4' aria-live='polite'>
-              <h2 className='font-semibold'>{t(failed || (run.isError && !busy) ? 'failed' : 'running')}</h2>
-              <StageRunProgress
-                progress={stage?.progress}
-                progressText={t('progress', { done: stage?.progress?.done ?? 0, total: 4 })}
-              />
-              <p className='text-muted-foreground text-sm'>
-                {t(failed || (run.isError && !busy) ? 'failureHint' : 'noQuota')}
-              </p>
-              {(failed || (run.isError && !busy)) && (
+        // Đang dựng hồ sơ chỉ hiện tiến độ, không kèm mẫu thư viện; lỗi thì báo và cho chạy lại ngay trên thẻ này.
+        <div className='mx-auto w-full max-w-[90rem] px-4 pt-2 pb-10 lg:px-8'>
+          <StageStateCard
+            icon={
+              failedNow ? (
+                <AlertCircle className='text-destructive size-6' />
+              ) : (
+                <Loader2 className='text-primary size-6 animate-spin' />
+              )
+            }
+            title={t(failedNow ? 'failed' : 'running')}
+            description={t(failedNow ? 'failureHint' : 'noQuota')}
+          >
+            <div className='w-full space-y-3' aria-live='polite'>
+              {failedNow ? (
                 <Button onClick={() => void start()} disabled={run.isPending}>
                   {t('retry')}
                 </Button>
+              ) : (
+                <StageRunProgress
+                  progress={stage?.progress}
+                  progressText={t('progress', { done: stage?.progress?.done ?? 0, total: 4 })}
+                />
               )}
             </div>
-          }
-          waitingPanel={<PersonalizedPanel filter={{}} kind='3d' topic='interior' matchCriteria={criteria} />}
-        />
+          </StageStateCard>
+        </div>
       )}
     </>
   )

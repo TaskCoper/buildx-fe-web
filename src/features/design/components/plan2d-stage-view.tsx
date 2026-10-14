@@ -215,7 +215,7 @@ function FailedCard({ projectId, stage }: { projectId: string; stage: StageView 
 const LOT_SOURCES = ['customer', 'image', 'description', 'default'] as const
 
 /**
- * Kết quả chặng 2D gửi khách: kích thước lô và nguồn, diện tích, phòng từng tầng, lưu ý, bản vẽ từng tầng. Cuối màn có
+ * Kết quả chặng 2D gửi khách: kích thước lô và nguồn, diện tích, phòng từng tầng, lưu ý, bản vẽ từng tầng. Đầu màn có
  * nút sang chặng Dự toán (khách tự bấm từng chặng, BR-PROJ-010 khoản 2).
  */
 export function Plan2dResultView({ result, projectId }: { result: Plan2dResult; projectId: string }) {
@@ -227,6 +227,12 @@ export function Plan2dResultView({ result, projectId }: { result: Plan2dResult; 
 
   return (
     <div className='space-y-6'>
+      {/* Nút đi tiếp ở đầu màn, cùng vị trí với thanh thao tác của bước Dự toán & 3D. */}
+      <section className='bg-card flex flex-col gap-3 rounded-2xl border p-5 text-sm shadow-xs sm:flex-row sm:items-center sm:justify-between'>
+        <p className='text-pretty'>{t('nextStage')}</p>
+        <GoNextButton projectId={projectId} label={t('toEstimate')} />
+      </section>
+
       <section className='bg-card grid gap-4 rounded-2xl border p-5 shadow-xs sm:grid-cols-3 sm:p-6'>
         <Fact
           label={t('result.lot')}
@@ -318,11 +324,6 @@ export function Plan2dResultView({ result, projectId }: { result: Plan2dResult; 
             <DrawingCard key={`${drawing.kind}-${drawing.floorIndex}`} drawing={drawing} />
           ))}
         </div>
-      </section>
-
-      <section className='bg-card flex flex-col gap-3 rounded-2xl border p-5 text-sm shadow-xs sm:flex-row sm:items-center sm:justify-between'>
-        <p className='text-pretty'>{t('nextStage')}</p>
-        <GoNextButton projectId={projectId} label={t('toEstimate')} />
       </section>
     </div>
   )
