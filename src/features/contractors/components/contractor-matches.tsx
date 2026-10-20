@@ -22,6 +22,7 @@ import { cn } from '@/shared/lib/utils'
 import {
   CONTRACTOR_SORTS,
   MATCHES_INVITE_RETURN_KEY,
+  MATCHES_PAGE_SIZE,
   MATCHES_PINNED_CONTRACTOR_KEY,
   MATCHES_PROJECT_CHANGED_KEY,
   MAX_INVITATIONS,
@@ -361,6 +362,23 @@ function ContractorMatchesContent({ projectId }: ContractorMatchesProps) {
     return [...visible].sort((a, b) => Number(b.id === pinnedContractorId) - Number(a.id === pinnedContractorId))
   }, [pinnedContractorId, visible])
 
+  // Backend trả cả danh sách và FE sắp xếp/lọc, nên phân trang ở đây: mỗi lần hiện MATCHES_PAGE_SIZE thẻ, "Xem thêm"
+  // hiện thêm một trang. Đổi vùng, bán kính hay cách sắp xếp thì về trang đầu (khoá `filterKey` lệch là đặt lại).
+  const filterKey = `${activeRegion ?? ''}|${radiusKm ?? ''}|${sort ?? ''}`
+  const [pageState, setPageState] = useState({ key: filterKey, pages: 1 })
+  const pages = pageState.key === filterKey ? pageState.pages : 1
+  // Thẻ vừa xem hồ sơ hay vừa được mời phải còn trên màn hình khi quay lại, kể cả nằm ở trang sau.
+  const mustShowCount = orderedVisible.reduce(
+    (count, contractor, index) =>
+      contractor.id === lastViewedId || newlyInvitedIds.has(contractor.id) ? index + 1 : count,
+    0
+  )
+  const shownCount = Math.max(
+    pages * MATCHES_PAGE_SIZE,
+    Math.ceil(mustShowCount / MATCHES_PAGE_SIZE) * MATCHES_PAGE_SIZE
+  )
+  const pagedVisible = orderedVisible.slice(0, shownCount)
+
   /** Đổi dự án ngay trong cùng cây component vẫn tăng revision để thanh chạy lại đúng một lần. */
   const knownBriefId = useRef<string | null>(null)
   useEffect(() => {
@@ -660,46 +678,70 @@ function ContractorMatchesContent({ projectId }: ContractorMatchesProps) {
           ) : visible.length === 0 ? (
             <EmptyState title={radiusApplied ? t('empty', { km: radiusKm }) : t('emptyFilters')} />
           ) : (
-            <AnimatePresence mode='popLayout'>
-              {orderedVisible.map((contractor, index) => (
-                <motion.div
-                  key={`${projectId}-${projectChangeRevision}-${contractor.id}`}
-                  layout
-                  initial={reduceMotion ? false : { opacity: 0, y: 24, scale: 0.985 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={reduceMotion ? { opacity: 0 } : { opacity: 0, scaleY: 0.82, scaleX: 0.985 }}
-                  style={{ transformOrigin: 'top center' }}
-                  transition={{
-                    layout: { duration: reduceMotion ? 0 : 0.35, ease: revealEase },
-                    opacity: { duration: reduceMotion ? 0 : 0.4, delay: reduceMotion ? 0 : index * 0.06 },
-                    y: { duration: reduceMotion ? 0 : 0.4, delay: reduceMotion ? 0 : index * 0.06 },
-                    scale: { duration: reduceMotion ? 0 : 0.4, delay: reduceMotion ? 0 : index * 0.06 }
-                  }}
-                >
-                  <ContractorCard
-                    contractor={contractor}
-                    projectId={projectId}
-                    compared={compareIds.includes(contractor.id)}
-                    onToggleCompare={toggleCompare}
-                    invited={isInvited(sent, contractor.id)}
-                    invitedJustNow={newlyInvitedIds.has(contractor.id)}
-                    inviteLocked={inviteLocked || preview}
-                    compareLocked={!compareIds.includes(contractor.id) && compareIds.length >= MAX_INVITATIONS}
-                    siteWardName={brief?.constructionSite?.wardName || brief?.address.wardName}
-                    siteCoords={
-                      brief?.constructionSite
-                        ? { latitude: brief.constructionSite.latitude, longitude: brief.constructionSite.longitude }
-                        : undefined
-                    }
-                    ringFlash={
-                      (justArrived && index === 0) ||
-                      lastViewedId === contractor.id ||
-                      pinnedContractorId === contractor.id
-                    }
-                  />
-                </motion.div>
-              ))}
-            </AnimatePresence>
+            <>
+              <AnimatePresence mode='popLayout'>
+                {pagedVisible.map((contractor, index) => (
+                  <motion.div
+                    key={`${projectId}-${projectChangeRevision}-${contractor.id}`}
+                    layout
+                    initial={reduceMotion ? false : { opacity: 0, y: 24, scale: 0.985 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={reduceMotion ? { opacity: 0 } : { opacity: 0, scaleY: 0.82, scaleX: 0.985 }}
+                    style={{ transformOrigin: 'top center' }}
+                    transition={{
+                      layout: { duration: reduceMotion ? 0 : 0.35, ease: revealEase },
+                      // Độ trễ tính trong từng trang để trang tải thêm không phải đợi theo số thẻ phía trên.
+                      opacity: {
+                        duration: reduceMotion ? 0 : 0.4,
+                        delay: reduceMotion ? 0 : (index % MATCHES_PAGE_SIZE) * 0.06
+                      },
+                      y: {
+                        duration: reduceMotion ? 0 : 0.4,
+                        delay: reduceMotion ? 0 : (index % MATCHES_PAGE_SIZE) * 0.06
+                      },
+                      scale: {
+                        duration: reduceMotion ? 0 : 0.4,
+                        delay: reduceMotion ? 0 : (index % MATCHES_PAGE_SIZE) * 0.06
+                      }
+                    }}
+                  >
+                    <ContractorCard
+                      contractor={contractor}
+                      projectId={projectId}
+                      compared={compareIds.includes(contractor.id)}
+                      onToggleCompare={toggleCompare}
+                      invited={isInvited(sent, contractor.id)}
+                      invitedJustNow={newlyInvitedIds.has(contractor.id)}
+                      inviteLocked={inviteLocked || preview}
+                      compareLocked={!compareIds.includes(contractor.id) && compareIds.length >= MAX_INVITATIONS}
+                      siteWardName={brief?.constructionSite?.wardName || brief?.address.wardName}
+                      siteCoords={
+                        brief?.constructionSite
+                          ? { latitude: brief.constructionSite.latitude, longitude: brief.constructionSite.longitude }
+                          : undefined
+                      }
+                      ringFlash={
+                        (justArrived && index === 0) ||
+                        lastViewedId === contractor.id ||
+                        pinnedContractorId === contractor.id
+                      }
+                    />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+              {orderedVisible.length > shownCount ? (
+                <div className='flex justify-center pt-1'>
+                  <Button
+                    type='button'
+                    variant='outline'
+                    size='lg'
+                    onClick={() => setPageState({ key: filterKey, pages: pages + 1 })}
+                  >
+                    {t('loadMore')}
+                  </Button>
+                </div>
+              ) : null}
+            </>
           )}
         </div>
 

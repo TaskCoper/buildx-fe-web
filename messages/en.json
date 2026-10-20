@@ -7804,6 +7804,7 @@
       "viewInvites": "View invitations",
       "allRegions": "All regions",
       "resultsCount": "{count} contractors",
+      "loadMore": "Show more",
       "loadError": "Could not load contractors. Please try again.",
       "retry": "Retry",
       "emptyFilters": "No contractors match your filters.",

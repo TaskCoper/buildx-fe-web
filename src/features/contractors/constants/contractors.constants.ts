@@ -23,6 +23,9 @@ import type {
  */
 export const MAX_INVITATIONS = 3
 
+/** Số thẻ mỗi lần hiện ở danh sách đề xuất (S12); nút "Xem thêm" hiện thêm đúng chừng này. */
+export const MATCHES_PAGE_SIZE = 3
+
 /** Nhà thầu chọn từ M01 để M05 ghim đầu danh sách và loé viền đúng một lần. */
 export const MATCHES_PINNED_CONTRACTOR_KEY = 'savico.matches-pinned-contractor'
 

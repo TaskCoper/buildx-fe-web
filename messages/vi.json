@@ -7804,6 +7804,7 @@
       "viewInvites": "Xem lời mời",
       "allRegions": "Tất cả miền",
       "resultsCount": "{count} nhà thầu",
+      "loadMore": "Xem thêm",
       "loadError": "Không tải được danh sách nhà thầu. Vui lòng thử lại.",
       "retry": "Thử lại",
       "emptyFilters": "Không có nhà thầu phù hợp với bộ lọc.",
