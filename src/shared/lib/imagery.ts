@@ -283,6 +283,9 @@ type Prefixed<P extends string, T> = { [K in keyof T & string as `${P}.${K}`]: s
  * phải sửa code mới đổi được.
  */
 export const SITE_IMAGE = {
+  'checkout.findContractor': '/images/checkout/find-contractor.png',
+  'checkout.turnkey': '/images/checkout/turnkey.png',
+  'checkout.expert': '/images/checkout/expert.png',
   ...prefixed('style', STYLE_IMAGE),
   ...prefixed('interior', INTERIOR_IMAGE),
   ...prefixed('building', BUILDING_IMAGE),
@@ -298,7 +301,8 @@ export const SITE_IMAGE = {
   ...prefixed('handbook', HANDBOOK_IMAGE),
   ...prefixed('home', HOME_IMAGE),
   ...prefixed('brand', BRAND_IMAGE)
-} as Prefixed<'style', typeof STYLE_IMAGE> &
+} as Record<'checkout.findContractor' | 'checkout.turnkey' | 'checkout.expert', string> &
+  Prefixed<'style', typeof STYLE_IMAGE> &
   Prefixed<'interior', typeof INTERIOR_IMAGE> &
   Prefixed<'building', typeof BUILDING_IMAGE> &
   Prefixed<'topic', typeof TOPIC_IMAGE> &
