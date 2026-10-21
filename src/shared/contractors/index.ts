@@ -6,6 +6,7 @@ export type RegionCode = z.infer<typeof serviceRegionSchema>
 const category = z.object({ id: z.string(), name: z.string() })
 const filterOptionsSchema = z.object({
   buildingTypes: z.array(category),
+  retiredBuildingTypes: z.array(category).default([]),
   scopes: z.array(category),
   regions: z.array(z.object({ code: serviceRegionSchema, name: z.string() })),
   provinces: z.array(z.object({ code: z.string(), name: z.string(), regionCode: serviceRegionSchema })),

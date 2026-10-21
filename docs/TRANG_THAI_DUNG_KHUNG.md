@@ -1,5 +1,7 @@
 # Trạng thái dựng khung — SAVICO AI
 
+Ngày 21/10/2026, `/admin/building-types` bổ sung Xóa trong menu thao tác và xác nhận giữ dữ liệu cũ theo STORY-PROJ-005/AC-014–016, BR-PROJ-004 khoản 25. API tạo revision mới bỏ loại khỏi lựa chọn mới; dữ liệu đã lưu giữ nguyên. Form nhà thầu và dự án tiếp tục hiện tên loại cũ, cho bỏ liên kết nhưng không chọn mới loại đã xóa. Typecheck, lint và kiểm tra định dạng đạt. Backend đạt 52 test application, 3 test HTTP và 1 test PostgreSQL cùng kiểm migration. Chưa kiểm UI trình duyệt vì môi trường chặn mở cổng dev; chưa push hoặc áp dụng migration lên môi trường dùng chung.
+
 Ngày 13/10/2026, theo yêu cầu mới, đã build/start bản W4 ở port3000, thay W2 cũ và dừng3001. API vẫn ở8080. Browser customer giữ dự toán đã điền; chưa chạy AI.
 
 Ngày 13/10/2026, Admin Quy tắc AI / Theo loại công trình chuyển từ bảng chỉ có quy tắc đã lưu sang toàn bộ danh mục dự toán, kèm trạng thái và phần còn thiếu. Form Cấu hình lưu chung lô đất và các mái trong một phiên bản, giữ bản nhập khi API lỗi. Khách thấy loại chưa cấu hình với nhãn Chưa hỗ trợ và không chọn được; trạng thái cập nhật mỗi 15 giây, bản nháp cũ giữ dữ liệu. Đã kiểm 35 test frontend, typecheck/lint/format/build; browser thật đọc đủ năm loại và form 390px. Backend có kiểm PostgreSQL cho lưu nguyên khối và mở loại sau khi đủ cấu hình. Local3001/8080 đã cập nhật; chưa commit/push.

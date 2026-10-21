@@ -7,7 +7,7 @@ import { http } from '@/shared/lib/api'
  *
  * Danh mục CÓ PHIÊN BẢN: mỗi lần lưu tạo một revision mới và tăng
  * `catalogVersion`. Mọi thao tác ghi gửi lại `expectedCatalogVersion` đã đọc —
- * lệch thì BE trả 409 `CatalogVersionConflict`. API không có xóa, không có trạng
+ * lệch thì BE trả 409 `CatalogVersionConflict`. Xóa loại chỉ bỏ khỏi danh mục mới; không có trạng
  * thái bật/tắt cho loại hay phong cách và không có thứ tự sắp xếp.
  */
 
@@ -164,6 +164,17 @@ export function updateBuildingType(
     { expectedCatalogVersion, ...input },
     idempotent()
   )
+}
+
+export function deleteBuildingType(
+  buildingTypeId: string,
+  expectedCatalogVersion: number,
+  requestKey: string
+): Promise<CatalogSaved> {
+  return http.delete<CatalogSaved>(`${BASE}/building-types/${buildingTypeId}`, {
+    params: { expectedCatalogVersion },
+    headers: { 'Idempotency-Key': requestKey }
+  })
 }
 
 /** Nhóm (`group`) chỉ đặt lúc tạo, không đổi được sau đó. */

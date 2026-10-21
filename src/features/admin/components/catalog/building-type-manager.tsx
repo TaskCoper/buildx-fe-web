@@ -1,11 +1,15 @@
 'use client'
 
-import { Alert, Descriptions, Form, Input, Select, Space, Switch, Tag, Typography, type FormInstance } from 'antd'
+import { DeleteOutlined } from '@ant-design/icons'
+import { useQueryClient } from '@tanstack/react-query'
+import { Alert, App, Descriptions, Form, Input, Select, Space, Switch, Tag, Typography, type FormInstance } from 'antd'
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 
+import { isApiError } from '@/shared/lib/api'
 import {
   createBuildingType,
+  deleteBuildingType,
   updateBuildingType,
   type AdminCatalog,
   type BuildingTypeInput,
@@ -33,6 +37,8 @@ interface Filters {
   floors: Filter
   tum: Filter
 }
+
+type BuildingTypeRow = CatalogBuildingTypeDto & { catalogVersion: number }
 
 const trimmed = (value: unknown) => (typeof value === 'string' ? value.trim() : value)
 
@@ -62,12 +68,14 @@ function toInput(values: Record<string, unknown>, aiMapping: boolean): BuildingT
  * gán). Nhóm bật phải có ít nhất một lựa chọn; nhóm tắt vẫn giữ danh sách.
  *
  * Danh mục có phiên bản: lưu xong chỉ bản dự toán MỚI dùng cấu hình mới, bản cũ
- * giữ cấu hình đã ghim. API không có xóa hay ngừng hoạt động loại công trình.
+ * giữ cấu hình đã ghim. Xóa chỉ bỏ loại khỏi danh mục cho lựa chọn mới.
  */
 export function BuildingTypeManager() {
   const t = useTranslations('admin')
   const c = useTranslations('admin.estimateCatalog')
   const floorLabel = useFloorLabel()
+  const { modal, message } = App.useApp()
+  const queryClient = useQueryClient()
   const { data: catalog } = useEstimateCatalog()
   const { fetchFresh, invalidate } = useFreshCatalog()
   const [filters, setFilters] = useState<Filters>({ floors: 'all', tum: 'all' })
@@ -99,14 +107,16 @@ export function BuildingTypeManager() {
   )
 
   return (
-    <ApiResourceManager<CatalogBuildingTypeDto>
+    <ApiResourceManager<BuildingTypeRow>
       title={t('nav.buildingTypes')}
       description={c('buildingTypesDescription')}
       queryKey={[...ESTIMATE_CATALOG_KEY, 'building-types', filters]}
       searchable
       fetchPage={async ({ pageIndex, pageSize, keyword }) => {
         const fresh = await fetchFresh()
-        const rows = fresh.buildingTypes.filter((type) => matches(type) && matchesKeyword(type.name, keyword))
+        const rows = fresh.buildingTypes
+          .filter((type) => matches(type) && matchesKeyword(type.name, keyword))
+          .map((type) => ({ ...type, catalogVersion: fresh.catalogVersion }))
         return pageLocally(rows, pageIndex, pageSize)
       }}
       rowKey={(item) => item.buildingTypeId}
@@ -151,6 +161,48 @@ export function BuildingTypeManager() {
         )
         await invalidate()
       }}
+      rowActions={(item) => [
+        {
+          key: 'delete',
+          label: t('actions.delete'),
+          icon: <DeleteOutlined />,
+          danger: true,
+          disabled: !catalog,
+          onClick: () => {
+            if (!catalog) return
+            // Giữ phiên bản và khóa của lần xác nhận, kể cả khi mạng lỗi hoặc cache tải lại.
+            const version = item.catalogVersion
+            const requestKey = crypto.randomUUID()
+            modal.confirm({
+              title: c('deleteTypeTitle', { name: item.name }),
+              content: c('deleteTypeBody'),
+              okText: t('actions.delete'),
+              cancelText: t('actions.cancel'),
+              okButtonProps: { danger: true },
+              onOk: async () => {
+                try {
+                  await deleteBuildingType(item.buildingTypeId, version, requestKey)
+                } catch (error) {
+                  message.error(isApiError(error) ? error.message : t('feedback.apiError'))
+                  if (isApiError(error) && (error.status === 409 || error.status === 404)) {
+                    void invalidate()
+                    return
+                  }
+                  throw error
+                }
+                message.success(c('deleteTypeSuccess'))
+                void Promise.all([
+                  invalidate(),
+                  queryClient.invalidateQueries({ queryKey: ['admin', 'contractor-form-options'] }),
+                  queryClient.invalidateQueries({ queryKey: ['admin', 'contractor-type-options'] })
+                ]).catch((error: unknown) => {
+                  message.error(isApiError(error) ? error.message : t('feedback.apiError'))
+                })
+              }
+            })
+          }
+        }
+      ]}
       columns={[
         {
           title: c('buildingTypeName'),

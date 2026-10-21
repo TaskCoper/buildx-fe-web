@@ -4872,6 +4872,9 @@
       "deleteConfirmBody": "Chỉ xoá được khi chưa có nhà thầu hay dự án nào dùng phạm vi này."
     },
     "estimateCatalog": {
+      "deleteTypeTitle": "Xóa loại công trình “{name}”?",
+      "deleteTypeBody": "Loại này sẽ không còn được chọn cho dữ liệu mới. Dự toán, mẫu thư viện, hồ sơ công trình và dữ liệu nhà thầu đã lưu vẫn được giữ nguyên.",
+      "deleteTypeSuccess": "Đã xóa loại khỏi danh mục lựa chọn mới.",
       "groupArchitecture": "Kiến trúc",
       "groupInterior": "Nội thất",
       "buildingTypesDescription": "Danh mục loại công trình của Tạo dự toán và thư viện mẫu. Mỗi loại bật / tắt riêng việc chọn số tầng, chọn tum và hai nhóm phong cách. Lưu xong chỉ bản dự toán mới dùng cấu hình mới; bản đã tạo giữ cấu hình cũ.",

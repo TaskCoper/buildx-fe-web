@@ -23,6 +23,7 @@ import type { FormInstance } from 'antd'
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 
+import { getContractorFilterOptions } from '@/shared/contractors'
 import { useEstimateCatalog } from '../../hooks/use-estimate-catalog'
 import { useFloorLabel } from '../catalog/use-floor-label'
 import { constructionScopesApi } from '../../api/bmt/construction-scopes.api'
@@ -117,6 +118,10 @@ export function ContractorProjectsSection({ form, contractorId }: { form: FormIn
   const setPending = (next: PendingProject[]) => form.setFieldValue('pendingProjects', next)
 
   const catalog = useEstimateCatalog()
+  const retainedTypes = useQuery({
+    queryKey: ['admin', 'contractor-type-options'],
+    queryFn: () => getContractorFilterOptions()
+  })
   const scopes = useQuery({
     queryKey: ['admin', 'contractor-project-scope-options'],
     queryFn: constructionScopesApi.list
@@ -142,13 +147,17 @@ export function ContractorProjectsSection({ form, contractorId }: { form: FormIn
   // Keep historical values visible when editing; changing the type reconciles them with its configuration.
   if (floorCount != null && !floorOptions.some((option) => option.value === floorCount))
     floorOptions.push({ label: c('savedFloor', { count: floorCount }), value: floorCount, disabled: true })
-  const optionsFailed = catalog.isError || scopes.isError
-  const optionsPending = catalog.isPending || scopes.isPending
-  const typeName = (id: string) => catalog.data?.buildingTypes.find((type) => type.buildingTypeId === id)?.name ?? id
+  const optionsFailed = catalog.isError || scopes.isError || retainedTypes.isError
+  const optionsPending = catalog.isPending || scopes.isPending || retainedTypes.isPending
+  const typeName = (id: string) =>
+    catalog.data?.buildingTypes.find((type) => type.buildingTypeId === id)?.name ??
+    retainedTypes.data?.retiredBuildingTypes.find((type) => type.id === id)?.name ??
+    id
   const scopeName = (id: string) => scopes.data?.find((scope) => scope.id === id)?.name ?? id
   const retryOptions = () => {
     void catalog.refetch()
     void scopes.refetch()
+    void retainedTypes.refetch()
   }
   const changeBuildingType = (id: string) => {
     const type = catalog.data?.buildingTypes.find((item) => item.buildingTypeId === id)
@@ -425,6 +434,7 @@ export function ContractorProjectsSection({ form, contractorId }: { form: FormIn
           >
             <Select
               options={typeOptions}
+              labelRender={({ value, label }) => label ?? typeName(String(value))}
               loading={catalog.isPending}
               disabled={catalog.isError || saving}
               optionFilterProp='label'

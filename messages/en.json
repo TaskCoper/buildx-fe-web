@@ -4872,6 +4872,9 @@
       "deleteConfirmBody": "Can only be deleted when no contractor or project uses this scope."
     },
     "estimateCatalog": {
+      "deleteTypeTitle": "Delete building type “{name}”?",
+      "deleteTypeBody": "This type will no longer be available for new selections. Existing estimates, library templates, construction sites and contractor data will be kept.",
+      "deleteTypeSuccess": "Building type removed from the selection catalog.",
       "groupArchitecture": "Architecture",
       "groupInterior": "Interior",
       "buildingTypesDescription": "Building types used by Create estimate and the template library. Each type separately enables floor choice, tum choice and the two style groups. Saving only affects new estimates; existing estimates keep their configuration.",
