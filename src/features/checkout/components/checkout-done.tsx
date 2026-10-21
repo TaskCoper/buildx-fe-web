@@ -184,17 +184,27 @@ export function CheckoutDone({ orderId }: CheckoutDoneProps) {
   // Đơn MOCK dùng mã hạng gói ('basic'/'check') làm khóa dịch; đơn API mang sẵn
   // tên gói hiển thị (`planName`) nên in thẳng, không tra bản dịch theo tên.
   const isApiOrder = isApiOrderId(order.id)
+  const designTier = order.product.name.trim().toLowerCase() as 'basic' | 'advanced' | 'pro'
+  const supervisionTier = order.product.name.trim().toLowerCase() as 'check' | 'control'
   const planName = isApiOrder
     ? order.product.name
     : isSupervision
-      ? tSupervision(order.product.name as 'check' | 'control')
-      : tPlans(order.product.name as 'basic' | 'advanced' | 'pro')
+      ? tSupervision.has(supervisionTier)
+        ? tSupervision(supervisionTier)
+        : order.product.name
+      : tPlans.has(designTier)
+        ? tPlans(designTier)
+        : order.product.name
   // Nhãn nhóm gói in dưới tên gói trong thẻ "Gói của tôi" (Hình S08).
   const planTag = isApiOrder
     ? null
     : isSupervision
-      ? tSupervisionTags(order.product.name as 'check' | 'control')
-      : tPlanTags(order.product.name as 'basic' | 'advanced' | 'pro')
+      ? tSupervisionTags.has(supervisionTier)
+        ? tSupervisionTags(supervisionTier)
+        : null
+      : tPlanTags.has(designTier)
+        ? tPlanTags(designTier)
+        : null
 
   // Bề ngang đo trên Hình S08 (ảnh gốc 800×533): phần nội dung chạy từ x=20 đến
   // x=767, tức 748/800 = 93.5% bề ngang trang. Vì vậy dùng `w-[93.5%]` chứ không
@@ -385,7 +395,7 @@ export function CheckoutDone({ orderId }: CheckoutDoneProps) {
             </div>
             <StartOptions
               findHref={order.projectId ? contractorMatchesRoute(order.projectId) : ROUTES.CONTRACTORS}
-              isPro={order.product.name === 'pro'}
+              isPro={designTier === 'pro'}
               completionMode
               animateEntrance={entranceState === 'play'}
               onTurnkeySelect={() => toast.success(t('turnkeyContactConfirmation'))}
