@@ -2,11 +2,12 @@
 
 import { ArrowRight, CalendarClock, CircleCheck, Gift, HardHat, Loader2, Search, Star } from 'lucide-react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
+import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 
 import { Link } from '@/i18n/navigation'
-import { resolvePlanGift, useCmsCollection, type PlanGift } from '@/shared/cms'
+import { resolvePlanGift, useCmsCollection, useSiteImage, type PlanGift } from '@/shared/cms'
 import { Button } from '@/shared/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/components/ui/dialog'
 import { ROUTES } from '@/shared/constants/routes'
@@ -68,6 +69,9 @@ export function StartOptions({
   const giftPlan = useCmsCollection('plans').find((plan) => plan.status === 'selling' && plan.giftId)
   const gift = giftPlan ? resolvePlanGift(giftPlan, gifts) : undefined
   const t = useTranslations('contractors.start')
+  const findImage = useSiteImage('checkout.findContractor')
+  const turnkeyImage = useSiteImage('checkout.turnkey')
+  const expertImage = useSiteImage('checkout.expert')
   const [turnkeyOpen, setTurnkeyOpen] = useState(false)
   const [routeLoading, setRouteLoading] = useState(false)
 
@@ -94,6 +98,7 @@ export function StartOptions({
         <OptionCard
           index={1}
           icon={Search}
+          imageSrc={completionMode ? findImage : undefined}
           title={t('find.title')}
           subtitle={t('find.subtitle')}
           points={[t('find.p1'), t('find.p2'), t('find.p3'), t('find.p4'), t('find.p5'), t('find.p6')]}
@@ -117,6 +122,7 @@ export function StartOptions({
         <OptionCard
           index={2}
           icon={HardHat}
+          imageSrc={completionMode ? turnkeyImage : undefined}
           highlighted
           title={isPro ? t('turnkey.titlePro') : t('turnkey.title')}
           subtitle={t('turnkey.subtitle')}
@@ -148,6 +154,7 @@ export function StartOptions({
         <OptionCard
           index={3}
           icon={CalendarClock}
+          imageSrc={completionMode ? expertImage : undefined}
           title={t('expert.title')}
           subtitle={t('expert.subtitle')}
           points={[t('expert.p1'), t('expert.p2'), t('expert.p3')]}
@@ -454,6 +461,7 @@ function ScaleToFit({ children }: { children: React.ReactNode }) {
 function OptionCard({
   index,
   icon: Icon,
+  imageSrc,
   title,
   subtitle,
   points,
@@ -472,6 +480,7 @@ function OptionCard({
 }: {
   index: number
   icon: typeof Search
+  imageSrc?: string
   title: string
   subtitle: string
   points: string[]
@@ -588,8 +597,7 @@ function OptionCard({
             <p className='text-muted-foreground mt-1.5 text-xs leading-relaxed text-pretty'>{subtitle}</p>
           </div>
 
-          {/* CHỖ CHỜ ASSET: hình minh hoạ của lựa chọn — ảnh 3D nền trắng, rộng
-            bằng phần trong của thẻ.
+          {/* S08 dùng ảnh minh hoạ từ CMS; S11 giữ khung chờ hiện có.
 
             Ba con số đo trên Hình S08 quyết định bộ class dưới đây:
             - thẻ 1: khung 139×103px trên bề ngang trong thẻ 139px → 4:3 (bản
@@ -600,23 +608,38 @@ function OptionCard({
               trống dồn xuống thành khoảng hở trước nút như bản trước;
             - nhưng chỉ giãn tới 30–41% chiều cao thẻ (103/341 và 136/333), nên
               chặn `max-h-[40%]` — bỏ chặn thì thẻ 3 phình thành khung dọc. */}
-          <div className='bg-muted/30 mt-3 flex aspect-[4/3] max-h-[40%] w-full grow items-center justify-center rounded-xl border border-dashed'>
-            <motion.span
-              animate={
-                completionMode
-                  ? { y: reduceMotion ? 0 : hovered ? -4 : 0 }
-                  : reduceMotion
-                    ? undefined
-                    : { y: [0, -3, 0] }
-              }
-              transition={
-                completionMode
-                  ? { duration: reduceMotion ? 0 : 0.22, ease: revealEase }
-                  : { duration: 4.8, delay: index * 0.25, repeat: Infinity, ease: 'easeInOut' }
-              }
-            >
-              <Icon className='text-muted-foreground/50 size-8' />
-            </motion.span>
+          <div
+            className={cn(
+              'bg-muted/30 relative mt-3 flex aspect-[4/3] max-h-[40%] w-full grow items-center justify-center overflow-hidden rounded-xl',
+              !imageSrc && 'border border-dashed'
+            )}
+          >
+            {imageSrc ? (
+              <Image
+                src={imageSrc}
+                alt={title}
+                fill
+                sizes='(min-width: 1440px) 280px, (min-width: 1024px) 22vw, (min-width: 768px) 30vw, 90vw'
+                className='object-cover'
+              />
+            ) : (
+              <motion.span
+                animate={
+                  completionMode
+                    ? { y: reduceMotion ? 0 : hovered ? -4 : 0 }
+                    : reduceMotion
+                      ? undefined
+                      : { y: [0, -3, 0] }
+                }
+                transition={
+                  completionMode
+                    ? { duration: reduceMotion ? 0 : 0.22, ease: revealEase }
+                    : { duration: 4.8, delay: index * 0.25, repeat: Infinity, ease: 'easeInOut' }
+                }
+              >
+                <Icon className='text-muted-foreground/50 size-8' />
+              </motion.span>
+            )}
           </div>
 
           {/* Hình S08: các ý cách nhau ~17px trên thẻ rộng 157px = ~37px ở khổ
