@@ -5,9 +5,11 @@ import {
   normalizePipelineConfig,
   normalizePipelineDetail,
   normalizePricingRegions,
+  normalizeProviderModels,
   pipelineConfigBody,
   type PipelineConfig,
   type PipelineConfigView,
+  type AiProvider,
   type PricingRegionRow
 } from './estimate-pipeline.logic'
 
@@ -65,6 +67,11 @@ export const estimatePipelineAdminApi = {
     if (filters.state) query.set('state', filters.state)
     return pipelineRunList.parse(await http.get<unknown>(`/admin/estimate-pipeline/runs?${query}`))
   },
+  getProviderModels: async (provider: AiProvider, signal?: AbortSignal) =>
+    normalizeProviderModels(
+      await http.get<unknown>('/admin/estimate-pipeline/models', { params: { provider }, signal })
+    ),
+
   getConfig: async (): Promise<PipelineConfigView> =>
     normalizePipelineConfig(await http.get<unknown>('/admin/estimate-pipeline/config')),
 

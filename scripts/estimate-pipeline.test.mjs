@@ -31,6 +31,34 @@ const input = await load('src/features/design/services/estimate-input.logic.ts')
 const admin = await load('src/features/admin/api/bmt/estimate-pipeline.logic.ts')
 const estimate = await load('src/features/design/services/estimate-stage.logic.ts')
 
+test('model từ provider: giữ model mới và model riêng, không lọc bằng danh sách cố định', () => {
+  const models = admin.normalizeProviderModels({
+    models: [
+      { model: 'new-image-model', displayName: 'New image' },
+      { model: 'ft:private-model' },
+      { model: 'new-image-model', displayName: 'New image' }
+    ]
+  })
+  assert.deepEqual(
+    models.map((model) => model.model),
+    ['ft:private-model', 'new-image-model']
+  )
+  const options = admin.providerModelOptions(models, ['saved-retired-model', 'new-image-model', null])
+  assert.deepEqual(
+    options.map((option) => option.value),
+    ['ft:private-model', 'new-image-model', 'saved-retired-model']
+  )
+  assert.equal(options[1].label, 'New image (new-image-model)')
+  assert.deepEqual(admin.providerModelOptions([], ['saved-model']), [{ value: 'saved-model', label: 'saved-model' }])
+})
+
+test('model từ provider: phân biệt danh sách rỗng hợp lệ với response sai contract', () => {
+  assert.deepEqual(admin.normalizeProviderModels({ models: [] }), [])
+  for (const raw of [null, {}, { models: [{}] }, { models: [{ model: ' ' }] }]) {
+    assert.throws(() => admin.normalizeProviderModels(raw))
+  }
+})
+
 /* ---------------------------------------------------------------------------
  * Đầu vào mới (BR-PROJ-001, 002; TDD-PROJ-007 mục A)
  * ------------------------------------------------------------------------ */

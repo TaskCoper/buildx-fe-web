@@ -1,6 +1,6 @@
 'use client'
 
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Alert,
   App,
@@ -28,6 +28,8 @@ import {
   configFieldPath,
   parseParameters,
   PIPELINE_STAGES,
+  providerModelOptions,
+  type AiProvider,
   type PipelineConfig,
   type PipelineConfigView
 } from '../../api/bmt/estimate-pipeline.logic'
@@ -37,6 +39,7 @@ const { Text } = Typography
 const CONFIG_KEY = ['admin', 'estimate-pipeline', 'config'] as const
 const REVISIONS_KEY = ['admin', 'estimate-pipeline', 'config-revisions'] as const
 const NOTE_MAX = 500
+const PROVIDERS: AiProvider[] = ['OpenAI', 'Anthropic']
 
 /** Giá trị trong form: như `PipelineConfig`, riêng tham số model sửa dạng chuỗi JSON. */
 type FormValues = Omit<PipelineConfig, 'tasks'> & {
@@ -72,15 +75,26 @@ export function AiConfigEditor() {
 
   const config = useQuery({ queryKey: CONFIG_KEY, queryFn: () => estimatePipelineAdminApi.getConfig() })
   const revisions = useQuery({ queryKey: REVISIONS_KEY, queryFn: () => estimatePipelineAdminApi.listConfigRevisions() })
+  const modelQueries = useQueries({
+    queries: PROVIDERS.map((provider) => ({
+      queryKey: ['admin', 'estimate-pipeline', 'models', provider],
+      queryFn: ({ signal }: { signal: AbortSignal }) => estimatePipelineAdminApi.getProviderModels(provider, signal),
+      enabled: !!config.data,
+      staleTime: 5 * 60 * 1000,
+      retry: false
+    }))
+  })
 
   useEffect(() => {
     if (config.data) form.setFieldsValue(toFormValues(config.data))
   }, [config.data, form])
 
-  const modelOptions = (provider?: string) =>
-    (config.data?.supportedModels ?? [])
-      .filter((model) => !provider || !model.provider || model.provider === provider)
-      .map((model) => ({ value: model.model, label: model.model }))
+  const providerQuery = (provider?: string) => modelQueries[PROVIDERS.findIndex((item) => item === provider)]
+  const modelOptions = (provider?: string, retained: (string | null | undefined)[] = []) =>
+    providerModelOptions(
+      provider ? (providerQuery(provider)?.data ?? []) : modelQueries.flatMap((query) => query.data ?? []),
+      retained
+    )
 
   async function save(values: FormValues) {
     if (!config.data) return
@@ -263,6 +277,29 @@ export function AiConfigEditor() {
         </Card>
 
         <Card title={t('tasks.title')} size='small' style={{ marginBottom: 16 }}>
+          <Space orientation='vertical' style={{ width: '100%', marginBottom: 16 }}>
+            <Text type='secondary'>{t('tasks.modelsHint')}</Text>
+            {PROVIDERS.map((provider, index) => {
+              const query = modelQueries[index]
+              return (
+                <div key={provider}>
+                  <Button loading={query?.isFetching} onClick={() => void query?.refetch()}>
+                    {t('tasks.reloadModels', { provider })}
+                  </Button>
+                  {query?.isError ? (
+                    <Alert
+                      style={{ marginTop: 8 }}
+                      type='error'
+                      showIcon
+                      title={isApiError(query.error) ? query.error.message : t('tasks.modelsError', { provider })}
+                    />
+                  ) : query?.isSuccess && query.data.length === 0 ? (
+                    <Alert style={{ marginTop: 8 }} type='info' showIcon title={t('tasks.modelsEmpty', { provider })} />
+                  ) : null}
+                </div>
+              )
+            })}
+          </Space>
           <Form.List name='tasks'>
             {(fields) =>
               fields.map((field) => {
@@ -282,6 +319,10 @@ export function AiConfigEditor() {
                       <Form.Item name={[field.name, 'provider']} label={t('tasks.provider')}>
                         <Select
                           options={['OpenAI', 'Anthropic'].map((value) => ({ value, label: value }))}
+                          onChange={() => {
+                            form.setFieldValue(['tasks', field.name, 'model'], undefined)
+                            form.setFieldValue(['tasks', field.name, 'fallbackModel'], null)
+                          }}
                           style={{ width: '100%' }}
                         />
                       </Form.Item>
@@ -292,12 +333,23 @@ export function AiConfigEditor() {
                         label={t('tasks.model')}
                         rules={[{ required: true, message: tAdmin('fields.requiredMessage') }]}
                       >
-                        <Select showSearch options={modelOptions(provider)} />
+                        <Select
+                          showSearch
+                          optionFilterProp='label'
+                          loading={providerQuery(provider)?.isFetching}
+                          options={modelOptions(provider, [watchedTasks?.[field.name]?.model])}
+                        />
                       </Form.Item>
                     </Col>
                     <Col xs={24} md={5}>
                       <Form.Item name={[field.name, 'fallbackModel']} label={t('tasks.fallbackModel')}>
-                        <Select allowClear showSearch options={modelOptions(provider)} />
+                        <Select
+                          allowClear
+                          showSearch
+                          optionFilterProp='label'
+                          loading={providerQuery(provider)?.isFetching}
+                          options={modelOptions(provider, [watchedTasks?.[field.name]?.fallbackModel])}
+                        />
                       </Form.Item>
                     </Col>
                     <Col xs={24} md={6}>
@@ -333,7 +385,14 @@ export function AiConfigEditor() {
                         label={t('prices.model')}
                         rules={[{ required: true, message: tAdmin('fields.requiredMessage') }]}
                       >
-                        <Select showSearch options={modelOptions()} />
+                        <Select
+                          showSearch
+                          optionFilterProp='label'
+                          options={modelOptions(
+                            undefined,
+                            config.data?.config.prices.map((price) => price.model)
+                          )}
+                        />
                       </Form.Item>
                     </Col>
                     {(['inputPerMTok', 'cachedInputPerMTok', 'outputPerMTok', 'cacheWritePerMTok'] as const).map(

@@ -6971,6 +6971,10 @@
         "minOverlap": "Minimum overlap"
       },
       "tasks": {
+        "modelsHint": "Models are loaded from the provider using the server API key. Choose a model suitable for the task and parameters; this list does not confirm each model’s capabilities.",
+        "reloadModels": "Reload {provider} models",
+        "modelsError": "Could not load {provider} models. Check the connection settings and API key, then retry. Saved models are retained.",
+        "modelsEmpty": "{provider} returned no models for this account.",
         "title": "Model per task",
         "task": "Task",
         "provider": "Provider",
