@@ -59,7 +59,8 @@ export const bmtConstructionSitesApi = {
   remove: async (siteId: string) => {
     await http.delete<void>(`${base}/${siteId}`)
   },
-  list: async (pageIndex: number) => pageSchema.parse(await http.get(base, { params: { pageIndex, pageSize: 100 } })),
+  list: async (pageIndex: number, pageSize = 100) =>
+    pageSchema.parse(await http.get(base, { params: { pageIndex, pageSize } })),
   provinces: async () => locationsSchema.parse(await http.get('/estimate-locations/provinces')),
   wards: async (provinceCode: string, datasetVersion: string) =>
     wardsSchema.parse(

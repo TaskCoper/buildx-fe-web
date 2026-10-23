@@ -35,6 +35,15 @@ export interface AccountPurchaseHistory {
   transactions: CmsTransaction[]
 }
 
+/** Chip lọc ở Lịch sử mua. `all` là không lọc. */
+export type PurchaseFilter = 'all' | 'paid' | 'pending' | 'refunded'
+
+/** Số đơn theo từng chip lọc, đếm trên toàn bộ đơn của khách chứ không chỉ trang đang xem. */
+export type PurchaseCounts = Record<PurchaseFilter, number>
+
+/** Số đơn mỗi trang của Lịch sử mua. */
+export const PURCHASES_PAGE_SIZE = 10
+
 /**
  * Phần hồ sơ khách tự sửa được ở thẻ "Thông tin tài khoản" (mục IX, Hình 17).
  * Email không nằm ở đây: đó là danh tính đăng nhập, đổi phải qua luồng xác minh

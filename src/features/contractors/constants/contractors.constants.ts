@@ -26,6 +26,9 @@ export const MAX_INVITATIONS = 3
 /** Số thẻ mỗi lần hiện ở danh sách đề xuất (S12); nút "Xem thêm" hiện thêm đúng chừng này. */
 export const MATCHES_PAGE_SIZE = 3
 
+/** Số hồ sơ mỗi trang ở tab "Hồ sơ của tôi" trong Tài khoản (thẻ cao nên ít); BE trả từng trang. */
+export const DOSSIERS_PAGE_SIZE = 5
+
 /** Nhà thầu chọn từ M01 để M05 ghim đầu danh sách và loé viền đúng một lần. */
 export const MATCHES_PINNED_CONTRACTOR_KEY = 'savico.matches-pinned-contractor'
 

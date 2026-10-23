@@ -4,7 +4,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Download, FileText, Info, Loader2, Mail, QrCode, ReceiptText } from 'lucide-react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { useLocale, useTranslations } from 'next-intl'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
 import { Link } from '@/i18n/navigation'
@@ -12,7 +12,7 @@ import type { Locale } from '@/i18n/routing'
 import { useAuth } from '@/shared/auth'
 import { useChatContextStore } from '@/shared/chat-context'
 import { isApiError } from '@/shared/lib/api'
-import { revealEase } from '@/shared/components/common'
+import { ErrorState, PagePagination, revealEase } from '@/shared/components/common'
 import { Button } from '@/shared/components/ui/button'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/shared/components/ui/sheet'
 import { Skeleton } from '@/shared/components/ui/skeleton'
@@ -21,7 +21,7 @@ import { checkoutPaymentRoute, ROUTES } from '@/shared/constants/routes'
 import { cn } from '@/shared/lib/utils'
 import { formatCurrency, formatDisplayDate, formatDisplayDateTime, formatDisplayTime } from '@/shared/utils'
 import { accountKeys } from '../api/account.keys'
-import { usePurchaseHistory } from '../hooks/use-purchase-history'
+import { usePurchaseCounts, usePurchasePage } from '../hooks/use-purchase-page'
 import {
   canCancelPhase,
   isOpenPhase,
@@ -29,8 +29,9 @@ import {
   transactionPhase,
   type TransactionPhase
 } from '../services/transaction-phase'
+import { PURCHASES_PAGE_SIZE, type PurchaseFilter } from '../types/account.types'
 
-type FilterStatus = 'all' | 'paid' | 'pending' | 'refunded'
+const FILTERS = ['all', 'paid', 'pending', 'refunded'] as const satisfies readonly PurchaseFilter[]
 
 const ORDER_ID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
@@ -161,8 +162,11 @@ export function PurchaseHistory({ onCancelOrder }: PurchaseHistoryProps = {}) {
   const { user } = useAuth()
   const setAssistantOpen = useChatContextStore((s) => s.setPanelOpen)
   const setAssistantSuppressed = useChatContextStore((s) => s.setDockSuppressed)
-  const { data: history, isPending } = usePurchaseHistory()
-  const [filter, setFilter] = useState<FilterStatus>('all')
+  const [filter, setFilter] = useState<PurchaseFilter>('all')
+  const [page, setPage] = useState(1)
+  const pageQuery = usePurchasePage(filter, page)
+  const countsQuery = usePurchaseCounts()
+  const listRef = useRef<HTMLDivElement>(null)
   const [receipt, setReceipt] = useState<CmsTransaction | null>(null)
   const [resendingReceiptId, setResendingReceiptId] = useState<string | null>(null)
   const [downloadingReceiptId, setDownloadingReceiptId] = useState<string | null>(null)
@@ -170,20 +174,12 @@ export function PurchaseHistory({ onCancelOrder }: PurchaseHistoryProps = {}) {
   const [confirmCancelId, setConfirmCancelId] = useState<string | null>(null)
   const [cancellingId, setCancellingId] = useState<string | null>(null)
 
-  const transactions = useMemo(
-    () => [...(history?.transactions ?? [])].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt)),
-    [history?.transactions]
-  )
-  const counts = useMemo(
-    () => ({
-      all: transactions.length,
-      paid: transactions.filter((item) => item.status === 'paid').length,
-      pending: transactions.filter((item) => item.status === 'pending').length,
-      refunded: transactions.filter((item) => item.status === 'refunded').length
-    }),
-    [transactions]
-  )
-  const visible = filter === 'all' ? transactions : transactions.filter((item) => item.status === filter)
+  const { isPending, isError, error, refetch } = pageQuery
+  // BE đã sắp mới nhất trước và đã lọc theo chip, nên danh sách chỉ hiện đúng trang nhận về.
+  const visible = pageQuery.data?.items ?? []
+  const totalCount = pageQuery.data?.totalCount ?? 0
+  const pageCount = Math.max(1, Math.ceil(totalCount / PURCHASES_PAGE_SIZE))
+  const firstShown = (page - 1) * PURCHASES_PAGE_SIZE + 1
   // Biên nhận chỉ có khi đã thanh toán; các trạng thái khác mở cùng khung này nhưng là "Chi tiết đơn".
   const receiptPhase = receipt ? transactionPhase(receipt) : null
   const receiptPaid = receiptPhase === 'paid'
@@ -194,6 +190,21 @@ export function PurchaseHistory({ onCancelOrder }: PurchaseHistoryProps = {}) {
     },
     [setAssistantSuppressed]
   )
+
+  // Trang hiện tại vượt trang cuối (vd. vừa hủy hết đơn ở trang cuối, hoặc đơn bị đổi nhóm): lùi về trang cuối còn đơn.
+  if (pageQuery.data && !pageQuery.isPlaceholderData && page > 1 && pageQuery.data.items.length === 0) {
+    setPage(pageCount)
+  }
+
+  const changeFilter = (next: PurchaseFilter) => {
+    setFilter(next)
+    setPage(1)
+  }
+
+  const changePage = (next: number) => {
+    setPage(next)
+    listRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' })
+  }
 
   const handleOpenReceipt = (transaction: CmsTransaction) => {
     setAssistantOpen(false)
@@ -208,6 +219,8 @@ export function PurchaseHistory({ onCancelOrder }: PurchaseHistoryProps = {}) {
       await onCancelOrder(transaction.id)
       toast.success(t('actions.cancelled'))
       setConfirmCancelId(null)
+      // Hủy đơn đổi nhóm của đơn đó nên cả các trang lẫn số đếm đều phải tải lại.
+      await queryClient.invalidateQueries({ queryKey: accountKeys.purchases() })
       await queryClient.invalidateQueries({ queryKey: accountKeys.purchaseHistory() })
     } catch (error) {
       // Lỗi từ BE (vd. đơn vừa nhận tiền nên không hủy được) đã được dịch ở tầng API.
@@ -357,8 +370,18 @@ export function PurchaseHistory({ onCancelOrder }: PurchaseHistoryProps = {}) {
     )
   }
 
+  if (isError) {
+    return (
+      <ErrorState
+        title={isApiError(error) ? error.message : t('loadError.title')}
+        retryLabel={t('loadError.retry')}
+        onRetry={() => void refetch()}
+      />
+    )
+  }
+
   return (
-    <div className='space-y-4'>
+    <div ref={listRef} className='scroll-mt-24 space-y-4'>
       <motion.div
         initial={reduceMotion ? false : { opacity: 0, y: 4 }}
         animate={{ opacity: 1, y: 0 }}
@@ -378,11 +401,11 @@ export function PurchaseHistory({ onCancelOrder }: PurchaseHistoryProps = {}) {
 
       <div className='flex flex-wrap items-center gap-2 pt-1'>
         <span className='text-muted-foreground mr-1 text-xs'>{t('filterLabel')}</span>
-        {(['all', 'paid', 'pending', 'refunded'] as const).map((status) => (
+        {FILTERS.map((status) => (
           <button
             key={status}
             type='button'
-            onClick={() => setFilter(status)}
+            onClick={() => changeFilter(status)}
             className={cn(
               'rounded-full border px-3 py-1.5 text-xs font-medium transition-colors',
               filter === status
@@ -390,7 +413,7 @@ export function PurchaseHistory({ onCancelOrder }: PurchaseHistoryProps = {}) {
                 : 'bg-card text-muted-foreground hover:bg-muted'
             )}
           >
-            {t(`filter.${status}`)} {counts[status]}
+            {t(`filter.${status}`)} {countsQuery.data?.[status]}
           </button>
         ))}
       </div>
@@ -531,6 +554,19 @@ export function PurchaseHistory({ onCancelOrder }: PurchaseHistoryProps = {}) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {visible.length > 0 ? (
+        <div className='flex flex-col items-center justify-between gap-3 sm:flex-row'>
+          <p className='text-muted-foreground text-[13px]'>
+            {t('pageSummary', {
+              from: firstShown,
+              to: firstShown + visible.length - 1,
+              total: totalCount
+            })}
+          </p>
+          <PagePagination page={page} pageCount={pageCount} onChange={changePage} disabled={pageQuery.isFetching} />
+        </div>
+      ) : null}
 
       <motion.p
         key={`payment-note-${filter}`}

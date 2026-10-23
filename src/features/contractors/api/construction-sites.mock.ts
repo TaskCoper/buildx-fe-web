@@ -153,12 +153,12 @@ export const mockConstructionSitesApi: typeof bmtConstructionSitesApi = {
     find(id)
     write(read().filter((site) => site.constructionSiteId !== id))
   },
-  list: async (pageIndex) => ({
-    items: read().slice((pageIndex - 1) * 100, pageIndex * 100),
+  list: async (pageIndex, pageSize = 100) => ({
+    items: read().slice((pageIndex - 1) * pageSize, pageIndex * pageSize),
     pageIndex,
-    pageSize: 100,
+    pageSize,
     totalCount: read().length,
-    hasNextPage: read().length > pageIndex * 100
+    hasNextPage: read().length > pageIndex * pageSize
   }),
   provinces: async () => ({ datasetVersion: 'mock-v1', provinces: [{ code: '1', name: 'Thành phố Hà Nội' }] }),
   wards: async (provinceCode) => ({

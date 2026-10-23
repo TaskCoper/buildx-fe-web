@@ -1,10 +1,12 @@
 import { env } from '@/shared/config/env'
 import { quotationApi } from '@/shared/quotations'
+import type { PagedResult } from '@/shared/types'
 import { constructionSitesApi } from './construction-sites.api'
 import { briefDrafts, requireBriefUserId, siteToBrief } from './brief-drafts'
 import type { SaveBriefPayload } from './contractors.api'
 import type { CreateBriefFromDesignPayload } from './contractors.api'
 import type { SiteDetail } from '../types/construction-site.types'
+import type { ProjectBrief, ProjectBriefSummary } from '../types/contractor.types'
 const guid = /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i
 
 export async function allConstructionSites(userId = requireBriefUserId()): Promise<SiteDetail[]> {
@@ -16,6 +18,14 @@ export async function allConstructionSites(userId = requireBriefUserId()): Promi
     if (!page.hasNextPage) return items
   }
 }
+/** Thêm số lời mời đã gửi của công trình vào hồ sơ (mỗi công trình một lần gọi `quotationApi.summary`). */
+async function summarize(brief: ProjectBrief): Promise<ProjectBriefSummary> {
+  if (!brief.constructionSiteId || env.NEXT_PUBLIC_USE_MOCK_API) return { brief, invitedCount: 0 }
+  const summary = await quotationApi.summary(brief.constructionSiteId)
+  requireBriefUserId(brief.userId)
+  return { brief, invitedCount: summary.used, invitationLimit: summary.limit }
+}
+
 export const constructionBriefsApi = {
   createBrief: async () => briefDrafts.put(briefDrafts.empty()),
   createBriefFromDesign: async (payload: CreateBriefFromDesignPayload) => {
@@ -58,14 +68,35 @@ export const constructionBriefsApi = {
       ...drafts.filter((draft) => !draft.constructionSiteId)
     ].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
   },
-  listBriefSummaries: async () =>
-    Promise.all(
-      (await constructionBriefsApi.listBriefs()).map(async (brief) => {
-        if (!brief.constructionSiteId || env.NEXT_PUBLIC_USE_MOCK_API) return { brief, invitedCount: 0 }
-        const summary = await quotationApi.summary(brief.constructionSiteId)
-        requireBriefUserId(brief.userId)
-        return { brief, invitedCount: summary.used, invitationLimit: summary.limit }
-      })
-    ),
+  listBriefSummaries: async () => Promise.all((await constructionBriefsApi.listBriefs()).map(summarize)),
+  /**
+   * Một trang "Hồ sơ của tôi": `GET /me/construction-sites?pageIndex&pageSize` (mới tạo trước), chỉ đếm lời mời cho các
+   * công trình của trang này. Bản nháp chỉ có trên thiết bị (chưa tạo công trình) không nằm trong phân trang của BE nên
+   * hiện ở đầu trang 1; `totalCount` chỉ đếm công trình trên server.
+   */
+  listBriefSummariesPage: async (pageIndex: number, pageSize: number): Promise<PagedResult<ProjectBriefSummary>> => {
+    const userId = requireBriefUserId()
+    const page = await constructionSitesApi.list(pageIndex, pageSize)
+    requireBriefUserId(userId)
+    const briefs = page.items.map((site) => {
+      const draft = briefDrafts.candidateForSite(site.constructionSiteId, userId)
+      return briefDrafts.put(siteToBrief(site, draft, draft?.id, userId))
+    })
+    const localDrafts =
+      pageIndex === 1
+        ? briefDrafts
+            .list(userId)
+            .filter((draft) => !draft.constructionSiteId)
+            .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+        : []
+    return {
+      items: await Promise.all([...localDrafts, ...briefs].map(summarize)),
+      pageIndex: page.pageIndex,
+      pageSize: page.pageSize,
+      totalCount: page.totalCount,
+      hasNextPage: page.hasNextPage,
+      hasPreviousPage: pageIndex > 1
+    }
+  },
   completeBrief: async (projectId: string) => constructionBriefsApi.getBrief(projectId)
 }

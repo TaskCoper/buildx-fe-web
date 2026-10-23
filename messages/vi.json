@@ -10,6 +10,12 @@
     "search": "Tìm kiếm",
     "submit": "Gửi",
     "close": "Đóng",
+    "pagination": {
+      "label": "Chuyển trang",
+      "previous": "Trang trước",
+      "next": "Trang sau",
+      "page": "Trang {page}"
+    },
     "imageViewer": {
       "title": "Xem ảnh lớn",
       "close": "Đóng",
@@ -2771,6 +2777,10 @@
     },
     "dossiers": {
       "title": "Hồ sơ dự án",
+      "loadError": {
+        "title": "Chưa tải được danh sách hồ sơ dự án.",
+        "retry": "Thử lại"
+      },
       "description": "Các hồ sơ bạn đã gửi tới nhà thầu và trạng thái từng lời mời báo giá.",
       "create": "Tạo hồ sơ dự án mới · miễn phí",
       "source": {
@@ -2818,6 +2828,11 @@
     },
     "purchaseHistory": {
       "title": "Lịch sử mua gói",
+      "pageSummary": "Hiển thị {from}–{to} / {total} đơn",
+      "loadError": {
+        "title": "Chưa tải được lịch sử mua gói.",
+        "retry": "Thử lại"
+      },
       "projectUnavailable": "Chưa có thông tin công trình",
       "description": "Toàn bộ đơn hàng của bạn và trạng thái thanh toán.",
       "viewPlans": "Xem các gói",

@@ -1,10 +1,17 @@
 import type { AuthUser } from '@/shared/auth'
 import { MOCK_SESSION_USER_KEY } from '@/shared/auth'
 import { cmsDb } from '@/shared/cms'
+import type { CmsTransaction } from '@/shared/cms'
 import { mockDelay } from '@/shared/lib/mock'
-import type { ApiError } from '@/shared/types'
+import type { ApiError, PagedResult } from '@/shared/types'
 import { normalizePhone } from '@/shared/utils'
-import type { AccountPlan, AccountPurchaseHistory, UpdateProfilePayload } from '../types/account.types'
+import type {
+  AccountPlan,
+  AccountPurchaseHistory,
+  PurchaseCounts,
+  PurchaseFilter,
+  UpdateProfilePayload
+} from '../types/account.types'
 
 function currentMockIdentity(): Pick<AuthUser, 'name' | 'email'> {
   if (typeof window !== 'undefined') {
@@ -113,6 +120,33 @@ export const mockAccountApi = {
         }
       ]
     }
+  },
+
+  /** Cắt trang từ lịch sử mẫu, mới nhất trước và lọc theo chip như BE. */
+  getPurchasePage: async (
+    pageIndex: number,
+    pageSize: number,
+    filter: PurchaseFilter
+  ): Promise<PagedResult<CmsTransaction>> => {
+    const { transactions } = await mockAccountApi.getPurchaseHistory()
+    const matched = transactions
+      .filter((item) => filter === 'all' || item.status === filter)
+      .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
+    const start = (pageIndex - 1) * pageSize
+    return {
+      items: matched.slice(start, start + pageSize),
+      pageIndex,
+      pageSize,
+      totalCount: matched.length,
+      hasNextPage: start + pageSize < matched.length,
+      hasPreviousPage: pageIndex > 1
+    }
+  },
+
+  getPurchaseCounts: async (): Promise<PurchaseCounts> => {
+    const { transactions } = await mockAccountApi.getPurchaseHistory()
+    const count = (status: CmsTransaction['status']) => transactions.filter((item) => item.status === status).length
+    return { all: transactions.length, paid: count('paid'), pending: count('pending'), refunded: count('refunded') }
   },
 
   /**

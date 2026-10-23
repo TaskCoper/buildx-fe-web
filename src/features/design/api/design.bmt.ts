@@ -129,6 +129,13 @@ function pipelineFields(
   }
 }
 
+/** Một dòng `GET /estimates` → thẻ dự án: luồng bốn chặng đọc thẳng `state`, luồng cũ hỏi thêm kết quả để biết bước. */
+async function toListedProject(item: BmtEstimateListItem): Promise<Project> {
+  return PIPELINE
+    ? { ...toProject(item, 1), ...pipelineFields(item.state, item.lastSucceededStage, item.succeededStages) }
+    : toProject(item, await resolveStep(item.estimateId, item.state))
+}
+
 function toProject(item: BmtEstimateListItem, currentStep: 1 | 2 | 3): Project {
   return {
     id: item.estimateId,
@@ -170,18 +177,16 @@ export const bmtDesignApi = {
       const page = await http.get<PagedResult<BmtEstimateListItem>>('/estimates', {
         params: { pageIndex, pageSize: 100 }
       })
-      items.push(
-        ...(await Promise.all(
-          page.items.map(async (item) =>
-            PIPELINE
-              ? { ...toProject(item, 1), ...pipelineFields(item.state, item.lastSucceededStage, item.succeededStages) }
-              : toProject(item, await resolveStep(item.estimateId, item.state))
-          )
-        ))
-      )
+      items.push(...(await Promise.all(page.items.map(toListedProject))))
       if (!page.hasNextPage) return [...new Map(items.map((item) => [item.id, item])).values()]
       pageIndex++
     }
+  },
+
+  /** Một trang "Dự án của tôi" (`GET /estimates`, mới cập nhật trước): chỉ tải trang đang xem, không tải hết. */
+  listProjectsPage: async (pageIndex: number, pageSize: number): Promise<PagedResult<Project>> => {
+    const page = await http.get<PagedResult<BmtEstimateListItem>>('/estimates', { params: { pageIndex, pageSize } })
+    return { ...page, items: await Promise.all(page.items.map(toListedProject)) }
   },
 
   deleteProject: async (projectId: string): Promise<void> => {

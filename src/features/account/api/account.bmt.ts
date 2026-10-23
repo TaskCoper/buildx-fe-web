@@ -4,7 +4,14 @@ import { AUTH_ENDPOINTS, useAuthStore } from '@/shared/auth'
 import { http } from '@/shared/lib/api'
 import type { ApiError, PagedResult } from '@/shared/types'
 import { normalizePhone } from '@/shared/utils'
-import type { AccountPlan, AccountPurchaseHistory, PlanAllowance, UpdateProfilePayload } from '../types/account.types'
+import type {
+  AccountPlan,
+  AccountPurchaseHistory,
+  PlanAllowance,
+  PurchaseCounts,
+  PurchaseFilter,
+  UpdateProfilePayload
+} from '../types/account.types'
 
 /** `GET /users/me` — `Response.GetMeBasic` (chỉ các trường feature này dùng). */
 interface BmtMe {
@@ -153,25 +160,9 @@ function toTransactionStatus(state: BmtPaymentOrderSummary['state']): CmsTransac
   return 'failed' // Expired | Canceled
 }
 
-/**
- * Lịch sử mua đọc đơn thật `GET /payment-orders`. Đơn thật chỉ có tên gói + giá +
- * trạng thái + ngày, KHÔNG có hạng gói cố định, hóa đơn VAT, hoàn tiền hay khối
- * gói giám sát của bản mock — nên các phần đó để trống (thẻ gói/khối thiết kế tự
- * ẩn khi `subscription`/`designOrderId` = null; thẻ "GÓI CỦA TÔI" cột trái vẫn
- * đọc `/me/design-subscription`). `tier` chỉ là giá trị đệm để hợp kiểu — UI ưu
- * tiên hiện `planName`.
- */
-export async function bmtGetPurchaseHistory(): Promise<AccountPurchaseHistory> {
-  const orders: BmtPaymentOrderSummary[] = []
-  for (let pageIndex = 1; pageIndex <= 20; pageIndex++) {
-    const page = await http.get<PagedResult<BmtPaymentOrderSummary>>('/payment-orders', {
-      params: { pageIndex, pageSize: 100 }
-    })
-    orders.push(...page.items)
-    if (!page.hasNextPage) break
-  }
-
-  const transactions: CmsTransaction[] = orders.map((order) => ({
+/** Đơn BMT → dòng giao dịch của UI. Đơn thật chỉ có tên gói + giá + trạng thái + ngày. `tier` chỉ là giá trị đệm để hợp kiểu. */
+function toTransaction(order: BmtPaymentOrderSummary): CmsTransaction {
+  return {
     id: order.id,
     customerName: '',
     customerEmail: '',
@@ -183,14 +174,52 @@ export async function bmtGetPurchaseHistory(): Promise<AccountPurchaseHistory> {
     receivedAmount: Number(order.receivedAmountVnd) || 0,
     status: toTransactionStatus(order.state),
     createdAt: order.createdAtUtc
-  }))
+  }
+}
 
+/**
+ * Phần "gói hiện tại" quanh Lịch sử mua. Đơn thật KHÔNG có hạng gói cố định, hóa đơn VAT, hoàn tiền hay khối gói
+ * giám sát của bản mock, nên các trường đó để trống (thẻ gói/khối thiết kế tự ẩn khi `subscription`/`designOrderId`
+ * = null; thẻ "GÓI CỦA TÔI" cột trái đọc `/me/design-subscription`).
+ *
+ * KHÔNG tải đơn: màn Lịch sử mua lấy từng trang qua `bmtGetPurchasePage`, còn trang chủ chỉ đọc các trường trên.
+ * Trước đây hàm này tải hết đơn (tối đa 20 trang × 100) chỉ để trả về `transactions` mà trang chủ không dùng.
+ */
+export async function bmtGetPurchaseHistory(): Promise<AccountPurchaseHistory> {
   return {
     subscription: null,
     designOrderId: null,
     supervisionOrderId: null,
     pendingSupervisionOrderId: null,
     supervisionExpiresAt: null,
-    transactions
+    transactions: []
   }
+}
+
+/** Chip lọc → nhóm đơn của BE (`group`). BE chưa có đơn hoàn tiền nên chip "Đã hoàn tiền" không có nhóm. */
+const GROUP_OF_FILTER: Partial<Record<PurchaseFilter, 'Paid' | 'Open'>> = { paid: 'Paid', pending: 'Open' }
+
+/**
+ * Một trang Lịch sử mua: `GET /payment-orders?pageIndex&pageSize&group`, mới nhất trước. Chip "Đã hoàn tiền" không
+ * có đơn nào ở BE nên trả trang rỗng mà không gọi API.
+ */
+export async function bmtGetPurchasePage(
+  pageIndex: number,
+  pageSize: number,
+  filter: PurchaseFilter
+): Promise<PagedResult<CmsTransaction>> {
+  if (filter === 'refunded') {
+    return { items: [], pageIndex, pageSize, totalCount: 0, hasNextPage: false, hasPreviousPage: pageIndex > 1 }
+  }
+  const group = GROUP_OF_FILTER[filter]
+  const page = await http.get<PagedResult<BmtPaymentOrderSummary>>('/payment-orders', {
+    params: { pageIndex, pageSize, ...(group ? { group } : {}) }
+  })
+  return { ...page, items: page.items.map(toTransaction) }
+}
+
+/** `GET /payment-orders/counts` — `Response.PaymentOrderCounts`: số đơn từng nhóm trên toàn bộ đơn của khách. */
+export async function bmtGetPurchaseCounts(): Promise<PurchaseCounts> {
+  const counts = await http.get<{ total: number; paid: number; open: number; closed: number }>('/payment-orders/counts')
+  return { all: counts.total, paid: counts.paid, pending: counts.open, refunded: 0 }
 }
