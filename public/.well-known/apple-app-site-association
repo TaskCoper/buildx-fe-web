@@ -3,7 +3,7 @@
     "details": [
       {
         "appIDs": [
-          "84K7YPU7UD.vn.savico.buildx"
+          "84K7YPU7UD.vn.savico.buildx.dev"
         ],
         "components": [
           {
@@ -13,9 +13,18 @@
           {
             "/": "/en/estimates/shared/*",
             "comment": "Link chia sẻ hồ sơ dự toán"
+          },
+          {
+            "/": "/auth/google/mobile",
+            "comment": "Backend redirect về app sau khi đăng nhập Google"
           }
         ]
       }
+    ]
+  },
+  "webcredentials": {
+    "apps": [
+      "84K7YPU7UD.vn.savico.buildx.dev"
     ]
   }
 }

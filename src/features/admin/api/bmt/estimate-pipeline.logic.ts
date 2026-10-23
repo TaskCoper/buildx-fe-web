@@ -48,6 +48,36 @@ export interface SupportedModel {
   capabilities: Record<string, boolean>
 }
 
+export interface ProviderModel {
+  model: string
+  displayName: string
+}
+
+/** Danh sách provider là nguồn lựa chọn; không lọc theo tên model hay danh sách trong mã. */
+export function normalizeProviderModels(raw: unknown): ProviderModel[] {
+  if (!isObject(raw) || !Array.isArray(raw.models)) throw new Error('Invalid provider model response')
+  const models = new Map<string, ProviderModel>()
+  for (const item of raw.models) {
+    if (!isObject(item) || typeof item.model !== 'string' || !item.model.trim()) {
+      throw new Error('Invalid provider model response')
+    }
+    models.set(item.model, { model: item.model, displayName: str(item.displayName, item.model) })
+  }
+  return [...models.values()].sort((a, b) => a.model.localeCompare(b.model))
+}
+
+/** Giữ giá trị đã lưu để đọc/sửa cấu hình cũ khi provider không còn trả model đó. */
+export function providerModelOptions(models: ProviderModel[], retained: (string | null | undefined)[] = []) {
+  const options = new Map(
+    models.map(({ model, displayName }) => [
+      model,
+      { value: model, label: displayName === model ? model : `${displayName} (${model})` }
+    ])
+  )
+  for (const model of retained) if (model && !options.has(model)) options.set(model, { value: model, label: model })
+  return [...options.values()]
+}
+
 /** Cấu hình AI hiện hành, đúng các trường của body PUT (TDD-PROJ-008 Examples). */
 export interface PipelineConfig {
   stages: StageSetting[]

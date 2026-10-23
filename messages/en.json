@@ -10,6 +10,12 @@
     "search": "Search",
     "submit": "Submit",
     "close": "Close",
+    "pagination": {
+      "label": "Page navigation",
+      "previous": "Previous page",
+      "next": "Next page",
+      "page": "Page {page}"
+    },
     "imageViewer": {
       "title": "Image viewer",
       "close": "Close",
@@ -2771,6 +2777,10 @@
     },
     "dossiers": {
       "title": "Project dossiers",
+      "loadError": {
+        "title": "Could not load your project dossiers.",
+        "retry": "Try again"
+      },
       "description": "Dossiers you have sent to contractors and the current status of each invitation.",
       "create": "Create a new dossier · free",
       "source": {
@@ -2818,6 +2828,11 @@
     },
     "purchaseHistory": {
       "title": "Purchase history",
+      "pageSummary": "Showing {from}–{to} of {total} orders",
+      "loadError": {
+        "title": "Could not load your purchase history.",
+        "retry": "Try again"
+      },
       "projectUnavailable": "Project information unavailable",
       "description": "Your active plans, remaining allowances and complete payment history.",
       "viewPlans": "View plans",
@@ -4872,6 +4887,9 @@
       "deleteConfirmBody": "Can only be deleted when no contractor or project uses this scope."
     },
     "estimateCatalog": {
+      "deleteTypeTitle": "Delete building type “{name}”?",
+      "deleteTypeBody": "This type will no longer be available for new selections. Existing estimates, library templates, construction sites and contractor data will be kept.",
+      "deleteTypeSuccess": "Building type removed from the selection catalog.",
       "groupArchitecture": "Architecture",
       "groupInterior": "Interior",
       "buildingTypesDescription": "Building types used by Create estimate and the template library. Each type separately enables floor choice, tum choice and the two style groups. Saving only affects new estimates; existing estimates keep their configuration.",
@@ -6971,6 +6989,10 @@
         "minOverlap": "Minimum overlap"
       },
       "tasks": {
+        "modelsHint": "Models are loaded from the provider using the server API key. Choose a model suitable for the task and parameters; this list does not confirm each model’s capabilities.",
+        "reloadModels": "Reload {provider} models",
+        "modelsError": "Could not load {provider} models. Check the connection settings and API key, then retry. Saved models are retained.",
+        "modelsEmpty": "{provider} returned no models for this account.",
         "title": "Model per task",
         "task": "Task",
         "provider": "Provider",

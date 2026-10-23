@@ -10,6 +10,12 @@
     "search": "Tìm kiếm",
     "submit": "Gửi",
     "close": "Đóng",
+    "pagination": {
+      "label": "Chuyển trang",
+      "previous": "Trang trước",
+      "next": "Trang sau",
+      "page": "Trang {page}"
+    },
     "imageViewer": {
       "title": "Xem ảnh lớn",
       "close": "Đóng",
@@ -2771,6 +2777,10 @@
     },
     "dossiers": {
       "title": "Hồ sơ dự án",
+      "loadError": {
+        "title": "Chưa tải được danh sách hồ sơ dự án.",
+        "retry": "Thử lại"
+      },
       "description": "Các hồ sơ bạn đã gửi tới nhà thầu và trạng thái từng lời mời báo giá.",
       "create": "Tạo hồ sơ dự án mới · miễn phí",
       "source": {
@@ -2818,6 +2828,11 @@
     },
     "purchaseHistory": {
       "title": "Lịch sử mua gói",
+      "pageSummary": "Hiển thị {from}–{to} / {total} đơn",
+      "loadError": {
+        "title": "Chưa tải được lịch sử mua gói.",
+        "retry": "Thử lại"
+      },
       "projectUnavailable": "Chưa có thông tin công trình",
       "description": "Toàn bộ đơn hàng của bạn và trạng thái thanh toán.",
       "viewPlans": "Xem các gói",
@@ -4872,6 +4887,9 @@
       "deleteConfirmBody": "Chỉ xoá được khi chưa có nhà thầu hay dự án nào dùng phạm vi này."
     },
     "estimateCatalog": {
+      "deleteTypeTitle": "Xóa loại công trình “{name}”?",
+      "deleteTypeBody": "Loại này sẽ không còn được chọn cho dữ liệu mới. Dự toán, mẫu thư viện, hồ sơ công trình và dữ liệu nhà thầu đã lưu vẫn được giữ nguyên.",
+      "deleteTypeSuccess": "Đã xóa loại khỏi danh mục lựa chọn mới.",
       "groupArchitecture": "Kiến trúc",
       "groupInterior": "Nội thất",
       "buildingTypesDescription": "Danh mục loại công trình của Tạo dự toán và thư viện mẫu. Mỗi loại bật / tắt riêng việc chọn số tầng, chọn tum và hai nhóm phong cách. Lưu xong chỉ bản dự toán mới dùng cấu hình mới; bản đã tạo giữ cấu hình cũ.",
@@ -6971,6 +6989,10 @@
         "minOverlap": "Độ trùng khớp tối thiểu"
       },
       "tasks": {
+        "modelsHint": "Danh sách lấy từ nhà cung cấp bằng khóa API trên máy chủ. Chọn model phù hợp với tác vụ và tham số; danh sách không xác nhận khả năng của từng model.",
+        "reloadModels": "Tải lại model {provider}",
+        "modelsError": "Không tải được model {provider}. Kiểm tra cấu hình kết nối và khóa API, rồi thử lại. Model đã lưu vẫn được giữ.",
+        "modelsEmpty": "{provider} chưa trả về model nào cho tài khoản này.",
         "title": "Model cho từng việc",
         "task": "Việc",
         "provider": "Nhà cung cấp",

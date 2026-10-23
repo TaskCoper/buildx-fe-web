@@ -57,7 +57,14 @@ export { ProjectBoard } from './components/project-board'
 export { ProjectCard } from './components/project-card'
 
 // Hooks
-export { useProjects, useProject, useCreateProject, useRenameProject, useDeleteProject } from './hooks/use-projects'
+export {
+  useProjects,
+  useProjectsPage,
+  useProject,
+  useCreateProject,
+  useRenameProject,
+  useDeleteProject
+} from './hooks/use-projects'
 export { useDesignQuota } from './hooks/use-design-quota'
 export { useEstimate } from './hooks/use-estimate'
 export { useDownloadEstimate } from './hooks/use-download-estimate'
@@ -145,6 +152,7 @@ export {
   PROJECT_SORTS,
   PROJECT_STAT_CARDS,
   PROJECT_STATUSES,
+  ACCOUNT_PROJECTS_PAGE_SIZE,
   PROJECTS_PAGE_SIZE,
   type ProjectStatCard,
   STEP_HELP_TOPIC,

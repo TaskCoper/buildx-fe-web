@@ -98,6 +98,9 @@ export const DEFAULT_PROJECT_SORT: ProjectSort = 'recent'
 /** Lưới 3 cột × 3 hàng rồi mới phân trang (mục IV.1). */
 export const PROJECTS_PAGE_SIZE = 9
 
+/** Số dự án mỗi trang ở tab "Dự án của tôi" trong Tài khoản (lưới 2 cột nên chẵn); BE trả từng trang. */
+export const ACCOUNT_PROJECTS_PAGE_SIZE = 8
+
 /**
  * Nút "?" của mỗi bước trỏ tới nhóm hướng dẫn nào trên trang Hướng dẫn
  * (mục II.4). Giá trị khớp `GuideTopic` nhưng khai báo dạng chuỗi vì

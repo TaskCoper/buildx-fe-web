@@ -1,5 +1,5 @@
 import { mockDelay } from '@/shared/lib/mock'
-import type { ApiError } from '@/shared/types'
+import type { ApiError, PagedResult } from '@/shared/types'
 import { sampleRecordCode } from '@/shared/utils'
 import { DESIGN_INPUT_CONFIG_ERROR } from '../constants/design.constants'
 import { designInputConfigErrors, emptyDesignInput } from '../services/design-input.service'
@@ -310,6 +310,19 @@ export const mockDesignApi = {
         floorArea: normalized.currentStep >= 2 ? ESTIMATED_FLOOR_AREA : null
       }
     })
+  },
+
+  listProjectsPage: async (pageIndex: number, pageSize: number): Promise<PagedResult<Project>> => {
+    const all = (await mockDesignApi.listProjects()).sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt))
+    const start = (pageIndex - 1) * pageSize
+    return {
+      items: all.slice(start, start + pageSize),
+      pageIndex,
+      pageSize,
+      totalCount: all.length,
+      hasNextPage: start + pageSize < all.length,
+      hasPreviousPage: pageIndex > 1
+    }
   },
 
   createProject: async (payload: CreateProjectPayload, _key?: string): Promise<Project> => {

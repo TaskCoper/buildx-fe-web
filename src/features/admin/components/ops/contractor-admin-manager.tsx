@@ -399,6 +399,9 @@ export function ContractorAdminManager() {
                 allowClear
                 loading={options.isPending}
                 options={buildingTypeOptions}
+                labelRender={({ value, label }) =>
+                  options.data?.retiredBuildingTypes.find((type) => type.id === value)?.name ?? label ?? String(value)
+                }
                 optionFilterProp='label'
               />
             </Form.Item>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useRef } from 'react'
 import { useAuth } from '@/shared/auth'
@@ -10,6 +10,7 @@ import { useRouter } from '@/i18n/navigation'
 import { designInputRoute } from '@/shared/constants/routes'
 import { isApiError } from '@/shared/lib/api'
 import { designApi, type CreateProjectPayload } from '../api/design.api'
+import { ACCOUNT_PROJECTS_PAGE_SIZE } from '../constants/design.constants'
 import { designKeys } from '../api/design.keys'
 import { useDesignStore } from '../store/design.store'
 
@@ -26,6 +27,25 @@ export function useProjects(enabled = true) {
       user?.accountKind === 'Customer' &&
       !user.mustChangePassword &&
       user.emailVerified !== false
+  })
+}
+
+/**
+ * Một trang "Dự án của tôi" ở tab Tài khoản: BE trả từng trang (mới cập nhật trước) nên không tải hết danh sách. Giữ
+ * trang cũ trên màn trong lúc tải trang mới để lưới không nháy về khung xương.
+ */
+export function useProjectsPage(pageIndex: number, pageSize = ACCOUNT_PROJECTS_PAGE_SIZE) {
+  const { user, isAuthenticated, isInitialized } = useAuth()
+  return useQuery({
+    queryKey: [...designKeys.projects(), 'owner-page', user?.id, pageSize, pageIndex],
+    queryFn: () => designApi.listProjectsPage(pageIndex, pageSize),
+    enabled:
+      isInitialized &&
+      isAuthenticated &&
+      user?.accountKind === 'Customer' &&
+      !user.mustChangePassword &&
+      user.emailVerified !== false,
+    placeholderData: keepPreviousData
   })
 }
 

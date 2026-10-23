@@ -23,6 +23,9 @@ export const contractorKeys = {
   /** Danh sách hồ sơ dự án của tài khoản (S09 — nút "Xem nhà thầu"). */
   briefList: (userId?: string) => [...contractorKeys.briefs(), 'list', ...(userId ? [userId] : [])] as const,
   briefSummaries: (userId?: string) => [...contractorKeys.briefs(), 'summaries', ...(userId ? [userId] : [])] as const,
+  /** Một trang "Hồ sơ của tôi" (Tài khoản); nằm dưới `briefSummaries` nên cùng bị làm mới theo hồ sơ. */
+  briefSummaryPage: (userId: string | undefined, pageSize: number, pageIndex: number) =>
+    [...contractorKeys.briefSummaries(userId), 'page', pageSize, pageIndex] as const,
   /** Hồ sơ dự án đang dựng / đã lưu (S10, S11). */
   brief: (projectId: string, userId?: string) =>
     [...contractorKeys.briefs(), projectId, ...(userId ? [userId] : [])] as const,

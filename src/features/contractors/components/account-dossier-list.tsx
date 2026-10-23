@@ -3,12 +3,13 @@
 import { ArrowRight, CircleCheck, House, Info, MapPin, Plus, Search, Trash2 } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
 import { useLocale, useTranslations } from 'next-intl'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 
 import { env } from '@/shared/config/env'
+import { isApiError } from '@/shared/lib/api'
 import { Link } from '@/i18n/navigation'
 import type { Locale } from '@/i18n/routing'
-import { revealEase } from '@/shared/components/common'
+import { ErrorState, PagePagination, revealEase } from '@/shared/components/common'
 import { Button } from '@/shared/components/ui/button'
 import {
   Dialog,
@@ -22,8 +23,8 @@ import { Skeleton } from '@/shared/components/ui/skeleton'
 import { contractorInvitationsRoute, contractorMatchesRoute, ROUTES } from '@/shared/constants/routes'
 import { cn } from '@/shared/lib/utils'
 import { formatDisplayDateTime } from '@/shared/utils'
-import { useBriefSummaries } from '../hooks/use-brief-summaries'
-import { MAX_INVITATIONS } from '../constants/contractors.constants'
+import { useBriefSummariesPage } from '../hooks/use-brief-summaries'
+import { DOSSIERS_PAGE_SIZE, MAX_INVITATIONS } from '../constants/contractors.constants'
 import { useCreateBrief, useDeleteBrief } from '../hooks/use-brief'
 import { useInvitations } from '../hooks/use-invitations'
 import type { Invitation, ProjectBriefSummary } from '../types/contractor.types'
@@ -291,13 +292,25 @@ function DossierRow({
  */
 export function AccountDossierList() {
   const t = useTranslations('account.dossiers')
-  const { data: summaries, isPending } = useBriefSummaries()
+  const [page, setPage] = useState(1)
+  const { data, isPending, isError, error, refetch, isFetching, isPlaceholderData } = useBriefSummariesPage(page)
+  const summaries = data?.items
+  const pageCount = Math.max(1, Math.ceil((data?.totalCount ?? 0) / DOSSIERS_PAGE_SIZE))
+  const listRef = useRef<HTMLDivElement>(null)
   const createBrief = useCreateBrief()
   const reduceMotion = Boolean(useReducedMotion())
+
+  // Trang hiện tại vượt trang cuối (vd. vừa xóa hết hồ sơ ở trang cuối): lùi về trang cuối còn hồ sơ.
+  if (data && !isPlaceholderData && page > 1 && data.items.length === 0) setPage(pageCount)
+
+  const changePage = (next: number) => {
+    setPage(next)
+    listRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' })
+  }
   const noteDelay = reduceMotion ? 0 : 0.28 + Math.min(summaries?.length ?? 0, 5) * 0.08
 
   return (
-    <div className='space-y-3'>
+    <div ref={listRef} className='scroll-mt-24 space-y-3'>
       <motion.div
         initial={reduceMotion ? false : { opacity: 0, y: 4 }}
         animate={{ opacity: 1, y: 0 }}
@@ -322,13 +335,22 @@ export function AccountDossierList() {
             <Skeleton key={item} className='h-[180px] w-full rounded-2xl' />
           ))}
         </div>
+      ) : isError ? (
+        <ErrorState
+          title={isApiError(error) ? error.message : t('loadError.title')}
+          retryLabel={t('loadError.retry')}
+          onRetry={() => void refetch()}
+        />
       ) : summaries?.length ? (
-        <div className='space-y-3'>
-          {summaries.map((summary, index) => (
-            <DossierRow key={summary.brief.id} summary={summary} index={index} reduceMotion={reduceMotion} />
-          ))}
-        </div>
-      ) : (
+        <>
+          <div className='space-y-3'>
+            {summaries.map((summary, index) => (
+              <DossierRow key={summary.brief.id} summary={summary} index={index} reduceMotion={reduceMotion} />
+            ))}
+          </div>
+          <PagePagination page={page} pageCount={pageCount} onChange={changePage} disabled={isFetching} />
+        </>
+      ) : page > 1 ? null : (
         <motion.div
           initial={reduceMotion ? false : { opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
@@ -355,7 +377,7 @@ export function AccountDossierList() {
         </motion.div>
       )}
 
-      {!isPending ? (
+      {!isPending && !isError ? (
         <motion.p
           initial={reduceMotion ? false : { opacity: 0, y: 4 }}
           animate={{ opacity: 1, y: 0 }}

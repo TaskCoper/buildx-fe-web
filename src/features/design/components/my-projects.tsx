@@ -4,13 +4,13 @@ import { resumeProjectRoute } from '../services/project-list.service'
 import { PIPELINE_STEPS, pipelineMiniSteps, resumeStep } from '../services/pipeline.logic'
 
 import { ArrowRight, Check, House, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
 import { Fragment } from 'react'
 
 import { Link } from '@/i18n/navigation'
 import type { Locale } from '@/i18n/routing'
-import { EmptyState, Photo } from '@/shared/components/common'
+import { EmptyState, PagePagination, Photo } from '@/shared/components/common'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,9 +20,9 @@ import {
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import { cn } from '@/shared/lib/utils'
 import { formatDisplayDate } from '@/shared/utils'
-import { DESIGN_STEPS } from '../constants/design.constants'
+import { ACCOUNT_PROJECTS_PAGE_SIZE, DESIGN_STEPS } from '../constants/design.constants'
 import { useEstimateBrief } from '../hooks/use-estimate-brief'
-import { useProjects } from '../hooks/use-projects'
+import { useProjectsPage } from '../hooks/use-projects'
 import { DesignLoadError } from './design-load-error'
 import type { Project } from '../types/design.types'
 import { DeleteProjectDialog, RenameProjectDialog } from './project-menu-dialogs'
@@ -47,7 +47,19 @@ interface MyProjectsProps {
 export function MyProjects({ renderSupervision }: MyProjectsProps = {}) {
   const t = useTranslations('account.projects')
   const tp = useTranslations('design.projects')
-  const { data: projects, isPending, isError, error, refetch } = useProjects()
+  const [page, setPage] = useState(1)
+  const { data, isPending, isError, error, refetch, isFetching, isPlaceholderData } = useProjectsPage(page)
+  const projects = data?.items
+  const pageCount = Math.max(1, Math.ceil((data?.totalCount ?? 0) / ACCOUNT_PROJECTS_PAGE_SIZE))
+  const listRef = useRef<HTMLUListElement>(null)
+
+  // Trang hiện tại vượt trang cuối (vd. vừa xóa hết dự án ở trang cuối): lùi về trang cuối còn dự án.
+  if (data && !isPlaceholderData && page > 1 && data.items.length === 0) setPage(pageCount)
+
+  function changePage(next: number) {
+    setPage(next)
+    listRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' })
+  }
 
   const [renaming, setRenaming] = useState<Project | null>(null)
   const [deleting, setDeleting] = useState<Project | null>(null)
@@ -72,7 +84,8 @@ export function MyProjects({ renderSupervision }: MyProjectsProps = {}) {
   if (isError) return <DesignLoadError error={error} onRetry={() => void refetch()} />
 
   if (!projects?.length) {
-    return <EmptyState title={t('empty.title')} description={t('empty.description')} />
+    // Trang sau trang cuối (vừa xóa hết): chờ hiệu ứng ở trên lùi về trang cuối, không nháy "chưa có dự án".
+    return page > 1 ? null : <EmptyState title={t('empty.title')} description={t('empty.description')} />
   }
 
   return (
@@ -80,7 +93,7 @@ export function MyProjects({ renderSupervision }: MyProjectsProps = {}) {
       {/* `grid-flow-row-dense`: thẻ có khối giám sát chiếm HAI hàng (xem bên
           dưới), nên các thẻ sau phải lấp được vào ô trống của hàng thứ hai thay
           vì nhảy hẳn xuống hàng ba. */}
-      <ul className='grid grid-flow-row-dense items-start gap-4 sm:grid-cols-2'>
+      <ul ref={listRef} className='grid scroll-mt-24 grid-flow-row-dense items-start gap-4 sm:grid-cols-2'>
         {projects.map((project) => {
           const done = project.status === 'completed'
           const pipeline = project.pipeline
@@ -242,6 +255,8 @@ export function MyProjects({ renderSupervision }: MyProjectsProps = {}) {
           )
         })}
       </ul>
+
+      <PagePagination page={page} pageCount={pageCount} onChange={changePage} disabled={isFetching} className='mt-4' />
 
       <RenameProjectDialog project={renaming} onClose={() => setRenaming(null)} />
       <DeleteProjectDialog project={deleting} onClose={() => setDeleting(null)} />
