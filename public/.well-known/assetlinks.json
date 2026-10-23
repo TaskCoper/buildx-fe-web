@@ -3,9 +3,9 @@
     "relation": ["delegate_permission/common.handle_all_urls"],
     "target": {
       "namespace": "android_app",
-      "package_name": "vn.savico.buildx",
+      "package_name": "vn.savico.buildx.dev",
       "sha256_cert_fingerprints": [
-        "48:6F:D0:FC:D6:BB:D2:B9:D8:A5:C6:2A:C8:08:32:E7:A8:25:82:F8:39:14:9B:55:E5:2D:E7:03:66:9E:7F:47"
+        "FA:C6:17:45:DC:09:03:78:6F:B9:ED:E6:2A:96:2B:39:9F:73:48:F0:BB:6F:89:9B:83:32:66:75:91:03:3B:9C"
       ]
     }
   }
